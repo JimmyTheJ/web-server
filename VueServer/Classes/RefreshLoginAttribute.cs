@@ -12,8 +12,6 @@ namespace VueServer.Classes
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
             await context.HttpContext.RefreshLoginAsync();
-            Console.WriteLine("Refreshed!");
-            Debug.WriteLine("Refreshed!");
             await next();
         }
     }

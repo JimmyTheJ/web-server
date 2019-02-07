@@ -1,6 +1,9 @@
 <template>
     <v-tooltip bottom color="grey lighten-3" open-delay="400">
-        <span slot="activator">{{ value }}</span>
+        <template v-slot:activator="{ on }">
+            <span v-on="on">{{ value }}</span>
+        </template>
+        
         <v-flex class="tooltip">
             <slot>{{ value }}</slot>
         </v-flex>

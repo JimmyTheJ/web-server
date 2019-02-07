@@ -35,3 +35,7 @@ export const Delay = {
     "11": 2500,
     "12": 3000,
 }
+
+export const ApiEndpoints = {
+    Signout: 'api/account/logout'
+}

@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,6 +19,12 @@ namespace VueServer.Models
 
         public void BuildFileInfo(FileSystemInfo fsi)
         {
+            if (fsi == null)
+            {
+                Console.WriteLine($"[WebServerFile] BuildFileInfo: fsi is null");
+                return;
+            }
+
             Title = fsi.Name;
 
             //Console.WriteLine("Attributes: " + fsi.Attributes.ToString());

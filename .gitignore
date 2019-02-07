@@ -35,11 +35,13 @@ bld/
 # Visual Studio 2015 cache/options directory
 .vs/
 
+# Remove FFMpeg exes
+*/ffmpeg.exe
+*/ffprobe.exe
+
 # Webserver fileserver folders
 */wwwroot/.well-known/**
-*/wwwroot/files/**
 */wwwroot/tmp/**
-*/wwwroot/videos/**
 
 # Webpack build results
 */wwwroot/dist/**

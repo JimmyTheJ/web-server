@@ -16,11 +16,11 @@ let router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-    let role = store.getters.getUserRole;
-    let level = Auth.methods.convertRole(role);
+    let role = store.state.auth.role;
+    let level = Auth.methods.$_auth_convertRole(role);
 
-    if (store.getters.getIsAuthorize === true && to.meta.authLevel > level) {
-        ConMsgs.methods.$_console_log('[Router] BeforeEach: DENIED ACCESS');
+    if (store.state.auth.isAuthorize === true && to.meta.authLevel > level) {
+        ConMsgs.methods.$_console_log('[Router] beforeEach: DENIED ACCESS');
         next('/home/start');
     }
 

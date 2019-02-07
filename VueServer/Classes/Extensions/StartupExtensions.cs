@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -6,12 +5,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations.Internal;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
@@ -24,13 +23,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VueServer.Classes.Scheduling;
-using VueServer.Common.Enums;
-using VueServer.Common.Factory.Concrete;
-using VueServer.Common.Factory.Interface;
+using VueServer.Domain.Enums;
+using VueServer.Domain.Factory.Concrete;
+using VueServer.Domain.Factory.Interface;
+using VueServer.Domain.Helper;
 using VueServer.Models;
 using VueServer.Models.Account;
 using VueServer.Models.Context;
 using VueServer.Models.Directory;
+using VueServer.Models.Identity;
+using VueServer.Models.User;
 using VueServer.Services.Concrete;
 using VueServer.Services.Interface;
 
@@ -45,14 +47,21 @@ namespace VueServer.Classes.Extensions
         /// <param name="config"></param>
         public static void AddCustomAuthentication (this IServiceCollection services, IConfiguration config)
         {
-            services.AddIdentity<ServerIdentity, IdentityRole>(options =>
+            services.AddScoped<IWSContext, WSContext>();
+
+            // Setup the custom identity framework dependencies.
+            services.AddTransient<IUserStore<WSUser>, ServerUserStore>();
+            services.AddTransient<IRoleStore<WSRole>, ServerRoleStore>();
+
+            services.AddIdentity<WSUser, WSRole>(options =>
             {
                 options.Password.RequireDigit = false;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequiredLength = 1;
-            }).AddEntityFrameworkStores<UserContext>().AddDefaultTokenProviders();
+                options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890-._@+ ";
+            });
 
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
             services
@@ -166,17 +175,15 @@ namespace VueServer.Classes.Extensions
         /// Add all services needed for the application
         /// </summary>
         /// <param name="services"></param>
-        /// <param name="config"></param>
         public static void AddCustomServices (this IServiceCollection services, IConfigurationRoot config)
         {
             services.AddSingleton(a => config);
             services.AddSingleton<IStatusCodeFactory<IActionResult>, StatusCodeFactory>();
 
             services.AddScoped<IAccountService, AccountService>();
-            services.AddScoped<IUploadService, UploadService>();
             services.AddScoped<IDirectoryService, DirectoryService>();
             services.AddScoped<INoteService, NoteService>();
-            services.AddScoped<IFileServerService, FileServerService>();
+            services.AddScoped<IWeightService, WeightService>();
 
             services.AddScoped<IUserService, UserService>();
 
@@ -196,45 +203,38 @@ namespace VueServer.Classes.Extensions
         /// <param name="config"></param>
         public static void AddCustomDataStore (this IServiceCollection services, IConfiguration config)
         {
-            string userConnectionString = config.GetConnectionString("UserDbConnectionString");
             string webServerConnectionString = config.GetConnectionString("WebServerDbConnectionString");
 
-            DatabaseTypes dbType = (DatabaseTypes) config.GetValue<int>("Options:DatabaseType");
+            DatabaseTypes dbType = (DatabaseTypes) config.GetSection("Options").GetValue<int>("DatabaseType");
             if (dbType == DatabaseTypes.MSSQLSERVER)
             {
-                using (var client = new UserContext(new DbContextOptionsBuilder<UserContext>().UseSqlServer(userConnectionString, a => a.MigrationsAssembly("VueServer")).Options))
-                {
-                    client.Database.EnsureCreated();
-                }
-
                 using (var client = new WSContext(new DbContextOptionsBuilder<WSContext>().UseSqlServer(webServerConnectionString, a => a.MigrationsAssembly("VueServer")).Options))
                 {
                     client.Database.Migrate();
                 }
-
-                services.AddEntityFrameworkSqlServer().AddDbContext<UserContext>
-                    (options => options.UseSqlServer(userConnectionString, a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
 
                 services.AddEntityFrameworkSqlServer().AddDbContext<WSContext>
                     (options => options.UseSqlServer(webServerConnectionString, a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
             }
             else if (dbType == DatabaseTypes.SQLITE)
             {
-                using (var client = new UserContext(new DbContextOptionsBuilder<UserContext>().UseSqlite(userConnectionString, a => a.MigrationsAssembly("VueServer")).Options))
-                {
-                    client.Database.EnsureCreated();
-                }
-
                 using (var client = new WSContext(new DbContextOptionsBuilder<WSContext>().UseSqlite(webServerConnectionString, a => a.MigrationsAssembly("VueServer")).Options))
                 {
                     client.Database.Migrate();
                 }
 
-                services.AddEntityFrameworkSqlite().AddDbContext<UserContext>
-                    (options => options.UseSqlite(userConnectionString, a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
-
                 services.AddEntityFrameworkSqlite().AddDbContext<WSContext>
                     (options => options.UseSqlite(webServerConnectionString, a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
+            }
+            else if (dbType == DatabaseTypes.MYSQL)
+            {
+                using (var client = new WSContext(new DbContextOptionsBuilder<WSContext>().UseMySql(webServerConnectionString, a => a.MigrationsAssembly("VueServer")).Options))
+                {
+                    client.Database.Migrate();
+                }
+
+                services.AddEntityFrameworkMySql().AddDbContext<WSContext>
+                    (options => options.UseMySql(webServerConnectionString, a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
             }
         }
 
@@ -243,13 +243,14 @@ namespace VueServer.Classes.Extensions
         /// </summary>
         /// <param name="services"></param>
         /// <param name="env"></param>
-        public static void AddCustomHttpsRedirection(this IServiceCollection services, IHostingEnvironment env)
+        public static void AddCustomHttpsRedirection(this IServiceCollection services, IWebHostEnvironment env, IConfiguration config)
         {
+            var port = config.GetSection("Options").GetValue<int>("Port");
             if (env.IsDevelopment())
             {
                 services.AddHttpsRedirection(options =>
                 {
-                    options.HttpsPort = 7757;
+                    options.HttpsPort = port;
                     options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
                 });
             }
@@ -257,7 +258,7 @@ namespace VueServer.Classes.Extensions
             {
                 services.AddHttpsRedirection(options =>
                 {
-                    options.HttpsPort = 443;   // Set this in config file
+                    options.HttpsPort = port;
                     options.RedirectStatusCode = StatusCodes.Status301MovedPermanently;
                 });
             }
@@ -287,8 +288,10 @@ namespace VueServer.Classes.Extensions
         /// <param name="app"></param>
         /// <param name="env"></param>
         /// <param name="logger"></param>
-        public static void UseWebpackFileServer (this IApplicationBuilder app, IHostingEnvironment env, ILogger logger)
+        public static void UseWebpackFileServer (this IApplicationBuilder app, IWebHostEnvironment env, ILogger logger)
         {
+            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"dist"), "StartupExtensions: Error creating dist folder")) return;
+
             app.UseStaticFiles(new StaticFileOptions()
             {
                 FileProvider = new PhysicalFileProvider(Path.Combine(env.WebRootPath, @"dist")),
@@ -305,45 +308,15 @@ namespace VueServer.Classes.Extensions
         }
 
         /// <summary>
-        /// Serve files for video streaming in the /videos folder of wwwroot
-        /// </summary>
-        /// <param name="app"></param>
-        /// <param name="env"></param>
-        /// <param name="logger"></param>
-        public static void UseVideoFileServer(this IApplicationBuilder app, IHostingEnvironment env, ILogger logger)
-        {
-            //var provider = new FileExtensionContentTypeProvider();
-            //provider.Mappings[".mkv"] = "video/webm";
-            //provider.Mappings[".mkv"] = "video/x-matroska";
-
-            // Video file serving
-            var options = new FileServerOptions()
-            {
-                FileProvider = new PhysicalFileProvider(Path.Combine(env.WebRootPath, @"videos")),
-                RequestPath = new PathString("/videos"),
-                EnableDirectoryBrowsing = true,
-                EnableDefaultFiles = true
-            };
-            options.StaticFileOptions.ServeUnknownFileTypes = true;
-            //options.StaticFileOptions.ContentTypeProvider = provider;
-            //options.StaticFileOptions.DefaultContentType = "video/webm";
-            options.StaticFileOptions.OnPrepareResponse = s =>
-            {
-                //s.Context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate;");
-                //s.Context.Response.Headers.Add("Pragma", "no-cache");
-                Console.WriteLine("Attempting to download video file!");
-            };
-            app.UseFileServer(options);
-        }
-
-        /// <summary>
         /// This is used to expose the files necessary for TLS Certificate authentication from CertifyTheWeb
         /// </summary>
         /// <param name="app"></param>
         /// <param name="env"></param>
         /// <param name="logger"></param>
-        public static void UseAutoAuthorizerStaticFiles(this IApplicationBuilder app, IHostingEnvironment env, ILogger logger)
+        public static void UseAutoAuthorizerStaticFiles(this IApplicationBuilder app, IWebHostEnvironment env, ILogger logger)
         {
+            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @".well-known"), "StartupExtensions: Error creating auto authorizer folder")) return;
+
             app.UseStaticFiles(new StaticFileOptions()
             {
                 FileProvider = new PhysicalFileProvider(Path.Combine(env.WebRootPath, @".well-known")),
@@ -351,7 +324,7 @@ namespace VueServer.Classes.Extensions
                 ServeUnknownFileTypes = true,
                 OnPrepareResponse = s =>
                 {
-                    logger.LogInformation("Someone trying to access .well-known folder from: " + s.Context.Connection.RemoteIpAddress.ToString());
+                    logger.LogInformation($"Someone trying to access .well-known from: {s.Context.Connection.RemoteIpAddress.ToString()}");
                 }
             });
         }

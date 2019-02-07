@@ -1,6 +1,6 @@
 <template>
     <div id="app">
-        <v-app dark>
+        <v-app>
             <router-view></router-view>
         </v-app>
     </div>
@@ -17,13 +17,12 @@
             }
         },
         created() {
-            if (this.$store.getters.getIsAuthorize) {
+            if (this.$store.state.auth.isAuthorize) {
                 this.$store.dispatch('getCsrfToken').then(resp => {
                     this.$_console_log("Got csrf token!")
                 }).catch(() => this.$_console_log("Did not get token :("))
             }
-        },
-        created() {
+
             this.refreshTokenJob();
         },
         methods: {
@@ -31,7 +30,7 @@
                 this.$_console_log('Refresh token job started');
                 setTimeout(() => {
                     this.$_console_log('Token timeout reached. Getting new tokens');
-                    if (this.$store.getters.getIsAuthorize) {
+                    if (this.$store.state.auth.isAuthorize) {
                         this.$store.dispatch('refreshToken').then(resp => {
                             this.$store.dispatch('getCsrfToken').then(resp => {
                                 this.$_console_log("Got csrf token!");

@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>VueServer.Models</RootNamespace>
+    <!--<RootNamespace>VueServer.Models</RootNamespace>-->
+    <!--<RuntimeFrameworkVersion>2.2.0</RuntimeFrameworkVersion>-->
+    <!--<AspNetCoreModuleName>AspNetCoreModuleNameV2</AspNetCoreModuleName>
+    <AspNetCoreHostingModel>inprocess</AspNetCoreHostingModel>-->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Context\Concrete\**" />
+    <Compile Remove="Context\Interface\**" />
+    <EmbeddedResource Remove="Context\Concrete\**" />
+    <EmbeddedResource Remove="Context\Interface\**" />
+    <None Remove="Context\Concrete\**" />
+    <None Remove="Context\Interface\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="3.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\VueServer.Domain.csproj" />
+  </ItemGroup>
+  
+</Project>

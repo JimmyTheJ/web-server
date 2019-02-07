@@ -3,7 +3,7 @@ import authAPI from '../../services/auth'
 import ConMsgs from '../../mixins/console';
 
 const state = {
-    isAuthorize: localStorage.getItem('isAuthorize') || false,
+    isAuthorize: Boolean(localStorage.getItem('isAuthorize')) || false,
     username: localStorage.getItem('username') || '',
     role: localStorage.getItem('userRole') || '',
 
@@ -13,13 +13,7 @@ const state = {
 }
 
 const getters = {
-    getIsAuthorize: state => state.isAuthorize,
-    getUsername: state => state.username,
-    getUserRole: state => state.role,
 
-    getAccessToken: state => state.accessToken,
-    getRefreshToken: state => state.refreshToken,
-    getCsrfToken: state => state.csrfToken,
 }
 
 const actions = {
@@ -135,6 +129,7 @@ const mutations = {
     },
     [types.LOGOUT](state) {
         ConMsgs.methods.$_console_log("Mutating logout");
+
         state.username = ''
         state.role = ''
         state.accessToken = ''

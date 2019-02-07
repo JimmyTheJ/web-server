@@ -1,8 +1,13 @@
+'use strict'
+
 const path = require('path');
 const webpack = require('webpack');
+const HtmlPlugin = require('html-webpack-plugin');
 const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { VueLoaderPlugin } = require('vue-loader');
+const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin')
+
 
 const bundleOutputDir = './wwwroot/dist';
 const devConfig = require('./ClientApp/config/dev.env');
@@ -20,7 +25,7 @@ module.exports = (env) => {
 
         },
         output: {
-            filename: '[name].js',
+            filename: isDevBuild ? '[name].js' : '[name].[chunkhash].js',
             path: path.resolve(__dirname, bundleOutputDir),
             publicPath: '/dist/'
         },
@@ -35,6 +40,12 @@ module.exports = (env) => {
                 path.resolve('./ClientApp'),
                 path.resolve('./node_modules'),
             ],
+        },
+        watch: true,
+        watchOptions: {
+            aggregateTimeout: 300,
+            poll: 1000,
+            ignored: /node_modules/
         },
         optimization: {
             minimize: isDevBuild ? false : true,
@@ -78,14 +89,30 @@ module.exports = (env) => {
                 },
 
                 {
-                    test: /\.(sa|sc|c)ss$/,
-                    use: isDevBuild ? ['style-loader', 'css-loader'] : [
-                            MiniCssExtractPlugin.loader,
-                            'css-loader',
-                            'sass-loader'
-                        ]
+                    test: /\.s(c|a)ss$/,
+                    use: [
+                        //MiniCssExtractPlugin.loader,
+                        'vue-style-loader',
+                        'css-loader',
+                        {
+                            loader: 'sass-loader',
+                            options: {
+                                implementation: require('sass'),
+                                sassOptions: {
+                                    fiber: require('fibers'),
+                                    indentedSyntax: true // optional
+                                },
+                            },
+                        },
+                    ],
                 },
-
+                {
+                    test: /\.css$/,
+                    use: [
+                        MiniCssExtractPlugin.loader,
+                        'css-loader',
+                    ]
+                },
                 {
                     test: /\.(png|jpg|jpeg|gif|svg|ttf|eot|woff(2)?)$/,
                     use: 'url-loader?limit=25000'
@@ -94,10 +121,28 @@ module.exports = (env) => {
         },
         plugins: [
             new MiniCssExtractPlugin({
-                filename: '[name].css',
+                filename: isDevBuild ? '[name].css' : '[name].[chunkhash].css',
                 //chunkFilename: '[id].css'
             }),
 
+            // Rewrite index.html based off template and with new hashes
+            new HtmlPlugin({
+                //filename: '',
+                title: 'Dotnet Core Vue.js Web server',
+                chunks: {
+                    main: {
+                        entry: 'main.js',
+                        css: [ 'main.css' ]
+                    },
+                    vendor: {
+                        entry: 'vendor.js',
+                        css: [ 'vendor.css' ]
+                    }
+                },
+                template: 'ClientApp/index.html'
+            }),
+
+            new VuetifyLoaderPlugin(),
             new VueLoaderPlugin(),
         ].concat(isDevBuild ? [
             // Plugins that apply in development builds only

@@ -1,5 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using VueServer.Models.User;
 
 namespace VueServer.Models
 {
@@ -12,11 +14,11 @@ namespace VueServer.Models
         
         public int Priority { get; set; }
 
-        public String Color { get; set; }
+        public string Color { get; set; }
         
-        public String Text { get; set; }
+        public string Text { get; set; }
 
-        public String Title { get; set; }
+        public string Title { get; set; }
 
         [DataType(DataType.DateTime)]
         public DateTimeOffset Created { get; set; }
@@ -24,6 +26,9 @@ namespace VueServer.Models
         [DataType(DataType.DateTime)]
         public DateTimeOffset Updated { get; set; }
 
-        public string User { get; set; }
+        [ForeignKey("User")]
+        public string UserId { get; set; }
+
+        public WSUser User { get; set; }
     }
 }

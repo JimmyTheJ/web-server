@@ -14,16 +14,16 @@
                           :items="fileList"
                           label="Select a video here"
                           ></v-select>
-                <video-player :url="getUrl" :type="getType" ref="v-player"></video-player>
+                <video-player :url="getUrl" ref="v-player"></video-player>
             </div>
             <!--<div class="headline deep-orange--text text--darken-2">
                 Downloads
             </div>
-            <v-list-tile v-for="(item, i) in fileList" :key="i">
-                <v-list-tile-content class="title">
+            <v-list-item v-for="(item, i) in fileList" :key="i">
+                <v-list-item-content class="title">
                     <a :href="getDownloadPath(item)" class="orange--text text--darken-1" download>{{ item }}</a>
-                </v-list-tile-content>
-            </v-list-tile>-->
+                </v-list-item-content>
+            </v-list-item>-->
         </v-container>
     </div>
 </template>
@@ -63,33 +63,6 @@
                     return "";
 
                 return `${path}/videos/${encodeURI(this.selected)}`;
-            },
-            getType() {
-                if (typeof this.selected === 'undefined' || this.selected === null || this.selected === '')
-                    return "";
-
-                if (!this.selected.includes('.'))
-                    return "";
-
-                let index = this.selected.lastIndexOf('.');
-                let extension = this.selected.slice(index);
-
-                switch (extension) {
-                    case '.mkv':
-                        return 'video/webm';
-                    case '.avi':
-                        return 'video/x-msvideo';
-                    case '.mpeg':
-                    case '.mpg':
-                        return 'video/mp4';
-                    case '.wmv':
-                        return 'video/x-ms-wmv';
-
-                    case '.mp3':
-                        return 'audio/mpeg';
-                    default:
-                        return '';
-                }
             },
         },
         watch: {

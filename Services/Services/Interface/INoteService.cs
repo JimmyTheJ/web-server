@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using VueServer.Common.Concrete;
-using VueServer.Common.Interface;
+using VueServer.Domain.Concrete;
+using VueServer.Domain.Interface;
 using VueServer.Models;
 
 namespace VueServer.Services.Interface

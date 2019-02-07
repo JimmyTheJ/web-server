@@ -16,5 +16,11 @@ namespace VueServer.Models.Account
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; }
+
+        public LoginRequest (string username, string password)
+        {
+            Username = username;
+            Password = password;
+        }
     }
 }

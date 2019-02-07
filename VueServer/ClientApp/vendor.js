@@ -1,9 +1,5 @@
 import 'axios'
 
-import 'core-js/es6/array'
-import 'core-js/es6/promise'
-
-
 // Font Awesome
 import './font-awesome'
 import '@fortawesome/fontawesome'

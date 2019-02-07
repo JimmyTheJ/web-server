@@ -8,7 +8,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using VueServer.Common.Factory.Interface;
+using static VueServer.Domain.Constants;
+using VueServer.Domain.Factory.Interface;
 using VueServer.Models;
 using VueServer.Models.Account;
 using VueServer.Models.Context;
@@ -28,11 +29,11 @@ namespace VueServer.Controllers
             INoteService service, 
             IStatusCodeFactory<IActionResult> codeFactory)
         {
-            _codeFactory = codeFactory;
-            _service = service;
+            _codeFactory = codeFactory ?? throw new ArgumentNullException("Code factory is null");
+            _service = service ?? throw new ArgumentNullException("Note service is null");
         }
 
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
         [HttpGet]
         [Route("getall")]
         public async Task<IActionResult> GetAll()

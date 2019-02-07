@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
-using VueServer.Models.Account;
+using VueServer.Models.User;
 
 namespace VueServer.Services.Interface
 {
@@ -20,6 +20,6 @@ namespace VueServer.Services.Interface
 
         //string GetUsername();
 
-        Task<ServerIdentity> GetUserAsync();
+        Task<WSUser> GetUserAsync();
     }
 }

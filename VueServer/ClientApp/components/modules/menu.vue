@@ -4,22 +4,22 @@
                              v-model="drawer"
                              class="grey lighten-4"
                              width="150"
-                             height="340"
+                             :height="getDrawerHeight"
                              absolute
                              app>
             <v-list light>
                 <template v-for="child in routes.children">
-                    <v-list-tile :to="{ name: child.name }" v-if="authorized(child.meta.authLevel) && !child.meta.hidden">
-                        <v-list-tile-content>
+                    <v-list-item :to="{ name: child.name }" v-if="authorized(child.meta.authLevel) && !child.meta.hidden">
+                        <v-list-item-content>
                             {{ child.display }}
-                        </v-list-tile-content>
-                    </v-list-tile>
+                        </v-list-item-content>
+                    </v-list-item>
                 </template>
             </v-list>
         </v-navigation-drawer>
 
-        <v-toolbar color="purple" dark>
-            <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+        <v-app-bar color="purple" dark>
+            <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
             <div v-show="$vuetify.breakpoint.name !== 'xs'">
                 <v-toolbar-items dark>
                     <template v-for="(child, index) in routes.children">
@@ -27,12 +27,14 @@
                             <div v-show="(index+1) < maxMenuItems">
                                 <!--<router-link :to="child.route"></router-link>-->
                                 <template v-if="!child.meta.hidden">
-                                    <v-btn dark flat @click="$router.push({ name: child.name })">{{ child.display }}</v-btn>
+                                    <v-btn dark text @click="$router.push({ name: child.name })">{{ child.display }}</v-btn>
                                     <v-divider class="mx-3" inset vertical></v-divider>
                                 </template>
                             </div>
                         </template>
                     </template>
+                    <!--<v-btn dark text @click="$router.push('/home/doc/ipsum')">Doc Ipsum</v-btn>
+                    <v-btn dark text @click="$router.push('/home/doc/two')">Doc Two</v-btn>-->
                     <div v-show="maxMenuItems < menuItems">...</div>
                 </v-toolbar-items>
             </div>
@@ -41,23 +43,23 @@
                     :nudge-width="200"
                     v-model="menu"
                     offset-x>
-                <v-btn slot="activator" icon dark>
-                    <v-icon small>fas fa-ellipsis-v</v-icon>
-                </v-btn>
+                <template v-slot:activator="{ on }">
+                    <v-btn v-on="on" icon><v-icon small>fas fa-ellipsis-v</v-icon></v-btn>
+                </template>
                 <v-card>
                     <v-list>
-                        <v-list-tile>
+                        <v-list-item>
                             <v-icon left>fas fa-user</v-icon>
-                            <v-list-tile-title class="ml-2">{{ $store.getters.getUsername }}</v-list-tile-title>
-                        </v-list-tile>
-                        <v-list-tile @click="logout">
+                            <v-list-item-title class="ml-2">{{ $store.state.auth.username }}</v-list-item-title>
+                        </v-list-item>
+                        <v-list-item @click="$_auth_logout">
                             <v-icon left>fas fa-door-open</v-icon>
-                            <v-list-tile-title class="ml-2">Logout</v-list-tile-title>
-                        </v-list-tile>
+                            <v-list-item-title class="ml-2">Logout</v-list-item-title>
+                        </v-list-item>
                     </v-list>
                 </v-card>
             </v-menu>
-        </v-toolbar>
+        </v-app-bar>
     </div>
 </template>
 
@@ -87,7 +89,7 @@
         },
         computed: {
             getDrawerHeight() {
-                return 120 + (this.menuItems * 40);
+                return 16 + (this.menuItems * 48);
             },
             maxMenuItems() {
                 return (this.screenSize - 150) / 170;
@@ -112,7 +114,7 @@
                 this.screenSize = window.outerWidth;
             },
             getAuthLevel() {
-                let role = this.$store.getters.getUserRole;
+                let role = this.$store.state.auth.role;
 
                 if (role === Roles.Name.Admin)
                     this.authLevel = Roles.Level.Admin;
@@ -135,8 +137,10 @@
                 this.$_console_log('[Menu] Get Menu Count.');
                 for (let i = 0; i < this.routes.children.length; i++) {
                     let auth = this.authorized(this.routes.children[i].meta.authLevel);
-                    if (auth)
+                    if (auth && !this.routes.children[i].meta.hidden) {
                         this.menuItems++;
+                    }
+                        
                 }
             },
             //checkScreenSize(i) {

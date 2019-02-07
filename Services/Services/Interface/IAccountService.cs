@@ -3,7 +3,7 @@
 using System;
 using System.Threading.Tasks;
 
-using VueServer.Common.Interface;
+using VueServer.Domain.Interface;
 using VueServer.Models.Account;
 using VueServer.Models.Response;
 

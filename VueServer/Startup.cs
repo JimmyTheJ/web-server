@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.AspNetCore.SpaServices.Webpack;
+using Microsoft.AspNetCore.SpaServices.Extensions;
 
 using Newtonsoft.Json;
 
@@ -22,12 +23,14 @@ using Microsoft.AspNetCore.ResponseCompression;
 using System.IO.Compression;
 using System.Linq;
 using System.IO;
+using VueServer.Domain.Helper;
+using Microsoft.Extensions.Hosting;
 
 namespace VueServer
 {
     public class Startup
     {
-        public Startup(IHostingEnvironment env)
+        public Startup(IWebHostEnvironment env)
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
@@ -40,7 +43,7 @@ namespace VueServer
 
         public IConfigurationRoot Configuration { get; }
 
-        public IHostingEnvironment Environment { get; set; }
+        public IWebHostEnvironment Environment { get; set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -63,44 +66,36 @@ namespace VueServer
             services.AddCustomDataStore(Configuration);
 
             services
-                .AddMvc(options => options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()))
-                .AddJsonOptions(options =>
-                 {
-                     options.SerializerSettings.ContractResolver = new LowercaseContractResolver();
-                     options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                 });
+                .AddMvc(options => {
+                    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+                })
+                .AddNewtonsoftJson(options =>
+                {
+                    options.SerializerSettings.ContractResolver = new LowercaseContractResolver();
+                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                });
 
-            services.AddCustomHttpsRedirection(Environment);
+            services.AddHealthChecks();
+            services.AddRouting();
+            services.AddControllers();
+
+            if (Configuration.GetSection("Options").GetValue<bool>("Https"))
+                services.AddCustomHttpsRedirection(Environment, Configuration);
             services.AddCustomCompression();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            if (!Directory.Exists(Path.Combine(env.ContentRootPath, "Logs") ) )
-            {
-                try
-                {
-                    Directory.CreateDirectory(Path.Combine(env.ContentRootPath, "Logs"));
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Startup: Error creating log file directory.");
-                }
-            }
+            FolderBuilder.CreateFolder(Path.Combine(env.ContentRootPath, "Logs"), "Startup: Error creating log file directory");
 
             loggerFactory.AddFile(Path.Combine("Logs", "_log-{Date}.txt"));
             ILogger logger = loggerFactory.CreateLogger("Startup");
 
             app.UseResponseCompression();
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
-                {
-                    HotModuleReplacement = true,
-                });
             }
             else
             {
@@ -121,20 +116,16 @@ namespace VueServer
             {
                 Console.WriteLine("Https is disabled. Consider enabling it in the configuration file and providing a certificate.");
             }
-            
+
             app.UseAuthentication();
             app.UseSession();
              
             // Exposes everything in the /dist folder where all our front-end files have been placed through webpack
             app.UseWebpackFileServer(env, logger);
 
-            // Exposes everything in /videos folder for serving video files
-            // TODO: Make this optional. Have a settings in appsettings that can disable this.
-            // Some callback to the front-end to know to not expose the path for /videos would be useful if disabled.
-            app.UseVideoFileServer(env, logger);
-
             // Necessary for CertifyTheWeb to automatically re-authorize the webserver's TLS cert
-            app.UseAutoAuthorizerStaticFiles(env, logger);
+            if (Configuration.GetSection("Options").GetValue<bool>("Well-Known"))
+                app.UseAutoAuthorizerStaticFiles(env, logger);
 
             app.Use(async (context, next) =>
             {
@@ -147,15 +138,14 @@ namespace VueServer
                 await next();
             });
 
-            app.UseMvc(routes =>
+            app.UseRouting();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints =>
             {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-
-                routes.MapSpaFallbackRoute(
-                    name: "spa-fallback",
-                    defaults: new { controller = "Home", action = "Index" });
+                endpoints.MapHealthChecks("/healthcheck");
+                endpoints.MapDefaultControllerRoute();
+                endpoints.MapControllers();
+                endpoints.MapFallbackToController("Index", "Home");
             });
         }
     }

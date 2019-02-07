@@ -4,8 +4,15 @@ import VueCookie from 'vue-cookie'
 import { sync } from 'vuex-router-sync'
 
 // Vuetify
-import Vuetify from 'vuetify'
-import 'material-design-icons-iconfont'
+import Vuetify from 'vuetify/lib';
+import vuetify from './plugins/vuetify'
+import 'vuetify/dist/vuetify.min.css'
+
+export default new Vuetify({
+    icons: {
+        iconfont: 'mdi',
+    },
+});
 
 // Font Awesome
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -21,8 +28,8 @@ import ConMsgs from './mixins/console'
 /*******************
  * Use libraries
  */
-Vue.use(VueCookie);
 Vue.use(Vuetify);
+Vue.use(VueCookie);
 Vue.use(Moment);
 
 /*******************
@@ -38,8 +45,10 @@ Vue.mixin(ConMsgs);
 // Sync router with the Vuex store
 sync(store, router);
 
+Vue.config.productionTip = false
 
 const app = new Vue({
+    vuetify,
     store,
     router,
     ...App

@@ -1,3 +1,4 @@
+import { ApiEndpoints } from './constants'
 import axios from 'axios'
 import store from './store'
 import router from './router'
@@ -17,9 +18,9 @@ const ax = axios.create({
 ax.defaults.timeout = process.env.NODE_ENV === 'production' ? 10000 : 60000
 
 ax.interceptors.request.use(config => {
-    let credential = store.getters.getAccessToken
-    let isAuthorize = store.getters.getIsAuthorize
-    let csrf = store.getters.getCsrfToken
+    let credential = store.state.auth.accessToken
+    let isAuthorize = store.state.auth.isAuthorize
+    let csrf = store.state.auth.csrfToken
 
     if (credential && isAuthorize)
         config.headers.common['Authorization'] = 'Bearer ' + credential
@@ -34,24 +35,16 @@ ax.interceptors.request.use(config => {
 ax.interceptors.response.use(data => {
     return data
 }, error => {
-    let headerKeys = Object.keys(error.response.headers)
-    ConMsgs.methods.$_console_log(error.response, headerKeys)
+    let headerKeys = Object.keys(error.response.headers);
+    ConMsgs.methods.$_console_log('[Axios][Interceptor] Error request, response, then header keys, route fullpath', error.request, error.response, headerKeys, router.app.$route.fullPath);
 
-    if (headerKeys.includes('token-expired')) {
+    if (error.response.status === 401 && headerKeys.includes('token-expired') && (router.app.$route.fullPath !== '/' || router.app.$route.name !== 'login' )) {
+        ConMsgs.methods.$_console_log('[Axios][Interceptor] 401 error with token expired');
         store.dispatch('signout').then(resp => { }).catch(() => { }).then(() => {
-            ConMsgs.methods.$_console_log('[Axios][Interceptor] Signed user out as the token has expired')
+            ConMsgs.methods.$_console_log('[Axios][Interceptor] Signed user out as the token has expired');
+            router.push({ name: 'login' });
         });
     }
-    //if (headerKeys.includes('token-expired')) {
-    //    ConMsgs.methods.$_console_log('expired token, refreshing tokens')
-    //    store.dispatch('refreshToken')
-    //        .then(resp => {
-    //            ConMsgs.methods.$_console_log('Successfully gathered refresh token')
-    //            store.dispatch('getCsrfToken').then(resp2 => {
-    //                ConMsgs.methods.$_console_log('Successfully gathered csrf token')
-    //            }).catch(() => ConMsgs.methods.$_console_log('Failed to get csrf token'))
-    //        }).catch(() => ConMsgs.methods.$_console_log('Failed to refresh the tokens'))
-    //}
     else {
         ConMsgs.methods.$_console_group('[Axios][Interceptor] Response Error', error)
     }

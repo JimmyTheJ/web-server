@@ -1,3 +1,5 @@
+import { Roles } from './constants'
+
 import Index from './components/index'
 import Login from './components/modules/login'
 import Register from './components/modules/register'
@@ -9,12 +11,15 @@ import Video from './components/pages/video'
 import Upload from './components/pages/upload'
 import Browser from './components/pages/browser'
 import Notes from './components/pages/notes'
+import Documentation from './components/pages/documentation'
+import Doc from './components/modules/doc'
+import Weight from './components/pages/weight'
 
 export const routes = [
     {
         path: '/', name: 'index', component: Index, display: 'Login',
         meta: {
-            authLevel: 0,
+            authLevel: Roles.Level.Default,
         },
         children: [
             {
@@ -34,7 +39,7 @@ export const routes = [
     {
         path: '/home', name: 'home', component: Home, display: 'Home',
         meta: {
-            authLevel: 0,
+            authLevel: Roles.Level.Default,
         },
         children: [
             {
@@ -43,47 +48,8 @@ export const routes = [
                 component: Start,
                 display: 'Home',
                 meta: {
-                    authLevel: 0,
+                    authLevel: Roles.Level.Default,
                     hidden: false,
-                }
-            },
-            {
-                path: 'file-server',
-                name: 'file-server',
-                component: FileServer,
-                display: 'Files',
-                meta: {
-                    authLevel: 1,
-                    hidden: false,
-                }
-            },
-            {
-                path: 'file-server/:id/:folder',
-                name: 'file-server-folder',
-                component: FileServer,
-                display: 'Files',
-                meta: {
-                    authLevel: 1,
-                    hidden: true,
-                }
-            },
-            {
-                path: 'video-player',
-                name: 'video-player',
-                component: Video,
-                display: 'Video',
-                meta: {
-                    authLevel: 1,
-                    hidden: false,
-                }
-            },
-            {
-                path: 'upload',
-                name: 'upload',
-                component: Upload,
-                display: 'Upload',
-                meta: {
-                    authLevel: 2
                 }
             },
             {
@@ -92,17 +58,17 @@ export const routes = [
                 component: Browser,
                 display: 'Browser',
                 meta: {
-                    authLevel: 2,
+                    authLevel: Roles.Level.General,
                     hidden: false,
                 }
             },
             {
-                path: 'browser/:id/:folder',
-                name: 'browser-folder-subFolders',
+                path: 'browser/:folder*',
+                name: 'browser-folder',
                 component: Browser,
                 display: 'Browser',
                 meta: {
-                    authLevel: 2,
+                    authLevel: Roles.Level.General,
                     hidden: true,
                 }
             },
@@ -112,7 +78,39 @@ export const routes = [
                 component: Notes,
                 display: 'Notes',
                 meta: {
-                    authLevel: 1,
+                    authLevel: Roles.Level.General,
+                    hidden: false,
+                }
+            },
+            {
+                path: 'doc',
+                name: 'documentation',
+                component: Documentation,
+                display: 'Documentation',
+                meta: {
+                    authLevel: Roles.Level.General,
+                    hidden: true,
+                },
+                children: [
+                    {
+                        path: ':id',
+                        name: 'documentation-item',
+                        component: Doc,
+                        display: 'Documentation',
+                        meta: {
+                            authLevel: Roles.Level.General,
+                            hidden: true,
+                        },
+                    }
+                ],
+            },
+            {
+                path: 'weight',
+                name: 'weight',
+                component: Weight,
+                display: 'Weight',
+                meta: {
+                    authLevel: Roles.Level.General,
                     hidden: false,
                 }
             },

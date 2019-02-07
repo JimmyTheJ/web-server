@@ -1,21 +1,21 @@
 import * as MUTATIONS from '../store/mutation_types'
+import store from '../store/index'
 import { Roles } from '../constants'
 import ConMsgs from './console'
 
 export default {
-    data() {
-        return {
-            error: false
-        }
-    },
     methods: {
-        checkCurrentLogin() {
-            if (localStorage.accessToken) {
+        $_auth_checkLogin(err) {
+            ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_checkLogin: Called');
+
+            if (store.state.auth.isAuthorize) {
                 this.$router.replace(this.$route.query.redirect || '/home');
             }
-            return this.error;
+            return err;
         },
-        async login(data) {
+        async $_auth_login(data) {
+            ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_login: Called');
+            let error = false;
             await this.$store.dispatch('signin', data)
                 .then(resp => {
                     this.$store.dispatch('getCsrfToken')
@@ -23,32 +23,33 @@ export default {
                         .catch(() => ConMsgs.methods.$_console_log("Did not get token :("))
                 }).catch(() => {
                     this.$store.dispatch('signout')
-                    //this.$store.dispatch('getCsrfToken')
-                    //    .then(response => ConMsgs.methods.$_console_log("Got csrf token!"))
-                    //    .catch(() => ConMsgs.methods.$_console_log("Did not get token :("))
-                    //ConMsgs.methods.$_console_log("Login error");
-                    this.error = true;
+                    error = true;
                 });
-            this.checkCurrentLogin();
+            this.$_auth_checkLogin(error);
         },
-        async register(data) {
+        async $_auth_register(data) {
+            ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_register: Called');
             await this.$store.dispatch('register', data)
                 .then(resp => {
-                    this.login(data)
-                        .then(resp2 => ConMsgs.methods.$_console_log("success in login"))
-                        .catch(() => ConMsgs.methods.$_console_log("error in login"));
+                    // Uncomment to auto login after registering (Make it a setting ?)
+                    //this.$_auth_login(data)
+                    //    .then(resp2 => ConMsgs.methods.$_console_log("success in login"))
+                    //    .catch(() => ConMsgs.methods.$_console_log("error in login"));
                 }).catch(() => {
                     ConMsgs.methods.$_console_log("Error registering");
-                    this.error = true;
+                    return Promise.reject("Failed to create user");
                 });
         },
-        async logout() {
+        async $_auth_logout() {
+            ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_logout: Called');
             await this.$store.dispatch("signout")
                 .then(resp => ConMsgs.methods.$_console_log("Logout success"))
                 .catch(() => ConMsgs.methods.$_console_log("logout fail"))
                 .then(() => this.$router.push({ name: 'index' }) );
         },
-        convertRole(r) {
+        $_auth_convertRole(r) {
+            ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_convertRole: Called');
+
             let role = Roles.Level.Default;
 
             if (typeof r === 'undefined' || r === null)

@@ -5,6 +5,7 @@ import { faArrowRight } from '@fortawesome/free-solid-svg-icons/faArrowRight'
 import { faBook } from '@fortawesome/free-solid-svg-icons/faBook'
 import { faBullhorn } from '@fortawesome/free-solid-svg-icons/faBullhorn'
 import { faChalkboard } from '@fortawesome/free-solid-svg-icons/faChalkboard'
+import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck'
 import { faChess } from '@fortawesome/free-solid-svg-icons/faChess'
 import { faCogs } from '@fortawesome/free-solid-svg-icons/faCogs'
 import { faComment } from '@fortawesome/free-solid-svg-icons/faComment'
@@ -37,6 +38,7 @@ library.add(
     faBook,
     faBullhorn,
     faChalkboard,
+    faCheck,
     faChess,
     faCogs,
     faComment,

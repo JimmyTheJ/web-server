@@ -26,5 +26,17 @@ namespace VueServer.Models.Account
         [Required]
         [Display(Name = "Role")]
         public string Role { get; set; }
+
+        public RegisterRequest(
+            string username,
+            string password,
+            string comfirmPassword,
+            string role)
+        {
+            Username = username;
+            Password = password;
+            ConfirmPassword = ConfirmPassword;
+            Role = role;
+        }
     }
 }

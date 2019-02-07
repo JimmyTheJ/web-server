@@ -10,6 +10,8 @@ namespace VueServer.Models.Directory
 
         public string Path { get; set; }
 
+        public bool Default { get; set; }
+
         public ServerDirectory()
         {
 
@@ -19,6 +21,14 @@ namespace VueServer.Models.Directory
         {
             Name = name;
             Path = path;
+            Default = false;
+        }
+
+        public ServerDirectory(string name, string path, bool @default)
+        {
+            Name = name;
+            Path = path;
+            Default = @default;
         }
     }
 }

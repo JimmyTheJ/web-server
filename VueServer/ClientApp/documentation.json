@@ -1,0 +1,149 @@
+[
+    {
+        "id": "Ipsum",
+        "title": "Your title",
+        "topic": "Your topic",
+        "sections": [
+            {
+                "title": "Section title",
+                "paragraphs": [
+                    {
+                        "text": "Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum ",
+                        "style": "red--text text-xs-center "
+                    },
+                    {
+                        "text": "Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum ",
+                        "style": "blue--text text-xs-right"
+                    },
+                    {
+                        "text": "Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum ",
+                        "style": "green--text text-xs-left"
+                    },
+                    {
+                        "text": "Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum ",
+                        "style": "black--text purple--lighten-3"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Two",
+        "title": "Your title2",
+        "topic": "Your topic2",
+        "sections": [
+            {
+                "title": "Section title2",
+                "paragraphs": [
+                    {
+                        "text": "Paragraph 1 Section 2",
+                        "style": "orange--text text-xs-left"
+                    },
+                    {
+                        "text": "Paragraph 2 Section 2",
+                        "style": "orange--text text-xs-left"
+                    },
+                    {
+                        "text": "Paragraph 3 Section 2",
+                        "style": "orange--text text-xs-left"
+                    },
+                    {
+                        "text": "Paragraph 4 Section 2",
+                        "style": "orange--text purple--left-3"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "Three",
+        "title": "It's another title!",
+        "topic": "Some random topic or heading or whatever you know",
+        "sections": [
+            {
+                "title": "Section start:",
+                "paragraphs": [
+                    {
+                        "text": "Paragraph 1 Section 1",
+                        "style": "orange--text text-xs-left"
+                    },
+                    {
+                        "text": "Paragraph 2 Section 1",
+                        "style": "orange--text text-xs-left"
+                    },
+                    {
+                        "text": "Paragraph 3 Section 1",
+                        "style": "orange--text text-xs-left"
+                    },
+                    {
+                        "text": "Paragraph 4 Section 1",
+                        "style": "orange--text purple--left-3"
+                    }
+                ]
+            },
+            {
+                "title": "Section start2:",
+                "paragraphs": [
+                    {
+                        "text": "Paragraph 1 Section 2",
+                        "style": "blue--text text-xs-left"
+                    },
+                    {
+                        "text": "Paragraph 2 Section 2",
+                        "style": "blue--text text-xs-left"
+                    },
+                    {
+                        "text": "Paragraph 3 Section 2",
+                        "style": "blue--text text-xs-left"
+                    },
+                    {
+                        "text": "Paragraph 4 Section 2",
+                        "style": "blue--text purple--left-3"
+                    }
+                ]
+            },
+            {
+                "title": "Section start3:",
+                "paragraphs": [
+                    {
+                        "text": "Paragraph 1 Section 3",
+                        "style": "purple--text text-xs-left"
+                    },
+                    {
+                        "text": "Paragraph 2 Section 3",
+                        "style": "purple--text text-xs-left"
+                    },
+                    {
+                        "text": "Paragraph 3 Section 3",
+                        "style": "purple--text text-xs-left"
+                    },
+                    {
+                        "text": "Paragraph 4 Section 3",
+                        "style": "purple--text text-xs-left"
+                    }
+                ]
+            },
+            {
+                "title": "Section start4:",
+                "paragraphs": [
+                    {
+                        "text": "Paragraph 1 Section 4",
+                        "style": "red--text text-xs-left"
+                    },
+                    {
+                        "text": "Paragraph 2 Section 4",
+                        "style": "red--text text-xs-left"
+                    },
+                    {
+                        "text": "Paragraph 3 Section 4",
+                        "style": "red--text text-xs-left"
+                    },
+                    {
+                        "text": "Paragraph 4 Section 4",
+                        "style": "red--text purple--left-3"
+                    }
+                ]
+            }
+        ]
+    }
+]

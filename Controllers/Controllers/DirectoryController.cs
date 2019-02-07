@@ -1,16 +1,23 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
-
-using VueServer.Common.Factory.Interface;
+using static VueServer.Domain.Constants;
+using VueServer.Domain.Enums;
+using VueServer.Domain.Factory.Interface;
 using VueServer.Models;
 using VueServer.Services.Interface;
+using VueServer.Controllers.Helpers;
+using System.IO;
+using System.Text;
+using System.Net;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Net.Http.Headers;
+using System.Linq;
 
 namespace VueServer.Controllers
 {
-    [Authorize(AuthenticationSchemes = "Identity.Application" + "," + JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/directory")]
     public class DirectoryController : Controller
     {
@@ -22,36 +29,69 @@ namespace VueServer.Controllers
             IStatusCodeFactory<IActionResult> codeFactory,
             IDirectoryService service)
         {
-            _codeFactory = codeFactory;
-            _service = service;
+            _codeFactory = codeFactory ?? throw new ArgumentNullException("Code factory is null");
+            _service = service ?? throw new ArgumentNullException("Directory service is null");
         }
 
         [HttpGet]
-        [Authorize(Roles = "Administrator, Elevated, User")]
-        [Route("/download/file/{level:int}/{*filename}")]
-        public IActionResult DownloadProtectedFile(int level, string filename)
+        [Authorize(AuthenticationSchemes = "Identity.Application", Roles = ROLES_ALL)]
+        [Route("download/file/{*filename}")]
+        public async Task<IActionResult> DownloadProtectedFile(string filename)
         {
-            var file = _service.Download(level, filename);
+            var file = await _service.Download(filename);
             if (file == null || file.Obj == null)
                 return BadRequest();
             else
                 return PhysicalFile(file.Obj.Item1, file.Obj.Item2, file.Obj.Item3);
         }
-
+        
         [HttpGet]
-        [Authorize(Roles = "Administrator, Elevated, User")]
-        [Route("/load/folder/{level:int}/{directory}/{dir?}")]
-        public IActionResult LoadDirectory(string directory, string dir = null, int level = 0)
+        [Authorize(AuthenticationSchemes = "Identity.Application", Roles = ROLES_ALL)]
+        [Route("/api/serve-file/{*filename}")]
+        public async Task<IActionResult> ServeMedia(string filename)
         {
-            return _codeFactory.GetStatusCode(_service.Load(directory, dir, level));
+            var file = await _service.Download(filename, true);
+            if (file == null || file.Obj == null)
+                return BadRequest();
+            else
+            {
+                var rangeFile = PhysicalFile(file.Obj.Item1, file.Obj.Item2, file.Obj.Item3);
+                rangeFile.EnableRangeProcessing = true;
+                return rangeFile;
+            }
         }
 
         [HttpGet]
-        [Authorize(Roles = "Administrator, Elevated, User")]
+        [Authorize(Roles = ROLES_ALL)]
+        [Route("folder/{directory}/{*dir}")]
+        public IActionResult LoadDirectory(string directory, string dir = null)
+        {
+            return _codeFactory.GetStatusCode(_service.Load(directory, dir));
+        }
+
+        [HttpGet]
+        [Authorize(Roles = ROLES_ALL)]
         [Route("list")]
-        public IActionResult GetDirectoryList(int level = Common.Constants.NO_LEVEL)
+        public IActionResult GetDirectoryList()
         {
-            return _codeFactory.GetStatusCode(_service.GetDirectories(level));
+            return _codeFactory.GetStatusCode(_service.GetDirectories());
         }
-    }
+
+        [HttpPost]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route("delete")]
+        //[Authorize(AuthenticationSchemes = "Identity.Application", Roles = "Administrator")]
+        public IActionResult Delete([FromBody] DeleteFileModel model)
+        {
+            return _codeFactory.GetStatusCode(_service.Delete(model));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = ROLES_ADMIN_ELEVATED)]
+        [Route("upload")]
+        public async Task<IActionResult> UploadAsync([FromForm] UploadFileRequest model)
+        {
+            return _codeFactory.GetStatusCode(await _service.Upload(model));
+        }
+    }    
 }

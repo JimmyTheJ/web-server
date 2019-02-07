@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using VueServer.Models.User;
 
 namespace VueServer.Classes
 {
@@ -17,11 +18,11 @@ namespace VueServer.Classes
                 return;
 
             var userManager = context.RequestServices
-                .GetRequiredService<UserManager<ServerIdentity>>();
+                .GetRequiredService<UserManager<WSUser>>();
             var signInManager = context.RequestServices
-                .GetRequiredService<SignInManager<ServerIdentity>>();
+                .GetRequiredService<SignInManager<WSUser>>();
 
-            ServerIdentity user = await userManager.GetUserAsync(context.User);
+            WSUser user = await userManager.GetUserAsync(context.User);
 
             if (signInManager.IsSignedIn(context.User))
             {

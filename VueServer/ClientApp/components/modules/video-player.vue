@@ -1,14 +1,26 @@
 <template>
-    <div class="video-container center">
-        <video id="video-player"
-               class="video-player"
-               ref="player"
-               preload="none"
-               controls
-               :width="getWidth">
-            <source :src="url" :type="type" />
-        </video>
-    </div>
+    <v-dialog v-model="dialog">
+        <v-card>
+            <v-card-title class="headline">Video Player</v-card-title>
+            <v-card-text>
+                <div class="video-container center">
+                    <video id="video-player"
+                           class="video-player"
+                           ref="player"
+                           preload="none"
+                           controls
+                           :width="getWidth">
+                        <source :src="url" />
+                    </video>
+                </div>
+            </v-card-text>
+            <v-card-actions>
+                <v-btn @click="dialog = false">
+                    Close
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 </template>
 
 <script>
@@ -24,6 +36,8 @@
             return {
                 windowHeight: window.innerHeight,
                 windowWidth: window.innerWidth,
+
+                dialog: false,
                 //player: {},
             }
         },
@@ -32,12 +46,43 @@
                 type: String,
                 required: true,
             },
-            type: {
-                type: String,
+            on: {
+                type: Boolean,
                 required: true,
             }
         },
         computed: {
+            type: function () {
+                if (typeof this.url === 'undefined' || this.url === '') {
+                    this.$_console_log('[VIDEO PLAYER] type: Undefined or empty');
+                    return "";
+                }
+
+                if (!this.url.includes('.')) {
+                    this.$_console_log('[VIDEO PLAYER] type: Doesn\'t include a period (.) ');
+                    return "";
+                }
+                
+                let index = this.url.lastIndexOf('.');
+                let extension = this.url.slice(index);
+
+                // TODO: Create exhaustive list of extensions
+                switch (extension) {
+                    case '.mkv':
+                    case '.avi':
+                    case '.mpeg':
+                    case '.mpg':
+                    case '.mp4':
+                    case '.wmv':
+                        return 'video/mp4';
+                    case '.webm':
+                        return 'video/webm';
+                    case '.mp3':
+                        return 'audio/mpeg';
+                    default:
+                        return '';
+                }
+            },
             getWidth: function () {
                 let check = window.mobilecheck();
                 this.$_console_log(`Check: ${check}`);
@@ -59,36 +104,31 @@
             url: function () {
                 let player = document.getElementById('video-player');
 
-                player.pause();
-                player.load();
+                this.$_console_log('[VIDEO PLAYER] Url watcher: url value', this.url)
 
-                if (player.paused) {
-                    this.$_console_log('Player was paused. Playing now');
-                    player.play();
+                if (typeof this.url === 'undefined' || this.url === '') {
+                    return this.$_console_log('[Video Player] Empty url string');
+                    player.pause;
                 }
-                else {
-                    this.$_console_log('Player wasn\'t paused. Pausing.');
-                    player.pause();
-                }
-
-                //let self = this;
-                //setTimeout(() => {
-                //    this.$_console_log('Playing new file!');
-                //    let playing = this.player.play();
-
-                //    if (playing !== undefined) {
-                //        playing.then(_ => {
-                //            this.$_console_log('Playback started');
-                //        }).catch(error => {
-                //            this.$_console_log('Error trying to play video');
-                //            this.$_console_log(error);
-                //        });
-                //    }
-                //    else {
-                //        this.$_console_log('Playing is undefined :(');
-                //    }                    
-                //}, 10);
             },
+            dialog: function (newValue, oldValue) {
+                setTimeout(() => {
+                    let player = document.getElementById('video-player');
+
+                    if (newValue === true) {
+                        player.load();
+                        player.play();
+                    }
+                    else {
+                        player.pause();
+                        if (this.on === true)
+                            this.$emit('player-off', true);
+                    }
+                }, 100);
+            },
+            on: function (newValue) {
+                this.dialog = newValue;
+            }
         },
         mounted() {
             this.$nextTick(() => {
@@ -111,35 +151,4 @@
     .center {
         margin: 0 auto;
     }
-    /*.border-red {
-        border: 1px solid red;
-    }*/
-
-    /*.video-container {
-        margin-bottom: 15px;
-        margin-top: 5px;
-    }
-
-    .video-player {
-        position: absolute;
-        left: 0;
-    }*/
-
-    /*@media screen and (min-width: 240px) and (max-width: 767px) {
-        .video-player {
-            width: 540px;
-        }
-    }
-
-    @media screen and (max-width: 540px) {
-        .video-player {
-            width: 490px;
-        }
-    }
-
-    @media screen and (max-width: 380px) {
-        .video-player {
-            width: 330px;
-        }
-    }*/
 </style>

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -14,11 +15,12 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using VueServer.Common.Concrete;
-using VueServer.Common.Interface;
+using VueServer.Domain.Concrete;
+using VueServer.Domain.Interface;
 using VueServer.Models.Account;
 using VueServer.Models.Context;
 using VueServer.Models.Response;
+using VueServer.Models.User;
 using VueServer.Services.Interface;
 
 namespace VueServer.Services.Concrete
@@ -26,11 +28,11 @@ namespace VueServer.Services.Concrete
     public class AccountService : IAccountService
     {
         /// <summary>  Used to manage the user sign in process, which is all part of the Identity Framework </summary>
-        private readonly SignInManager<ServerIdentity> _signInManager;
+        private readonly SignInManager<WSUser> _signInManager;
         /// <summary> Used to manage the roles of the user, either create or check roles </summary>
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<WSRole> _roleManager;
         /// <summary>Hosting environment</summary>
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         /// <summary> Configuration file. </summary>
         private readonly IConfiguration _config;
         /// <summary> AntiForgery service </summary>
@@ -38,33 +40,33 @@ namespace VueServer.Services.Concrete
         /// <summary>Logger</summary>
         private readonly ILogger _logger;
         /// <summary>User Manager</summary>
-        private readonly UserManager<ServerIdentity> _userManager;
+        private readonly UserManager<WSUser> _userManager;
         /// <summary>User Context (Database)</summary>
-        private readonly UserContext _userContext;
+        private readonly WSContext _context;
         /// <summary>User service to manipulate the context using the user manager</summary>
         private readonly IUserService _user;
 
         public AccountService (
-            UserManager<ServerIdentity> userManager,
-            SignInManager<ServerIdentity> signInManager,
-            RoleManager<IdentityRole> roleManager,
-            UserContext userContext,
-            IHostingEnvironment env,
+            UserManager<WSUser> userManager,
+            SignInManager<WSUser> signInManager,
+            RoleManager<WSRole> roleManager,
+            WSContext context,
+            IWebHostEnvironment env,
             ILoggerFactory logger,
-            IConfiguration config,
+            IConfigurationRoot config,
             IAntiforgery forgery,
             IUserService user
         )
         {
-            _antiForgery = forgery;
-            _config = config;
-            _env = env;
-            _roleManager = roleManager;
-            _signInManager = signInManager;
-            _user = user;
-            _userContext = userContext;
-            _userManager = userManager;
-            _logger = logger.CreateLogger<AccountService>();
+            _antiForgery = forgery ?? throw new ArgumentNullException("Logger factory is null");
+            _config = config ?? throw new ArgumentNullException("Configuration is null");
+            _env = env ?? throw new ArgumentNullException("Hosting environment is null");
+            _roleManager = roleManager ?? throw new ArgumentNullException("Role manager is null");
+            _signInManager = signInManager ?? throw new ArgumentNullException("Signin manager is null");
+            _user = user ?? throw new ArgumentNullException("User service is null");
+            _context = context ?? throw new ArgumentNullException("User context is null");
+            _userManager = userManager ?? throw new ArgumentNullException("User manager is null");
+            _logger = logger?.CreateLogger<AccountService>() ?? throw new ArgumentNullException("Logger factory is null");
         }
 
         #region -> Public Functions 
@@ -74,21 +76,24 @@ namespace VueServer.Services.Concrete
             if (_env.IsProduction())
             {
                 _logger.LogWarning("[AccountService] Register: User attemped to register a new account from: " + _user.IP + " with credentials: username=" + model.Username + ", password=" + model.Password + ", comfirm_password=" + model.ConfirmPassword + ", role=" + model.Role);
-                return new Result<IResult>(null, Common.Enums.StatusCode.FORBIDDEN);
+                return new Result<IResult>(null, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
             // Initialize the roles
             if (!InitRoles())
             {
                 _logger.LogError("[AccountService] Register: Failed to initialize the roles");
-                return new Result<IResult>(null, Common.Enums.StatusCode.SERVER_ERROR);
+                return new Result<IResult>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
                 
 
             // Create a new identity user to pass to the registration method
-            var newUser = new ServerIdentity
+            var newUser = new WSUser
             {
-                UserName = model.Username // Initialize the username for the identity user
+                Id = model.Username.ToLower(),
+                UserName = model.Username,
+                NormalizedUserName = model.Username.ToUpper(),
+                DisplayName = model.Username
             };
 
             // Try and register the new user
@@ -98,7 +103,7 @@ namespace VueServer.Services.Concrete
             if (!result.Succeeded)
             {
                 _logger.LogInformation("[AccountService] Register: Failed to create user.");
-                return new Result<IResult>(null, Common.Enums.StatusCode.BAD_REQUEST);
+                return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             // Succeeded in making the new user apply the role to that user
@@ -107,14 +112,14 @@ namespace VueServer.Services.Concrete
             if (!resultRole.Succeeded)
             {
                 _logger.LogInformation("[AccountService] Register: Failed to add user to the role.");
-                return new Result<IResult>(null, Common.Enums.StatusCode.BAD_REQUEST);
+                return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             // Role applied successfully, update user
             var resultUpdate = await _userManager.UpdateAsync(newUser);
 
             // Login was a success and now they should log in
-            return new Result<IResult>(null, Common.Enums.StatusCode.OK);
+            return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
         }
 
         public async Task<IResult<LoginResponse>> Login (LoginRequest model)
@@ -127,7 +132,7 @@ namespace VueServer.Services.Concrete
             if (!result.Succeeded)
             {
                 _logger.LogWarning("[AccountService] Login: Failed login from " + _user.IP + " with credentials: username=" + model.Username + ", password=" + model.Password);
-                return new Result<LoginResponse>(null, Common.Enums.StatusCode.BAD_REQUEST);
+                return new Result<LoginResponse>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
             _logger.LogInformation("[AccountService] Login: Successful login of " + model.Username + " @ " + _user.IP );
 
@@ -136,14 +141,14 @@ namespace VueServer.Services.Concrete
             if (user == null)
             {
                 _logger.LogWarning("[AccountService] Login: User not found");
-                return new Result<LoginResponse>(null, Common.Enums.StatusCode.BAD_REQUEST);
+                return new Result<LoginResponse>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var roles = await _userManager.GetRolesAsync(user);
             if (roles == null || roles.Count == 0)
             {
                 _logger.LogWarning("[AccountService] Login: Roles not found");
-                return new Result<LoginResponse>(null, Common.Enums.StatusCode.BAD_REQUEST);
+                return new Result<LoginResponse>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             DateTime now = DateTime.UtcNow;
@@ -166,7 +171,7 @@ namespace VueServer.Services.Concrete
 
             var resp = new LoginResponse(token, refreshToken, user.UserName, roles);
 
-            return new Result<LoginResponse>(resp, Common.Enums.StatusCode.OK);
+            return new Result<LoginResponse>(resp, Domain.Enums.StatusCode.OK);
         }
 
         public async Task<IResult> Logout (HttpContext context)
@@ -176,12 +181,12 @@ namespace VueServer.Services.Concrete
 
             context.Session.Clear();
 
-            return new Result<IResult>(null, Common.Enums.StatusCode.OK);
+            return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
         }
 
         public IResult<string> GetCsrfToken (HttpContext context)
         {
-            return new Result<string>(GenerateCsrfToken(context), Common.Enums.StatusCode.OK);
+            return new Result<string>(GenerateCsrfToken(context), Domain.Enums.StatusCode.OK);
         }
 
         public async Task<IResult<RefreshTokenResponse>> RefreshJwtToken (RefreshTokenRequest model)
@@ -193,7 +198,7 @@ namespace VueServer.Services.Concrete
             var validToken = await CheckRefreshToken(user.Id, model.RefreshToken);
             if (validToken == null)
             {
-                return new Result<RefreshTokenResponse>(null, Common.Enums.StatusCode.UNAUTHORIZED);
+                return new Result<RefreshTokenResponse>(null, Domain.Enums.StatusCode.UNAUTHORIZED);
             }
 
             var newJwtToken = GenerateJwtToken(principal.Claims);
@@ -202,7 +207,7 @@ namespace VueServer.Services.Concrete
             await InvalidateRefreshToken(validToken);
             await SaveRefreshToken(user.Id, newRefreshToken);  // Save token to some data store
 
-            return new Result<RefreshTokenResponse>(new RefreshTokenResponse(newJwtToken, newRefreshToken), Common.Enums.StatusCode.OK);
+            return new Result<RefreshTokenResponse>(new RefreshTokenResponse(newJwtToken, newRefreshToken), Domain.Enums.StatusCode.OK);
         }
 
         #endregion
@@ -215,9 +220,9 @@ namespace VueServer.Services.Concrete
         /// <param name="id"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async Task<UserTokens> CheckRefreshToken (string id, string token)
+        private async Task<WSUserTokens> CheckRefreshToken (string id, string token)
         {
-            var foundTok = await _userContext.UserWebTokens
+            var foundTok = await _context.UserTokens
                 .Where(x => x.UserId == id && x.Token == token && x.Valid && x.Source == _user.IP)
                 .FirstOrDefaultAsync();
 
@@ -235,11 +240,11 @@ namespace VueServer.Services.Concrete
         /// <returns></returns>
         private async Task<bool> InvalidateAllRefreshTokensForUser (string id, string source = null)
         {
-            List<UserTokens> tokens = null;
+            List<WSUserTokens> tokens = null;
             if (source == null)
-                tokens = await _userContext.UserWebTokens.Where(x => x.UserId == id).ToListAsync();
+                tokens = await _context.UserTokens.Where(x => x.UserId == id).ToListAsync();
             else
-                tokens = await _userContext.UserWebTokens.Where(x => x.UserId == id && x.Source == source).ToListAsync();
+                tokens = await _context.UserTokens.Where(x => x.UserId == id && x.Source == source).ToListAsync();
 
             if (tokens == null || tokens.Count == 0)
             {
@@ -254,7 +259,7 @@ namespace VueServer.Services.Concrete
 
             try
             {
-                await _userContext.SaveChangesAsync();
+                await _context.SaveChangesAsync();
             }
             catch (Exception)
             {
@@ -273,12 +278,12 @@ namespace VueServer.Services.Concrete
         /// <param name="id"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async Task<bool> InvalidateRefreshToken (UserTokens token)
+        private async Task<bool> InvalidateRefreshToken (WSUserTokens token)
         {
             token.Valid = false;
             try
             {
-                await _userContext.SaveChangesAsync();
+                await _context.SaveChangesAsync();
             }
             catch (Exception)
             {
@@ -298,17 +303,17 @@ namespace VueServer.Services.Concrete
         {
             var now = DateTime.UtcNow;
             var ip = _user.IP;
-            var tokenIP = await _userContext.UserWebTokens.Where(x => x.Source == ip && x.UserId == id).FirstOrDefaultAsync();
+            var tokenIP = await _context.UserTokens.Where(x => x.Source == ip && x.UserId == id).FirstOrDefaultAsync();
             if (tokenIP == null)
             {
-                var newTok = new UserTokens
+                var newTok = new WSUserTokens
                 {
                     Token = token,
                     UserId = id,
                     Valid = true,
                     Source = _user.IP
                 };
-                _userContext.UserWebTokens.Add(newTok);
+                _context.UserTokens.Add(newTok);
             }
             else
             {
@@ -319,7 +324,7 @@ namespace VueServer.Services.Concrete
 
             try
             {
-                await _userContext.SaveChangesAsync();
+                await _context.SaveChangesAsync();
             }
             catch (Exception)
             {
@@ -413,7 +418,7 @@ namespace VueServer.Services.Concrete
             if (!_roleManager.RoleExistsAsync("User").Result)
             {
                 // Create new Role
-                IdentityRole role = new IdentityRole()
+                WSRole role = new WSRole()
                 {
                     Name = "User",
                     NormalizedName = "User"
@@ -434,7 +439,7 @@ namespace VueServer.Services.Concrete
             if (!_roleManager.RoleExistsAsync("Elevated").Result)
             {
                 // Create new Role
-                IdentityRole role = new IdentityRole()
+                WSRole role = new WSRole()
                 {
                     Name = "Elevated",
                     NormalizedName = "Elevated"
@@ -455,7 +460,7 @@ namespace VueServer.Services.Concrete
             if (!_roleManager.RoleExistsAsync("Administrator").Result)
             {
                 // Create new Role
-                IdentityRole role = new IdentityRole()
+                WSRole role = new WSRole()
                 {
                     Name = "Administrator",
                     NormalizedName = "Administrator"

@@ -1,12 +1,17 @@
 <template>
-    <file-explorer :folders="folders"
-                   :level="level"
-                   :parentView="`browser`"></file-explorer>
+    <div>
+        <file-explorer :folders="folders"
+                       parentView="browser"
+                       @loadFile="loadFile"></file-explorer>
+
+        <video-player :url="path" :on="on" @player-off="on = false"></video-player>
+    </div>
 </template>
 
 <script>
     import Service from '../../services/file-explorer'
     import Explorer from '../modules/file-explorer'
+    import VideoPlayer from '../modules/video-player'
     import { Roles } from '../../constants'
 
     export default {
@@ -14,13 +19,17 @@
             return {
                 level: 0,
                 folders: [],
+
+                path: '',
+                on: false
             }
         },
         components: {
             'file-explorer': Explorer,
+            'video-player': VideoPlayer,
         },
         created() {
-            let role = this.$store.getters.getUserRole;
+            let role = this.$store.state.auth.role;
 
             // TODO: Get the list from the server
             if (role === Roles.Name.Admin) {
@@ -45,6 +54,12 @@
                     this.$_console_log("Failed to upload file");
                 });
             },
+            loadFile(file) {
+                // Add check to load different modules depending on what the file type is
+                this.$_console_log('[BROWSER] LoadFile: ', file);
+                this.path = file;
+                this.on = true;
+            }
         }
     }
 </script>

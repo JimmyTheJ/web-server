@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>VueServer.Controllers</RootNamespace>
+    <!--<RuntimeFrameworkVersion>2.2.0</RuntimeFrameworkVersion>-->
+    <!--<AspNetCoreModuleName>AspNetCoreModuleNameV2</AspNetCoreModuleName>
+    <AspNetCoreHostingModel>inprocess</AspNetCoreHostingModel>-->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+	  <ProjectReference Include="..\Domain\VueServer.Domain.csproj" />
+	  <ProjectReference Include="..\Models\VueServer.Models.csproj" />
+    <ProjectReference Include="..\Services\VueServer.Services.csproj" />
+  </ItemGroup>
+  
+</Project>

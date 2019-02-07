@@ -1,7 +1,7 @@
 <template>
     <div>
         <main-menu :source="`home`"></main-menu>
-        <router-view></router-view>
+        <router-view :key="$route.fullPath"></router-view>
     </div>
 </template>
 
@@ -18,7 +18,7 @@
             'main-menu': Menu
         },
         created() {
-            if (!this.$store.getters.getIsAuthorize)
+            if (!this.$store.state.auth.isAuthorize)
                 this.$router.push('/');
 
             if (this.$route.fullPath === '/home')
