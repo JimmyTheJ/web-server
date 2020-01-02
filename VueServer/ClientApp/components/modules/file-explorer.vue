@@ -222,7 +222,7 @@
                     }
                     // Go Back
                     else if (value === '../') {
-                        if (routeObj.dir === null)
+                        if (routeObj.code === 0 || routeObj.dir === null)
                             return; // Can't go back from nothing
                         else if (routeObj.subDir === null)
                             this.$router.push(`${routeObj.basePath}/${routeObj.dir}`);  // Go back to base path
