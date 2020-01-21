@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,7 +16,9 @@ namespace VueServer.Services.Interface
     {
         IResult<IEnumerable<ServerDirectory>> GetDirectories ();
 
-        Task<IResult<Tuple<string, string, string>>> Download (string filename, bool media = false);
+        Task<IResult<Tuple<string, string, string>>> Download(string filename);
+
+        Task<IResult<Tuple<string, string, long>>> StreamMedia(string filename, long start, long end);
 
         IResult<IOrderedEnumerable<WebServerFile>> Load (string directory, string subDir);
 

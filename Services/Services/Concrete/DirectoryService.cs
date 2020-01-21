@@ -55,7 +55,77 @@ namespace VueServer.Services.Concrete
             return new Result<IEnumerable<ServerDirectory>>(dirs, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<Tuple<string, string, string>>> Download (string filename, bool media = false)
+        public async Task<IResult<Tuple<string, string, long>>> StreamMedia(string filename, long start, long end)
+        {
+            if (string.IsNullOrWhiteSpace(filename))
+            {
+                _logger.LogWarning("Directory.StreamMedia: Filename passed is null or empty");
+                return new Result<Tuple<string, string, long>>(null, StatusCode.BAD_REQUEST);
+            }
+
+            var tuple = GetStrippedFilename(filename);
+            if (tuple == null)
+            {
+                _logger.LogWarning("Directory.StreamMedia: Error stripping filename. Null Tuple object");
+                return new Result<Tuple<string, string, long>>(null, StatusCode.BAD_REQUEST);
+            }
+
+            if (tuple.Item1 == null)
+            {
+                _logger.LogWarning("Directory.StreamMedia: Error stripping filename. Null Tuple.Item1");
+                return new Result<Tuple<string, string, long>>(null, StatusCode.BAD_REQUEST);
+            }
+
+            if (tuple.Item2 == null)
+            {
+                _logger.LogWarning("Directory.StreamMedia: Error stripping filename. Null Tuple.Item2");
+                return new Result<Tuple<string, string, long>>(null, StatusCode.BAD_REQUEST);
+            }
+
+            if (tuple.Item1.Count() == 0)
+            {
+                _logger.LogWarning("Directory.StreamMedia: Filename contains no folders. Invalid filename");
+                return new Result<Tuple<string, string, long>>(null, StatusCode.BAD_REQUEST);
+            }
+
+            var list = GetSingleDirectoryList().ToList();
+            var folders = tuple.Item1.ToList();
+
+            var baseDir = list.Where(a => a.Name == folders[0]).Select(a => a.Path).FirstOrDefault();
+            if (baseDir == null)
+            {
+                _logger.LogWarning($"Directory.StreamMedia: Invalid folder name: {folders[0]}");
+                return new Result<Tuple<string, string, long>>(null, StatusCode.BAD_REQUEST);
+            }
+
+            string cleanFilename = null;
+            string contentType = null;
+            long length = 0;
+            var sourcePath = GetSourcePath(baseDir, folders);
+            var sourceFile = GetSourceFile(sourcePath, tuple.Item2);
+
+            try
+            {
+                // Check if the file exists on the server and if it's a directory zip it
+                var file = new FileInfo(sourceFile);
+                var stream = await ConvertFile(file, start, end);
+                
+                // Convert successful
+                cleanFilename = stream.Item1;
+                contentType = MimeTypeHelper.GetMimeType(stream.Item2);
+                length = stream.Item3;
+            }
+            catch (Exception)
+            {
+                _logger.LogError("DownloadProtectedFile: Unknown exception accessing file");
+                return new Result<Tuple<string, string, long>>(null, StatusCode.SERVER_ERROR);
+            }
+
+            _logger.LogInformation("Private download begun by " + _user.Name + " @ " + _user.IP + " - name=" + filename);
+            return new Result<Tuple<string, string, long>>(new Tuple<string, string, long>(Path.Combine(sourcePath, cleanFilename), contentType, length), StatusCode.OK);
+        }
+
+        public async Task<IResult<Tuple<string, string, string>>> Download (string filename)
         { 
             if (string.IsNullOrWhiteSpace(filename))
             {
@@ -102,7 +172,6 @@ namespace VueServer.Services.Concrete
             var sourcePath = GetSourcePath(baseDir, folders);
             var sourceFile = GetSourceFile(sourcePath, cleanFilename);
             var contentType = MimeTypeHelper.GetMimeType(sourceFile);
-            Tuple<string, string> mediaFilename = null;
 
             try
             {
@@ -162,16 +231,6 @@ namespace VueServer.Services.Concrete
                     _logger.LogInformation("Private zip archive download begun by " + _user.Name + " @ " + _user.IP + " - name=" + filename);
                     return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(zipPath, contentType, cleanFilename), Domain.Enums.StatusCode.OK);
                 }
-                //else
-                //{
-                //    if (media)
-                //    {
-                //        mediaFilename = await ConvertFile(file);
-                //        var newName = GetStrippedFilename(mediaFilename.Item1);
-                //        cleanFilename = tuple.Item2;
-                //        // Convert successful
-                //    }
-                //}
             }
             catch (Exception)
             {
@@ -180,10 +239,7 @@ namespace VueServer.Services.Concrete
             }
 
             _logger.LogInformation("Private download begun by " + _user.Name + " @ " + _user.IP + " - name=" + filename);
-            //if (!media)
-                return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(Path.Combine(sourcePath, cleanFilename), contentType, cleanFilename), StatusCode.OK);
-            //else
-            //    return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(mediaFilename.Item1, mediaFilename.Item2, cleanFilename), StatusCode.OK);
+            return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(Path.Combine(sourcePath, cleanFilename), contentType, cleanFilename), StatusCode.OK);
         }
 
         public IResult<IOrderedEnumerable<WebServerFile>> Load (string directory, string subDir)
@@ -548,7 +604,7 @@ namespace VueServer.Services.Concrete
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        private async Task<Tuple<string, string>> ConvertFile(FileInfo file)
+        private async Task<Tuple<string, string, long>> ConvertFile(FileInfo file, long start, long end)
         {
             var format = ".mp4";
             //Save file to the same location with changed extension
@@ -566,6 +622,43 @@ namespace VueServer.Services.Concrete
                 //Set codec which will be used to encode file. If not set it's set automatically according to output file extension
                 .SetCodec(VideoCodec.H264);
 
+            long overrideDuration = 0;
+            long duration = 0;
+
+            // If we are requesting the whole file
+            //if (end == -1)
+            //{
+            //    if (start == 0)
+            //    {
+            //        Console.WriteLine("[ConvertFile]: Whole file requested");
+            //        //return new Tuple<string, string, long>(file.Name, format, videoStream.Duration.Ticks);
+            //        duration = videoStream.Duration.Ticks;
+            //        //outputFileName = Path.ChangeExtension(file.FullName, ".mp4");
+            //        //return new Tuple<string, string, long>(file.Name, format, duration);
+            //    }
+            //    else
+            //    {
+            //        Console.WriteLine("[ConvertFile]: Rest of file requested");
+            //        duration = videoStream.Duration.Ticks;
+            //    }
+
+            //}
+            //else
+            //{
+            //    duration = end - start;
+            //}
+
+            if (start == 0 && end == -1)
+            {
+                duration = 100000000l;
+                overrideDuration = videoStream.Duration.Ticks;
+            }
+            else if (end == -1)
+            {
+                duration = 100000000l;
+                overrideDuration = videoStream.Duration.Ticks - start;
+            }
+
             //Create new conversion object
             var conversion = Conversion.New()
                 //Add video stream to output file
@@ -574,6 +667,12 @@ namespace VueServer.Services.Concrete
                 .AddStream(audioStream)
                 //Set output file path
                 .SetOutput(outputFileName)
+                // Set the seek time (-ss)
+                .SetSeek(new TimeSpan(start))
+                // Set how long to input video (-t) for (Range processing)
+                .SetInputTime(new TimeSpan(duration))
+                // Set how long to output video (-t) for (Range processing)
+                .SetOutputTime(new TimeSpan(duration))
                 //SetOverwriteOutput to overwrite files. It's useful when we already run application before
                 .SetOverwriteOutput(true)
                 //Enable multithreading
@@ -590,9 +689,10 @@ namespace VueServer.Services.Concrete
             await conversion.Start();
 
             await Console.Out.WriteLineAsync($"Finished converion file [{file.Name}]");
-            return new Tuple<string, string>(outputFileName, format);
+            return new Tuple<string, string, long>(outputFileName, format, overrideDuration == 0 ? duration : overrideDuration);
         }
 
+        // Code the ConvertFile function is based off of
         //private async Task<Tuple<string, string>> ConvertFile (FileInfo file)
         //{
         //    var format = ".mp4";

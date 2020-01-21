@@ -50,14 +50,19 @@ namespace VueServer.Controllers
         [Route("/api/serve-file/{*filename}")]
         public async Task<IActionResult> ServeMedia(string filename)
         {
-            var file = await _service.Download(filename, true);
+            var range = GetRange(HttpContext.Request.Headers);
+
+            var file = await _service.StreamMedia(filename, range.Item1, range.Item2);
+            //var file = await _service.StreamMedia(filename, 0l, 300000000l);
             if (file == null || file.Obj == null)
                 return BadRequest();
             else
             {
-                var rangeFile = PhysicalFile(file.Obj.Item1, file.Obj.Item2, file.Obj.Item3);
-                rangeFile.EnableRangeProcessing = true;
-                return rangeFile;
+                HttpContext.Response.Headers.Add("accept-ranges", "bytes");
+                HttpContext.Response.Headers.Add("content-length", file.Obj.Item3.ToString());
+                HttpContext.Response.Headers.Add("content-range", $"bytes {range.Item1}-{(file.Obj.Item3-1).ToString()}");
+                return PhysicalFile(file.Obj.Item1, file.Obj.Item2, false);
+
             }
         }
 
@@ -92,6 +97,54 @@ namespace VueServer.Controllers
         public async Task<IActionResult> UploadAsync([FromForm] UploadFileRequest model)
         {
             return _codeFactory.GetStatusCode(await _service.Upload(model));
+        }
+
+        private Tuple<long, long> GetRange (IHeaderDictionary headers)
+        {
+            try
+            {
+                if (!headers.TryGetValue("Range", out var rangeValues))
+                {
+                    // No range attribute
+                    return new Tuple<long, long>(0, 0);
+                }
+
+                var range = rangeValues.First();
+                if (range.StartsWith("bytes="))
+                {
+                    var nums = range.Substring("bytes=".Length);
+
+                    var split = nums.Split('-');
+                    if (split == null || split.Length != 2)
+                    {
+                        // If somehow this doesn't work
+                        return new Tuple<long, long>(0, 0);
+                    }
+
+                    long start = Convert.ToInt64(split[0]);
+                    long end = 0;
+                    if (split[1] == "")
+                    {
+                        end = -1;
+                    }
+                    else
+                    {
+                        end = Convert.ToInt64(split[1]);
+                    }
+
+                    Console.WriteLine($"GetRange: Start: {start}\t End: {end}");
+                    return new Tuple<long, long>(start, end);
+                }
+                else
+                {
+                    return new Tuple<long, long>(0, 0);
+                }
+            }
+            catch
+            {
+                return new Tuple<long, long>(0, 0);
+            }
+            
         }
     }    
 }
