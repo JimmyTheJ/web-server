@@ -15,6 +15,8 @@ namespace VueServer.Models
         [DataType(DataType.DateTime)]
         public DateTimeOffset Created { get; set; }
 
+        public string Notes { get; set; }
+
         [ForeignKey("User")]
         public string UserId { get; set; }
 

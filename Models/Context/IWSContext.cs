@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using VueServer.Models.User;
@@ -29,11 +30,13 @@ namespace VueServer.Models.Context
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
 
-        EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;
+        EntityEntry<TEntity> Entry<TEntity>([NotNull] TEntity entity) where TEntity : class;
 
-        EntityEntry Entry(object entity);
+        EntityEntry Entry([NotNull] object entity);
 
         DbSet<TEntity> Set<TEntity>() where TEntity : class;
+
+        EntityEntry<TEntity> Remove<TEntity>([NotNull] TEntity entity) where TEntity : class;
 
         #endregion
     }

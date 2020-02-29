@@ -42,7 +42,7 @@ namespace VueServer.Services.Concrete
         /// <summary>User Manager</summary>
         private readonly UserManager<WSUser> _userManager;
         /// <summary>User Context (Database)</summary>
-        private readonly WSContext _context;
+        private readonly IWSContext _context;
         /// <summary>User service to manipulate the context using the user manager</summary>
         private readonly IUserService _user;
 
@@ -50,7 +50,7 @@ namespace VueServer.Services.Concrete
             UserManager<WSUser> userManager,
             SignInManager<WSUser> signInManager,
             RoleManager<WSRole> roleManager,
-            WSContext context,
+            IWSContext context,
             IWebHostEnvironment env,
             ILoggerFactory logger,
             IConfigurationRoot config,
