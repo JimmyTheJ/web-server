@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using VueServer.Models.Models.Library;
 using VueServer.Models.User;
 
 namespace VueServer.Models.Context
@@ -16,11 +17,33 @@ namespace VueServer.Models.Context
 
         DbSet<Weight> Weight { get; set; }
 
+        #region -> Library 
+
+        DbSet<Author> Authors { get; set; }
+
+        DbSet<Book> Books { get; set; }
+
+        DbSet<Bookshelf> Bookshelves { get; set; }
+
+        DbSet<Genre> Genres { get; set; }
+
+        DbSet<Series> Series { get; set; }
+
+        DbSet<SeriesItem> SeriesItems { get; set; }
+
+        DbSet<BookHasAuthor> BookHasAuthors { get; set; }
+
+        #endregion
+
+        #region -> Identity
+
         DbSet<WSUser> Users { get; set; }
         DbSet<WSRole> Roles { get; set; }
         DbSet<WSUserInRoles> UserRoles { get; set; }
         DbSet<WSUserLogin> UserLogin { get; set; }
         DbSet<WSUserTokens> UserTokens { get; set; }
+
+        #endregion
 
         #endregion
 
