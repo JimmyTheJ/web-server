@@ -28,12 +28,6 @@ namespace VueServer.Domain.Concrete
             }
         }
 
-        public Result()
-        {
-            Obj = default(T);
-            Code =  StatusCode.OK;
-        }
-
         public Result(T obj, StatusCode code = StatusCode.OK)
         {
             Obj = obj;

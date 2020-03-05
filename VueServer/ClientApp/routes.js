@@ -6,14 +6,12 @@ import Register from './components/modules/register'
 
 import Home from './components/home'
 import Start from './components/pages/start'
-import FileServer from './components/pages/file-server'
-import Video from './components/pages/video'
-import Upload from './components/pages/upload'
 import Browser from './components/pages/browser'
 import Notes from './components/pages/notes'
 import Documentation from './components/pages/documentation'
 import Doc from './components/modules/doc'
 import Weight from './components/pages/weight'
+import Library from './components/pages/library'
 
 export const routes = [
     {
@@ -110,7 +108,17 @@ export const routes = [
                 component: Weight,
                 display: 'Weight',
                 meta: {
-                    authLevel: Roles.Level.General,
+                    authLevel: Roles.Level.Elevated,
+                    hidden: false,
+                }
+            },
+            {
+                path: 'library',
+                name: 'library',
+                component: Library,
+                display: 'library',
+                meta: {
+                    authLevel: Roles.Level.Elevated,
                     hidden: false,
                 }
             },

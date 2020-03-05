@@ -189,6 +189,7 @@ namespace VueServer.Classes.Extensions
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IDirectoryService, DirectoryService>();
             services.AddScoped<INoteService, NoteService>();
+            services.AddScoped<ILibraryService, LibraryService>();
             services.AddScoped<IWeightService, WeightService>();
 
             services.AddScoped<IUserService, UserService>();
