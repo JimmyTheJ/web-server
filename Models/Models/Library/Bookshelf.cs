@@ -8,6 +8,14 @@ namespace VueServer.Models.Models.Library
 {
     public class Bookshelf
     {
+        public Bookshelf () { }
+
+        public Bookshelf (Bookshelf bookshelf)
+        {
+            if (bookshelf != null)
+                Name = bookshelf.Name;
+        }
+
         [Key]
         public int Id { get; set; }
 

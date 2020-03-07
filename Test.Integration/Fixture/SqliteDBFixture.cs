@@ -13,7 +13,7 @@ namespace VueServer.Test.Integration.Fixture
             connection = new SqliteConnection("DataSource=:memory:");
             connection.Open();
 
-            Context = new WSContext(connection);
+            Context = new SqliteWSContext(connection);
             Context.Database.EnsureCreated();
         }
 

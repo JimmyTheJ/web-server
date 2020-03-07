@@ -9,6 +9,25 @@ namespace VueServer.Models.Models.Library
 {
     public class Book
     {
+        public Book() { }
+
+        public Book(Book book)
+        {
+            if (book != null)
+            {
+                BookshelfId = book.BookshelfId;
+                Edition = book.Edition;
+                GenreId = book.GenreId;
+                Hardcover = book.Hardcover;
+                IsRead = book.IsRead;
+                SeriesNumber = book.SeriesNumber;
+                PublicationDate = book.PublicationDate;
+                SubTitle = book.SubTitle;
+                Title = book.Title;
+                UserId = book.UserId;
+            }            
+        }
+
         [Key]
         public int Id { get; set; }
 
@@ -26,6 +45,10 @@ namespace VueServer.Models.Models.Library
 
         public bool IsRead { get; set; }
 
+        /// <summary>
+        /// The number in the series if we have a series foreign key
+        /// </summary>
+        public int SeriesNumber { get; set; }
 
         [ForeignKey("User")]
         [Required]
@@ -37,6 +60,9 @@ namespace VueServer.Models.Models.Library
         // FK Bookshelf - Optional
         public int? BookshelfId { get; set; }
 
+        // FK Series - Optional
+        public int? SeriesId { get; set; }
+
         public virtual WSUser User { get; set; }
 
         [NotMapped]
@@ -46,7 +72,7 @@ namespace VueServer.Models.Models.Library
         public virtual Bookshelf Bookshelf { get; set; }
 
         [NotMapped]
-        public virtual SeriesItem SeriesItem { get; set; }
+        public virtual Series Series { get; set; }
 
         [NotMapped]
         public virtual IList<Author> Authors { get; set; }

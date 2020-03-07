@@ -19,10 +19,9 @@ namespace VueServer.Models.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) 
         {
-            // TODO: See if any of these are needed, or if the nullable properties is enough
             modelBuilder.Entity<Book>().HasOne<Genre>().WithMany(x => x.Books).HasForeignKey(x => x.GenreId).IsRequired(false);
             modelBuilder.Entity<Book>().HasOne<Bookshelf>().WithMany(x => x.Books).HasForeignKey(x => x.BookshelfId).IsRequired(false);
-            modelBuilder.Entity<Book>().Property(x => x.PublicationDate).IsRequired(false);
+            modelBuilder.Entity<Book>().HasOne<Series>().WithMany(x => x.Books).HasForeignKey(x => x.SeriesId).IsRequired(false);
 
             // Data Seeding
             SeedGenres(modelBuilder);
@@ -45,8 +44,6 @@ namespace VueServer.Models.Context
         public DbSet<Genre> Genres { get; set; }
 
         public DbSet<Series> Series { get; set; }
-
-        public DbSet<SeriesItem> SeriesItems { get; set; }
 
         public DbSet<BookHasAuthor> BookHasAuthors { get; set; }
 

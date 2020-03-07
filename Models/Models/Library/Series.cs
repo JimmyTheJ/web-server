@@ -8,6 +8,18 @@ namespace VueServer.Models.Models.Library
 {
     public class Series
     {
+        public Series () { }
+
+        public Series (Series series)
+        {
+            if (series != null)
+            {
+                Active = series.Active;
+                Name = series.Name;
+                Number = series.Number;
+            }            
+        }
+
         [Key]
         public int Id { get; set; }
 
@@ -19,6 +31,6 @@ namespace VueServer.Models.Models.Library
         public bool Active { get; set; }
 
         [NotMapped]
-        public virtual IList<SeriesItem> SeriesItems { get; set; }
+        public virtual IList<Book> Books { get; set; }
     }
 }

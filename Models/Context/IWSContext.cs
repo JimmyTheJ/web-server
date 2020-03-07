@@ -29,8 +29,6 @@ namespace VueServer.Models.Context
 
         DbSet<Series> Series { get; set; }
 
-        DbSet<SeriesItem> SeriesItems { get; set; }
-
         DbSet<BookHasAuthor> BookHasAuthors { get; set; }
 
         #endregion

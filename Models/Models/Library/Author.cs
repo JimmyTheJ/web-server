@@ -8,6 +8,18 @@ namespace VueServer.Models.Models.Library
 {
     public class Author
     {
+        public Author () { }
+
+        public Author (Author author)
+        {
+            if (author != null)
+            {
+                Deceased = author.Deceased;
+                FirstName = author.FirstName;
+                LastName = author.LastName;
+            }            
+        }
+
         [Key]
         public int Id { get; set; }
 

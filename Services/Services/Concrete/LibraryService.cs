@@ -35,7 +35,11 @@ namespace VueServer.Services.Interface
 
         public async Task<IResult<IList<Book>>> GetAllBooks()
         {
-            var books = await _wsContext.Books.ToListAsync();
+            var books = await _wsContext.Books
+                //.Include(x => x.Bookshelf)
+                //.Include(x => x.Genre)
+                //.Include(x => x.Series)
+                .ToListAsync();
 
             return new Result<IList<Book>>(books, Domain.Enums.StatusCode.OK);
         }
@@ -47,7 +51,68 @@ namespace VueServer.Services.Interface
 
         public async Task<IResult<Book>> CreateBook(BookAddRequest request)
         {
-            throw new NotImplementedException();
+            // Null request or null book request bad request
+            if (request == null) return new Result<Book>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+            if (request.Book == null) return new Result<Book>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+
+            IList<Author> newAuthors = new List<Author>();
+            Bookshelf newBookshelf = null;
+            Series newSeries = null;
+
+            if (request.Bookshelf != null)
+            {
+                if (_wsContext.Bookshelves.Where(x => x.Id == request.Bookshelf.Id).Count() == 0)
+                {
+                    newBookshelf = new Bookshelf(request.Bookshelf);
+                    _wsContext.Bookshelves.Add(newBookshelf);
+                }
+            }
+
+            if (request.Series != null)
+            {
+                if (_wsContext.Series.Where(x => x.Id == request.Series.Id).Count() == 0)
+                {
+                    newSeries = new Series(request.Series);
+                    _wsContext.Series.Add(newSeries);
+                }
+            }
+            
+            if (request.Authors != null)
+            {
+                foreach (var author in request.Authors)
+                {
+                    if (_wsContext.Authors.Where(x => x.Id == author.Id).Count() == 0)
+                    {
+                        var a = new Author(author);
+                        newAuthors.Add(a);
+                        _wsContext.Authors.Add(a);
+                    }
+                }
+            }
+
+            // Add the book to the database
+            var newBook = new Book(request.Book);
+            newBook.UserId = _user.Name;
+            if (request.GenreId > 0)
+                newBook.GenreId = request.GenreId;
+
+            _wsContext.Books.Add(newBook);
+            await _wsContext.SaveChangesAsync();
+
+            if (newAuthors != null && newAuthors.Count > 0)
+            {
+                foreach (var author in newAuthors)
+                {
+                    if (_wsContext.BookHasAuthors.Where(x => x.BookId == newBook.Id && x.AuthorId == author.Id).Count() == 0)
+                    {
+                        _wsContext.BookHasAuthors.Add(new BookHasAuthor() { AuthorId = author.Id, BookId = newBook.Id });
+                    }
+                }
+            }
+
+            await _wsContext.SaveChangesAsync();
+
+            return new Result<Book>(newBook);
         }
 
         public async Task<IResult<Book>> UpdateBook(BookAddRequest request)
