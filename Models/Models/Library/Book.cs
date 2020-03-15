@@ -20,6 +20,7 @@ namespace VueServer.Models.Models.Library
                 GenreId = book.GenreId;
                 Hardcover = book.Hardcover;
                 IsRead = book.IsRead;
+                SeriesId = book.SeriesId;
                 SeriesNumber = book.SeriesNumber;
                 PublicationDate = book.PublicationDate;
                 SubTitle = book.SubTitle;
@@ -65,16 +66,16 @@ namespace VueServer.Models.Models.Library
 
         public virtual WSUser User { get; set; }
 
-        [NotMapped]
+        //[NotMapped]
         public virtual Genre Genre { get; set; }
 
-        [NotMapped]
+        //[NotMapped]
         public virtual Bookshelf Bookshelf { get; set; }
 
-        [NotMapped]
+        //[NotMapped]
         public virtual Series Series { get; set; }
 
-        [NotMapped]
+        //[NotMapped]
         public virtual IList<Author> Authors { get; set; }
     }
 }

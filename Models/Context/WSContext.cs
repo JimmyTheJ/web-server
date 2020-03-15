@@ -19,9 +19,9 @@ namespace VueServer.Models.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) 
         {
-            modelBuilder.Entity<Book>().HasOne<Genre>().WithMany(x => x.Books).HasForeignKey(x => x.GenreId).IsRequired(false);
-            modelBuilder.Entity<Book>().HasOne<Bookshelf>().WithMany(x => x.Books).HasForeignKey(x => x.BookshelfId).IsRequired(false);
-            modelBuilder.Entity<Book>().HasOne<Series>().WithMany(x => x.Books).HasForeignKey(x => x.SeriesId).IsRequired(false);
+            modelBuilder.Entity<Book>().HasOne<Genre>("Genre").WithMany(x => x.Books).HasForeignKey(x => x.GenreId).IsRequired(false);
+            modelBuilder.Entity<Book>().HasOne<Bookshelf>("Bookshelf").WithMany(x => x.Books).HasForeignKey(x => x.BookshelfId).IsRequired(false);
+            modelBuilder.Entity<Book>().HasOne<Series>("Series").WithMany(x => x.Books).HasForeignKey(x => x.SeriesId).IsRequired(false);
 
             // Data Seeding
             SeedGenres(modelBuilder);

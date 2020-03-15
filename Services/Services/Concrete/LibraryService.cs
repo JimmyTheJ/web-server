@@ -12,6 +12,7 @@ using VueServer.Models;
 using VueServer.Models.Context;
 using VueServer.Models.Models.Library;
 using VueServer.Models.Models.Request;
+using static VueServer.Domain.Enums.StatusCode;
 
 namespace VueServer.Services.Interface
 {
@@ -36,12 +37,13 @@ namespace VueServer.Services.Interface
         public async Task<IResult<IList<Book>>> GetAllBooks()
         {
             var books = await _wsContext.Books
-                //.Include(x => x.Bookshelf)
-                //.Include(x => x.Genre)
-                //.Include(x => x.Series)
+                .Include(x => x.Bookshelf)
+                .Include(x => x.Genre)
+                .Include(x => x.Series)
+                .Include(x => x.Authors)
                 .ToListAsync();
 
-            return new Result<IList<Book>>(books, Domain.Enums.StatusCode.OK);
+            return new Result<IList<Book>>(books, OK);
         }
 
         public async Task<IResult<Book>> GetBook(int id)
@@ -52,8 +54,8 @@ namespace VueServer.Services.Interface
         public async Task<IResult<Book>> CreateBook(BookAddRequest request)
         {
             // Null request or null book request bad request
-            if (request == null) return new Result<Book>(null, Domain.Enums.StatusCode.BAD_REQUEST);
-            if (request.Book == null) return new Result<Book>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+            if (request == null) return new Result<Book>(null, BAD_REQUEST);
+            if (request.Book == null) return new Result<Book>(null, BAD_REQUEST);
 
             IList<Author> newAuthors = new List<Author>();
             Bookshelf newBookshelf = null;
@@ -61,19 +63,27 @@ namespace VueServer.Services.Interface
 
             if (request.Bookshelf != null)
             {
-                if (_wsContext.Bookshelves.Where(x => x.Id == request.Bookshelf.Id).Count() == 0)
+                if (_wsContext.Bookshelves.Where(x => x.Id == request.Bookshelf.Id).FirstOrDefault() == null)
                 {
                     newBookshelf = new Bookshelf(request.Bookshelf);
                     _wsContext.Bookshelves.Add(newBookshelf);
+                }
+                else
+                {
+                    request.Book.BookshelfId = request.Bookshelf.Id;
                 }
             }
 
             if (request.Series != null)
             {
-                if (_wsContext.Series.Where(x => x.Id == request.Series.Id).Count() == 0)
+                if (_wsContext.Series.Where(x => x.Id == request.Series.Id).FirstOrDefault() == null)
                 {
                     newSeries = new Series(request.Series);
                     _wsContext.Series.Add(newSeries);
+                }
+                else
+                {
+                    request.Book.SeriesId = request.Series.Id;
                 }
             }
             
@@ -81,7 +91,7 @@ namespace VueServer.Services.Interface
             {
                 foreach (var author in request.Authors)
                 {
-                    if (_wsContext.Authors.Where(x => x.Id == author.Id).Count() == 0)
+                    if (_wsContext.Authors.Where(x => x.Id == author.Id).FirstOrDefault() == null)
                     {
                         var a = new Author(author);
                         newAuthors.Add(a);
@@ -89,21 +99,27 @@ namespace VueServer.Services.Interface
                     }
                 }
             }
+            // Save database so we have correct ids for all the above objects
+            await _wsContext.SaveChangesAsync();
 
             // Add the book to the database
             var newBook = new Book(request.Book);
             newBook.UserId = _user.Name;
+            newBook.BookshelfId = newBookshelf?.Id ?? newBook.BookshelfId;
+            newBook.SeriesId = newSeries?.Id ?? newBook.SeriesId;
+
             if (request.GenreId > 0)
                 newBook.GenreId = request.GenreId;
 
             _wsContext.Books.Add(newBook);
+            // Save database so we can use the book id for the adding of authors
             await _wsContext.SaveChangesAsync();
 
             if (newAuthors != null && newAuthors.Count > 0)
             {
                 foreach (var author in newAuthors)
                 {
-                    if (_wsContext.BookHasAuthors.Where(x => x.BookId == newBook.Id && x.AuthorId == author.Id).Count() == 0)
+                    if (_wsContext.BookHasAuthors.Where(x => x.BookId == newBook.Id && x.AuthorId == author.Id).FirstOrDefault() == null)
                     {
                         _wsContext.BookHasAuthors.Add(new BookHasAuthor() { AuthorId = author.Id, BookId = newBook.Id });
                     }
@@ -112,7 +128,8 @@ namespace VueServer.Services.Interface
 
             await _wsContext.SaveChangesAsync();
 
-            return new Result<Book>(newBook);
+            newBook.Authors = newAuthors;
+            return new Result<Book>(newBook, OK);
         }
 
         public async Task<IResult<Book>> UpdateBook(BookAddRequest request)
@@ -122,7 +139,12 @@ namespace VueServer.Services.Interface
 
         public async Task<IResult> DeleteBook (int id)
         {
-            throw new NotImplementedException();
+            var book = _wsContext.Books.Where(x => x.Id == id).FirstOrDefault();
+
+            _wsContext.Books.Remove(book);
+            await _wsContext.SaveChangesAsync();
+
+            return new Result<IResult>(null, OK);
         }
 
         public async Task<IResult<IList<Genre>>> GetAllGenres()

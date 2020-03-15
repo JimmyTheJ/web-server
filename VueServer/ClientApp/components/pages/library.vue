@@ -53,8 +53,6 @@
                             </v-flex>
                             <v-flex xs12>
                                 <v-checkbox v-model="activeBook.hardcover" label="Hardcover"></v-checkbox>
-                            </v-flex>
-                            <v-flex xs12>
                                 <v-checkbox v-model="activeBook.isRead" label="Read"></v-checkbox>
                             </v-flex>
 
@@ -68,11 +66,24 @@
                                 <v-flex xs12>
                                     Series:
                                 </v-flex>
-                                <v-flex xs8 pr-1>
-                                    <v-text-field v-model="activeBook.series.name" label="Name"></v-text-field>
+                                <v-flex xs7 pr-1>
+                                    <v-combobox v-model="activeBook.series"
+                                                    :items="seriesList"
+                                                    :loading="seriesIsLoading"
+                                                    :search-input.sync="seriesSearch"
+                                                    color="white"
+                                                    hide-no-data
+                                                    hide-selected
+                                                    item-text="name"
+                                                    item-value="id"
+                                                    label="Series Search"
+                                                    placeholder="Start typing to Search"
+                                                    prepend-icon="mdi-database-search"
+                                                    return-object></v-combobox>
+                                    <!--<v-text-field v-model="activeBook.series.name" label="Name"></v-text-field>-->
                                 </v-flex>
-                                <v-flex xs2 px-1>
-                                    <v-text-field v-model="activeBook.series.number" label="Number"></v-text-field>
+                                <v-flex xs3 px-1>
+                                    <v-text-field v-model="activeBook.series.number" label="Total Number in Series"></v-text-field>
                                 </v-flex>
                                 <v-flex xs1>
                                     <v-checkbox v-model="activeBook.series.active" label="Active"></v-checkbox>
@@ -81,6 +92,9 @@
                                     <v-btn icon @click="deleteSeries()">
                                         <fa-icon size="md" icon="window-close" />
                                     </v-btn>
+                                </v-flex>
+                                <v-flex xs12>
+                                    <v-text-field v-model="activeBook.seriesNumber" label="Book's Series Number"></v-text-field>
                                 </v-flex>
                             </template>
                             <v-flex xs12 mt-3 v-if="activeBook.series === null">
@@ -95,7 +109,20 @@
                                     Bookshelf:
                                 </v-flex>
                                 <v-flex xs11 pr-1>
-                                    <v-text-field v-model="activeBook.bookshelf.name" label="Name"></v-text-field>
+                                    <v-combobox v-model="activeBook.bookshelf"
+                                                :items="bookshelfList"
+                                                :loading="bookshelfIsLoading"
+                                                :search-input.sync="bookshelfSearch"
+                                                color="white"
+                                                hide-no-data
+                                                hide-selected
+                                                item-text="name"
+                                                item-value="id"
+                                                label="Bookshelf Search"
+                                                placeholder="Start typing to Search"
+                                                prepend-icon="mdi-database-search"
+                                                return-object></v-combobox>
+                                    <!--<v-text-field v-model="activeBook.bookshelf.name" label="Name"></v-text-field>-->
                                 </v-flex>
                                 <v-flex xs1 class="text-right">
                                     <v-btn icon @click="deleteBookshelf()">
@@ -127,12 +154,46 @@
                 </v-btn>
             </v-flex>
 
-            <!--<v-data-table v-model="selected"
+            <v-data-table v-model="selected"
                           :headers="getHeaders"
                           :items="bookList"
                           class="elevation-1">
-            </v-data-table>-->
-        </v-container>        
+                <template v-slot:body="{ items }">
+                    <tbody>
+                        <tr v-for="item in items" :key="item.id">
+                            <td>{{ getTitle(item) }}</td>
+                            <td v-if="item.authors !== null">
+                                <template v-for="author in items.authors">
+                                    <p>{{ getAuthorName(author) }}</p>
+                                </template>
+                            </td>
+                            <td v-else></td>
+                            <td>{{ item.edition }}</td>
+                            <td>{{ getGenre(item) }}</td>
+                            <td>{{ item.publicationDate }}</td>
+                            <td v-if="item.hardcover"><fa-icon icon="check"></fa-icon></td>
+                            <td v-else><fa-icon icon="times"></fa-icon></td>
+                            <td v-if="item.isRead"><fa-icon icon="check"></fa-icon></td>
+                            <td v-else><fa-icon icon="times"></fa-icon></td>
+                            <td>{{ getBookshelfName(item) }}</td>
+                            <td v-if="hasSeriesInfo(item)">
+                                <fa-icon v-if="item.series.active" icon="minus"></fa-icon>
+                                <fa-icon v-else icon="asterisk"></fa-icon>
+                                {{ item.series.name }} ({{ item.seriesNumber }} / {{ item.series.number }})
+                            </td>
+                            <td v-else></td>
+                            <td><v-btn icon @click="deleteBook(item)"><fa-icon size="md" icon="window-close"></fa-icon></v-btn></td>
+                        </tr>
+                    </tbody>
+                </template>
+                <template v-slot:no-data>
+                    NO DATA HERE!
+                </template>
+                <template v-slot:no-results>
+                    NO RESULTS HERE!
+                </template>
+            </v-data-table>
+        </v-container>
     </div>
 </template>
 
@@ -216,13 +277,25 @@
                 selected: {},
                 dialogOpen: false,
                 isEdit: false,
+                seriesIsLoading: false,
+                seriesSearch: '',
+                bookshelfIsLoading: false,
+                bookshelfSearch: '',
             }
         },
         computed: {
             getHeaders() {
                 return [
                     { value: 'title', alignment: 'left', text: 'Title' },
-                    { value: 'sub-title', alignment: 'left', text: 'Sub Title' },
+                    { value: 'authors', alignment: 'left', text: 'Authors' },
+                    { value: 'edition', alignment: 'left', text: 'Edition' },
+                    { value: 'genre', alignment: 'left', text: 'Genre' },
+                    { value: 'publicationDate', alignment: 'left', text: 'Date' },
+                    { value: 'hardcover', alignment: 'left', text: 'Hardcover' },
+                    { value: 'isRead', alignment: 'left', text: 'Read' },
+                    { value: 'bookshelf', alignment: 'left', text: 'Bookshelf' },
+                    { value: 'series', alignment: 'left', text: 'Series' },
+                    { value: 'delete', alignment: 'left', text: '' },
                 ];
             },
             maxModalWidth() {
@@ -318,9 +391,11 @@
                         this.$_console_log('[Library] Success adding a book');
                         this.$_console_log(resp.data);
 
+                        // Add book to local list
+                        this.bookList.push(resp.data);
+
                         // Close dialog on successul adding of book
                         this.dialogOpen = false;
-
                     }).catch(() => {
                         // TODO: Indicate the book failed to be created somehow
                         this.$_console_log('[Library] Error adding a book')
@@ -354,6 +429,63 @@
             deleteBookshelf() {
                 this.activeBook.bookshelf = null;
             },
+            getTitle(item) {
+                if (typeof item === 'undefined' || item === null)
+                    return;
+
+                if (typeof item.subTitle === 'undefined' || item.subTitle === null || item.subTitle === '')
+                    return item.title;
+
+                return `${item.title} : ${item.subTitle}`;
+            },
+            deleteBook(item) {
+                if (typeof item === 'undefined' || item === null)
+                    return;
+
+                libraryService.book.delete(item.id).then(resp => {
+                    this.$_console_log(`[Library] Success deleting book: ${item.title}`);
+                    this.$_console_log(resp.data);
+
+                    this.bookList.splice(this.bookList.findIndex(x => x.id === item.id));
+                }).catch(() => {
+                    // TODO: Indicate the book failed to be deleted somehow
+                    this.$_console_log('[Library] Error deleting a book')
+                });
+            },
+            getBookshelfName(item) {
+                if (typeof item === 'undefined' || item === null)
+                    return;
+                if (item.bookshelf === 'undefined' || item.bookshelf === null)
+                    return;
+
+                return item.bookshelf.name;
+            },
+            hasSeriesInfo(item) {
+                if (typeof item === 'undefined' || item === null)
+                    return false;
+                if (item.series === 'undefined' || item.series === null)
+                    return false;
+
+                return true;
+            },
+            getGenre(item) {
+                if (typeof item === 'undefined' || item === null)
+                    return '';
+                if (item.genre === 'undefined' || item.genre === null)
+                    return '';
+
+                return item.genre.name;
+            },
+            getAuthorName(author) {
+                if (typeof author === 'undefined' || author === null)
+                    return '';
+
+                if (typeof author.firstName === 'undefined' || author.firstName === null || author.firstName === '') {
+                    return author.lastName;
+                }
+
+                return `${author.firstName} ${author.lastName}`;
+            }
         }
     }
 </script>
