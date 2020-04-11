@@ -3,7 +3,10 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft'
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons/faArrowRight'
 import { faAsterisk } from '@fortawesome/free-solid-svg-icons/faAsterisk'
+import { faBan } from '@fortawesome/free-solid-svg-icons/faBan'
 import { faBook } from '@fortawesome/free-solid-svg-icons/faBook'
+import { faBookmark } from '@fortawesome/free-solid-svg-icons/faBookmark'
+import { faBookReader } from '@fortawesome/free-solid-svg-icons/faBookReader'
 import { faBullhorn } from '@fortawesome/free-solid-svg-icons/faBullhorn'
 import { faChalkboard } from '@fortawesome/free-solid-svg-icons/faChalkboard'
 import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck'
@@ -40,7 +43,10 @@ library.add(
     faArrowLeft,
     faArrowRight,
     faAsterisk,
+    faBan,
     faBook,
+    faBookmark,
+    faBookReader,
     faBullhorn,
     faChalkboard,
     faCheck,

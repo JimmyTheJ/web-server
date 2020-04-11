@@ -30,7 +30,6 @@ namespace VueServer.Models.Models.Library
 
         public bool Active { get; set; }
 
-        [NotMapped]
         public virtual IList<Book> Books { get; set; }
     }
 }

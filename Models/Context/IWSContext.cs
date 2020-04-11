@@ -29,7 +29,7 @@ namespace VueServer.Models.Context
 
         DbSet<Series> Series { get; set; }
 
-        DbSet<BookHasAuthor> BookHasAuthors { get; set; }
+        DbSet<BookAuthor> BookHasAuthors { get; set; }
 
         #endregion
 

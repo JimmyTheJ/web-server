@@ -19,9 +19,14 @@ namespace VueServer.Models.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) 
         {
-            modelBuilder.Entity<Book>().HasOne<Genre>("Genre").WithMany(x => x.Books).HasForeignKey(x => x.GenreId).IsRequired(false);
-            modelBuilder.Entity<Book>().HasOne<Bookshelf>("Bookshelf").WithMany(x => x.Books).HasForeignKey(x => x.BookshelfId).IsRequired(false);
-            modelBuilder.Entity<Book>().HasOne<Series>("Series").WithMany(x => x.Books).HasForeignKey(x => x.SeriesId).IsRequired(false);
+            modelBuilder.Entity<Book>().HasOne(x => x.Genre).WithMany(x => x.Books).HasForeignKey(x => x.GenreId).IsRequired(false);
+            modelBuilder.Entity<Book>().HasOne(x => x.Bookshelf).WithMany(x => x.Books).HasForeignKey(x => x.BookshelfId).IsRequired(false);
+            modelBuilder.Entity<Book>().HasOne(x => x.Series).WithMany(x => x.Books).HasForeignKey(x => x.SeriesId).IsRequired(false);
+
+            // Book to Author many to many setup
+            modelBuilder.Entity<BookAuthor>().HasKey(x => new { x.BookId, x.AuthorId });
+            modelBuilder.Entity<BookAuthor>().HasOne(x => x.Author).WithMany(x => x.BookAuthors).HasForeignKey(x => x.AuthorId);
+            modelBuilder.Entity<BookAuthor>().HasOne(x => x.Book).WithMany(x => x.BookAuthors).HasForeignKey(x => x.BookId);
 
             // Data Seeding
             SeedGenres(modelBuilder);
@@ -45,7 +50,7 @@ namespace VueServer.Models.Context
 
         public DbSet<Series> Series { get; set; }
 
-        public DbSet<BookHasAuthor> BookHasAuthors { get; set; }
+        public DbSet<BookAuthor> BookHasAuthors { get; set; }
 
         #endregion
 

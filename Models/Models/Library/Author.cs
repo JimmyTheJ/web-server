@@ -30,7 +30,18 @@ namespace VueServer.Models.Models.Library
 
         public bool Deceased { get; set; }
 
+        public virtual IList<BookAuthor> BookAuthors { get; set; }
+
         [NotMapped]
-        public virtual IList<Book> Books { get; set; }
+        public string FullName
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(FirstName))
+                    return LastName;
+
+                return $"{FirstName} {LastName}";
+            }
+        }
     }
 }

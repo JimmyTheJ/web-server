@@ -16,7 +16,6 @@ namespace VueServer.Models.Models.Library
 
         public bool Fiction { get; set; }
 
-        [NotMapped]
         public virtual IList<Book> Books { get; set; }
     }
 }

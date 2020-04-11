@@ -1,4 +1,5 @@
 import axios from '../axios'
+import qs from 'qs';
 
 const GetBookListUrl = `api/library/book/list`;
 const GetBookUrl = `api/library/book/get`;

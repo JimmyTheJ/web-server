@@ -66,16 +66,12 @@ namespace VueServer.Models.Models.Library
 
         public virtual WSUser User { get; set; }
 
-        //[NotMapped]
         public virtual Genre Genre { get; set; }
 
-        //[NotMapped]
         public virtual Bookshelf Bookshelf { get; set; }
 
-        //[NotMapped]
         public virtual Series Series { get; set; }
 
-        //[NotMapped]
-        public virtual IList<Author> Authors { get; set; }
+        public virtual IList<BookAuthor> BookAuthors { get; set; }
     }
 }

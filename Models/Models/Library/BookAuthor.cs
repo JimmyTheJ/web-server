@@ -6,18 +6,11 @@ using System.Text;
 
 namespace VueServer.Models.Models.Library
 {
-    public class BookHasAuthor
+    public class BookAuthor
     {
-        [Key]
-        public int Id { get; set; }
-
-
-        [ForeignKey("Author")]
         public int AuthorId { get; set; }
 
-        [ForeignKey("Book")]
         public int BookId { get; set; }
-
 
         public Author Author { get; set; }
 
