@@ -1,5 +1,6 @@
 import * as types from '../mutation_types'
 import authAPI from '../../services/auth'
+import moduleAPI from '../../services/modules'
 import ConMsgs from '../../mixins/console';
 
 const state = {
@@ -10,10 +11,12 @@ const state = {
     accessToken: localStorage.getItem('accessToken') || '',
     refreshToken: localStorage.getItem('refreshToken') || '',
     csrfToken: localStorage.getItem('csrfToken') || '',
+
+    activeModules: JSON.parse(localStorage.getItem('activeModules')) || []
 }
 
 const getters = {
-
+    getActiveModules: state => state.activeModules
 }
 
 const actions = {
@@ -73,6 +76,18 @@ const actions = {
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from register', e.response)
+            return await Promise.reject(e.response);
+        }
+    },
+    async getModules({ commit }) {
+        try {
+            const res = await moduleAPI.getModulesForUser()
+            ConMsgs.methods.$_console_log(res.data);
+            commit(types.GET_MODULES, res.data)
+            return await Promise.resolve(res)
+        }
+        catch (e) {
+            ConMsgs.methods.$_console_group('[Vuex][Actions] Error from get modules', e.response)
             return await Promise.reject(e.response);
         }
     }
@@ -144,6 +159,20 @@ const mutations = {
         localStorage.removeItem('csrfToken')
         localStorage.removeItem('isAuthorize')
     },
+    [types.GET_MODULES](state, data) {
+        ConMsgs.methods.$_console_log("Mutating get modules");
+
+        // Clean up
+        localStorage.removeItem('activeModules')
+        state.activeModules = [];
+
+        // Add modules to list
+        if (typeof data !== 'undefined' && data !== null && data.length > 0) {
+            data.forEach(element => { state.activeModules.push(element) });
+        }
+
+        localStorage.setItem('activeModules', JSON.stringify(state.activeModules))
+    }
 }
 
 export default {

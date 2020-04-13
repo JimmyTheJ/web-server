@@ -9,7 +9,7 @@
                              app>
             <v-list light>
                 <template v-for="child in routes.children">
-                    <v-list-item :to="{ name: child.name }" v-if="authorized(child.meta.authLevel) && !child.meta.hidden">
+                    <v-list-item :to="{ name: child.name }" v-if="authorized(child) && !child.meta.hidden">
                         <v-list-item-content>
                             {{ child.display }}
                         </v-list-item-content>
@@ -23,7 +23,7 @@
             <div v-show="$vuetify.breakpoint.name !== 'xs'">
                 <v-toolbar-items dark>
                     <template v-for="(child, index) in routes.children">
-                        <template v-if="authorized(child.meta.authLevel)">
+                        <template v-if="authorized(child)">
                             <div v-show="(index+1) < maxMenuItems">
                                 <!--<router-link :to="child.route"></router-link>-->
                                 <template v-if="!child.meta.hidden">
@@ -64,6 +64,8 @@
 </template>
 
 <script>
+    import { mapState } from 'vuex'
+
     import Auth from '../../mixins/authentication'
     import { routes } from '../../routes'
     import { Roles } from '../../constants'
@@ -88,12 +90,28 @@
             source: String
         },
         computed: {
+            ...mapState({
+                modules: state => state.auth.modules
+            }),
             getDrawerHeight() {
                 return 16 + (this.menuItems * 48);
             },
             maxMenuItems() {
                 return (this.screenSize - 150) / 170;
             },
+        },
+        watch: {
+            modules: {
+                handler(newValue) {
+                    if (typeof newValue === 'undefined' || newValue === null)
+                        return;
+
+                    if (newValue.length > 0) {
+
+                    }
+                },
+                deep: true
+            }
         },
         created() {
             this.getAuthLevel();
@@ -125,18 +143,23 @@
                 else
                     this.authLevel = Roles.Level.Default;
             },
-            authorized(level) {
-                if (level > this.authLevel) {
+            authorized(route) {
+                // Check authorization level first 
+                if (route.meta.authLevel > this.authLevel) {
                     //this.$_console_log("[Menu] Level is greater than auth level. Not authorized");
                     return false;
                 }
+                // Allow all default level routes without additional checks
+                if (route.meta.authLevel <= Roles.Level.Default) {
+                    return true;
+                }
 
-                return true;
+                return this.$_auth_userHasModule(route.name);
             },
             getMenuItemCount() {
                 this.$_console_log('[Menu] Get Menu Count.');
                 for (let i = 0; i < this.routes.children.length; i++) {
-                    let auth = this.authorized(this.routes.children[i].meta.authLevel);
+                    let auth = this.authorized(this.routes.children[i]);
                     if (auth && !this.routes.children[i].meta.hidden) {
                         this.menuItems++;
                     }

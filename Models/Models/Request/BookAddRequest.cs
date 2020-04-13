@@ -2,9 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using VueServer.Models.Models.Library;
+using VueServer.Models.Library;
 
-namespace VueServer.Models.Models.Request
+namespace VueServer.Models.Request
 {
     public class BookAddRequest
     {

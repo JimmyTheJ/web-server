@@ -187,6 +187,7 @@ namespace VueServer.Classes.Extensions
             services.AddSingleton<IStatusCodeFactory<IActionResult>, StatusCodeFactory>();
 
             services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IModuleService, ModuleService>();
             services.AddScoped<IDirectoryService, DirectoryService>();
             services.AddScoped<INoteService, NoteService>();
             services.AddScoped<ILibraryService, LibraryService>();

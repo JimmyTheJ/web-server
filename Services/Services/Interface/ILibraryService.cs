@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 using VueServer.Domain.Concrete;
 using VueServer.Domain.Interface;
 using VueServer.Models;
-using VueServer.Models.Models.Library;
-using VueServer.Models.Models.Request;
+using VueServer.Models.Library;
+using VueServer.Models.Request;
 
 namespace VueServer.Services.Interface
 {

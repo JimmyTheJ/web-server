@@ -17,15 +17,22 @@ export default {
             ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_login: Called');
             let error = false;
             await this.$store.dispatch('signin', data)
-                .then(resp => {
+                .then(async resp => {
+                    // Get CSRF token
                     this.$store.dispatch('getCsrfToken')
-                        .then(resp => ConMsgs.methods.$_console_log("Got csrf token!"))
+                        .then(() => ConMsgs.methods.$_console_log("Got csrf token!"))
                         .catch(() => ConMsgs.methods.$_console_log("Did not get token :("))
+
+                    // Get modules for this user
+                    await this.$store.dispatch('getModules')
+                        .then(() => ConMsgs.methods.$_console_log("Got user modules"))
+                        .catch(() => ConMsgs.methods.$_console_log("Failed to get user modules"))
+
+                    this.$_auth_checkLogin(error);
                 }).catch(() => {
                     this.$store.dispatch('signout')
                     error = true;
                 });
-            this.$_auth_checkLogin(error);
         },
         async $_auth_register(data) {
             ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_register: Called');
@@ -64,5 +71,17 @@ export default {
 
             return role;
         },
+        $_auth_userHasModule(module) {
+            const modules = store.getters.getActiveModules;
+            console.log(modules);
+
+            const obj = modules.find(x => x.id === module);
+            if (typeof obj === 'undefined') {
+                return false
+            }
+            else {
+                return true;
+            }
+        }
     }
 }

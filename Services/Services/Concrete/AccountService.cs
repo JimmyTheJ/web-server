@@ -210,6 +210,13 @@ namespace VueServer.Services.Concrete
             return new Result<RefreshTokenResponse>(new RefreshTokenResponse(newJwtToken, newRefreshToken), Domain.Enums.StatusCode.OK);
         }
 
+        public async Task<IResult<IList<WSUser>>> GetUsers ()
+        {
+            var users = await _context.Users.ToListAsync();
+
+            return new Result<IList<WSUser>>(users, Domain.Enums.StatusCode.OK);
+        }
+
         #endregion
 
         #region -> Private Functions

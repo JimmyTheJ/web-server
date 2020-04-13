@@ -4,7 +4,8 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using VueServer.Models.Models.Library;
+using VueServer.Models.Modules;
+using VueServer.Models.Library;
 using VueServer.Models.User;
 
 namespace VueServer.Models.Context
@@ -16,6 +17,14 @@ namespace VueServer.Models.Context
         DbSet<Notes> Notes { get; set; }
 
         DbSet<Weight> Weight { get; set; }
+
+        #region -> Modules
+
+        DbSet<ModuleAddOn> Modules { get; set; }
+
+        DbSet<UserHasModuleAddOn> UserHasModule { get; set; }
+
+        #endregion
 
         #region -> Library 
 

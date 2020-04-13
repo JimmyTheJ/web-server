@@ -6,7 +6,8 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
-using VueServer.Models.Models.Library;
+using VueServer.Models.Library;
+using VueServer.Models.Modules;
 using VueServer.Models.User;
 
 namespace VueServer.Models.Context
@@ -28,6 +29,11 @@ namespace VueServer.Models.Context
             modelBuilder.Entity<BookAuthor>().HasOne(x => x.Author).WithMany(x => x.BookAuthors).HasForeignKey(x => x.AuthorId);
             modelBuilder.Entity<BookAuthor>().HasOne(x => x.Book).WithMany(x => x.BookAuthors).HasForeignKey(x => x.BookId);
 
+            // User Modules many to many setup
+            modelBuilder.Entity<UserHasModuleAddOn>().HasKey(x => new { x.UserId, x.ModuleAddOnId });
+            modelBuilder.Entity<UserHasModuleAddOn>().HasOne(x => x.User).WithMany(x => x.ModuleAddOns).HasForeignKey(x => x.UserId);
+            modelBuilder.Entity<UserHasModuleAddOn>().HasOne(x => x.ModuleAddOn).WithMany(x => x.ModuleAddOns).HasForeignKey(x => x.ModuleAddOnId);
+
             // Data Seeding
             SeedGenres(modelBuilder);
         }
@@ -37,6 +43,14 @@ namespace VueServer.Models.Context
         public DbSet<Notes> Notes { get; set; }
 
         public DbSet<Weight> Weight { get; set; }
+
+        #region -> Modules
+
+        public DbSet<ModuleAddOn> Modules { get; set; }
+
+        public DbSet<UserHasModuleAddOn> UserHasModule { get; set; }
+
+        #endregion
 
         #region -> Library 
 

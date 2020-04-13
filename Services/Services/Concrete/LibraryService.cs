@@ -10,11 +10,12 @@ using VueServer.Domain.Concrete;
 using VueServer.Domain.Interface;
 using VueServer.Models;
 using VueServer.Models.Context;
-using VueServer.Models.Models.Library;
-using VueServer.Models.Models.Request;
+using VueServer.Models.Library;
+using VueServer.Models.Request;
+using VueServer.Services.Interface;
 using static VueServer.Domain.Enums.StatusCode;
 
-namespace VueServer.Services.Interface
+namespace VueServer.Services.Concrete
 {
     public class LibraryService : ILibraryService
     {

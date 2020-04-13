@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 using VueServer.Models.User;
 
-namespace VueServer.Models.Models.Library
+namespace VueServer.Models.Library
 {
     public class Book
     {

@@ -19,12 +19,37 @@ router.beforeEach((to, from, next) => {
     let role = store.state.auth.role;
     let level = Auth.methods.$_auth_convertRole(role);
 
-    if (store.state.auth.isAuthorize === true && to.meta.authLevel > level) {
-        ConMsgs.methods.$_console_log('[Router] beforeEach: DENIED ACCESS');
+    ConMsgs.methods.$_console_log('To:', to);
+
+    // Allow administrator access to everything
+    if (level === Roles.Level.Admin) {
+        next();
+    }
+    // Also allow access to index / login
+    else if (to.name === 'index' || to.name === 'login') {
+        next();
+    }
+    // Allow access to paths that have no access level requirement
+    else if (to.meta.authLevel === Roles.Level.None) {
+        next();
+    }
+    // User is authenticated and trying to access a path with no special permission
+    else if (store.state.auth.isAuthorize === true && to.meta.authLevel <= Roles.Level.Default) {
+        next();
+    }
+    // User is authenticated but is trying to access a path beyond their access level
+    else if (store.state.auth.isAuthorize === true && to.meta.authLevel > level) {
+        ConMsgs.methods.$_console_log('[Router] beforeEach: DENIED. User is not authorized or does not have sufficient access level');
         next('/home/start');
     }
-
-    next();
+    // Unauthorized path. User doesn't have access to this module
+    else if (!Auth.methods.$_auth_userHasModule(to.name)) {
+        ConMsgs.methods.$_console_log('[Router] beforeEach: DENIED. User does not have access to this module');
+        next(false);
+    }
+    else {
+        next();
+    }
 })
 
 export default router

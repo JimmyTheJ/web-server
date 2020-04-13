@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using VueServer.Domain.Factory.Interface;
-using VueServer.Models.Models.Request;
+using VueServer.Models.Request;
 using VueServer.Services.Interface;
 using static VueServer.Domain.Constants;
 

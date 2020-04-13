@@ -6,6 +6,7 @@ import Register from './components/modules/register'
 
 import Home from './components/home'
 import Start from './components/pages/start'
+import AdminTools from './components/pages/admin-tools'
 import Browser from './components/pages/browser'
 import Notes from './components/pages/notes'
 import Documentation from './components/pages/documentation'
@@ -47,6 +48,16 @@ export const routes = [
                 display: 'Home',
                 meta: {
                     authLevel: Roles.Level.Default,
+                    hidden: false,
+                }
+            },
+            {
+                path: 'admin-tools',
+                name: 'admin-tools',
+                component: AdminTools,
+                display: 'Admin Tools',
+                meta: {
+                    authLevel: Roles.Level.Admin,
                     hidden: false,
                 }
             },
@@ -108,7 +119,7 @@ export const routes = [
                 component: Weight,
                 display: 'Weight',
                 meta: {
-                    authLevel: Roles.Level.Elevated,
+                    authLevel: Roles.Level.General,
                     hidden: false,
                 }
             },
@@ -116,9 +127,9 @@ export const routes = [
                 path: 'library',
                 name: 'library',
                 component: Library,
-                display: 'library',
+                display: 'Library',
                 meta: {
-                    authLevel: Roles.Level.Elevated,
+                    authLevel: Roles.Level.General,
                     hidden: false,
                 }
             },

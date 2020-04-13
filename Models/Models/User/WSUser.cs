@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using VueServer.Domain.Interface;
+using VueServer.Models.Modules;
 
 namespace VueServer.Models.User
 {
@@ -15,8 +17,11 @@ namespace VueServer.Models.User
 
         public string DisplayName { get; set; }
 
+        [JsonIgnore]
         public string PasswordHash { get; set; }
 
-        public virtual List<WSUserInRoles> Roles { get; set; }
+        public virtual IList<WSUserInRoles> Roles { get; set; }
+
+        public virtual IList<UserHasModuleAddOn> ModuleAddOns { get; set; }
     }
 }
