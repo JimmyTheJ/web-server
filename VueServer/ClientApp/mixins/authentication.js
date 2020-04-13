@@ -70,18 +70,6 @@ export default {
             ConMsgs.methods.$_console_log(`[Authentication] convertRole: ${role}`);
 
             return role;
-        },
-        $_auth_userHasModule(module) {
-            const modules = store.getters.getActiveModules;
-            console.log(modules);
-
-            const obj = modules.find(x => x.id === module);
-            if (typeof obj === 'undefined') {
-                return false
-            }
-            else {
-                return true;
-            }
         }
     }
 }

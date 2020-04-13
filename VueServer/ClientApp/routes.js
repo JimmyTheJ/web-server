@@ -77,6 +77,7 @@ export const routes = [
                 component: Browser,
                 display: 'Browser',
                 meta: {
+                    relative: 'browser',
                     authLevel: Roles.Level.General,
                     hidden: true,
                 }
@@ -107,6 +108,7 @@ export const routes = [
                         component: Doc,
                         display: 'Documentation',
                         meta: {
+                            relative: 'documentation',
                             authLevel: Roles.Level.General,
                             hidden: true,
                         },

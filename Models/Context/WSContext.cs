@@ -36,6 +36,7 @@ namespace VueServer.Models.Context
 
             // Data Seeding
             SeedGenres(modelBuilder);
+            SeedModules(modelBuilder);
         }
 
         #region -> Database tables
@@ -136,6 +137,15 @@ namespace VueServer.Models.Context
             modelBuilder.Entity<Genre>().HasData(new Genre { Id = id++, Fiction = true, Name = "Suspense" });
             modelBuilder.Entity<Genre>().HasData(new Genre { Id = id++, Fiction = true, Name = "Thriller" });
             modelBuilder.Entity<Genre>().HasData(new Genre { Id = id++, Fiction = true, Name = "Young adult" });
+        }
+        
+        private void SeedModules(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = "browser", Name = "Browser" });
+            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = "documentation", Name = "Documentation" });
+            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = "library", Name = "Library" });
+            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = "notes", Name = "Notes" });
+            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = "weight", Name = "Weight" });
         }
 
         #endregion

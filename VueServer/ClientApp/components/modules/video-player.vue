@@ -85,8 +85,6 @@
             },
             getWidth: function () {
                 let check = window.mobilecheck();
-                this.$_console_log(`Check: ${check}`);
-
                 if (check)
                     return 320;
 
@@ -111,7 +109,7 @@
                     player.pause;
                 }
             },
-            dialog: function (newValue, oldValue) {
+            dialog: function (newValue) {
                 setTimeout(() => {
                     let player = document.getElementById('video-player');
 
@@ -131,9 +129,7 @@
             }
         },
         mounted() {
-            this.$nextTick(() => {
-                window.addEventListener('resize', this.getWindowSize);
-            });
+            window.addEventListener('resize', this.getWindowSize);
         },
         beforeDestroy() {
             window.removeEventListener('resize', this.getWindowSize);

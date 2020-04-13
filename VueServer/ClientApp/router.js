@@ -5,7 +5,10 @@ import { Roles } from './constants'
 import { routes } from './routes'
 
 import store from './store'
+
+// Mixins
 import Auth from './mixins/authentication'
+import Module from './mixins/module'
 import ConMsgs from './mixins/console'
 
 Vue.use(VueRouter);
@@ -43,7 +46,7 @@ router.beforeEach((to, from, next) => {
         next('/home/start');
     }
     // Unauthorized path. User doesn't have access to this module
-    else if (!Auth.methods.$_auth_userHasModule(to.name)) {
+    else if (!Module.methods.$_module_userHasModule(to)) {
         ConMsgs.methods.$_console_log('[Router] beforeEach: DENIED. User does not have access to this module');
         next(false);
     }

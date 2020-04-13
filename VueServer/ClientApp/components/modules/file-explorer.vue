@@ -33,7 +33,7 @@
             </v-list>
         </v-container>
 
-        <v-container mt-1 class="upload-area">
+        <v-container mt-1 class="upload-area" v-if="role >= roleOptions.Elevated">
             <v-form enctype="multipart/form-data">
                 <v-layout row wrap>
                     <v-flex xs12>
@@ -46,7 +46,7 @@
 
         <v-container>
             <v-form v-if="selectable">
-                <v-layout row wrap>
+                <v-layout row wrap px-2>
                     <v-flex xs12>
                         <v-select v-model="selectedFolder" :items="folders" :label="`Select a folder`" item-text="name" item-value="name"></v-select>
                     </v-flex>
@@ -79,7 +79,7 @@
                     {{ getFileSize(item.size) }}
                 </v-list-item-action>
                 <!-- Ensure admin and not a folder for delete -->
-                <v-list-item-action v-if="isAdmin && !item.isFolder">
+                <v-list-item-action v-if="role === roleOptions.Admin && !item.isFolder">
                     <v-btn icon @click="deleteItem(item)"><fa-icon size="lg" icon="window-close" /></v-btn>
                 </v-list-item-action>
             </v-list-item>
@@ -96,6 +96,7 @@
     import service from '../../services/file-explorer'
     import { mapGetters } from 'vuex'
     import Tooltip from './tooltip'
+    import Auth from '../../mixins/authentication'
 
     let path = process.env.API_URL;
 
@@ -117,7 +118,8 @@
                 // Upload
                 uploadFiles: [],
 
-                isAdmin: false,
+                role: CONST.Roles.Level.Default,
+                roleOptions: CONST.Roles.Level,
 
                 dialog: {
                     on: false,
@@ -130,6 +132,7 @@
                 },
             }
         },
+        mixins: [Auth],
         components: {
             "tooltip": Tooltip,
         },
@@ -161,7 +164,8 @@
 
                 this.changing = false;
             }, 250);
-            this.isAdmin = this.$store.state.auth.role === 'Administrator';
+
+            this.role = this.$_auth_convertRole(this.$store.state.auth.role);
         },
         computed: {
             fullPath() {
@@ -407,6 +411,11 @@
 
             // Upload
             setFiles(e) {
+                if (this.role < CONST.Roles.Level.Elevated) {
+                    this.$_console_log('Users without elevated or higher access cannot upload files');
+                    return;
+                }
+
                 this.$_console_log(e.target.files);
                 for (let i = 0; i < e.target.files.length; i++) {
                     this.uploadFiles.push(e.target.files[i]);
@@ -461,8 +470,8 @@
                 });
             },
             async deleteItem(file) {
-                if (!this.isAdmin)
-                    return this.$_console_log("You're not allowed to do that sir...");
+                if (this.role < CONST.Roles.Level.Admin)
+                    return this.$_console_log("Non Admins are not allowed to delete files");                    
 
                 if (typeof file === 'undefined' || file === null || file === '')
                     return this.$_console_log("Invalid file info, can't delete");
