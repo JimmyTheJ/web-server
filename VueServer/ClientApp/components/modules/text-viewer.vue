@@ -1,18 +1,9 @@
 <template>
     <v-dialog v-model="dialog">
         <v-card>
-            <v-card-title class="headline">Video Player</v-card-title>
+            <v-card-title class="headline">Text Viewer</v-card-title>
             <v-card-text>
-                <div class="video-container center">
-                    <video id="video-player"
-                           class="video-player"
-                           ref="player"
-                           preload="none"
-                           controls
-                           :width="getWidth">
-                        <source :src="url" />
-                    </video>
-                </div>
+                <editor-context :editor="editor" editable="false" />
             </v-card-text>
             <v-card-actions>
                 <v-btn @click="dialog = false">
@@ -24,7 +15,8 @@
 </template>
 
 <script>
-    let path = process.env.API_URL;
+    import { Editor, EditorContent } from 'tiptap'
+    import service from '../../services/file-explorer'
 
     window.mobilecheck = function () {
         var check = false;
@@ -33,15 +25,18 @@
     };
 
     export default {
-        name: "video-player",
+        name: "text-viewer",
+        components: {
+            'editor-context': EditorContent
+        },
         data() {
             return {
                 windowHeight: window.innerHeight,
                 windowWidth: window.innerWidth,
 
-                dialog: false,
+                editor: null,
 
-                url: null,
+                dialog: false,
             }
         },
         props: {
@@ -54,82 +49,33 @@
                 required: true,
             }
         },
-        computed: {
-            getWidth: function () {
-                let check = window.mobilecheck();
-                if (check)
-                    return 320;
-
-                if (this.windowWidth >= 1904)
-                    return 1785;
-                else if (this.windowWidth >= 1264)
-                    return 1185;
-                else if (this.windowWidth >= 960)
-                    return 900;
-                else
-                    return this.windowWidth * 0.95;
-            },
-            type: function () {
-                if (typeof this.url === 'undefined' || this.url === '') {
-                    this.$_console_log('[VIDEO PLAYER] type: Undefined or empty');
-                    return "";
-                }
-
-                if (!this.url.includes('.')) {
-                    this.$_console_log('[VIDEO PLAYER] type: Doesn\'t include a period (.) ');
-                    return "";
-                }
-                
-                let index = this.url.lastIndexOf('.');
-                let extension = this.url.slice(index);
-
-                // TODO: Create exhaustive list of extensions
-                switch (extension) {
-                    case '.mkv':
-                    case '.avi':
-                    case '.mpeg':
-                    case '.mpg':
-                    case '.mp4':
-                    case '.wmv':
-                        return 'video/mp4';
-                    case '.webm':
-                        return 'video/webm';
-                    case '.mp3':
-                        return 'audio/mpeg';
-                    default:
-                        return '';
-                }
-            },
-        },
         watch: {
             file: function (newValue) {
-                let player = document.getElementById('video-player');
+                this.$_console_log('[text-viewer] url watcher: url value =', newValue)
 
-                this.$_console_log('[VIDEO PLAYER] Url watcher: url value', newValue)
-
-                if (typeof newValue === 'undefined' || newValue === '') {
-                    this.$_console_log('[Video Player] Empty url string');
-                    player.pause;
-                    this.url = null;
+                if (typeof newValue === 'undefined' || newValue === null || newValue === '') {
+                    this.$_console_log('[text-viewer] url watcher: url value is null or empty')
+                    this.file = null;
                     return;
                 }
-
-                this.url = this.getMediaPath(newValue);
             },
             dialog: function (newValue) {
-                setTimeout(() => {
-                    let player = document.getElementById('video-player');
-
-                    if (newValue === true) {
-                        player.load();
-                        player.play();
-                    }
-                    else {
-                        player.pause();
-                        if (this.on === true)
-                            this.$emit('player-off', true);
-                    }
-                }, 100);
+                if (newValue === true) {
+                    this.editor.clearContent();
+                    service.getFile(this.file).then(resp => {
+                        this.$_console_log('[text-viewer] url watcher: Successfully got the file', resp.data)
+                        //const data = resp.data.replace(/\n/g, '<br />');
+                        //console.log(data);
+                        this.editor.setContent(resp.data, false, {
+                            preserveWhitespace: true
+                        });
+                        this.editor.getHTML();
+                    }).catch(() => this.$_console_log('[text-viewer] url watcher: Failed to get file'));
+                }
+                else {
+                    if (this.on === true)
+                        this.$emit('text-off', true);
+                }
             },
             on: function (newValue) {
                 this.dialog = newValue;
@@ -137,17 +83,16 @@
         },
         mounted() {
             window.addEventListener('resize', this.getWindowSize);
+            this.editor = new Editor({ content: '' });
         },
         beforeDestroy() {
             window.removeEventListener('resize', this.getWindowSize);
+            this.editor.destroy();
         },
         methods: {
             getWindowSize() {
                 this.windowHeight = window.innerHeight;
                 this.windowWidth = window.innerWidth;
-            },
-            getMediaPath(file) {
-                return `${path}/api/directory/serve/file/${file}`;
             },
         },
     }

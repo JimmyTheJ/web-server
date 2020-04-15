@@ -4,6 +4,7 @@ const LoadDirectoryUrl = `api/directory/folder`;
 const FileListUrl = `api/directory/list`;
 const DeleteUploadUrl = `api/directory/delete`;
 const UploadFilesUrl = `api/directory/upload`;
+const GetFileUrl = `api/directory/download/file/`;
 
 export default {
     loadDirectory(dir, subDir) {
@@ -37,5 +38,8 @@ export default {
             },
             timeout: 60000,
         });
+    },
+    getFile(url) {
+        return axios.get(GetFileUrl + url);
     }
 }

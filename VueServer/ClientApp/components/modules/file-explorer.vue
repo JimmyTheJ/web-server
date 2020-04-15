@@ -361,9 +361,9 @@
                 }
                 else {
                     //this.$emit('loadFile', `${path}/home/${this.parentView}/${this.fullPath}/${item.title}`);
-                    this.$_console_log('[FILE EXPLORER] Open Item: item, dl path', item, this.getMediaPath(item))
+                    this.$_console_log('[FILE EXPLORER] Open Item: item, dl path', item, this.getBasicPath(item))
                     setTimeout(() => {
-                        this.$emit('loadFile', this.getMediaPath(item));
+                        this.$emit('loadFile', this.getBasicPath(item));
                     }, 125);
                 }
             },
@@ -374,8 +374,8 @@
                 return `${path}/api/directory/download/file/${encodeURI(this.fullPath)}/${encodeURIComponent(item.title)}`;
                 //return `${path}/api/directory/download?fileName=${encodeURI(item.title)}&folder=${encodeURI(fullFolderPath)}`;
             },
-            getMediaPath(item) {
-                return `${path}/api/serve-file/${encodeURI(this.fullPath)}/${encodeURIComponent(item.title)}`;
+            getBasicPath(item) {
+                return `${encodeURI(this.fullPath)}/${encodeURIComponent(item.title)}`;
             },
             getIcon(item) {
                 if (item.isFolder)

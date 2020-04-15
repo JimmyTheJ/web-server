@@ -40,7 +40,7 @@ namespace VueServer.Controllers
         
         [HttpGet]
         [Authorize(AuthenticationSchemes = "Identity.Application", Roles = ROLES_ALL)]
-        [Route("/api/serve-file/{*filename}")]
+        [Route("serve/file/{*filename}")]
         public async Task<IActionResult> ServeMedia(string filename)
         {
             var file = await _service.Download(filename, true);
