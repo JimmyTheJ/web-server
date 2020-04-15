@@ -78,6 +78,8 @@
     import libraryService from '../../services/library'
     import libraryDialog from '../modules/library-dialog'
 
+    import { mapState } from 'vuex'
+
     function padTwo(number) {
         return (number < 10 ? '0' : '') + number;
     }
@@ -89,16 +91,18 @@
         data() {
             return {
                 activeBook: {},
-                bookList: [],
-                seriesList: [],
-                bookshelfList: [],
-                authorList: [],
-                genreList: [],
                 bookSearch: '',
                 dialogOpen: false,
             }
         },
         computed: {
+            ...mapState({
+                authorList: state => state.library.authors,
+                bookList: state => state.library.books,
+                bookshelfList: state => state.library.bookshelves,
+                genreList: state => state.library.genres,
+                seriesList: state => state.library.series,
+            }),
             getHeaders() {
                 return [
                     { value: 'title', alignment: 'left', text: 'Title' },
@@ -121,54 +125,61 @@
             async getData() {
                 this.$_console_log("[Library] Get book list");
 
-                // Get list of books
-                libraryService.book.getList().then(resp => {
-                    this.$_console_log('[Library] Success getting book list');
-                    this.$_console_log(resp.data);
-                    if (typeof resp.data !== 'undefined' && resp.data !== null)
-                        this.bookList = resp.data;
-                }).catch(() => this.$_console_log('[Library] Error getting book list'));
+                this.$store.dispatch('getAuthors');
+                this.$store.dispatch('getBooks');
+                this.$store.dispatch('getBookshelves');
+                this.$store.dispatch('getGenres');
+                this.$store.dispatch('getSeries');
+                
+
+                //// Get list of books
+                //libraryService.book.getList().then(resp => {
+                //    this.$_console_log('[Library] Success getting book list');
+                //    this.$_console_log(resp.data);
+                //    if (typeof resp.data !== 'undefined' && resp.data !== null)
+                //        this.bookList = resp.data;
+                //}).catch(() => this.$_console_log('[Library] Error getting book list'));
 
 
-                // TODO: Convert all of these things to be stored in the VUEX store
+                //// TODO: Convert all of these things to be stored in the VUEX store
 
-                // Get list of Genres
-                libraryService.genre.getList().then(resp => {
-                    this.$_console_log('[Library] Success getting genre list');
-                    this.$_console_log(resp.data);
+                //// Get list of Genres
+                //libraryService.genre.getList().then(resp => {
+                //    this.$_console_log('[Library] Success getting genre list');
+                //    this.$_console_log(resp.data);
 
-                    this.$_console_log(typeof resp.data);
+                //    this.$_console_log(typeof resp.data);
 
-                    if (typeof resp.data !== 'undefined' && resp.data !== null) {
-                        this.genreList = resp.data;
-                        this.genreList.splice(0, 0, { id: -1, name: '' });
-                    }
+                //    if (typeof resp.data !== 'undefined' && resp.data !== null) {
+                //        this.genreList = resp.data;
+                //        this.genreList.splice(0, 0, { id: -1, name: '' });
+                //    }
 
-                }).catch(() => this.$_console_log('[Library] Error getting genre list'));
+                //}).catch(() => this.$_console_log('[Library] Error getting genre list'));
 
-                // Get list of bookshelves
-                libraryService.bookshelf.getList().then(resp => {
-                    this.$_console_log('[Library] Success getting bookshelf list');
-                    this.$_console_log(resp.data);
-                    if (typeof resp.data !== 'undefined' && resp.data !== null)
-                        this.bookshelfList = resp.data;
-                }).catch(() => this.$_console_log('[Library] Error getting bookshelf list'));
+                //// Get list of bookshelves
+                //libraryService.bookshelf.getList().then(resp => {
+                //    this.$_console_log('[Library] Success getting bookshelf list');
+                //    this.$_console_log(resp.data);
+                //    if (typeof resp.data !== 'undefined' && resp.data !== null)
+                //        this.bookshelfList = resp.data;
+                //}).catch(() => this.$_console_log('[Library] Error getting bookshelf list'));
 
-                // Get list of Authors
-                libraryService.author.getList().then(resp => {
-                    this.$_console_log('[Library] Success getting author list');
-                    this.$_console_log(resp.data);
-                    if (typeof resp.data !== 'undefined' && resp.data !== null)
-                        this.authorList = resp.data;
-                }).catch(() => this.$_console_log('[Library] Error getting author list'));
+                //// Get list of Authors
+                //libraryService.author.getList().then(resp => {
+                //    this.$_console_log('[Library] Success getting author list');
+                //    this.$_console_log(resp.data);
+                //    if (typeof resp.data !== 'undefined' && resp.data !== null)
+                //        this.authorList = resp.data;
+                //}).catch(() => this.$_console_log('[Library] Error getting author list'));
 
-                // Get list of Series
-                libraryService.series.getList().then(resp => {
-                    this.$_console_log('[Library] Success getting series list');
-                    this.$_console_log(resp.data);
-                    if (typeof resp.data !== 'undefined' && resp.data !== null)
-                        this.seriesList = resp.data;
-                }).catch(() => this.$_console_log('[Library] Error getting series list'));
+                //// Get list of Series
+                //libraryService.series.getList().then(resp => {
+                //    this.$_console_log('[Library] Success getting series list');
+                //    this.$_console_log(resp.data);
+                //    if (typeof resp.data !== 'undefined' && resp.data !== null)
+                //        this.seriesList = resp.data;
+                //}).catch(() => this.$_console_log('[Library] Error getting series list'));
             },
             getCleanDate(value) {
                 if (!value) return '';

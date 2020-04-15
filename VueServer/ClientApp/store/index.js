@@ -11,6 +11,7 @@ import * as getters from './getters'
  * Module Scope of VUEX
  */
 import auth from './modules/auth'
+import library from './modules/library'
 
 
 Vue.use(Vuex)
@@ -23,6 +24,7 @@ export default new Vuex.Store({
     getters,
     modules: {
         auth,
+        library,
     },
     strict: true
 })
