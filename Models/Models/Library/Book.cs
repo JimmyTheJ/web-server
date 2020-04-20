@@ -15,12 +15,12 @@ namespace VueServer.Models.Library
         {
             if (book != null)
             {
-                BookshelfId = book.BookshelfId;
+                Boxset = book.Boxset;
                 Edition = book.Edition;
-                GenreId = book.GenreId;
                 Hardcover = book.Hardcover;
                 IsRead = book.IsRead;
-                SeriesId = book.SeriesId;
+                Loaned = book.Loaned;
+                Notes = book.Notes;
                 SeriesNumber = book.SeriesNumber;
                 PublicationDate = book.PublicationDate;
                 SubTitle = book.SubTitle;
@@ -46,6 +46,12 @@ namespace VueServer.Models.Library
 
         public bool IsRead { get; set; }
 
+        public bool Boxset { get; set; }
+
+        public bool Loaned { get; set; }
+
+        public string Notes { get; set; }
+
         /// <summary>
         /// The number in the series if we have a series foreign key
         /// </summary>
@@ -55,23 +61,25 @@ namespace VueServer.Models.Library
         [Required]
         public string UserId { get; set; }
 
-        // FK Genre - Optional
-        public int? GenreId { get; set; }
+        // FK Bookcase - Optional
+        public int? BookcaseId { get; set; }
 
-        // FK Bookshelf - Optional
-        public int? BookshelfId { get; set; }
+        // FK Shelf - Optional
+        public int? ShelfId { get; set; }
 
         // FK Series - Optional
         public int? SeriesId { get; set; }
 
         public virtual WSUser User { get; set; }
 
-        public virtual Genre Genre { get; set; }
-
-        public virtual Bookshelf Bookshelf { get; set; }
+        public virtual Bookcase Bookcase { get; set; }
 
         public virtual Series Series { get; set; }
 
+        public virtual Shelf Shelf { get; set; }
+
         public virtual IList<BookAuthor> BookAuthors { get; set; }
+
+        public virtual IList<BookGenre> BookGenres { get; set; }
     }
 }

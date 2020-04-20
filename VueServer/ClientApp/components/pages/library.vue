@@ -2,13 +2,6 @@
     <div>
         <library-dialog :open="dialogOpen"
                         :book="activeBook"
-                        :authorList="authorList"
-                        :genreList="genreList"
-                        :seriesList="seriesList"
-                        :bookshelfList="bookshelfList"
-                        @updateAuthors="updateAuthorList"
-                        @updateBookshelves="updateBookshelfList"
-                        @updateSeries="updateSeriesList"
                         @closeDialog="dialogOpen = false"
                         @addBook="addBookToList"
                         @editBook="editBookInList" />
@@ -42,13 +35,24 @@
                             </td>
                             <td v-else></td>
                             <td class="hidden-sm-and-down">{{ item.edition }}</td>
-                            <td class="hidden-xs-only">{{ getGenre(item) }}</td>
+                            <td class="hidden-xs-only">
+                                <template v-for="bookGenre in item.bookGenres">
+                                    <template v-if="bookGenre.genre !== null">
+                                        <p>{{ bookGenre.genre.name }}</p>
+                                    </template>
+                                </template>
+                            </td>
                             <td class="hidden-sm-and-down">{{ getPublicationDate(item.publicationDate) }}</td>
                             <td class="hidden-xs-only" v-if="item.hardcover"><fa-icon icon="check"></fa-icon></td>
                             <td class="hidden-xs-only" v-else><fa-icon icon="times"></fa-icon></td>
                             <td class="hidden-xs-only" v-if="item.isRead"><fa-icon icon="check"></fa-icon></td>
                             <td class="hidden-xs-only" v-else><fa-icon icon="times"></fa-icon></td>
-                            <td>{{ getBookshelfName(item) }}</td>
+                            <td class="hidden-sm-and-down" v-if="item.boxset"><fa-icon icon="check"></fa-icon></td>
+                            <td class="hidden-sm-and-down" v-else><fa-icon icon="times"></fa-icon></td>
+                            <td class="hidden-sm-and-down" v-if="item.loaned"><fa-icon icon="check"></fa-icon></td>
+                            <td class="hidden-sm-and-down" v-else><fa-icon icon="times"></fa-icon></td>
+                            <td class="hidden-xs-only" v-else><fa-icon icon="times"></fa-icon></td>
+                            <td>{{ getBookcaseName(item) }}</td>
                             <td class="hidden-xs-only" v-if="hasSeriesInfo(item)">
                                 <fa-icon v-if="item.series.active" icon="minus"></fa-icon>
                                 <fa-icon v-else icon="ban"></fa-icon>
@@ -99,20 +103,23 @@
             ...mapState({
                 authorList: state => state.library.authors,
                 bookList: state => state.library.books,
-                bookshelfList: state => state.library.bookshelves,
+                bookcaseList: state => state.library.bookcases,
                 genreList: state => state.library.genres,
                 seriesList: state => state.library.series,
+
             }),
             getHeaders() {
                 return [
                     { value: 'title', alignment: 'left', text: 'Title' },
                     { value: 'authors', alignment: 'left', text: 'Authors' },
                     { value: 'edition', alignment: 'left', text: 'Edition', class: 'hidden-sm-and-down' },
-                    { value: 'genre', alignment: 'left', text: 'Genre', class: 'hidden-xs-only' },
+                    { value: 'genres', alignment: 'left', text: 'Genres', class: 'hidden-xs-only' },
                     { value: 'publicationDate', alignment: 'left', text: 'Date', class: 'hidden-sm-and-down' },
                     { value: 'hardcover', alignment: 'left', text: 'Hardcover', class: 'hidden-xs-only' },
                     { value: 'isRead', alignment: 'left', text: 'Read', class: 'hidden-xs-only' },
-                    { value: 'bookshelf', alignment: 'left', text: 'Bookshelf' },
+                    { value: 'boxset', alignment: 'left', text: 'Boxset', class: 'hidden-sm-and-down' },
+                    { value: 'loaned', alignment: 'left', text: 'Loaned Out', class: 'hidden-sm-and-down' },
+                    { value: 'bookcase', alignment: 'left', text: 'Bookcase' },
                     { value: 'series', alignment: 'left', text: 'Series', class: 'hidden-xs-only' },
                     { value: 'delete', alignment: 'left', text: '' },
                 ];
@@ -127,59 +134,10 @@
 
                 this.$store.dispatch('getAuthors');
                 this.$store.dispatch('getBooks');
-                this.$store.dispatch('getBookshelves');
+                this.$store.dispatch('getBookcases');
                 this.$store.dispatch('getGenres');
                 this.$store.dispatch('getSeries');
-                
-
-                //// Get list of books
-                //libraryService.book.getList().then(resp => {
-                //    this.$_console_log('[Library] Success getting book list');
-                //    this.$_console_log(resp.data);
-                //    if (typeof resp.data !== 'undefined' && resp.data !== null)
-                //        this.bookList = resp.data;
-                //}).catch(() => this.$_console_log('[Library] Error getting book list'));
-
-
-                //// TODO: Convert all of these things to be stored in the VUEX store
-
-                //// Get list of Genres
-                //libraryService.genre.getList().then(resp => {
-                //    this.$_console_log('[Library] Success getting genre list');
-                //    this.$_console_log(resp.data);
-
-                //    this.$_console_log(typeof resp.data);
-
-                //    if (typeof resp.data !== 'undefined' && resp.data !== null) {
-                //        this.genreList = resp.data;
-                //        this.genreList.splice(0, 0, { id: -1, name: '' });
-                //    }
-
-                //}).catch(() => this.$_console_log('[Library] Error getting genre list'));
-
-                //// Get list of bookshelves
-                //libraryService.bookshelf.getList().then(resp => {
-                //    this.$_console_log('[Library] Success getting bookshelf list');
-                //    this.$_console_log(resp.data);
-                //    if (typeof resp.data !== 'undefined' && resp.data !== null)
-                //        this.bookshelfList = resp.data;
-                //}).catch(() => this.$_console_log('[Library] Error getting bookshelf list'));
-
-                //// Get list of Authors
-                //libraryService.author.getList().then(resp => {
-                //    this.$_console_log('[Library] Success getting author list');
-                //    this.$_console_log(resp.data);
-                //    if (typeof resp.data !== 'undefined' && resp.data !== null)
-                //        this.authorList = resp.data;
-                //}).catch(() => this.$_console_log('[Library] Error getting author list'));
-
-                //// Get list of Series
-                //libraryService.series.getList().then(resp => {
-                //    this.$_console_log('[Library] Success getting series list');
-                //    this.$_console_log(resp.data);
-                //    if (typeof resp.data !== 'undefined' && resp.data !== null)
-                //        this.seriesList = resp.data;
-                //}).catch(() => this.$_console_log('[Library] Error getting series list'));
+                this.$store.dispatch('getShelves');
             },
             getCleanDate(value) {
                 if (!value) return '';
@@ -194,6 +152,7 @@
             setActiveBook(obj) {
                 this.activeBook = Object.assign({}, obj);
                 this.activeBook.publicationDate = this.getCleanDate(this.activeBook.publicationDate);
+
                 if (typeof this.activeBook.bookAuthors !== 'undefined' && this.activeBook.bookAuthors !== null) {
                     this.activeBook.authors = [];
                     for (let i = 0; i < this.activeBook.bookAuthors.length; i++) {
@@ -205,7 +164,17 @@
                         }
                     }
                 }
+
+                if (typeof this.activeBook.bookGenres !== 'undefined' && this.activeBook.bookGenres !== null) {
+                    this.activeBook.genres = [];
+                    for (let i = 0; i < this.activeBook.bookGenres.length; i++) {
+                        if (typeof this.activeBook.bookGenres[i].genre !== 'undefined' && this.activeBook.bookGenres[i].genre !== null) {
+                            this.activeBook.genres.push(this.activeBook.bookGenres[i].genre);
+                        }
+                    }
+                }
                 delete this.activeBook.bookAuthors;
+                delete this.activeBook.bookGenres;
             },
             openAddOrEditBookDialog(obj, evt) {
                 this.$_console_log('[Library] Open add or edit dialog');
@@ -254,13 +223,13 @@
                     this.$_console_log('[Library] Error deleting a book')
                 });
             },
-            getBookshelfName(item) {
+            getBookcaseName(item) {
                 if (typeof item === 'undefined' || item === null)
                     return;
-                if (item.bookshelf === 'undefined' || item.bookshelf === null)
+                if (item.bookcase === 'undefined' || item.bookcase === null)
                     return;
 
-                return item.bookshelf.name;
+                return item.bookcase.name;
             },
             hasSeriesInfo(item) {
                 if (typeof item === 'undefined' || item === null)
@@ -270,14 +239,6 @@
 
                 return true;
             },
-            getGenre(item) {
-                if (typeof item === 'undefined' || item === null)
-                    return '';
-                if (item.genre === 'undefined' || item.genre === null)
-                    return '';
-
-                return item.genre.name;
-            },
             getPublicationDate(item) {
                 if (item === null)
                     return '';
@@ -285,21 +246,21 @@
                 let date = new Date(item);
                 return `${date.getFullYear()}-${padTwo(date.getMonth())}-${padTwo(date.getDate())}`;
             },
-            updateBookshelfList(book) {
-                this.$_console_log('[Update Bookshelf List] Update Bookshelf List');
-                if (typeof book === 'undefined' || book === null || book.bookshelf === null) {
-                    this.$_console_log('[Update Bookshelf List] Book or bookshelf is null');
+            updateBookcaseList(book) {
+                this.$_console_log('[Update Bookcase List] Update Bookcase List');
+                if (typeof book === 'undefined' || book === null || book.bookcase === null) {
+                    this.$_console_log('[Update Bookcase List] Book or bookcase is null');
                     return;
                 }
-                if (typeof this.bookshelfList === 'undefined' || this.bookshelfList === null) {
-                    this.$_console_log('[Update Bookshelf List] Bookshelf list is null');
+                if (typeof this.bookcaseList === 'undefined' || this.bookcaseList === null) {
+                    this.$_console_log('[Update Bookcase List] Bookcase list is null');
                     return;
                 }
 
-                const index = this.bookshelfList.findIndex(x => x.id === book.bookshelf.id)
-                this.$_console_log(`Bookshelf index = ${index}`);
-                if (index === -1)   // New bookshelf
-                    this.bookshelfList.push(book.bookshelf);
+                const index = this.bookcaseList.findIndex(x => x.id === book.bookcase.id)
+                this.$_console_log(`Bookcase index = ${index}`);
+                if (index === -1)   // New bookcase
+                    this.bookcaseList.push(book.bookcase);
             },
             updateSeriesList(book) {
                 this.$_console_log('[Update Series List] Update Series List');

@@ -6,20 +6,18 @@ using System.Text;
 
 namespace VueServer.Models.Library
 {
-    public class Bookshelf
+    public class Shelf
     {
-        public Bookshelf () { }
-
-        public Bookshelf (Bookshelf bookshelf)
-        {
-            if (bookshelf != null)
-                Name = bookshelf.Name;
-        }
-
         [Key]
         public int Id { get; set; }
 
+        [Required]
         public string Name { get; set; }
+
+        [ForeignKey("Bookcase")]
+        public int BookcaseId { get; set; }
+
+        public Bookcase Bookcase { get; set; }
 
         public virtual IList<Book> Books { get; set; }
     }

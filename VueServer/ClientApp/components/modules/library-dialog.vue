@@ -17,9 +17,7 @@
                         </v-flex>
 
                         <!-- Authors -->
-                        <v-flex xs12>
-                            Authors:
-                        </v-flex>
+                        <v-flex xs12>Authors:</v-flex>
                         <v-flex xs10 pr-1>
                             <v-combobox v-model="authorToAdd"
                                         :items="filteredAuthorList"
@@ -66,15 +64,46 @@
                         <v-flex xs12>
                             <v-text-field v-model="activeBook.edition" label="Edition"></v-text-field>
                         </v-flex>
-                        <v-flex xs12>
+
+                        <!-- Checkboxes -->
+                        <v-flex xs12 sm6 md3>
                             <v-checkbox v-model="activeBook.hardcover" label="Hardcover"></v-checkbox>
+                        </v-flex>
+                        <v-flex xs12 sm6 md3>
                             <v-checkbox v-model="activeBook.isRead" label="Read"></v-checkbox>
+                        </v-flex>
+                        <v-flex xs12 sm6 md3>
+                            <v-checkbox v-model="activeBook.boxset" label="Boxset"></v-checkbox>
+                        </v-flex>
+                        <v-flex xs12 sm6 md3>
+                            <v-checkbox v-model="activeBook.loaned" label="Loaned Out"></v-checkbox>
                         </v-flex>
 
                         <!-- TODO: Split or sort the genre list better -->
-                        <v-flex xs12>
-                            <v-select v-model="activeBook.genre" :items="genreList" label="Genres" item-value="id" item-text="name"></v-select>
+                        <v-flex xs10>
+                            <v-select v-model="genreToAdd" :items="genreList" label="Genres" item-value="id" item-text="name"></v-select>
                         </v-flex>
+                        <v-flex xs2>
+                            <v-btn @click="addGenreToBook()">Add</v-btn>
+                        </v-flex>
+                        <template v-if="typeof activeBook.genres !== 'undefined' && activeBook.genres !== null && activeBook.genres.length > 0 && !deletingGenre">
+                            <v-flex xs12>Genre List</v-flex>
+                            <v-flex xs12 px-2 v-for="(item, index) in activeBook.genres" :key="'genre' + index">
+                                <v-layout row>
+                                    <v-flex xs10 pr-1>
+                                        <v-text-field v-model="item.name" label="Name" disabled></v-text-field>
+                                    </v-flex>
+                                    <v-flex sm1 class="hidden-xs-only">
+                                        <v-checkbox v-model="item.fiction" label="Fiction" disabled></v-checkbox>
+                                    </v-flex>
+                                    <v-flex xs1 class="text-right">
+                                        <v-btn icon @click="deleteGenre(index)">
+                                            <fa-icon size="md" icon="window-close" />
+                                        </v-btn>
+                                    </v-flex>
+                                </v-layout>
+                            </v-flex>
+                        </template>
 
                         <!-- Series -->
                         <template v-if="activeBook.series != null">
@@ -95,7 +124,6 @@
                                             placeholder="Start typing to Search"
                                             prepend-icon="fas fa-book"
                                             return-object></v-combobox>
-                                <!--<v-text-field v-model="activeBook.series.name" label="Name"></v-text-field>-->
                             </v-flex>
                             <v-flex xs7 sm3 px-1>
                                 <v-text-field v-model="activeBook.series.number" label="Total Number in Series"></v-text-field>
@@ -118,36 +146,67 @@
                             </v-btn>
                         </v-flex>
 
-                        <!-- Bookshelf -->
-                        <template v-if="activeBook.bookshelf != null">
+                        <!-- Bookcase -->
+                        <template v-if="activeBook.bookcase != null">
                             <v-flex xs12 mt-3>
-                                Bookshelf:
+                                Bookcase:
                             </v-flex>
                             <v-flex xs11 pr-1>
-                                <v-combobox v-model="activeBook.bookshelf"
-                                            :items="bookshelfList"
-                                            :loading="bookshelfIsLoading"
-                                            :search-input.sync="bookshelfSearch"
+                                <v-combobox v-model="activeBook.bookcase"
+                                            :items="bookcaseList"
+                                            :loading="bookcaseIsLoading"
+                                            :search-input.sync="bookcaseSearch"
                                             color="white"
                                             hide-no-data
                                             hide-selected
                                             item-text="name"
                                             item-value="id"
-                                            label="Bookshelf Search"
+                                            label="Bookcase Search"
                                             placeholder="Start typing to Search"
-                                            prepend-icon="mdi-bookshelf"
+                                            prepend-icon="mdi-bookcase"
                                             return-object></v-combobox>
-                                <!--<v-text-field v-model="activeBook.bookshelf.name" label="Name"></v-text-field>-->
                             </v-flex>
                             <v-flex xs1 class="text-right">
-                                <v-btn icon @click="deleteBookshelf()">
+                                <v-btn icon @click="deleteBookcase()">
                                     <fa-icon size="md" icon="window-close" />
                                 </v-btn>
                             </v-flex>
                         </template>
-                        <v-flex xs12 my-3 v-if="activeBook.bookshelf === null">
-                            <v-btn @click="addBookshelf()">
-                                <fa-icon icon="plus"></fa-icon>&nbsp;Add Bookshelf
+                        <v-flex xs12 my-3 v-if="activeBook.bookcase === null">
+                            <v-btn @click="addBookcase()">
+                                <fa-icon icon="plus"></fa-icon>&nbsp;Add Bookcase
+                            </v-btn>
+                        </v-flex>
+
+                        <!-- Shelf -->
+                        <template v-if="activeBook.shelf != null">
+                            <v-flex xs12 mt-3>
+                                Shelf:
+                            </v-flex>
+                            <v-flex xs11 pr-1>
+                                <v-combobox v-model="activeBook.shelf"
+                                            :items="shelfList"
+                                            :loading="shelfIsLoading"
+                                            :search-input.sync="shelfSearch"
+                                            color="white"
+                                            hide-no-data
+                                            hide-selected
+                                            item-text="name"
+                                            item-value="id"
+                                            label="Shelf Search"
+                                            placeholder="Start typing to Search"
+                                            prepend-icon="mdi-bookcase"
+                                            return-object></v-combobox>
+                            </v-flex>
+                            <v-flex xs1 class="text-right">
+                                <v-btn icon @click="deleteShelf()">
+                                    <fa-icon size="md" icon="window-close" />
+                                </v-btn>
+                            </v-flex>
+                        </template>
+                        <v-flex xs12 my-3 v-if="activeBook.shelf === null">
+                            <v-btn @click="addShelf()">
+                                <fa-icon icon="plus"></fa-icon>&nbsp;Add Shelf
                             </v-btn>
                         </v-flex>
 
@@ -165,7 +224,9 @@
 <script>
     import libraryService from '../../services/library'
 
-    function getNewBookshelf() {
+    import { mapState } from 'vuex'
+
+    function getNewBookcase() {
         return {
             id: 0,
             name: '',
@@ -181,6 +242,13 @@
         }
     }
 
+    function getNewShelf() {
+        return {
+            id: 0,
+            name: '',
+        }
+    }
+
     function getNewAuthor() {
         return {
             id: 0,
@@ -193,22 +261,32 @@
 
     function getNewBook() {
         return {
+            // Properties
             id: 0,
-            title: '',
-            subTitle: null,
-            publicationDate: null,
+            boxset: false,
             edition: null,
-            hardcover: false,
             isRead: false,
+            hardcover: false,
+            loaned: false,
+            notes: null,
+            publicationDate: null,
             seriesNumber: 0,
+            subTitle: null,
+            title: '',
+
+            // FKs
+            bookcaseId: null,
+            shelfId: null,
+            seriesId: null,
             userId: null,
-            genreId: null,
-            bookshelfId: null,
-            user: null,
-            authors: [],
-            genre: null,
+
+            // Objects
+            user: null,            
+            bookcase: null,
             series: null,
-            bookshelf: null,
+            shelf: null,
+            authors: [],
+            genres: [],
         }
     }
 
@@ -219,13 +297,18 @@
                 activeBook: {},
                 seriesIsLoading: false,
                 seriesSearch: '',
-                bookshelfIsLoading: false,
-                bookshelfSearch: '',
+                bookcaseIsLoading: false,
+                bookcaseSearch: '',
+                shelfIsLoading: false,
+                shelfSearch: '',
                 authorIsLoading: false,
                 authorSearch: '',
                 authorToAdd: {},
+                genreToAdd: -1,
                 deletingAuthor: false,
+                deletingGenre: false,
                 filteredAuthorList: [],
+                filteredGenreList: [],
             }
         },
         props: {
@@ -237,41 +320,29 @@
                 type: Object,
                 required: false,
             },
-            authorList: {
-                type: Array,
-                default: () => {
-                    return [];
-                }
-            },
-            bookshelfList: {
-                type: Array,
-                default: () => {
-                    return [];
-                }
-            },
-            genreList: {
-                type: Array,
-                default: () => {
-                    return [];
-                }
-            },
-            seriesList: {
-                type: Array,
-                default: () => {
-                    return [];
-                }
-            },
         },
         computed: {
+            ...mapState({
+                authorList: state => state.library.authors,
+                bookList: state => state.library.books,
+                bookcaseList: state => state.library.bookcases,
+                genreList: state => state.library.genres,
+                seriesList: state => state.library.series,
+                shelfList: state => state.library.shelves,
+            }),
             maxModalWidth() {
-                if (window.innerWidth > 1400)
+                if (window.innerWidth > 1640)
+                    return 1500;
+                else if (window.innerWidth > 1360)
                     return 1200;
-                else if (window.innerWidth > 1000)
+                else if (window.innerWidth > 960)
                     return 800;
-                else if (window.innerWidth > 800)
+                else if (window.innerWidth > 720)
                     return 600;
-                else
+                else if (window.innerWidth > 600)
                     return 500;
+                else
+                    return 420;
             },
             addEditDialogTitle() {
                 if (this.activeBook.id > 0)
@@ -306,14 +377,14 @@
                 this.authorToAdd = getNewAuthor();
                 this.updateFilteredAuthorList();
             },
-            'activeBook.bookshelf': function (newValue) {
+            'activeBook.bookcase': function (newValue) {
                 if (typeof newValue === 'string') {
-                    this.activeBook.bookshelf = getNewBookshelf();
-                    this.activeBook.bookshelf.name = newValue;
+                    this.activeBook.bookcase = getNewBookcase();
+                    this.activeBook.bookcase.name = newValue;
                 }
                 else {
                     if (newValue !== null && newValue.id > 0) {
-                        this.activeBook.bookshelfId = newValue.id;
+                        this.activeBook.bookcaseId = newValue.id;
                     }
                 }
             },
@@ -328,6 +399,17 @@
                     }
                 }
             },
+            'activeBook.shelf': function (newValue) {
+                if (typeof newValue === 'string') {
+                    this.activeBook.shelf = getNewShelf();
+                    this.activeBook.shelf.name = newValue;
+                }
+                else {
+                    if (newValue !== null && newValue.id > 0) {
+                        this.activeBook.shelfId = newValue.id;
+                    }
+                }
+            },
         },
         methods: {
             updateFilteredAuthorList() {
@@ -337,20 +419,12 @@
                 }
 
                 let list = this.authorList.slice(0);
-                //console.log('Starting list');
-                //console.log(list.slice(0));
                 for (let i = 0; i < this.activeBook.authors.length; i++) {
-                    //console.log(`Active Book @ ${i} = ${this.activeBook.authors[i].fullName}`);
                     for (let j = 0; j < this.authorList.length; j++) {
-                        //console.log(`Author List value @ ${j} = ${this.authorList[j].fullName}`);
                         if (this.authorList[j].id === this.activeBook.authors[i].id) {
                             let index = list.findIndex(x => x.id === this.activeBook.authors[i].id);
-                            //console.log(`Index of ${this.authorList[j].fullName}`);
-                            //console.log(index);
                             if (index !== -1) {
                                 list.splice(index, 1);
-                                //console.log('Current list after splicing');
-                                //console.log(list.slice(0));
                                 break;
                             }
 
@@ -360,13 +434,35 @@
 
                 this.filteredAuthorList = list.slice(0);
             },
+            updateFilteredGenreList() {
+                if (typeof this.activeBook === 'undefined' || typeof this.activeBook.genres === 'undefined' || this.activeBook.genres === null) {
+                    console.log('Something is invalid.. breaking out of filtered genre list');
+                    return this.genreList;
+                }
+
+                let list = this.genreList.slice(0);
+                for (let i = 0; i < this.activeBook.genres.length; i++) {
+                    for (let j = 0; j < this.genreList.length; j++) {
+                        if (this.genreList[j].id === this.activeBook.genres[i].id) {
+                            let index = list.findIndex(x => x.id === this.activeBook.genres[i].id);
+                            if (index !== -1) {
+                                list.splice(index, 1);
+                                break;
+                            }
+
+                        }
+                    }
+                }
+
+                this.filteredGenreList = list.slice(0);
+            },
             resetDialogFields() {
                 this.authorToAdd = getNewAuthor();
                 this.authorSearch = '';
                 this.seriesIsLoading = false;
                 this.seriesSearch = '';
-                this.bookshelfIsLoading = false;
-                this.bookshelfSearch = '';
+                this.bookcaseIsLoading = false;
+                this.bookcaseSearch = '';
                 this.authorIsLoading = false;
             },
             addAuthorToBook() {
@@ -414,6 +510,21 @@
 
                 this.updateFilteredAuthorList();
             },
+            addGenreToBook() {
+                if (typeof this.activeBook.genres === 'undefined' || this.activeBook.genres === null)
+                    this.activeBook.genres = [];
+
+                if (typeof this.genreToAdd === 'undefined' || this.genreToAdd === null)
+                    return;
+
+                const genre = this.genreList.find(x => x.id === this.genreToAdd);
+                if (typeof genre === 'undefined') {
+                    return;
+                }
+
+                this.activeBook.genres.push(genre);
+                this.genreToAdd = -1;
+            },
             deleteAuthor(index) {
                 this.deletingAuthor = true;
                 this.$_console_log(`[Library] Delete author at index ${index}`);
@@ -425,6 +536,17 @@
                     this.updateFilteredAuthorList();
                 });
             },
+            deleteGenre(index) {
+                this.deletingGenre = true;
+                this.$_console_log(`[Library] Delete genre at index ${index}`);
+
+                // Trick to update the DOM
+                this.$nextTick(() => {
+                    this.activeBook.genres.splice(index, 1);
+                    this.deletingGenre = false;
+                    this.updateFilteredGenreList();
+                });
+            },
             addSeries() {
                 if (typeof this.activeBook.series === 'undefined' || this.activeBook.series === null) {
                     this.activeBook.series = getNewSeries();
@@ -434,14 +556,23 @@
                 this.activeBook.series = null;
                 this.activeBook.seriesId = null;
             },
-            addBookshelf() {
-                if (typeof this.activeBook.bookshelf === 'undefined' || this.activeBook.bookshelf === null) {
-                    this.activeBook.bookshelf = getNewBookshelf();
+            addBookcase() {
+                if (typeof this.activeBook.bookcase === 'undefined' || this.activeBook.bookcase === null) {
+                    this.activeBook.bookcase = getNewBookcase();
                 }
             },
-            deleteBookshelf() {
-                this.activeBook.bookshelf = null;
-                this.activeBook.bookshelfId = null;
+            addShelf() {
+                if (typeof this.activeBook.shelf === 'undefined' || this.activeBook.shelf === null) {
+                    this.activeBook.shelf = getNewShelf();
+                }
+            },
+            deleteBookcase() {
+                this.activeBook.bookcase = null;
+                this.activeBook.bookcaseId = null;
+            },
+            deleteShelf() {
+                this.activeBook.shelf = null;
+                this.activeBook.shelfId = null;
             },
             addOrUpdateBook() {
                 this.$_console_log("[Library] Add or update book");
@@ -464,7 +595,7 @@
                         this.$emit('editBook', resp.data);
 
                         // Update lists if we added new objects
-                        this.updateBookshelfList(resp.data);
+                        this.updateBookcaseList(resp.data);
                         this.updateSeriesList(resp.data);
                         this.updateAuthorList(resp.data);
                     }).catch(() => {
@@ -489,7 +620,7 @@
                         this.$emit('addBook', resp.data);
 
                         // Update lists if we added new objects
-                        this.updateBookshelfList(resp.data);
+                        this.updateBookcaseList(resp.data);
                         this.updateSeriesList(resp.data);
                         this.updateAuthorList(resp.data);
                     }).catch(() => {
@@ -498,8 +629,8 @@
                     });
                 }
             },
-            updateBookshelfList(item) {
-                this.$emit('updateBookshelves', item);
+            updateBookcaseList(item) {
+                this.$emit('updateBookcases', item);
             },
             updateSeriesList(item) {
                 this.$emit('updateSeries', item);
@@ -515,7 +646,6 @@
                 return this.genreList.find(x => x.id === id);
             },
             getRequest(book) {
-                console.log(book);
                 const bookRequest = {
                     book: {
                         id: book.id,
@@ -525,71 +655,100 @@
                         edition: book.edition,
                         hardcover: book.hardcover,
                         isRead: book.isRead,
+                        loaned: book.loaned,
+                        boxset: book.boxset,
+                        notes: book.notes,
                         seriesNumber: book.seriesNumber,
                     },
                     authors: book.authors,
+                    bookcase: book.bookcase,
+                    genres: book.genres,
+                    series: book.series,
+                    shelves: book.shelves
                 };
 
-                // Series
-                if (typeof book.series !== 'undefined' && book.series !== null) {
-                    // Existing series
-                    if (book.series.id > 0) {
-                        bookRequest.seriesId = book.series.id;
-                    }
-                    // New series
-                    else {
-                        bookRequest.series = book.series;
-                    }
-                }
-                if (book.seriesId !== 'undefined' && book.seriesId !== null) {
-                    bookRequest.seriesId = book.seriesId;
-                }
-                // Check if we don't have a series object, but we are trying to create a new object
-                if ((typeof book.series === 'undefined' || book.series === null || (book.series.id === 0 && book.series.name === ''))
-                        && typeof this.seriesSearch !== 'undefined' && this.seriesSearch !== null && this.seriesSearch !== '') {
-                    if (typeof book.series === 'undefined' || book.series === null)
-                        bookRequest.series = getNewSeries();
-                    else {
-                        bookRequest.series.active = book.series.active;
-                        bookRequest.series.number = book.series.number;
-                    }
-                        
-                    bookRequest.series.name = this.seriesSearch;                    
-                }
-
-                // Bookshelf
-                if (typeof book.bookshelf !== 'undefined' && book.bookshelf !== null) {
-                    // Existing bookshelf
-                    if (book.bookshelf.id > 0) {
-                        bookRequest.bookshelfId = book.bookshelf.id;
-                    }
-                    // New bookshelf
-                    else {
-                        bookRequest.bookshelf = book.bookshelf;
-                    }
-                }
-                if (book.bookshelfId !== 'undefined' && book.bookshelfId !== null) {
-                    bookRequest.bookshelfId = book.bookshelfId;
-                }
-                // Check if we don't have a bookshelf object, but we are trying to create a new object
-                if ((typeof book.bookshelf === 'undefined' || book.bookshelf === null || (book.bookshelf.id === 0 && book.bookshelf.name === ''))
-                        && typeof this.bookshelfSearch !== 'undefined' && this.bookshelfSearch !== null && this.bookshelfSearch !== '') {
-                    bookRequest.bookshelf = getNewBookshelf();
-                    bookRequest.bookshelf.name = this.bookshelfSearch;
-                }
-
-                // Genre
-                if (typeof book.genre !== 'undefined' && book.genre !== null) {
-                    if (book.genre > 0) {
-                        bookRequest.genreId = book.genre;
-                    }
-                }
-                if (typeof book.genreId !== 'undefined' && book.genreId !== null && (book.genre === null || book.genre !== -1)) {
-                    bookRequest.genreId = book.genreId;
-                }
-
+                this.$_console_log('Book request: ', bookRequest);
                 return bookRequest;
             }
         }
     }
+    /*
+    getRequest(book) {
+        console.log(book);
+        const bookRequest = {
+            book: {
+                id: book.id,
+                title: book.title,
+                subTitle: book.subTitle,
+                publicationDate: book.publicationDate,
+                edition: book.edition,
+                hardcover: book.hardcover,
+                isRead: book.isRead,
+                seriesNumber: book.seriesNumber,
+            },
+            authors: book.authors,
+        };
+
+        // Series
+        if (typeof book.series !== 'undefined' && book.series !== null) {
+            // Existing series
+            if (book.series.id > 0) {
+                bookRequest.seriesId = book.series.id;
+            }
+            // New series
+            else {
+                bookRequest.series = book.series;
+            }
+        }
+        if (book.seriesId !== 'undefined' && book.seriesId !== null) {
+            bookRequest.seriesId = book.seriesId;
+        }
+        // Check if we don't have a series object, but we are trying to create a new object
+        if ((typeof book.series === 'undefined' || book.series === null || (book.series.id === 0 && book.series.name === ''))
+                && typeof this.seriesSearch !== 'undefined' && this.seriesSearch !== null && this.seriesSearch !== '') {
+            if (typeof book.series === 'undefined' || book.series === null)
+                bookRequest.series = getNewSeries();
+            else {
+                bookRequest.series.active = book.series.active;
+                bookRequest.series.number = book.series.number;
+            }
+
+            bookRequest.series.name = this.seriesSearch;
+        }
+
+        // Bookcase
+        if (typeof book.bookcase !== 'undefined' && book.bookcase !== null) {
+            // Existing bookcase
+            if (book.bookcase.id > 0) {
+                bookRequest.bookcaseId = book.bookcase.id;
+            }
+            // New bookcase
+            else {
+                bookRequest.bookcase = book.bookcase;
+            }
+        }
+        if (book.bookcaseId !== 'undefined' && book.bookcaseId !== null) {
+            bookRequest.bookcaseId = book.bookcaseId;
+        }
+        // Check if we don't have a bookcase object, but we are trying to create a new object
+        if ((typeof book.bookcase === 'undefined' || book.bookcase === null || (book.bookcase.id === 0 && book.bookcase.name === ''))
+                && typeof this.bookcaseSearch !== 'undefined' && this.bookcaseSearch !== null && this.bookcaseSearch !== '') {
+            bookRequest.bookcase = getNewBookcase();
+            bookRequest.bookcase.name = this.bookcaseSearch;
+        }
+
+        // Genre
+        if (typeof book.genre !== 'undefined' && book.genre !== null) {
+            if (book.genre > 0) {
+                bookRequest.genreId = book.genre;
+            }
+        }
+        if (typeof book.genreId !== 'undefined' && book.genreId !== null && (book.genre === null || book.genre !== -1)) {
+            bookRequest.genreId = book.genreId;
+        }
+
+        return bookRequest;
+    }
+
+*/
 </script>

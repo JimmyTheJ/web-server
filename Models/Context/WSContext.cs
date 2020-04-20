@@ -20,14 +20,19 @@ namespace VueServer.Models.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) 
         {
-            modelBuilder.Entity<Book>().HasOne(x => x.Genre).WithMany(x => x.Books).HasForeignKey(x => x.GenreId).IsRequired(false);
-            modelBuilder.Entity<Book>().HasOne(x => x.Bookshelf).WithMany(x => x.Books).HasForeignKey(x => x.BookshelfId).IsRequired(false);
+            modelBuilder.Entity<Book>().HasOne(x => x.Bookcase).WithMany(x => x.Books).HasForeignKey(x => x.BookcaseId).IsRequired(false);
             modelBuilder.Entity<Book>().HasOne(x => x.Series).WithMany(x => x.Books).HasForeignKey(x => x.SeriesId).IsRequired(false);
+            modelBuilder.Entity<Book>().HasOne(x => x.Shelf).WithMany(x => x.Books).HasForeignKey(x => x.ShelfId).IsRequired(false);
 
             // Book to Author many to many setup
             modelBuilder.Entity<BookAuthor>().HasKey(x => new { x.BookId, x.AuthorId });
             modelBuilder.Entity<BookAuthor>().HasOne(x => x.Author).WithMany(x => x.BookAuthors).HasForeignKey(x => x.AuthorId);
             modelBuilder.Entity<BookAuthor>().HasOne(x => x.Book).WithMany(x => x.BookAuthors).HasForeignKey(x => x.BookId);
+
+            // Book to Genre many to many setup
+            modelBuilder.Entity<BookGenre>().HasKey(x => new { x.BookId, x.GenreId });
+            modelBuilder.Entity<BookGenre>().HasOne(x => x.Genre).WithMany(x => x.BookGenres).HasForeignKey(x => x.GenreId);
+            modelBuilder.Entity<BookGenre>().HasOne(x => x.Book).WithMany(x => x.BookGenres).HasForeignKey(x => x.BookId);
 
             // User Modules many to many setup
             modelBuilder.Entity<UserHasModuleAddOn>().HasKey(x => new { x.UserId, x.ModuleAddOnId });
@@ -59,13 +64,17 @@ namespace VueServer.Models.Context
 
         public DbSet<Book> Books { get; set; }
 
-        public DbSet<Bookshelf> Bookshelves { get; set; }
+        public DbSet<Bookcase> Bookcases { get; set; }
 
         public DbSet<Genre> Genres { get; set; }
 
         public DbSet<Series> Series { get; set; }
 
+        public DbSet<Shelf> Shelves { get; set; }
+
         public DbSet<BookAuthor> BookHasAuthors { get; set; }
+
+        public DbSet<BookGenre> BookHasGenres { get; set; }
 
         #endregion
 

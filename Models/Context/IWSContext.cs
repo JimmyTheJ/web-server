@@ -32,13 +32,17 @@ namespace VueServer.Models.Context
 
         DbSet<Book> Books { get; set; }
 
-        DbSet<Bookshelf> Bookshelves { get; set; }
+        DbSet<Bookcase> Bookcases { get; set; }
 
         DbSet<Genre> Genres { get; set; }
 
         DbSet<Series> Series { get; set; }
 
+        DbSet<Shelf> Shelves { get; set; }
+
         DbSet<BookAuthor> BookHasAuthors { get; set; }
+
+        DbSet<BookGenre> BookHasGenres { get; set; }
 
         #endregion
 
