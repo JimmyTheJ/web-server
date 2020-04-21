@@ -1,10 +1,6 @@
 <template>
     <div>
-        <library-dialog :open="dialogOpen"
-                        :book="activeBook"
-                        @closeDialog="dialogOpen = false"
-                        @addBook="addBookToList"
-                        @editBook="editBookInList" />
+        <library-dialog :open="dialogOpen" :book="activeBook" @closeDialog="closeDialogWindow" />
 
         <v-container>
             <v-flex xs12>
@@ -106,6 +102,7 @@
                 bookcaseList: state => state.library.bookcases,
                 genreList: state => state.library.genres,
                 seriesList: state => state.library.series,
+                shelfList: state => state.library.shelves,
 
             }),
             getHeaders() {
@@ -213,28 +210,16 @@
                 if (typeof item === 'undefined' || item === null)
                     return;
 
-                libraryService.book.delete(item.id).then(resp => {
-                    this.$_console_log(`[Library] Success deleting book: ${item.title}`);
-                    this.$_console_log(resp.data);
-
-                    this.bookList.splice(this.bookList.findIndex(x => x.id === item.id));
-                }).catch(() => {
-                    // TODO: Indicate the book failed to be deleted somehow
-                    this.$_console_log('[Library] Error deleting a book')
-                });
+                this.$store.dispatch('deleteBook', item.id);
             },
             getBookcaseName(item) {
-                if (typeof item === 'undefined' || item === null)
-                    return;
-                if (item.bookcase === 'undefined' || item.bookcase === null)
+                if (typeof item === 'undefined' || item === null || item.bookcase === 'undefined' || item.bookcase === null)
                     return;
 
                 return item.bookcase.name;
             },
             hasSeriesInfo(item) {
-                if (typeof item === 'undefined' || item === null)
-                    return false;
-                if (item.series === 'undefined' || item.series === null)
+                if (typeof item === 'undefined' || item === null || item.series === 'undefined' || item.series === null)
                     return false;
 
                 return true;
@@ -246,75 +231,13 @@
                 let date = new Date(item);
                 return `${date.getFullYear()}-${padTwo(date.getMonth())}-${padTwo(date.getDate())}`;
             },
-            updateBookcaseList(book) {
-                this.$_console_log('[Update Bookcase List] Update Bookcase List');
-                if (typeof book === 'undefined' || book === null || book.bookcase === null) {
-                    this.$_console_log('[Update Bookcase List] Book or bookcase is null');
-                    return;
-                }
-                if (typeof this.bookcaseList === 'undefined' || this.bookcaseList === null) {
-                    this.$_console_log('[Update Bookcase List] Bookcase list is null');
-                    return;
-                }
-
-                const index = this.bookcaseList.findIndex(x => x.id === book.bookcase.id)
-                this.$_console_log(`Bookcase index = ${index}`);
-                if (index === -1)   // New bookcase
-                    this.bookcaseList.push(book.bookcase);
-            },
-            updateSeriesList(book) {
-                this.$_console_log('[Update Series List] Update Series List');
-                if (typeof book === 'undefined' || book === null || book.series === null) {
-                    this.$_console_log('[Update Series List] Book or series is null');
-                    return;
-                }
-                if (typeof this.seriesList === 'undefined' || this.seriesList === null) {
-                    this.$_console_log('[Update Series List] Series list is null');
-                    return;
-                }
-
-                const index = this.seriesList.findIndex(x => x.id === book.series.id)
-                this.$_console_log(`Series index = ${index}`);
-                if (index === -1)   // New Series
-                    this.seriesList.push(book.series);
-            },
-            updateAuthorList(book) {
-                this.$_console_log('[Update Author List] Update Author List');
-                if (typeof book === 'undefined' || book === null || book.bookAuthors === null) {
-                    this.$_console_log('[Update Author List] Book or bookAuthors is null');
-                    return;
-                }
-                if (typeof this.authorList === 'undefined' || this.authorList === null) {
-                    this.$_console_log('[Update Author List] Author list is null');
-                    return;
-                }
-
-                for (let i = 0; i < book.bookAuthors.length; i++) {
-                    let index = this.authorList.findIndex(x => x.id === book.bookAuthors[i].authorId);
-                    this.$_console_log(`Author index = ${index}`);
-                    if (index === -1) // New Author
-                        this.authorList.push(book.bookAuthors[i].author);
-                }
-            },
-            addBookToList(book) {
-                this.bookList.push(book);
+            closeDialogWindow(reset) {
+                this.$_console_log(`[Close Dialog Window] Reset value is: ${reset}`);
                 this.dialogOpen = false;
-                this.activeBook = {};
-            },
-            editBookInList(book) {
-                this.$_console_log('[Library] Edit Book in List', book);
 
-                let index = this.bookList.findIndex(x => x.id === book.id);
-                if (index < 0) {
-                    // Indicate it failed somehow
-                    this.$_console_log('Failed to splice edited book into list')
-                }
-                else {
-                    this.bookList.splice(index, 1, book);
-                    this.dialogOpen = false;
+                if (typeof reset === 'boolean' && reset) {
                     this.activeBook = {};
                 }
-                
             }
         }
     }

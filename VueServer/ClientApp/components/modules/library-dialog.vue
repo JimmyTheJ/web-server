@@ -226,6 +226,31 @@
 
     import { mapState } from 'vuex'
 
+    function getRequest(book) {
+        const bookRequest = {
+            book: {
+                id: book.id,
+                title: book.title,
+                subTitle: book.subTitle,
+                publicationDate: book.publicationDate,
+                edition: book.edition,
+                hardcover: book.hardcover,
+                isRead: book.isRead,
+                loaned: book.loaned,
+                boxset: book.boxset,
+                notes: book.notes,
+                seriesNumber: book.seriesNumber,
+            },
+            authors: book.authors,
+            bookcase: book.bookcase,
+            genres: book.genres,
+            series: book.series,
+            shelves: book.shelves
+        };
+
+        return bookRequest;
+    }
+
     function getNewBookcase() {
         return {
             id: 0,
@@ -359,14 +384,13 @@
             dialogOpen: function (newValue) {
                 if (newValue === false) {
                     this.$_console_log('[Library Dialog] Dialog open = false');
-                    this.$emit('closeDialog', newValue);
+                    this.$emit('closeDialog', false);
                 }
                 else {
                     this.$_console_log('[Library Dialog] Dialog open = true');
                 }
             },
             book: function (newValue) {
-                console.log('Book watcher. Book has changed.');
                 if (typeof newValue === 'undefined' || newValue === null) {
                     this.activeBook = getNewBook();
                 }
@@ -382,7 +406,7 @@
                     this.activeBook.bookcase = getNewBookcase();
                     this.activeBook.bookcase.name = newValue;
                 }
-                else {
+                else if (typeof newValue === 'object') {
                     if (newValue !== null && newValue.id > 0) {
                         this.activeBook.bookcaseId = newValue.id;
                     }
@@ -393,7 +417,7 @@
                     this.activeBook.series = getNewSeries();
                     this.activeBook.series.name = newValue;
                 }
-                else {
+                else if (typeof newValue === 'object') {
                     if (newValue !== null && newValue.id > 0) {
                         this.activeBook.seriesId = newValue.id;
                     }
@@ -404,7 +428,7 @@
                     this.activeBook.shelf = getNewShelf();
                     this.activeBook.shelf.name = newValue;
                 }
-                else {
+                else if (typeof newValue === 'object') {
                     if (newValue !== null && newValue.id > 0) {
                         this.activeBook.shelfId = newValue.id;
                     }
@@ -414,7 +438,7 @@
         methods: {
             updateFilteredAuthorList() {
                 if (typeof this.activeBook === 'undefined' || typeof this.activeBook.authors === 'undefined' || this.activeBook.authors === null) {
-                    console.log('Something is invalid.. breaking out of filtered author list');
+                    this.$_console_log('Something is invalid.. breaking out of filtered author list');
                     return this.authorList;
                 }
 
@@ -436,7 +460,7 @@
             },
             updateFilteredGenreList() {
                 if (typeof this.activeBook === 'undefined' || typeof this.activeBook.genres === 'undefined' || this.activeBook.genres === null) {
-                    console.log('Something is invalid.. breaking out of filtered genre list');
+                    this.$_console_log('Something is invalid.. breaking out of filtered genre list');
                     return this.genreList;
                 }
 
@@ -461,15 +485,17 @@
                 this.authorSearch = '';
                 this.seriesIsLoading = false;
                 this.seriesSearch = '';
+                this.shelfIsLoading = false;
+                this.shelfSearch = '';
                 this.bookcaseIsLoading = false;
                 this.bookcaseSearch = '';
                 this.authorIsLoading = false;
             },
             addAuthorToBook() {
-                if (typeof this.activeBook.authors === 'undefined' || this.activeBook.authors === null)
+                if (!Array.isArray(this.activeBook.authors))
                     this.activeBook.authors = [];
 
-                if (typeof this.authorToAdd === 'undefined' || this.authorToAdd === null)
+                if (typeof this.authorToAdd !== 'object')
                     this.authorToAdd = getNewAuthor();
 
                 // Manual Add
@@ -511,10 +537,10 @@
                 this.updateFilteredAuthorList();
             },
             addGenreToBook() {
-                if (typeof this.activeBook.genres === 'undefined' || this.activeBook.genres === null)
+                if (!Array.isArray(this.activeBook.genres))
                     this.activeBook.genres = [];
 
-                if (typeof this.genreToAdd === 'undefined' || this.genreToAdd === null)
+                if (typeof this.genreToAdd !== 'number')
                     return;
 
                 const genre = this.genreList.find(x => x.id === this.genreToAdd);
@@ -561,194 +587,40 @@
                     this.activeBook.bookcase = getNewBookcase();
                 }
             },
+            deleteBookcase() {
+                this.activeBook.bookcase = null;
+                this.activeBook.bookcaseId = null;
+            },
             addShelf() {
                 if (typeof this.activeBook.shelf === 'undefined' || this.activeBook.shelf === null) {
                     this.activeBook.shelf = getNewShelf();
                 }
             },
-            deleteBookcase() {
-                this.activeBook.bookcase = null;
-                this.activeBook.bookcaseId = null;
-            },
             deleteShelf() {
                 this.activeBook.shelf = null;
                 this.activeBook.shelfId = null;
             },
-            addOrUpdateBook() {
+            async addOrUpdateBook() {
                 this.$_console_log("[Library] Add or update book");
                 this.$_console_log(this.activeBook);
 
                 // Update
                 if (this.activeBook.id > 0) {
-                    let request = this.getRequest(this.activeBook);
-                    this.$_console_log(request);
-                    libraryService.book.update(request).then(resp => {
-                        this.$_console_log('[Library] Success editing a book');
-                        this.$_console_log(resp.data);
+                    const request = getRequest(this.activeBook);
+                    await this.$store.dispatch('editBook', request);
 
-                        // Fill in genre information in UI
-                        if (resp.data.genreId !== null) {
-                            resp.data.genre = this.getGenreFromId(resp.data.genreId);
-                        }
-
-                        // Add book to local list
-                        this.$emit('editBook', resp.data);
-
-                        // Update lists if we added new objects
-                        this.updateBookcaseList(resp.data);
-                        this.updateSeriesList(resp.data);
-                        this.updateAuthorList(resp.data);
-                    }).catch(() => {
-                        // TODO: Indicate the book failed to be edited somehow
-                        this.$_console_log('[Library] Error editing a book')
-                    });
+                    // TODO: Consider putting this in the success of the call above
+                    this.$emit('closeDialog', true);
                 }
                 // Add
                 else {
-                    let request = this.getRequest(this.activeBook);
-                    this.$_console_log(request);
-                    libraryService.book.add(request).then(resp => {
-                        this.$_console_log('[Library] Success adding a book');
-                        this.$_console_log(resp.data);
+                    const request = getRequest(this.activeBook);
+                    await this.$store.dispatch('addBook', request);
 
-                        // Fill in genre information in UI
-                        if (resp.data.genreId !== null) {
-                            resp.data.genre = this.getGenreFromId(resp.data.genreId);
-                        }
-
-                        // Add book to list
-                        this.$emit('addBook', resp.data);
-
-                        // Update lists if we added new objects
-                        this.updateBookcaseList(resp.data);
-                        this.updateSeriesList(resp.data);
-                        this.updateAuthorList(resp.data);
-                    }).catch(() => {
-                        // TODO: Indicate the book failed to be created somehow
-                        this.$_console_log('[Library] Error adding a book')
-                    });
+                    // TODO: Consider putting this in the success of the call above
+                    this.$emit('closeDialog', true);
                 }
             },
-            updateBookcaseList(item) {
-                this.$emit('updateBookcases', item);
-            },
-            updateSeriesList(item) {
-                this.$emit('updateSeries', item);
-            },
-            updateAuthorList(item) {
-                this.$emit('updateAuthors', item);
-            },
-            getGenreFromId(id) {
-                if (typeof id === 'undefined' || id === null || id === '') {
-                    return null;
-                }
-
-                return this.genreList.find(x => x.id === id);
-            },
-            getRequest(book) {
-                const bookRequest = {
-                    book: {
-                        id: book.id,
-                        title: book.title,
-                        subTitle: book.subTitle,
-                        publicationDate: book.publicationDate,
-                        edition: book.edition,
-                        hardcover: book.hardcover,
-                        isRead: book.isRead,
-                        loaned: book.loaned,
-                        boxset: book.boxset,
-                        notes: book.notes,
-                        seriesNumber: book.seriesNumber,
-                    },
-                    authors: book.authors,
-                    bookcase: book.bookcase,
-                    genres: book.genres,
-                    series: book.series,
-                    shelves: book.shelves
-                };
-
-                this.$_console_log('Book request: ', bookRequest);
-                return bookRequest;
-            }
         }
     }
-    /*
-    getRequest(book) {
-        console.log(book);
-        const bookRequest = {
-            book: {
-                id: book.id,
-                title: book.title,
-                subTitle: book.subTitle,
-                publicationDate: book.publicationDate,
-                edition: book.edition,
-                hardcover: book.hardcover,
-                isRead: book.isRead,
-                seriesNumber: book.seriesNumber,
-            },
-            authors: book.authors,
-        };
-
-        // Series
-        if (typeof book.series !== 'undefined' && book.series !== null) {
-            // Existing series
-            if (book.series.id > 0) {
-                bookRequest.seriesId = book.series.id;
-            }
-            // New series
-            else {
-                bookRequest.series = book.series;
-            }
-        }
-        if (book.seriesId !== 'undefined' && book.seriesId !== null) {
-            bookRequest.seriesId = book.seriesId;
-        }
-        // Check if we don't have a series object, but we are trying to create a new object
-        if ((typeof book.series === 'undefined' || book.series === null || (book.series.id === 0 && book.series.name === ''))
-                && typeof this.seriesSearch !== 'undefined' && this.seriesSearch !== null && this.seriesSearch !== '') {
-            if (typeof book.series === 'undefined' || book.series === null)
-                bookRequest.series = getNewSeries();
-            else {
-                bookRequest.series.active = book.series.active;
-                bookRequest.series.number = book.series.number;
-            }
-
-            bookRequest.series.name = this.seriesSearch;
-        }
-
-        // Bookcase
-        if (typeof book.bookcase !== 'undefined' && book.bookcase !== null) {
-            // Existing bookcase
-            if (book.bookcase.id > 0) {
-                bookRequest.bookcaseId = book.bookcase.id;
-            }
-            // New bookcase
-            else {
-                bookRequest.bookcase = book.bookcase;
-            }
-        }
-        if (book.bookcaseId !== 'undefined' && book.bookcaseId !== null) {
-            bookRequest.bookcaseId = book.bookcaseId;
-        }
-        // Check if we don't have a bookcase object, but we are trying to create a new object
-        if ((typeof book.bookcase === 'undefined' || book.bookcase === null || (book.bookcase.id === 0 && book.bookcase.name === ''))
-                && typeof this.bookcaseSearch !== 'undefined' && this.bookcaseSearch !== null && this.bookcaseSearch !== '') {
-            bookRequest.bookcase = getNewBookcase();
-            bookRequest.bookcase.name = this.bookcaseSearch;
-        }
-
-        // Genre
-        if (typeof book.genre !== 'undefined' && book.genre !== null) {
-            if (book.genre > 0) {
-                bookRequest.genreId = book.genre;
-            }
-        }
-        if (typeof book.genreId !== 'undefined' && book.genreId !== null && (book.genre === null || book.genre !== -1)) {
-            bookRequest.genreId = book.genreId;
-        }
-
-        return bookRequest;
-    }
-
-*/
 </script>

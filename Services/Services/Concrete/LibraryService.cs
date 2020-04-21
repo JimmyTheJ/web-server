@@ -177,6 +177,11 @@ namespace VueServer.Services.Concrete
         public async Task<IResult<int>> DeleteBook (int id)
         {
             var book = await _wsContext.Books.Include(x => x.BookAuthors).Where(x => x.Id == id).FirstOrDefaultAsync();
+            if (book == null)
+            {
+                _logger.LogDebug($"DeleteBook: Book not found with id ({id}). Bad request.");
+                return new Result<int>(-1, BAD_REQUEST);
+            }
 
             if (book.BookAuthors != null)
             {
