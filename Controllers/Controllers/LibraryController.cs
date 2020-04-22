@@ -145,30 +145,6 @@ namespace VueServer.Controllers.Controllers
             return _codeFactory.GetStatusCode(await _service.GetAllGenres());
         }
 
-        [HttpPost]
-        [Authorize(Roles = ROLES_ALL)]
-        [Route("genre/add")]
-        public async Task<IActionResult> AddGenre([FromBody] Genre request)
-        {
-            return _codeFactory.GetStatusCode(await _service.CreateGenre(request));
-        }
-
-        [HttpPut]
-        [Authorize(Roles = ROLES_ALL)]
-        [Route("genre/update")]
-        public async Task<IActionResult> UpdateGenre([FromBody] Genre request)
-        {
-            return _codeFactory.GetStatusCode(await _service.UpdateGenre(request));
-        }
-
-        [HttpDelete]
-        [Authorize(Roles = ROLES_ALL)]
-        [Route("genre/delete")]
-        public async Task<IActionResult> DeleteGenre(int id)
-        {
-            return _codeFactory.GetStatusCode(await _service.DeleteGenre(id));
-        }
-
         #endregion
 
         #region -> Series

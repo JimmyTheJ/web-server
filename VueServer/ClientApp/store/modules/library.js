@@ -357,6 +357,19 @@ const mutations = {
     },
     [types.EDIT_AUTHOR](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Edit author")
+
+        // Check if it's a valid object with a valid id
+        if (data !== null && typeof data === 'object' && data.id > 0) {
+            const index = state.authors.findIndex(x => x.id === data.id)
+            // Author not found in list
+            if (index < 0) {
+                ConMsgs.methods.$_console_log("[Vuex][Mutations] Author doesn't exists in list. Can't update it")                
+            }
+            else {
+                state.authors.splice(index, 1, data)
+                ConMsgs.methods.$_console_log("[Vuex][Mutations] Author updated")
+            }
+        }
     },
     [types.DELETE_AUTHOR](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Delete author")
@@ -458,6 +471,19 @@ const mutations = {
     },
     [types.EDIT_BOOKCASE](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Edit bookcase")
+
+        // Check if it's a valid object with a valid id
+        if (data !== null && typeof data === 'object' && data.id > 0) {
+            const index = state.bookcases.findIndex(x => x.id === data.id)
+            // Bookcase not found in list
+            if (index < 0) {
+                ConMsgs.methods.$_console_log("[Vuex][Mutations] Bookcase doesn't exists in list. Can't update it")
+            }
+            else {
+                state.bookcases.splice(index, 1, data)
+                ConMsgs.methods.$_console_log("[Vuex][Mutations] Bookcase updated")
+            }
+        }
     },
     [types.DELETE_BOOKCASE](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Delete bookcase")
@@ -509,6 +535,19 @@ const mutations = {
     },
     [types.EDIT_SERIES](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Edit series")
+
+        // Check if it's a valid object with a valid id
+        if (data !== null && typeof data === 'object' && data.id > 0) {
+            const index = state.series.findIndex(x => x.id === data.id)
+            // Series not found in list
+            if (index < 0) {
+                ConMsgs.methods.$_console_log("[Vuex][Mutations] Series doesn't exists in list. Can't update it")
+            }
+            else {
+                state.series.splice(index, 1, data)
+                ConMsgs.methods.$_console_log("[Vuex][Mutations] Series updated")
+            }
+        }
     },
     [types.DELETE_SERIES](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Delete series")
@@ -553,6 +592,19 @@ const mutations = {
     },
     [types.EDIT_SHELF](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Edit shelf")
+
+        // Check if it's a valid object with a valid id
+        if (data !== null && typeof data === 'object' && data.id > 0) {
+            const index = state.shelves.findIndex(x => x.id === data.id)
+            // Shelf not found in list
+            if (index < 0) {
+                ConMsgs.methods.$_console_log("[Vuex][Mutations] Shelf doesn't exists in list. Can't update it")
+            }
+            else {
+                state.shelves.splice(index, 1, data)
+                ConMsgs.methods.$_console_log("[Vuex][Mutations] Shelf updated")
+            }
+        }
     },
     [types.DELETE_SHELF](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Delete shelf")

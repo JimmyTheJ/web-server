@@ -40,9 +40,6 @@ namespace VueServer.Services.Interface
         #region -> Genre
 
         Task<IResult<IList<Genre>>> GetAllGenres();
-        Task<IResult<Genre>> CreateGenre(Genre request);
-        Task<IResult<Genre>> UpdateGenre(Genre request);
-        Task<IResult<int>> DeleteGenre(int id);
 
         #endregion
 

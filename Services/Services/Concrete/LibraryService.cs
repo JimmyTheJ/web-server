@@ -199,7 +199,7 @@ namespace VueServer.Services.Concrete
             }
             catch
             {
-                _logger.LogError("DeleteBook: Error saving database on deleting book");
+                _logger.LogError($"DeleteAuthor: Error saving database on deleting author with id ({id})");
                 return new Result<int>(id, SERVER_ERROR);
             }
 
@@ -214,22 +214,92 @@ namespace VueServer.Services.Concrete
         {
             var authors = await _wsContext.Authors.ToListAsync();
 
-            return new Result<IList<Author>>(authors, Domain.Enums.StatusCode.OK);
+            return new Result<IList<Author>>(authors, OK);
         }
 
-        public Task<IResult<Author>> CreateAuthor(Author request)
+        public async Task<IResult<Author>> CreateAuthor(Author request)
         {
-            throw new NotImplementedException();
+            if (request == null)
+            {
+                _logger.LogDebug("CreateAuthor: Author is null");
+                return null;
+            }
+
+            _wsContext.Authors.Add(request);
+            try
+            {
+                await _wsContext.SaveChangesAsync();
+                _logger.LogDebug("CreateAuthor: Successfully added author to database");
+            }
+            catch
+            {
+                _logger.LogError("CreateAuthor: Error saving database on adding author");
+                return null;
+            }
+
+            return new Result<Author>(request, OK);
         }
 
-        public Task<IResult<Author>> UpdateAuthor(Author request)
+        public async Task<IResult<Author>> UpdateAuthor(Author request)
         {
-            throw new NotImplementedException();
+            if (request == null)
+            {
+                _logger.LogDebug("UpdateAuthor: Author is null");
+                return null;
+            }
+
+            var oldAuthor = await _wsContext.Authors.Where(x => x.Id == request.Id).FirstOrDefaultAsync();
+            if (oldAuthor == null)
+            {
+                _logger.LogDebug($"UpdateAuthor: No author exists with id ({request.Id})");
+                return null;
+            }
+
+            oldAuthor.FirstName = request.FirstName;
+            oldAuthor.LastName = request.LastName;
+            oldAuthor.Deceased = request.Deceased;
+            try
+            {
+                await _wsContext.SaveChangesAsync();
+                _logger.LogDebug("UpdateAuthor: Successfully updated author in database");
+            }
+            catch
+            {
+                _logger.LogError($"UpdateAuthor: Error saving database on updated author with id ({request.Id})");
+                return null;
+            }
+
+            return new Result<Author>(oldAuthor, OK);
         }
 
-        public Task<IResult<int>> DeleteAuthor(int id)
+        public async Task<IResult<int>> DeleteAuthor(int id)
         {
-            throw new NotImplementedException();
+            var author = await _wsContext.Authors.Include(x => x.BookAuthors).Where(x => x.Id == id).FirstOrDefaultAsync();
+            if (author == null)
+            {
+                _logger.LogDebug($"DeleteAuthor: No author exists with id ({id})");
+                return new Result<int>(-1, BAD_REQUEST);
+            }
+
+            // Delete author
+            if (author.BookAuthors == null || author.BookAuthors.Count > 0)
+            {
+                _wsContext.Remove(author);
+                try
+                {
+                    await _wsContext.SaveChangesAsync();
+                    _logger.LogDebug("DeleteAuthor: Successfully deleted author from database");
+                }
+                catch
+                {
+                    _logger.LogError($"DeleteAuthor: Error saving database on deleting author with id ({id})");
+                    return new Result<int>(-1, SERVER_ERROR);
+                }
+            }
+
+            // Can't delete author because there is other connections at stake
+            _logger.LogDebug($"DeleteAuthor: Can't delete the author with id ({id}) as it has other connections");
+            return new Result<int>(-1, NO_CONTENT);
         }
 
         #endregion
@@ -243,19 +313,87 @@ namespace VueServer.Services.Concrete
             return new Result<IList<Bookcase>>(bookshelves, Domain.Enums.StatusCode.OK);
         }
 
-        public Task<IResult<Bookcase>> CreateBookcase(Bookcase request)
+        public async Task<IResult<Bookcase>> CreateBookcase(Bookcase request)
         {
-            throw new NotImplementedException();
+            if (request == null)
+            {
+                _logger.LogDebug("CreateBookcase: Bookcase is null");
+                return null;
+            }
+
+            _wsContext.Bookcases.Add(request);
+            try
+            {
+                await _wsContext.SaveChangesAsync();
+                _logger.LogDebug("CreateBookcase: Successfully added bookcase to database");
+            }
+            catch
+            {
+                _logger.LogError("CreateBookcase: Error saving database on adding bookcase");
+                return null;
+            }
+
+            return new Result<Bookcase>(request, OK);
         }
 
-        public Task<IResult<Bookcase>> UpdateBookcase(Bookcase request)
+        public async Task<IResult<Bookcase>> UpdateBookcase(Bookcase request)
         {
-            throw new NotImplementedException();
+            if (request == null)
+            {
+                _logger.LogDebug("UpdateBookcase: Bookcase is null");
+                return null;
+            }
+
+            var oldBookcase = await _wsContext.Bookcases.Where(x => x.Id == request.Id).FirstOrDefaultAsync();
+            if (oldBookcase == null)
+            {
+                _logger.LogDebug($"UpdateBookcase: No bookcase exists with id ({request.Id})");
+                return null;
+            }
+
+            oldBookcase.Name = request.Name;
+            try
+            {
+                await _wsContext.SaveChangesAsync();
+                _logger.LogDebug("UpdateBookcase: Successfully updated bookcase in database");
+            }
+            catch
+            {
+                _logger.LogError($"UpdateBookcase: Error saving database on updated bookcase with id ({request.Id})");
+                return null;
+            }
+
+            return new Result<Bookcase>(oldBookcase, OK);
         }
 
-        public Task<IResult<int>> DeleteBookcase(int id)
+        public async Task<IResult<int>> DeleteBookcase(int id)
         {
-            throw new NotImplementedException();
+            var bookcase = await _wsContext.Bookcases.Include(x => x.Books).Where(x => x.Id == id).FirstOrDefaultAsync();
+            if (bookcase == null)
+            {
+                _logger.LogDebug($"DeleteBookcase: No bookcase exists with id ({id})");
+                return new Result<int>(-1, BAD_REQUEST);
+            }
+
+            // Delete bookcase
+            if (bookcase.Books == null || bookcase.Books.Count > 0)
+            {
+                _wsContext.Remove(bookcase);
+                try
+                {
+                    await _wsContext.SaveChangesAsync();
+                    _logger.LogDebug("DeleteBookcase: Successfully deleted bookcase from database");
+                }
+                catch
+                {
+                    _logger.LogError($"DeleteBookcase: Error saving database on deleting bookcase with id ({id})");
+                    return new Result<int>(-1, SERVER_ERROR);
+                }
+            }
+
+            // Can't delete bookcase because there is other connections at stake
+            _logger.LogDebug($"DeleteBookcase: Can't delete the bookcase with id ({id}) as it has other connections");
+            return new Result<int>(-1, NO_CONTENT);
         }
 
         #endregion
@@ -269,21 +407,6 @@ namespace VueServer.Services.Concrete
             return new Result<IList<Genre>>(genres, Domain.Enums.StatusCode.OK);
         }
 
-        public Task<IResult<Genre>> CreateGenre(Genre request)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IResult<Genre>> UpdateGenre(Genre request)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IResult<int>> DeleteGenre(int id)
-        {
-            throw new NotImplementedException();
-        }
-
         #endregion
 
         #region -> Series
@@ -295,19 +418,89 @@ namespace VueServer.Services.Concrete
             return new Result<IList<Series>>(series, Domain.Enums.StatusCode.OK);
         }
 
-        public Task<IResult<Series>> CreateSeries(Series request)
+        public async Task<IResult<Series>> CreateSeries(Series request)
         {
-            throw new NotImplementedException();
+            if (request == null)
+            {
+                _logger.LogDebug("CreateSeries: Series is null");
+                return null;
+            }
+
+            _wsContext.Series.Add(request);
+            try
+            {
+                await _wsContext.SaveChangesAsync();
+                _logger.LogDebug("CreateSeries: Successfully added series to database");
+            }
+            catch
+            {
+                _logger.LogError("CreateSeries: Error saving database on adding series");
+                return null;
+            }
+
+            return new Result<Series>(request, OK);
         }
 
-        public Task<IResult<Series>> UpdateSeries(Series request)
+        public async Task<IResult<Series>> UpdateSeries(Series request)
         {
-            throw new NotImplementedException();
+            if (request == null)
+            {
+                _logger.LogDebug("UpdateSeries: Series is null");
+                return null;
+            }
+
+            var oldSeries = await _wsContext.Series.Where(x => x.Id == request.Id).FirstOrDefaultAsync();
+            if (oldSeries == null)
+            {
+                _logger.LogDebug($"UpdateSeries: No series exists with id ({request.Id})");
+                return null;
+            }
+
+            oldSeries.Active = request.Active;
+            oldSeries.Name = request.Name;
+            oldSeries.Number = request.Number;
+            try
+            {
+                await _wsContext.SaveChangesAsync();
+                _logger.LogDebug("UpdateSeries: Successfully updated series in database");
+            }
+            catch
+            {
+                _logger.LogError($"UpdateSeries: Error saving database on updated series with id ({request.Id})");
+                return null;
+            }
+
+            return new Result<Series>(oldSeries, OK);
         }
 
-        public Task<IResult<int>> DeleteSeries(int id)
+        public async Task<IResult<int>> DeleteSeries(int id)
         {
-            throw new NotImplementedException();
+            var series = await _wsContext.Series.Include(x => x.Books).Where(x => x.Id == id).FirstOrDefaultAsync();
+            if (series == null)
+            {
+                _logger.LogDebug($"DeleteSeries: No series exists with id ({id})");
+                return new Result<int>(-1, BAD_REQUEST);
+            }
+
+            // Delete series
+            if (series.Books == null || series.Books.Count > 0)
+            {
+                _wsContext.Remove(series);
+                try
+                {
+                    await _wsContext.SaveChangesAsync();
+                    _logger.LogDebug("DeleteSeries: Successfully deleted series from database");
+                }
+                catch
+                {
+                    _logger.LogError($"DeleteSeries: Error saving database on deleting series with id ({id})");
+                    return new Result<int>(-1, SERVER_ERROR);
+                }
+            }
+
+            // Can't delete series because there is other connections at stake
+            _logger.LogDebug($"DeleteSeries: Can't delete the series with id ({id}) as it has other connections");
+            return new Result<int>(-1, NO_CONTENT);
         }
 
         #endregion
@@ -321,19 +514,87 @@ namespace VueServer.Services.Concrete
             return new Result<IList<Shelf>>(shelves, Domain.Enums.StatusCode.OK);
         }
 
-        public Task<IResult<Shelf>> CreateShelf(Shelf request)
+        public async Task<IResult<Shelf>> CreateShelf(Shelf request)
         {
-            throw new NotImplementedException();
+            if (request == null)
+            {
+                _logger.LogDebug("CreateShelf: Shelf is null");
+                return null;
+            }
+
+            _wsContext.Shelves.Add(request);
+            try
+            {
+                await _wsContext.SaveChangesAsync();
+                _logger.LogDebug("CreateShelf: Successfully added shelf to database");
+            }
+            catch
+            {
+                _logger.LogError("CreateShelf: Error saving database on adding shelf");
+                return null;
+            }
+
+            return new Result<Shelf>(request, OK);
         }
 
-        public Task<IResult<Shelf>> UpdateShelf(Shelf request)
+        public async Task<IResult<Shelf>> UpdateShelf(Shelf request)
         {
-            throw new NotImplementedException();
+            if (request == null)
+            {
+                _logger.LogDebug("UpdateShelf: Shelf is null");
+                return null;
+            }
+
+            var oldShelf = await _wsContext.Shelves.Where(x => x.Id == request.Id).FirstOrDefaultAsync();
+            if (oldShelf == null)
+            {
+                _logger.LogDebug($"UpdateShelf: No shelf exists with id ({request.Id})");
+                return null;
+            }
+
+            oldShelf.Name = request.Name;
+            try
+            {
+                await _wsContext.SaveChangesAsync();
+                _logger.LogDebug("UpdateShelf: Successfully updated shelf in database");
+            }
+            catch
+            {
+                _logger.LogError($"UpdateShelf: Error saving database on updated shelf with id ({request.Id})");
+                return null;
+            }
+
+            return new Result<Shelf>(oldShelf, OK);
         }
 
-        public Task<IResult<int>> DeleteShelf(int id)
+        public async Task<IResult<int>> DeleteShelf(int id)
         {
-            throw new NotImplementedException();
+            var shelf = await _wsContext.Shelves.Include(x => x.Books).Where(x => x.Id == id).FirstOrDefaultAsync();
+            if (shelf == null)
+            {
+                _logger.LogDebug($"DeleteShelf: No shelf exists with id ({id})");
+                return new Result<int>(-1, BAD_REQUEST);
+            }
+
+            // Delete shelf
+            if (shelf.Books == null || shelf.Books.Count > 0)
+            {
+                _wsContext.Remove(shelf);
+                try
+                {
+                    await _wsContext.SaveChangesAsync();
+                    _logger.LogDebug("DeleteShelf: Successfully deleted shelf from database");
+                }
+                catch
+                {
+                    _logger.LogError($"DeleteShelf: Error saving database on deleting shelf with id ({id})");
+                    return new Result<int>(-1, SERVER_ERROR);
+                }
+            }
+
+            // Can't delete shelf because there is other connections at stake
+            _logger.LogDebug($"DeleteShelf: Can't delete the shelf with id ({id}) as it has other connections");
+            return new Result<int>(-1, NO_CONTENT);
         }
 
         #endregion
@@ -344,44 +605,35 @@ namespace VueServer.Services.Concrete
 
         #region -> Author
 
-        private async Task<IList<Author>> AddAuthorListAsync(IList<Author> authors)
+        private async Task<IEnumerable<Author>> AddAuthorListAsync(IList<Author> authors)
         {
             if (authors == null || authors.Count == 0)
             {
                 _logger.LogDebug("AddAuthorListAsync: Author list is null");
                 return null;
             }
-            int addedAuthors = 0;
 
-            // Add new authors to the database
-            foreach (var author in authors)
+            var authorsToAdd = authors.Where(x => x.Id != 0);
+            if (authorsToAdd.Count() == 0)
             {
-                if (author.Id != 0)
-                {
-                    continue;
-                }
-
-                addedAuthors++;
-                _wsContext.Authors.Add(author);
+                _logger.LogDebug("AddAuthorListAsync: Author list contains only authors with Id not equal to 0");
+                return null;
             }
 
-            if (addedAuthors > 0)
-            {
-                try
-                {
-                    await _wsContext.SaveChangesAsync();
-                    _logger.LogDebug("AddAuthorListAsync: Successfully added authors to database");
-                }
-                catch
-                {
-                    _logger.LogError("AddAuthorListAsync: Error saving database on adding authors");
-                    return null;
-                }
+            _wsContext.Authors.AddRange(authorsToAdd);
 
-                return authors;
+            try
+            {
+                await _wsContext.SaveChangesAsync();
+                _logger.LogDebug("AddAuthorListAsync: Successfully added authors to database");
+            }
+            catch
+            {
+                _logger.LogError("AddAuthorListAsync: Error saving database on adding authors");
+                return null;
             }
 
-            return null;
+            return authorsToAdd;
         }
 
         private async Task<IList<BookAuthor>> AddBookAuthorListAsync(IList<Author> authors, Book book)
@@ -483,7 +735,7 @@ namespace VueServer.Services.Concrete
             var bookAuthorsToDelete = book.BookAuthors?.Where(x => !existingBookAuthors.Any(y => y.AuthorId == x.AuthorId) && !addAuthors.Any(y => y.Id == x.AuthorId)).ToList();
 
             var newAuthors = await AddAuthorListAsync(addAuthors);
-            var newBookAuthors = await UpdateBookAuthorListConnectionsAsync(newAuthors ?? addAuthors, existingBookAuthors, bookAuthorsToDelete, book);
+            var newBookAuthors = await UpdateBookAuthorListConnectionsAsync(newAuthors?.ToList() ?? addAuthors, existingBookAuthors, bookAuthorsToDelete, book);
 
             return newBookAuthors;
         }

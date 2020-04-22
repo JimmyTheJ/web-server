@@ -18,9 +18,6 @@ const DeleteBookcaseUrl = `api/library/bookcase/delete`;
 const UpdateBookcaseUrl = `api/library/bookcase/update`;
 
 const GetGenreListUrl = `api/library/genre/list`;
-const AddGenreUrl = `api/library/genre/add`;
-const DeleteGenreUrl = `api/library/genre/delete`;
-const UpdateGenreUrl = `api/library/genre/update`;
 
 const GetSeriesListUrl = `api/library/series/list`;
 const AddSeriesUrl = `api/library/series/add`;
@@ -124,28 +121,6 @@ export default {
     genre: {
         getList() {
             return axios.get(GetGenreListUrl);
-        },
-        delete(id) {
-            return axios.request({
-                url: DeleteGenreUrl,
-                method: 'delete',
-                params: {
-                    id: id
-                }
-            });
-        },
-        add(data) {
-            return axios.post(AddGenreUrl, data);
-        },
-        update(data) {
-            return axios.request({
-                url: UpdateGenreUrl,
-                method: 'put',
-                data: data,
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            });
         },
     },
     series: {

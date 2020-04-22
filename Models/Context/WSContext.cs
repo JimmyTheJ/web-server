@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Data.Entity.Infrastructure;
@@ -14,6 +15,8 @@ namespace VueServer.Models.Context
 {
     public class WSContext : DbContext, IWSContext
     {
+        private IDbContextTransaction _transaction;
+
         public WSContext() { }
 
         public WSContext(DbContextOptions<WSContext> options) : base(options) { }
@@ -87,6 +90,34 @@ namespace VueServer.Models.Context
         public DbSet<WSUserTokens> UserTokens { get; set; }
 
         #endregion
+
+        #endregion
+
+        #region -> Public Functions
+
+        public void BeginTransaction()
+        {
+            _transaction = Database.BeginTransaction();
+        }
+
+        public void Commit()
+        {
+            try
+            {
+                SaveChanges();
+                _transaction.Commit();
+            }
+            finally
+            {
+                _transaction.Dispose();
+            }
+        }
+
+        public void Rollback()
+        {
+            _transaction.Rollback();
+            _transaction.Dispose();
+        }
 
         #endregion
 

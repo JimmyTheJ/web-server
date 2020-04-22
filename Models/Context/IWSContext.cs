@@ -60,6 +60,10 @@ namespace VueServer.Models.Context
 
         #region -> Functions
 
+        void BeginTransaction();
+        void Commit();
+        void Rollback();
+
         int SaveChanges ();
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
