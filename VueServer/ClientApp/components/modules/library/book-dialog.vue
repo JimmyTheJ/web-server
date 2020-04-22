@@ -222,8 +222,6 @@
 </template>
 
 <script>
-    import libraryService from '../../services/library'
-
     import { mapState } from 'vuex'
 
     function getRequest(book) {

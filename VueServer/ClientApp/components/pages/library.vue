@@ -1,8 +1,16 @@
 <template>
     <div>
-        <library-dialog :open="dialogOpen" :book="activeBook" @closeDialog="closeDialogWindow" />
+        <author-dialog :open="authorDialogOpen" @closeDialog="closeAuthorDialogWindow" />
+        <book-dialog :open="bookDialogOpen" :book="activeBook" @closeDialog="closeBookDialogWindow" />
 
         <v-container>
+            <v-flex xs12>
+                Author Editor
+                <v-btn icon @click="authorDialogOpen = true" class="green--text">
+                    <fa-icon icon="plus"></fa-icon>
+                </v-btn>
+            </v-flex>
+
             <v-flex xs12>
                 Create new book entry:
                 <v-btn icon @click="openAddOrEditBookDialog(null, null)" class="green--text">
@@ -75,8 +83,8 @@
 </template>
 
 <script>
-    import libraryService from '../../services/library'
-    import libraryDialog from '../modules/library-dialog'
+    import authorDialog from '../modules/library/author-dialog'
+    import bookDialog from '../modules/library/book-dialog'
 
     import { mapState } from 'vuex'
 
@@ -86,13 +94,15 @@
 
     export default {
         components: {
-            'library-dialog': libraryDialog
+            'author-dialog': authorDialog,
+            'book-dialog': bookDialog,
         },
         data() {
             return {
                 activeBook: {},
                 bookSearch: '',
-                dialogOpen: false,
+                authorDialogOpen: false,
+                bookDialogOpen: false,
             }
         },
         computed: {
@@ -195,7 +205,7 @@
                     this.setActiveBook(obj);
                 }
 
-                this.dialogOpen = true;
+                this.bookDialogOpen = true;
             },
             getTitle(item) {
                 if (typeof item === 'undefined' || item === null)
@@ -231,9 +241,13 @@
                 let date = new Date(item);
                 return `${date.getFullYear()}-${padTwo(date.getMonth())}-${padTwo(date.getDate())}`;
             },
-            closeDialogWindow(reset) {
-                this.$_console_log(`[Close Dialog Window] Reset value is: ${reset}`);
-                this.dialogOpen = false;
+            closeAuthorDialogWindow() {
+                this.$_console_log('[Close Author Dialog Window] Reset value is:');
+                this.authorDialogOpen = false;
+            },
+            closeBookDialogWindow(reset) {
+                this.$_console_log(`[Close Book Dialog Window] Reset value is: ${reset}`);
+                this.bookDialogOpen = false;
 
                 if (typeof reset === 'boolean' && reset) {
                     this.activeBook = {};
