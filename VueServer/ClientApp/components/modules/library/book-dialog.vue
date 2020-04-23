@@ -222,6 +222,7 @@
 </template>
 
 <script>
+    import * as Helper from '../../../helpers'
     import { mapState } from 'vuex'
 
     function getRequest(book) {
@@ -247,39 +248,6 @@
         };
 
         return bookRequest;
-    }
-
-    function getNewBookcase() {
-        return {
-            id: 0,
-            name: '',
-        }
-    }
-
-    function getNewSeries() {
-        return {
-            id: 0,
-            name: '',
-            number: 0,
-            active: false,
-        }
-    }
-
-    function getNewShelf() {
-        return {
-            id: 0,
-            name: '',
-        }
-    }
-
-    function getNewAuthor() {
-        return {
-            id: 0,
-            firstName: null,
-            lastName: null,
-            fullName: null,
-            deceased: false
-        }
     }
 
     function getNewBook() {
@@ -396,12 +364,12 @@
                     this.activeBook = newValue;
                 }
 
-                this.authorToAdd = getNewAuthor();
+                this.authorToAdd = Helper.getNewAuthor();
                 this.updateFilteredAuthorList();
             },
             'activeBook.bookcase': function (newValue) {
                 if (typeof newValue === 'string') {
-                    this.activeBook.bookcase = getNewBookcase();
+                    this.activeBook.bookcase = Helper.getNewBookcase();
                     this.activeBook.bookcase.name = newValue;
                 }
                 else if (typeof newValue === 'object') {
@@ -412,7 +380,7 @@
             },
             'activeBook.series': function (newValue) {
                 if (typeof newValue === 'string') {
-                    this.activeBook.series = getNewSeries();
+                    this.activeBook.series = Helper.getNewSeries();
                     this.activeBook.series.name = newValue;
                 }
                 else if (typeof newValue === 'object') {
@@ -423,7 +391,7 @@
             },
             'activeBook.shelf': function (newValue) {
                 if (typeof newValue === 'string') {
-                    this.activeBook.shelf = getNewShelf();
+                    this.activeBook.shelf = Helper.getNewShelf();
                     this.activeBook.shelf.name = newValue;
                 }
                 else if (typeof newValue === 'object') {
@@ -479,7 +447,7 @@
                 this.filteredGenreList = list.slice(0);
             },
             resetDialogFields() {
-                this.authorToAdd = getNewAuthor();
+                this.authorToAdd = Helper.getNewAuthor();
                 this.authorSearch = '';
                 this.seriesIsLoading = false;
                 this.seriesSearch = '';
@@ -573,7 +541,7 @@
             },
             addSeries() {
                 if (typeof this.activeBook.series === 'undefined' || this.activeBook.series === null) {
-                    this.activeBook.series = getNewSeries();
+                    this.activeBook.series = Helper.getNewSeries();
                 }
             },
             deleteSeries() {
@@ -582,7 +550,7 @@
             },
             addBookcase() {
                 if (typeof this.activeBook.bookcase === 'undefined' || this.activeBook.bookcase === null) {
-                    this.activeBook.bookcase = getNewBookcase();
+                    this.activeBook.bookcase = Helper.getNewBookcase();
                 }
             },
             deleteBookcase() {
@@ -591,7 +559,7 @@
             },
             addShelf() {
                 if (typeof this.activeBook.shelf === 'undefined' || this.activeBook.shelf === null) {
-                    this.activeBook.shelf = getNewShelf();
+                    this.activeBook.shelf = Helper.getNewShelf();
                 }
             },
             deleteShelf() {

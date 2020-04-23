@@ -282,19 +282,21 @@ namespace VueServer.Services.Concrete
             }
 
             // Delete author
-            if (author.BookAuthors == null || author.BookAuthors.Count > 0)
+            if (author.BookAuthors == null || author.BookAuthors.Count == 0)
             {
                 _wsContext.Remove(author);
                 try
                 {
                     await _wsContext.SaveChangesAsync();
-                    _logger.LogDebug("DeleteAuthor: Successfully deleted author from database");
                 }
                 catch
                 {
                     _logger.LogError($"DeleteAuthor: Error saving database on deleting author with id ({id})");
                     return new Result<int>(-1, SERVER_ERROR);
                 }
+
+                _logger.LogDebug("DeleteAuthor: Successfully deleted author from database");
+                return new Result<int>(id, OK);
             }
 
             // Can't delete author because there is other connections at stake
@@ -376,19 +378,21 @@ namespace VueServer.Services.Concrete
             }
 
             // Delete bookcase
-            if (bookcase.Books == null || bookcase.Books.Count > 0)
+            if (bookcase.Books == null || bookcase.Books.Count == 0)
             {
                 _wsContext.Remove(bookcase);
                 try
                 {
                     await _wsContext.SaveChangesAsync();
-                    _logger.LogDebug("DeleteBookcase: Successfully deleted bookcase from database");
                 }
                 catch
                 {
                     _logger.LogError($"DeleteBookcase: Error saving database on deleting bookcase with id ({id})");
                     return new Result<int>(-1, SERVER_ERROR);
                 }
+
+                _logger.LogDebug("DeleteBookcase: Successfully deleted bookcase from database");
+                return new Result<int>(id, OK);
             }
 
             // Can't delete bookcase because there is other connections at stake
@@ -483,19 +487,21 @@ namespace VueServer.Services.Concrete
             }
 
             // Delete series
-            if (series.Books == null || series.Books.Count > 0)
+            if (series.Books == null || series.Books.Count == 0)
             {
                 _wsContext.Remove(series);
                 try
                 {
                     await _wsContext.SaveChangesAsync();
-                    _logger.LogDebug("DeleteSeries: Successfully deleted series from database");
                 }
                 catch
                 {
                     _logger.LogError($"DeleteSeries: Error saving database on deleting series with id ({id})");
                     return new Result<int>(-1, SERVER_ERROR);
                 }
+
+                _logger.LogDebug("DeleteSeries: Successfully deleted series from database");
+                return new Result<int>(id, OK);
             }
 
             // Can't delete series because there is other connections at stake
@@ -577,19 +583,21 @@ namespace VueServer.Services.Concrete
             }
 
             // Delete shelf
-            if (shelf.Books == null || shelf.Books.Count > 0)
+            if (shelf.Books == null || shelf.Books.Count == 0)
             {
                 _wsContext.Remove(shelf);
                 try
                 {
                     await _wsContext.SaveChangesAsync();
-                    _logger.LogDebug("DeleteShelf: Successfully deleted shelf from database");
                 }
                 catch
                 {
                     _logger.LogError($"DeleteShelf: Error saving database on deleting shelf with id ({id})");
                     return new Result<int>(-1, SERVER_ERROR);
                 }
+
+                _logger.LogDebug("DeleteShelf: Successfully deleted shelf from database");
+                return new Result<int>(id, OK);
             }
 
             // Can't delete shelf because there is other connections at stake

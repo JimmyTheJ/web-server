@@ -1,12 +1,12 @@
 <template>
     <div>
-        <author-dialog :open="authorDialogOpen" @closeDialog="closeAuthorDialogWindow" />
+        <depedency-editor-dialog :open="dependencyEditorDialogOpen" @closeDialog="closeDependencyEditorDialogWindow" />
         <book-dialog :open="bookDialogOpen" :book="activeBook" @closeDialog="closeBookDialogWindow" />
 
         <v-container>
             <v-flex xs12>
-                Author Editor
-                <v-btn icon @click="authorDialogOpen = true" class="green--text">
+                Dependency Editor
+                <v-btn icon @click="dependencyEditorDialogOpen = true" class="green--text">
                     <fa-icon icon="plus"></fa-icon>
                 </v-btn>
             </v-flex>
@@ -83,7 +83,7 @@
 </template>
 
 <script>
-    import authorDialog from '../modules/library/author-dialog'
+    import dependencyEditor from '../modules/library/dependency-editor'
     import bookDialog from '../modules/library/book-dialog'
 
     import { mapState } from 'vuex'
@@ -94,14 +94,14 @@
 
     export default {
         components: {
-            'author-dialog': authorDialog,
             'book-dialog': bookDialog,
+            'depedency-editor-dialog': dependencyEditor,
         },
         data() {
             return {
                 activeBook: {},
                 bookSearch: '',
-                authorDialogOpen: false,
+                dependencyEditorDialogOpen: false,
                 bookDialogOpen: false,
             }
         },
@@ -241,9 +241,9 @@
                 let date = new Date(item);
                 return `${date.getFullYear()}-${padTwo(date.getMonth())}-${padTwo(date.getDate())}`;
             },
-            closeAuthorDialogWindow() {
-                this.$_console_log('[Close Author Dialog Window] Reset value is:');
-                this.authorDialogOpen = false;
+            closeDependencyEditorDialogWindow() {
+                this.$_console_log('[Close Depedency Editor Dialog Window] Reset value is:');
+                this.dependencyEditorDialogOpen = false;
             },
             closeBookDialogWindow(reset) {
                 this.$_console_log(`[Close Book Dialog Window] Reset value is: ${reset}`);
