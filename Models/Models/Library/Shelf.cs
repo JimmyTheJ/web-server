@@ -20,5 +20,20 @@ namespace VueServer.Models.Library
         public Bookcase Bookcase { get; set; }
 
         public virtual IList<Book> Books { get; set; }
+
+        public bool Validate()
+        {
+            if (BookcaseId <= 0)
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(Name))
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }

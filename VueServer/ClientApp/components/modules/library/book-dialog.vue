@@ -171,42 +171,42 @@
                                     <fa-icon size="md" icon="window-close" />
                                 </v-btn>
                             </v-flex>
+
+                            <!-- Shelf -->
+                            <template v-if="activeBook.shelf != null">
+                                <v-flex xs12 mt-3>
+                                    Shelf:
+                                </v-flex>
+                                <v-flex xs11 pr-1>
+                                    <v-combobox v-model="activeBook.shelf"
+                                                :items="filteredShelfList"
+                                                :loading="shelfIsLoading"
+                                                :search-input.sync="shelfSearch"
+                                                color="white"
+                                                hide-no-data
+                                                hide-selected
+                                                item-text="name"
+                                                item-value="id"
+                                                label="Shelf Search"
+                                                placeholder="Start typing to Search"
+                                                prepend-icon="mdi-bookcase"
+                                                return-object></v-combobox>
+                                </v-flex>
+                                <v-flex xs1 class="text-right">
+                                    <v-btn icon @click="deleteShelf()">
+                                        <fa-icon size="md" icon="window-close" />
+                                    </v-btn>
+                                </v-flex>
+                            </template>
+                            <v-flex xs12 my-3 v-if="activeBook.shelf === null && typeof activeBook.bookcase.name !== 'undefined' && activeBook.bookcase.name !== ''">
+                                <v-btn @click="addShelf()">
+                                    <fa-icon icon="plus"></fa-icon>&nbsp;Add Shelf
+                                </v-btn>
+                            </v-flex>
                         </template>
                         <v-flex xs12 my-3 v-if="activeBook.bookcase === null">
                             <v-btn @click="addBookcase()">
                                 <fa-icon icon="plus"></fa-icon>&nbsp;Add Bookcase
-                            </v-btn>
-                        </v-flex>
-
-                        <!-- Shelf -->
-                        <template v-if="activeBook.shelf != null">
-                            <v-flex xs12 mt-3>
-                                Shelf:
-                            </v-flex>
-                            <v-flex xs11 pr-1>
-                                <v-combobox v-model="activeBook.shelf"
-                                            :items="shelfList"
-                                            :loading="shelfIsLoading"
-                                            :search-input.sync="shelfSearch"
-                                            color="white"
-                                            hide-no-data
-                                            hide-selected
-                                            item-text="name"
-                                            item-value="id"
-                                            label="Shelf Search"
-                                            placeholder="Start typing to Search"
-                                            prepend-icon="mdi-bookcase"
-                                            return-object></v-combobox>
-                            </v-flex>
-                            <v-flex xs1 class="text-right">
-                                <v-btn icon @click="deleteShelf()">
-                                    <fa-icon size="md" icon="window-close" />
-                                </v-btn>
-                            </v-flex>
-                        </template>
-                        <v-flex xs12 my-3 v-if="activeBook.shelf === null">
-                            <v-btn @click="addShelf()">
-                                <fa-icon icon="plus"></fa-icon>&nbsp;Add Shelf
                             </v-btn>
                         </v-flex>
 
@@ -244,7 +244,7 @@
             bookcase: book.bookcase,
             genres: book.genres,
             series: book.series,
-            shelves: book.shelves
+            shelf: book.shelf
         };
 
         return bookRequest;
@@ -294,12 +294,13 @@
                 shelfSearch: '',
                 authorIsLoading: false,
                 authorSearch: '',
-                authorToAdd: {},
+                authorToAdd: null,
                 genreToAdd: -1,
                 deletingAuthor: false,
                 deletingGenre: false,
                 filteredAuthorList: [],
                 filteredGenreList: [],
+                filteredShelfList: [],
             }
         },
         props: {
@@ -311,6 +312,10 @@
                 type: Object,
                 required: false,
             },
+            loading: {
+                type: Boolean,
+                default: false,
+            }
         },
         computed: {
             ...mapState({
@@ -357,6 +362,10 @@
                 }
             },
             book: function (newValue) {
+                if (this.loading) {
+                    this.$_console_log('Active book watcher: Book is loading.');
+                }
+
                 if (typeof newValue === 'undefined' || newValue === null) {
                     this.activeBook = getNewBook();
                 }
@@ -367,7 +376,28 @@
                 this.authorToAdd = Helper.getNewAuthor();
                 this.updateFilteredAuthorList();
             },
+            'activeBook.bookcaseId': function (newValue, oldValue) {
+                if (this.loading) {
+                    this.$_console_log('Active book bookcase id watcher: Book is loading. Exiting.');
+                    return;
+                }
+
+                if (typeof newValue === 'undefined') {
+                    this.$_console_log('Bookcase Id watcher: Value is undefined. Exiting');
+                    return;
+                }                    
+
+                this.activeBook.shelf = null;
+                this.activeBook.shelfId = null;
+
+                this.updateFilteredShelfList();
+            },
             'activeBook.bookcase': function (newValue) {
+                if (this.loading) {
+                    this.$_console_log('Active book bookcase watcher: Book is loading. Exiting.');
+                    return;
+                }
+
                 if (typeof newValue === 'string') {
                     this.activeBook.bookcase = Helper.getNewBookcase();
                     this.activeBook.bookcase.name = newValue;
@@ -379,6 +409,11 @@
                 }
             },
             'activeBook.series': function (newValue) {
+                if (this.loading) {
+                    this.$_console_log('Active book series watcher: Book is loading. Exiting.');
+                    return;
+
+                }
                 if (typeof newValue === 'string') {
                     this.activeBook.series = Helper.getNewSeries();
                     this.activeBook.series.name = newValue;
@@ -390,6 +425,11 @@
                 }
             },
             'activeBook.shelf': function (newValue) {
+                if (this.loading) {
+                    this.$_console_log('Active book shelf watcher: Book is loading. Exiting.');
+                    return;
+
+                }
                 if (typeof newValue === 'string') {
                     this.activeBook.shelf = Helper.getNewShelf();
                     this.activeBook.shelf.name = newValue;
@@ -403,7 +443,7 @@
         },
         methods: {
             updateFilteredAuthorList() {
-                if (typeof this.activeBook === 'undefined' || typeof this.activeBook.authors === 'undefined' || this.activeBook.authors === null) {
+                if (typeof this.activeBook === 'undefined' || this.activeBook === null || typeof this.activeBook.authors === 'undefined' || this.activeBook.authors === null) {
                     this.$_console_log('Something is invalid.. breaking out of filtered author list');
                     return this.authorList;
                 }
@@ -445,6 +485,15 @@
                 }
 
                 this.filteredGenreList = list.slice(0);
+            },
+            updateFilteredShelfList() {
+                if (typeof this.activeBook === 'undefined' || typeof this.activeBook.bookcaseId !== 'number' || this.activeBook === null) {
+                    this.$_console_log('Something is invalid.. breaking out of filtered shelf list');
+                    return [];
+                }
+
+                const bookcaseId = this.activeBook.bookcaseId;
+                this.filteredShelfList = this.shelfList.filter(element => element.bookcaseId === bookcaseId);
             },
             resetDialogFields() {
                 this.authorToAdd = Helper.getNewAuthor();
@@ -551,20 +600,28 @@
             addBookcase() {
                 if (typeof this.activeBook.bookcase === 'undefined' || this.activeBook.bookcase === null) {
                     this.activeBook.bookcase = Helper.getNewBookcase();
+                    this.updateFilteredShelfList();
                 }
             },
             deleteBookcase() {
                 this.activeBook.bookcase = null;
                 this.activeBook.bookcaseId = null;
+                this.activeBook.shelfId = null;
+                this.activeBook.shelf = null;
+
+                this.updateFilteredShelfList();
             },
             addShelf() {
                 if (typeof this.activeBook.shelf === 'undefined' || this.activeBook.shelf === null) {
                     this.activeBook.shelf = Helper.getNewShelf();
+                    this.updateFilteredShelfList();
                 }
             },
             deleteShelf() {
                 this.activeBook.shelf = null;
                 this.activeBook.shelfId = null;
+
+                this.updateFilteredShelfList();
             },
             async addOrUpdateBook() {
                 this.$_console_log("[Library] Add or update book");
@@ -575,6 +632,7 @@
                     const request = getRequest(this.activeBook);
                     await this.$store.dispatch('editBook', request);
 
+                    this.updateFilteredShelfList();
                     // TODO: Consider putting this in the success of the call above
                     this.$emit('closeDialog', true);
                 }
@@ -583,6 +641,7 @@
                     const request = getRequest(this.activeBook);
                     await this.$store.dispatch('addBook', request);
 
+                    this.updateFilteredShelfList();
                     // TODO: Consider putting this in the success of the call above
                     this.$emit('closeDialog', true);
                 }

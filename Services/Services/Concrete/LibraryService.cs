@@ -44,6 +44,7 @@ namespace VueServer.Services.Concrete
             var books = await _wsContext.Books
                 .Include(x => x.Bookcase)
                 .Include(x => x.Series)
+                .Include(x => x.Shelf)
                 .Include(x => x.BookAuthors)
                     .ThenInclude(x => x.Author)
                 .Include(x => x.BookGenres)
@@ -71,14 +72,13 @@ namespace VueServer.Services.Concrete
             // One to many relationship changes
             var bookcase = await UpdateBookcaseConnectionAsync(request.Bookcase, newBook);
             var series = await UpdateSeriesConnectionAsync(request.Series, newBook);
-            var shelf = await UpdateShelfConnectionAsync(request.Shelf, newBook);
+            var shelf = await ShelfInBookCaseCheck(request, newBook);
 
             // Make or remove foreign key connections
             newBook.BookcaseId = bookcase?.Id ?? null;
             newBook.SeriesId = series?.Id ?? null;
             newBook.ShelfId = shelf?.Id ?? null;
 
-            
             // Add book to database and save
             _wsContext.Books.Add(newBook);
             try
@@ -125,12 +125,12 @@ namespace VueServer.Services.Concrete
                 // Can't update a book that doesn't exist in the database
                 return new Result<Book>(null, BAD_REQUEST);
             }
-            
+
             // One to many relationship changes
             var bookcase = await UpdateBookcaseConnectionAsync(request.Bookcase, oldBook);
             var series = await UpdateSeriesConnectionAsync(request.Series, oldBook);
-            var shelf = await UpdateShelfConnectionAsync(request.Shelf, oldBook);
-            
+            var shelf = await ShelfInBookCaseCheck(request, oldBook);
+
             // Many to many relationship changes
             var authors = await UpdateBookAuthorListAsync(request.Authors, oldBook);
             var genres = await UpdateBookGenreListAsync(request.Genres, oldBook);
@@ -224,6 +224,11 @@ namespace VueServer.Services.Concrete
                 _logger.LogDebug("CreateAuthor: Author is null");
                 return null;
             }
+            if (!request.Validate())
+            {
+                _logger.LogDebug("CreateAuthor: Author failed model validation");
+                return null;
+            }
 
             _wsContext.Authors.Add(request);
             try
@@ -245,6 +250,11 @@ namespace VueServer.Services.Concrete
             if (request == null)
             {
                 _logger.LogDebug("UpdateAuthor: Author is null");
+                return null;
+            }
+            if (!request.Validate())
+            {
+                _logger.LogDebug("UpdateAuthor: Author failed model validation");
                 return null;
             }
 
@@ -322,6 +332,11 @@ namespace VueServer.Services.Concrete
                 _logger.LogDebug("CreateBookcase: Bookcase is null");
                 return null;
             }
+            if (!request.Validate())
+            {
+                _logger.LogDebug("CreateBookcase: Bookcase failed model validation");
+                return null;
+            }
 
             _wsContext.Bookcases.Add(request);
             try
@@ -343,6 +358,11 @@ namespace VueServer.Services.Concrete
             if (request == null)
             {
                 _logger.LogDebug("UpdateBookcase: Bookcase is null");
+                return null;
+            }
+            if (!request.Validate())
+            {
+                _logger.LogDebug("UpdateBookcase: Bookcase failed model validation");
                 return null;
             }
 
@@ -378,7 +398,7 @@ namespace VueServer.Services.Concrete
             }
 
             // Delete bookcase
-            if (bookcase.Books == null || bookcase.Books.Count == 0)
+            if ((bookcase.Books == null || bookcase.Books.Count == 0) && (bookcase.Shelves == null || bookcase.Shelves.Count == 0))
             {
                 _wsContext.Remove(bookcase);
                 try
@@ -429,6 +449,11 @@ namespace VueServer.Services.Concrete
                 _logger.LogDebug("CreateSeries: Series is null");
                 return null;
             }
+            if (!request.Validate())
+            {
+                _logger.LogDebug("CreateSeries: Series failed model validation");
+                return null;
+            }
 
             _wsContext.Series.Add(request);
             try
@@ -450,6 +475,11 @@ namespace VueServer.Services.Concrete
             if (request == null)
             {
                 _logger.LogDebug("UpdateSeries: Series is null");
+                return null;
+            }
+            if (!request.Validate())
+            {
+                _logger.LogDebug("UpdateSeries: Series failed model validation");
                 return null;
             }
 
@@ -527,6 +557,11 @@ namespace VueServer.Services.Concrete
                 _logger.LogDebug("CreateShelf: Shelf is null");
                 return null;
             }
+            if (!request.Validate())
+            {
+                _logger.LogDebug("CreateShelf: Shelf failed model validation");
+                return null;
+            }
 
             _wsContext.Shelves.Add(request);
             try
@@ -550,6 +585,11 @@ namespace VueServer.Services.Concrete
                 _logger.LogDebug("UpdateShelf: Shelf is null");
                 return null;
             }
+            if (!request.Validate())
+            {
+                _logger.LogDebug("UpdateShelf: Shelf failed model validation");
+                return null;
+            }
 
             var oldShelf = await _wsContext.Shelves.Where(x => x.Id == request.Id).FirstOrDefaultAsync();
             if (oldShelf == null)
@@ -558,6 +598,7 @@ namespace VueServer.Services.Concrete
                 return null;
             }
 
+            oldShelf.BookcaseId = request.BookcaseId;
             oldShelf.Name = request.Name;
             try
             {
@@ -1055,6 +1096,27 @@ namespace VueServer.Services.Concrete
                 _logger.LogError("EditShelfAsync: Error saving database");
                 return null;
             }
+        }
+
+        private async Task<Shelf> ShelfInBookCaseCheck (BookAddRequest request, Book book)
+        {
+            Shelf shelf = null;
+            if (request.Bookcase != null && request.Shelf != null)
+            {
+                // New shelf, set Id to the bookcase Id
+                if (request.Shelf.Id == 0)
+                {
+                    request.Shelf.BookcaseId = request.Bookcase.Id;
+                }
+
+                // Only add shelf to book if the shelf is on the correct bookcase, otherwise it's invalid somehow
+                if (request.Shelf.BookcaseId == request.Bookcase.Id)
+                {
+                    return await UpdateShelfConnectionAsync(request.Shelf, book);
+                }
+            }
+
+            return shelf;
         }
 
         #endregion

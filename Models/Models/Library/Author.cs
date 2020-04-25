@@ -38,10 +38,30 @@ namespace VueServer.Models.Library
             get
             {
                 if (string.IsNullOrWhiteSpace(FirstName))
-                    return LastName;
+                {
+                    if (!string.IsNullOrWhiteSpace(LastName))
+                    {
+                        return LastName;
+                    }             
+                }
+
+                if (string.IsNullOrWhiteSpace(LastName))
+                {
+                    return "";
+                }
 
                 return $"{FirstName} {LastName}";
             }
+        }
+
+        public bool Validate()
+        {
+            if (string.IsNullOrWhiteSpace(LastName))
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

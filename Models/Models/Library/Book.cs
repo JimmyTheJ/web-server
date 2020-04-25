@@ -81,5 +81,20 @@ namespace VueServer.Models.Library
         public virtual IList<BookAuthor> BookAuthors { get; set; }
 
         public virtual IList<BookGenre> BookGenres { get; set; }
+
+        public bool Validate()
+        {
+            if (string.IsNullOrWhiteSpace(Title))
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(UserId))
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }

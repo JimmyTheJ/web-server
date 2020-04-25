@@ -78,6 +78,9 @@
                                 <!-- Shelf -->
                                 <template v-else-if="activeType === typeConsts.Shelf">
                                     <v-flex xs12 pl-2>
+                                        <v-select v-model="selectedObject.bookcaseId" :items="bookcaseList" label="Bookcase" item-value="id" item-text="name" :rules="[rules.required]"></v-select>
+                                    </v-flex>
+                                    <v-flex xs12 pl-2>
                                         <v-text-field v-model="selectedObject.name" label="Name" :rules="[rules.required]"></v-text-field>
                                     </v-flex>
                                 </template>
@@ -88,7 +91,7 @@
                                 <v-btn @click="selectedObject = null">
                                     CANCEL
                                 </v-btn>
-                                <v-btn class="primary" @click="updateObject()">
+                                <v-btn class="primary" @click="updateObject()" :disabled="!validated">
                                     SAVE
                                 </v-btn>
                                 <v-btn class="float-right" @click="deleteObject()">
@@ -225,22 +228,7 @@
                     return;
                 }
 
-                switch (newValue) {
-                    case 0:
-                        this.activeList = this.authorList;
-                        break;
-                    case 1:
-                        this.activeList = this.bookcaseList;
-                        break;
-                    case 2:
-                        this.activeList = this.seriesList;
-                        break;
-                    case 3:
-                        this.activeList = this.shelfList;
-                        break;
-                    default:
-                        break;
-                }
+                this.getActiveList(newValue);
             },
             activeObject(newValue) {
                 this.$_console_log('Selected object watcher', newValue);
@@ -259,6 +247,28 @@
             }
         },
         methods: {
+            getActiveList(value) {
+                if (typeof value === 'undefined' || value === null) {
+                    value = this.activeType;
+                }
+
+                switch (value) {
+                    case 0:
+                        this.activeList = this.authorList.slice(0);
+                        break;
+                    case 1:
+                        this.activeList = this.bookcaseList.slice(0);
+                        break;
+                    case 2:
+                        this.activeList = this.seriesList.slice(0);
+                        break;
+                    case 3:
+                        this.activeList = this.shelfList.slice(0);
+                        break;
+                    default:
+                        break;
+                }
+            },
             addObject() {
                 if (this.activeType === null || typeof this.activeType !== 'number') {
                     this.$_console_log(`[Dependency Editor] Add Object: Active type is null or not a number: (${this.activeType})`);
@@ -281,14 +291,19 @@
                 }
 
                 if (this.selectedObject.id === 0) {
-                    this.$refs.objectForm.validate()
-                    if (this.validated === true)
-                        this.$store.dispatch(`add${this.typeList[this.activeType]}`, this.selectedObject);
+                    if (this.$refs.objectForm.validate()) {
+                        this.$store.dispatch(`add${this.typeList[this.activeType]}`, this.selectedObject).then(resp => {
+                            this.$_console_log(`[Dependency Editor] Update Object: Successfully added new object of type (${this.typeList[this.activeType]}). Removing temp object.`);
+                            this.getActiveList();
+                            this.selectedObject = this.activeList.find(x => x.id === resp.id);
+                        });
+                    }
                 }
                 else {
-                    this.$refs.objectForm.validate()
-                    if (this.validated === true)
+                    if (this.$refs.objectForm.validate()) {
                         this.$store.dispatch(`edit${this.typeList[this.activeType]}`, this.selectedObject);
+                        this.getActiveList();
+                    }
                 }
             },
             deleteObject() {
@@ -297,10 +312,18 @@
                     return;
                 }
 
-                this.$store.dispatch(`delete${this.typeList[this.activeType]}`, this.selectedObject.id).then(resp => {
-                    // If we successfully delete the object, let's unselect that entry as it won't be the same entry anymore
+                if (this.selectedObject.id <= 0) {
                     this.activeObject = -1;
-                });
+                    this.getActiveList();
+                }
+                else {
+                    this.$store.dispatch(`delete${this.typeList[this.activeType]}`, this.selectedObject.id).then(resp => {
+                        // If we successfully delete the object, let's unselect that entry as it won't be the same entry anymore
+                        this.activeObject = -1;
+                        this.getActiveList();
+                    });
+                }
+
             }
         }
     }

@@ -1,7 +1,7 @@
 <template>
     <div>
         <depedency-editor-dialog :open="dependencyEditorDialogOpen" @closeDialog="closeDependencyEditorDialogWindow" />
-        <book-dialog :open="bookDialogOpen" :book="activeBook" @closeDialog="closeBookDialogWindow" />
+        <book-dialog :open="bookDialogOpen" :book="activeBook" :loading="loadingBook" @closeDialog="closeBookDialogWindow" />
 
         <v-container>
             <v-flex xs12>
@@ -103,6 +103,7 @@
                 bookSearch: '',
                 dependencyEditorDialogOpen: false,
                 bookDialogOpen: false,
+                loadingBook: false,
             }
         },
         computed: {
@@ -202,7 +203,15 @@
                 }
                 // edit
                 else {
-                    this.setActiveBook(obj);
+                    const self = this;
+                    this.loadingBook = true;
+
+                    setTimeout(() => {
+                        self.setActiveBook(obj);
+                        setTimeout(() => {
+                            self.loadingBook = false;
+                        }, 15);
+                    }, 5);
                 }
 
                 this.bookDialogOpen = true;
@@ -249,9 +258,10 @@
                 this.$_console_log(`[Close Book Dialog Window] Reset value is: ${reset}`);
                 this.bookDialogOpen = false;
 
-                if (typeof reset === 'boolean' && reset) {
-                    this.activeBook = {};
-                }
+                this.activeBook = null;
+                //if (typeof reset === 'boolean' && reset) {
+                //    this.activeBook = {};
+                //}
             }
         }
     }

@@ -31,5 +31,15 @@ namespace VueServer.Models.Library
         public bool Active { get; set; }
 
         public virtual IList<Book> Books { get; set; }
+
+        public bool Validate()
+        {
+            if (string.IsNullOrWhiteSpace(Name))
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }
