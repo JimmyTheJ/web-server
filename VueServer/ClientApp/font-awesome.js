@@ -10,6 +10,8 @@ import { faBookReader } from '@fortawesome/free-solid-svg-icons/faBookReader'
 import { faBullhorn } from '@fortawesome/free-solid-svg-icons/faBullhorn'
 import { faChalkboard } from '@fortawesome/free-solid-svg-icons/faChalkboard'
 import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck'
+import { faChevronLeft } from '@fortawesome/free-solid-svg-icons/faChevronLeft'
+import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight'
 import { faChess } from '@fortawesome/free-solid-svg-icons/faChess'
 import { faCogs } from '@fortawesome/free-solid-svg-icons/faCogs'
 import { faComment } from '@fortawesome/free-solid-svg-icons/faComment'
@@ -50,6 +52,8 @@ library.add(
     faBullhorn,
     faChalkboard,
     faCheck,
+    faChevronLeft,
+    faChevronRight,
     faChess,
     faCogs,
     faComment,

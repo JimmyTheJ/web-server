@@ -6,17 +6,20 @@
                preload="none"
                width="420"
                controls>
-            <source :src="url" />
+            <source :src="path" />
         </video>
     </div>
 </template>
 
 <script>
+    const basepath = process.env.API_URL;
+
     export default {
         name: "video-player",
         data() {
             return {
-                player: null
+                player: null,
+                path: null,
             }
         },
         props: {
@@ -76,7 +79,7 @@
 
                 this.pausePlayer();
 
-                if (typeof newValue === 'undefined' || newValue === '') {
+                if (typeof newValue === 'undefined' || newValue === null || newValue === '') {
                     this.$_console_log('[Video Player] Empty url string');
                     return;
                 }
@@ -87,6 +90,8 @@
         },
         methods: {
             loadPlayer() {
+                this.path = `${basepath}/api/serve-file/${this.url}`
+
                 const self = this;
                 setTimeout(() => {
                     self.player.load();

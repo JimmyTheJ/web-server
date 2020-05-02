@@ -1,5 +1,5 @@
 <template>
-    <v-dialog v-model="dialog">
+    <v-dialog v-model="dialog" :max-width="getMaxWidth">
         <v-card>
             <v-card-title class="headline">
                 <slot name="header">
@@ -7,9 +7,25 @@
                 </slot>
             </v-card-title>
             <v-card-text>
-                <slot>
-                    File Viewer contents
-                </slot>
+                <v-layout row>
+                    <v-flex xs1>
+                        <v-btn @click="goBack()" class="chevron-center" icon>
+                            <fa-icon icon="chevron-left" size="3x"></fa-icon>
+                        </v-btn>
+                    </v-flex>
+
+                    <v-flex xs10>
+                        <slot>
+                            File Viewer contents
+                        </slot>
+                    </v-flex>
+
+                    <v-flex xs1>
+                        <v-btn @click="goForward()" class="chevron-center" icon>
+                            <fa-icon icon="chevron-right" size="3x"></fa-icon>
+                        </v-btn>
+                    </v-flex>
+                </v-layout>
             </v-card-text>
             <v-card-actions>
                 <v-btn @click="dialog = false">
@@ -44,7 +60,7 @@
             }
         },
         computed: {
-            getWidth: function () {
+            getMaxWidth: function () {
                 let check = window.mobilecheck();
                 if (check)
                     return 320;
@@ -72,15 +88,37 @@
         },
         mounted() {
             window.addEventListener('resize', this.getWindowSize);
+            window.addEventListener('keyup', this.keypressNavigation);
         },
         beforeDestroy() {
             window.removeEventListener('resize', this.getWindowSize);
+            window.removeEventListener('keyup', this.keypressNavigation);
         },
         methods: {
             getWindowSize() {
                 this.windowHeight = window.innerHeight;
                 this.windowWidth = window.innerWidth;
             },
+            keypressNavigation(evt) {
+                //this.$_console_log('Event', evt);
+
+                // Left arrow
+                if (evt.keyCode === 37) {
+                    this.goBack();
+                }
+                // Right arrow
+                else if (evt.keyCode === 39) {
+                    this.goForward();
+                }
+            },
+            goBack() {
+                this.$_console_log('[File Viewer] Go Back');
+                this.$emit('file-back')
+            },
+            goForward() {
+                this.$_console_log('[File Viewer] Go Forward');
+                this.$emit('file-forward')
+            }
         },
     }
 </script>
@@ -88,5 +126,12 @@
 <style>
     .center {
         margin: 0 auto;
+    }
+
+    .chevron-center {
+        position: relative;
+        top: 45%;
+        width: 55px !important;
+        height: 55px !important;
     }
 </style>

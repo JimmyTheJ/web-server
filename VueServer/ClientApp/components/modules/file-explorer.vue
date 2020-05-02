@@ -148,7 +148,14 @@
             parentView: {
                 type: String,
                 required: true,
-            }
+            },
+            goFile: {
+                type: Object,
+                default: () => {
+                    file: null;
+                    num: 0;
+                }
+            },
         },
         mounted() {
             this.changing = true;
@@ -189,6 +196,48 @@
                     this.setRoute(newValue, true);
                     this.openDir();
                 }
+            },
+            goFile: {
+                handler(newValue) {
+                    if (typeof newValue !== 'object' || newValue === null) {
+                        this.$_console_log('[FileExplorer] goFile watcher: value is not an object or null');
+                        this.goFile = { file: null, num: 0 }
+                        return;
+                    }
+
+                    if (newValue.num === 0) {
+                        this.$_console_log('[FileExplorer] goFile watcher: Num is 0, therefore we aren\t navigating to a new file');
+                        return;
+                    }
+
+                    const folderlessList = this.dirContents.filter(x => x.isFolder === false).slice(0);
+                    this.$_console_log('Folderless List:', folderlessList);
+                    if (folderlessList.length === 0) {
+                        this.$_console_log('[FileExplorer] goFile watcher: This folder only contains other folders. Nothing to load.');
+                        return;
+                    }
+
+                    const fileIndex = folderlessList.findIndex(x => encodeURI(x.title) === newValue.file);
+                    if (fileIndex === -1) {
+                        this.$_console_log('[FileExplorer] goFile watcher: File not found in list');
+                        return;
+                    }
+
+                    if ((fileIndex + newValue.num) >= folderlessList.length) {
+                        this.$_console_log('[FileExplorer] goFile watcher: Navigating here will overflow the list.');
+                        return;
+                    }
+                    else if ((fileIndex + newValue.num) < 0) {
+                        this.$_console_log('[FileExplorer] goFile watcher: Navigating here will underflow the list.');
+                        return;
+                    }
+                    else {
+                        // Everything is good to go. Change files.
+                        const fileToOpen = folderlessList[fileIndex + newValue.num];
+                        this.open(fileToOpen);
+                    }
+                },
+                deep: true
             }
         },
         methods: {
@@ -361,9 +410,9 @@
                 }
                 else {
                     //this.$emit('loadFile', `${path}/home/${this.parentView}/${this.fullPath}/${item.title}`);
-                    this.$_console_log('[FILE EXPLORER] Open Item: item, dl path', item, this.getMediaPath(item))
+                    this.$_console_log('[FILE EXPLORER] Open Item: item, dl path', item, this.getFilePath(item))
                     setTimeout(() => {
-                        this.$emit('loadFile', this.getMediaPath(item));
+                        this.$emit('loadFile', this.getFilePath(item));
                     }, 125);
                 }
             },
@@ -374,8 +423,8 @@
                 return `${path}/api/directory/download/file/${encodeURI(this.fullPath)}/${encodeURIComponent(item.title)}`;
                 //return `${path}/api/directory/download?fileName=${encodeURI(item.title)}&folder=${encodeURI(fullFolderPath)}`;
             },
-            getMediaPath(item) {
-                return `${path}/api/serve-file/${encodeURI(this.fullPath)}/${encodeURIComponent(item.title)}`;
+            getFilePath(item) {
+                return `${encodeURI(this.fullPath)}/${encodeURIComponent(item.title)}`;
             },
             getIcon(item) {
                 if (item.isFolder)

@@ -2,20 +2,21 @@
     <div>
         <file-explorer :folders="folders"
                        parentView="browser"
+                       :goFile="goFile"
                        @loadFile="loadFile"></file-explorer>
 
-        <file-viewer :open="dialogOpen" @viewer-off="dialogOpen = false">
+        <file-viewer :open="dialogOpen" @viewer-off="dialogOpen = false" @file-back="browserGo(-1)" @file-forward="browserGo(1)">
             <template v-if="type === mediaTypes.video">
                 <p slot="header">Video Player</p>
-                <video-player :url="path" :on="on" @player-off="on = false"></video-player>
+                <video-player :url="path" :on="on" @player-off="on = false" />
             </template>
             <template v-else-if="type === mediaTypes.image">
                 <p slot="header">Image Viewer</p>
-                <img :src="path" />
+                <image-viewer :url="path" />
             </template>
             <template v-else-if="type === mediaTypes.text">
                 <p slot="header">Text Viewer</p>
-                <p>{{ path }}</p>
+                <text-viewer :url="path" :on="on" @text-off="on = false" />
             </template>
         </file-viewer>
     </div>
@@ -25,8 +26,10 @@
     import Service from '../../services/file-explorer'
 
     import Explorer from '../modules/file-explorer'
-    import Viewer from '../modules/viewers/file-viewer'
+    import FileViewer from '../modules/viewers/file-viewer'
     import VideoPlayer from '../modules/viewers/video-player'
+    import TextViewer from '../modules/viewers/text-viewer'
+    import ImageViewer from '../modules/viewers/image-viewer'
 
     import { Roles } from '../../constants'
 
@@ -45,13 +48,20 @@
                     video: 'video',
                     image: 'image',
                     text: 'text'
-                }
+                },
+
+                goFile: {
+                    file: null,
+                    num : 0
+                },
             }
         },
         components: {
             'file-explorer': Explorer,
-            'file-viewer': Viewer,
+            'file-viewer': FileViewer,
             'video-player': VideoPlayer,
+            'text-viewer': TextViewer,
+            'image-viewer': ImageViewer,
         },
         created() {
             let role = this.$store.state.auth.role;
@@ -147,6 +157,42 @@
                     this.on = true;
                 }, 15);
                 
+            },
+            browserGo(num) {
+                if (typeof num !== 'number' || num === 0) {
+                    this.$_console_log('[Browser] Browser Go: Number is not a number or 0');
+                    return;
+                }
+                if (typeof this.path !== 'string') {
+                    this.$_console_log('[Browser] Browser Go: Path is not a string');
+                    return;
+                }
+
+                let filename;
+                if (this.path.includes('/')) {
+                    if (this.path.lastIndexOf('/') === this.path.length - 1) {
+                        filename = this.path.substring(0, this.path.lastIndexOf('/'));
+                        if (filename.includes('/')) {
+                            if (filename.lastIndexOf('/') === filename.length - 1) {
+                                filename = filename.substring(0, filename.lastIndexOf('/'));
+                            }
+                            else {
+                                filename = filename.substring(filename.lastIndexOf('/') + 1);
+                            }
+                        }
+                    }
+                    else {
+                        filename = this.path.substring(this.path.lastIndexOf('/') + 1);
+                    }                    
+                }
+                else {
+                    filename = this.path;
+                }
+                
+                this.goFile = {
+                    file: filename,
+                    num: num
+                }
             }
         }
     }
