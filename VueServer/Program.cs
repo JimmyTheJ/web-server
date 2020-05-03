@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -10,24 +11,17 @@ namespace VueServer
     {
         public static void Main(string[] args)
         {
-            var host = new HostBuilder()
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseKestrel(serverOptions =>
-                    {
+            BuildWebHost(args).Run();
+        }
 
-                    })
-                    .UseIISIntegration()
-                    .UseStartup<Startup>()
-                    .ConfigureLogging(log =>
-                    {
-                        log.AddConsole();
-                    });
+        public static IWebHost BuildWebHost(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseIISIntegration()
+                .UseStartup<Startup>()
+                .ConfigureLogging(log =>
+                {
+                    log.AddConsole();
                 })
                 .Build();
-                
-            host.Run();
-        }
     }
 }

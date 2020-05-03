@@ -81,6 +81,7 @@
 <script>
     import * as CONST from '../../constants'
 
+
     let dropArea = null;
 
     export default {
@@ -95,7 +96,7 @@
                 folderFiles: [
 
                 ],
-                isAdmin: false,
+                role: CONST.Roles.Level.Default,
                 c: CONST.Roles,
                 dialog: {
                     on: false,

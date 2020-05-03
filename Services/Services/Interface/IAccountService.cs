@@ -1,11 +1,14 @@
 ﻿using Microsoft.AspNetCore.Http;
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using VueServer.Domain.Interface;
 using VueServer.Models.Account;
+using VueServer.Models.Modules;
 using VueServer.Models.Response;
+using VueServer.Models.User;
 
 namespace VueServer.Services.Interface
 {
@@ -20,5 +23,7 @@ namespace VueServer.Services.Interface
         IResult<string> GetCsrfToken (HttpContext context);
 
         Task<IResult<RefreshTokenResponse>> RefreshJwtToken (RefreshTokenRequest model);
+
+        Task<IResult<IList<WSUser>>> GetUsers();
     }
 }

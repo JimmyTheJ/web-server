@@ -1,5 +1,3 @@
-export const ServerName = "Jimmy's Server"
-
 export const Roles = {
     Name: {
         Admin: 'Administrator',

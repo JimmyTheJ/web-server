@@ -33,7 +33,7 @@
             </v-list>
         </v-container>
 
-        <v-container mt-1 class="upload-area">
+        <v-container mt-1 class="upload-area" v-if="role >= roleOptions.Elevated">
             <v-form enctype="multipart/form-data">
                 <v-layout row wrap>
                     <v-flex xs12>
@@ -46,7 +46,7 @@
 
         <v-container>
             <v-form v-if="selectable">
-                <v-layout row wrap>
+                <v-layout row wrap px-2>
                     <v-flex xs12>
                         <v-select v-model="selectedFolder" :items="folders" :label="`Select a folder`" item-text="name" item-value="name"></v-select>
                     </v-flex>
@@ -79,7 +79,7 @@
                     {{ getFileSize(item.size) }}
                 </v-list-item-action>
                 <!-- Ensure admin and not a folder for delete -->
-                <v-list-item-action v-if="isAdmin && !item.isFolder">
+                <v-list-item-action v-if="role === roleOptions.Admin && !item.isFolder">
                     <v-btn icon @click="deleteItem(item)"><fa-icon size="lg" icon="window-close" /></v-btn>
                 </v-list-item-action>
             </v-list-item>
@@ -96,6 +96,7 @@
     import service from '../../services/file-explorer'
     import { mapGetters } from 'vuex'
     import Tooltip from './tooltip'
+    import Auth from '../../mixins/authentication'
 
     let path = process.env.API_URL;
 
@@ -117,7 +118,8 @@
                 // Upload
                 uploadFiles: [],
 
-                isAdmin: false,
+                role: CONST.Roles.Level.Default,
+                roleOptions: CONST.Roles.Level,
 
                 dialog: {
                     on: false,
@@ -130,6 +132,7 @@
                 },
             }
         },
+        mixins: [Auth],
         components: {
             "tooltip": Tooltip,
         },
@@ -145,7 +148,14 @@
             parentView: {
                 type: String,
                 required: true,
-            }
+            },
+            goFile: {
+                type: Object,
+                default: () => {
+                    file: null;
+                    num: 0;
+                }
+            },
         },
         mounted() {
             this.changing = true;
@@ -161,7 +171,8 @@
 
                 this.changing = false;
             }, 250);
-            this.isAdmin = this.$store.state.auth.role === 'Administrator';
+
+            this.role = this.$_auth_convertRole(this.$store.state.auth.role);
         },
         computed: {
             fullPath() {
@@ -185,6 +196,48 @@
                     this.setRoute(newValue, true);
                     this.openDir();
                 }
+            },
+            goFile: {
+                handler(newValue) {
+                    if (typeof newValue !== 'object' || newValue === null) {
+                        this.$_console_log('[FileExplorer] goFile watcher: value is not an object or null');
+                        this.goFile = { file: null, num: 0 }
+                        return;
+                    }
+
+                    if (newValue.num === 0) {
+                        this.$_console_log('[FileExplorer] goFile watcher: Num is 0, therefore we aren\t navigating to a new file');
+                        return;
+                    }
+
+                    const folderlessList = this.dirContents.filter(x => x.isFolder === false).slice(0);
+                    this.$_console_log('Folderless List:', folderlessList);
+                    if (folderlessList.length === 0) {
+                        this.$_console_log('[FileExplorer] goFile watcher: This folder only contains other folders. Nothing to load.');
+                        return;
+                    }
+
+                    const fileIndex = folderlessList.findIndex(x => encodeURI(x.title) === newValue.file);
+                    if (fileIndex === -1) {
+                        this.$_console_log('[FileExplorer] goFile watcher: File not found in list');
+                        return;
+                    }
+
+                    if ((fileIndex + newValue.num) >= folderlessList.length) {
+                        this.$_console_log('[FileExplorer] goFile watcher: Navigating here will overflow the list.');
+                        return;
+                    }
+                    else if ((fileIndex + newValue.num) < 0) {
+                        this.$_console_log('[FileExplorer] goFile watcher: Navigating here will underflow the list.');
+                        return;
+                    }
+                    else {
+                        // Everything is good to go. Change files.
+                        const fileToOpen = folderlessList[fileIndex + newValue.num];
+                        this.open(fileToOpen);
+                    }
+                },
+                deep: true
             }
         },
         methods: {
@@ -357,9 +410,9 @@
                 }
                 else {
                     //this.$emit('loadFile', `${path}/home/${this.parentView}/${this.fullPath}/${item.title}`);
-                    this.$_console_log('[FILE EXPLORER] Open Item: item, dl path', item, this.getMediaPath(item))
+                    this.$_console_log('[FILE EXPLORER] Open Item: item, dl path', item, this.getFilePath(item))
                     setTimeout(() => {
-                        this.$emit('loadFile', this.getMediaPath(item));
+                        this.$emit('loadFile', this.getFilePath(item));
                     }, 125);
                 }
             },
@@ -370,8 +423,8 @@
                 return `${path}/api/directory/download/file/${encodeURI(this.fullPath)}/${encodeURIComponent(item.title)}`;
                 //return `${path}/api/directory/download?fileName=${encodeURI(item.title)}&folder=${encodeURI(fullFolderPath)}`;
             },
-            getMediaPath(item) {
-                return `${path}/api/serve-file/${encodeURI(this.fullPath)}/${encodeURIComponent(item.title)}`;
+            getFilePath(item) {
+                return `${encodeURI(this.fullPath)}/${encodeURIComponent(item.title)}`;
             },
             getIcon(item) {
                 if (item.isFolder)
@@ -407,6 +460,11 @@
 
             // Upload
             setFiles(e) {
+                if (this.role < CONST.Roles.Level.Elevated) {
+                    this.$_console_log('Users without elevated or higher access cannot upload files');
+                    return;
+                }
+
                 this.$_console_log(e.target.files);
                 for (let i = 0; i < e.target.files.length; i++) {
                     this.uploadFiles.push(e.target.files[i]);
@@ -461,8 +519,8 @@
                 });
             },
             async deleteItem(file) {
-                if (!this.isAdmin)
-                    return this.$_console_log("You're not allowed to do that sir...");
+                if (this.role < CONST.Roles.Level.Admin)
+                    return this.$_console_log("Non Admins are not allowed to delete files");                    
 
                 if (typeof file === 'undefined' || file === null || file === '')
                     return this.$_console_log("Invalid file info, can't delete");

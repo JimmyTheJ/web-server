@@ -20,7 +20,4 @@ export default {
     addWeight(data) {
         return axios.post(AddWeightUrl, data);
     },
-    dawg() {
-        console.log('Dawg');
-    }
 }

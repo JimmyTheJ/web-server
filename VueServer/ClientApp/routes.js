@@ -6,14 +6,13 @@ import Register from './components/modules/register'
 
 import Home from './components/home'
 import Start from './components/pages/start'
-import FileServer from './components/pages/file-server'
-import Video from './components/pages/video'
-import Upload from './components/pages/upload'
+import AdminTools from './components/pages/admin-tools'
 import Browser from './components/pages/browser'
 import Notes from './components/pages/notes'
 import Documentation from './components/pages/documentation'
 import Doc from './components/modules/doc'
 import Weight from './components/pages/weight'
+import Library from './components/pages/library'
 
 export const routes = [
     {
@@ -53,6 +52,16 @@ export const routes = [
                 }
             },
             {
+                path: 'admin-tools',
+                name: 'admin-tools',
+                component: AdminTools,
+                display: 'Admin Tools',
+                meta: {
+                    authLevel: Roles.Level.Admin,
+                    hidden: false,
+                }
+            },
+            {
                 path: 'browser',
                 name: 'browser',
                 component: Browser,
@@ -68,6 +77,7 @@ export const routes = [
                 component: Browser,
                 display: 'Browser',
                 meta: {
+                    relative: 'browser',
                     authLevel: Roles.Level.General,
                     hidden: true,
                 }
@@ -98,6 +108,7 @@ export const routes = [
                         component: Doc,
                         display: 'Documentation',
                         meta: {
+                            relative: 'documentation',
                             authLevel: Roles.Level.General,
                             hidden: true,
                         },
@@ -109,6 +120,16 @@ export const routes = [
                 name: 'weight',
                 component: Weight,
                 display: 'Weight',
+                meta: {
+                    authLevel: Roles.Level.General,
+                    hidden: false,
+                }
+            },
+            {
+                path: 'library',
+                name: 'library',
+                component: Library,
+                display: 'Library',
                 meta: {
                     authLevel: Roles.Level.General,
                     hidden: false,

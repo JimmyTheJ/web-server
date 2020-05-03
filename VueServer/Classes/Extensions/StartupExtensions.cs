@@ -47,7 +47,13 @@ namespace VueServer.Classes.Extensions
         /// <param name="config"></param>
         public static void AddCustomAuthentication (this IServiceCollection services, IConfiguration config)
         {
-            services.AddScoped<IWSContext, WSContext>();
+            DatabaseTypes dbType = (DatabaseTypes)config.GetSection("Options").GetValue<int>("DatabaseType");
+            if (dbType == DatabaseTypes.MSSQLSERVER)
+                services.AddScoped<IWSContext, SqlServerWSContext>();
+            else if (dbType == DatabaseTypes.SQLITE)
+                services.AddScoped<IWSContext, SqliteWSContext>();
+            else if (dbType == DatabaseTypes.MYSQL)
+                services.AddScoped<IWSContext, MySqlWSContext>();
 
             // Setup the custom identity framework dependencies.
             services.AddTransient<IUserStore<WSUser>, ServerUserStore>();
@@ -181,8 +187,10 @@ namespace VueServer.Classes.Extensions
             services.AddSingleton<IStatusCodeFactory<IActionResult>, StatusCodeFactory>();
 
             services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IModuleService, ModuleService>();
             services.AddScoped<IDirectoryService, DirectoryService>();
             services.AddScoped<INoteService, NoteService>();
+            services.AddScoped<ILibraryService, LibraryService>();
             services.AddScoped<IWeightService, WeightService>();
 
             services.AddScoped<IUserService, UserService>();
@@ -203,38 +211,38 @@ namespace VueServer.Classes.Extensions
         /// <param name="config"></param>
         public static void AddCustomDataStore (this IServiceCollection services, IConfiguration config)
         {
-            string webServerConnectionString = config.GetConnectionString("WebServerDbConnectionString");
+            ConnectionStrings.WSCONTEXT = config.GetConnectionString("WebServerDbConnectionString");
 
             DatabaseTypes dbType = (DatabaseTypes) config.GetSection("Options").GetValue<int>("DatabaseType");
             if (dbType == DatabaseTypes.MSSQLSERVER)
             {
-                using (var client = new WSContext(new DbContextOptionsBuilder<WSContext>().UseSqlServer(webServerConnectionString, a => a.MigrationsAssembly("VueServer")).Options))
+                using (var client = new SqlServerWSContext())
                 {
                     client.Database.Migrate();
                 }
 
-                services.AddEntityFrameworkSqlServer().AddDbContext<WSContext>
-                    (options => options.UseSqlServer(webServerConnectionString, a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
+                services.AddEntityFrameworkSqlServer().AddDbContext<IWSContext, SqlServerWSContext>
+                    (options => options.UseSqlServer(ConnectionStrings.WSCONTEXT, a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
             }
             else if (dbType == DatabaseTypes.SQLITE)
             {
-                using (var client = new WSContext(new DbContextOptionsBuilder<WSContext>().UseSqlite(webServerConnectionString, a => a.MigrationsAssembly("VueServer")).Options))
+                using (var client = new SqliteWSContext())
                 {
                     client.Database.Migrate();
                 }
 
-                services.AddEntityFrameworkSqlite().AddDbContext<WSContext>
-                    (options => options.UseSqlite(webServerConnectionString, a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
+                services.AddEntityFrameworkSqlite().AddDbContext<IWSContext, SqliteWSContext>
+                    (options => options.UseSqlite(ConnectionStrings.WSCONTEXT, a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
             }
             else if (dbType == DatabaseTypes.MYSQL)
             {
-                using (var client = new WSContext(new DbContextOptionsBuilder<WSContext>().UseMySql(webServerConnectionString, a => a.MigrationsAssembly("VueServer")).Options))
+                using (var client = new MySqlWSContext())
                 {
                     client.Database.Migrate();
                 }
 
-                services.AddEntityFrameworkMySql().AddDbContext<WSContext>
-                    (options => options.UseMySql(webServerConnectionString, a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
+                services.AddEntityFrameworkMySql().AddDbContext<IWSContext, MySqlWSContext>
+                    (options => options.UseMySql(ConnectionStrings.WSCONTEXT, a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
             }
         }
 

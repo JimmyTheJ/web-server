@@ -5,12 +5,12 @@
 </template>
 
 <script>
-    import { ServerName } from '../../constants'
+    const serverName = process.env.SERVER_NAME;
 
     export default {
         data() {
             return {
-                name: ServerName,
+                name: serverName,
             }
         }
     }

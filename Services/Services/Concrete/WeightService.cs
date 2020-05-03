@@ -37,9 +37,9 @@ namespace VueServer.Services.Concrete
 
         private IWebHostEnvironment _env { get; set; }
                 
-        private readonly WSContext _wsContext;
+        private readonly IWSContext _wsContext;
 
-        public WeightService(ILoggerFactory logger, IUserService user, IWebHostEnvironment env, WSContext wsContext)
+        public WeightService(ILoggerFactory logger, IUserService user, IWebHostEnvironment env, IWSContext wsContext)
         {
             _logger = logger?.CreateLogger<DirectoryService>() ?? throw new ArgumentNullException("Logger null");
             _user = user ?? throw new ArgumentNullException("User service null");

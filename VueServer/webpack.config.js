@@ -6,12 +6,31 @@ const HtmlPlugin = require('html-webpack-plugin');
 const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { VueLoaderPlugin } = require('vue-loader');
-const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin')
+const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin');
 
 
 const bundleOutputDir = './wwwroot/dist';
-const devConfig = require('./ClientApp/config/dev.env');
-const prodConfig = require('./ClientApp/config/prod.env');
+
+let devConfig;
+let prodConfig;
+
+// Get configs, but fall back to default config if they aren't present
+try {
+	devConfig = require('./ClientApp/config/config.dev.env');	
+}
+catch (ex) {
+	console.log('No development config file available, loading the default');
+	devConfig = require('./ClientApp/config/config.env');	
+}
+try {
+	prodConfig = require('./ClientApp/config/config.prod.env');
+}
+catch (ex) {
+	console.log('No production config file available, loading the default');
+	prodConfig = require('./ClientApp/config/config.env');	
+}
+// End get configs
+
 
 module.exports = (env) => {
     const isDevBuild = !(env && env.prod);

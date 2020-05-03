@@ -21,11 +21,11 @@ namespace VueServer.Services.Concrete
 
         private readonly IUserService _user;
 
-        private readonly WSContext _wsContext;
+        private readonly IWSContext _wsContext;
         
         public NoteService (ILoggerFactory logger,
             IUserService user, 
-            WSContext wsContext)
+            IWSContext wsContext)
         {
             _logger = logger?.CreateLogger<NoteService>() ?? throw new ArgumentNullException("Logger factory is null");
             _user = user ?? throw new ArgumentNullException("User service is null");

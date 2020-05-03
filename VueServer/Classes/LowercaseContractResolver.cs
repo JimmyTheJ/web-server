@@ -6,7 +6,12 @@ namespace VueServer.Classes
     {
         protected override string ResolvePropertyName(string propertyName)
         {
-            return propertyName.ToLower()[0] + propertyName.Substring(1);
+            if (propertyName != null && propertyName.Length > 1)
+                return propertyName.ToLower()[0] + propertyName.Substring(1);
+            else if (propertyName != null && propertyName.Length == 1)
+                return propertyName.ToLower()[0].ToString();
+            else
+                return null;
         }
     }
 }

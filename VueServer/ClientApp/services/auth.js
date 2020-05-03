@@ -11,6 +11,7 @@ const signoutUrl = `api/account/logout`
 const getCsrfTokenUrl = `api/account/get-csrf-token`
 const refreshTokenUrl = `api/account/refresh-jwt`
 const registerUrl = `api/account/register`
+const getUsers = `api/account/get-all-users`
 
 /**
  * Export
@@ -41,5 +42,8 @@ export default {
             'ConfirmPassword': data.confirmPassword,
             'Role': data.role
         })
+    },
+    getUsers() {
+        return axios.get(getUsers)
     }
 }

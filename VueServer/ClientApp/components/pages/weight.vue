@@ -10,17 +10,14 @@
                     <v-container>
                         <v-layout wrap>
                             <v-flex xs12 class="text-xs-center">
-                                <date-picker v-model="weight.created"
-                                             valueType="format"
-                                             :default-value="weight.created"
-                                             :editable="true"
-                                             :clearable="false"></date-picker>
+                                <v-date-picker v-model="weight.created"></v-date-picker>
                             </v-flex>
-                            <v-flex xs3></v-flex>
-                            <v-flex xs6>
+                            <v-flex xs12>
                                 <v-text-field v-model="weight.value" label="Value" suffix="lbs" class="weight-input"></v-text-field>
                             </v-flex>
-                            <v-flex xs3></v-flex>
+                            <v-flex xs12>
+                                <v-text-field v-model="weight.notes" label="Notes"></v-text-field>
+                            </v-flex>
                             <v-flex xs12 class="text-xs-center">
                                 <v-btn @click="addNew(weight)">Submit</v-btn>
                             </v-flex>
@@ -30,43 +27,47 @@
             </v-card>
         </v-dialog>
 
-        <v-container>
-            <v-layout row wrap>
-                <v-flex xs12 md6>
-                    <v-layout row wrap>
-                        <v-flex xs12>
-                            Create new weight:
-                            <v-btn icon @click="create" class="green--text">
-                                <fa-icon icon="plus"></fa-icon>
-                            </v-btn>
-                        </v-flex>
-                    </v-layout>
+        <v-container fluid>
+            <v-layout row wrap px-2>
+                <v-flex xs12 sm6 md4>
+                    Create new weight:
+                    <v-btn icon @click="create" class="green--text">
+                        <fa-icon icon="plus"></fa-icon>
+                    </v-btn>
+                </v-flex>
 
-                    <v-layout row wrap class="weight-list-container">
-                        <v-flex xs5 class="font-weight-bold">
-                            Date
-                        </v-flex>
-                        <v-flex xs5 class="font-weight-bold">
-                            Weight
-                        </v-flex>
-                        <template v-for="(item, index) in weightList">
-                            <v-flex xs5>
-                                {{ getDate(item.created) }}
-                            </v-flex>
-                            <v-flex xs5>
-                                {{ item.value }}
-                            </v-flex>
-                            <v-flex xs1>
-                                <v-btn icon @click="deleteItem(item.id)"><fa-icon size="lg" icon="window-close" /></v-btn>
-                            </v-flex>
-                        </template>
-                    </v-layout>
-                </v-flex>
-                <v-flex xs12 md6>
-                    <div class="text-xs-center headline font-weight-bold">Average weight loss / week:</div>
+                <v-flex xs12 sm6>
+                    <div class="text-sm-left text-md-right headline font-weight-bold">Average weight loss / week:</div>
                     <!--<div>{{ avgWeightLoss + " lbs" }}</div>-->
-                    <div class="text-xs-center headline" :class="weightLossCss">{{ avgWeightLossWeek + " lbs" }}</div>
+                    <div class="text-sm-left text-md-right headline" :class="weightLossCss">{{ avgWeightLossWeek + " lbs" }}</div>
                 </v-flex>
+
+                <!--<v-layout row wrap class="weight-list-container">-->
+                <v-flex xs4 md3 class="font-weight-bold">
+                    Date
+                </v-flex>
+                <v-flex xs2 md2 class="font-weight-bold">
+                    Weight
+                </v-flex>
+                <v-flex xs5 md6 class="font-weight-bold text-center">
+                    Notes
+                </v-flex>
+                <template v-for="(item, index) in weightList">
+                    <v-flex xs4 md3>
+                        {{ getDate(item.created) }}
+                    </v-flex>
+                    <v-flex xs2 md2>
+                        {{ item.value }}
+                    </v-flex>
+                    <v-flex xs5 md6>
+                        {{ item.notes }}
+                    </v-flex>
+                    <v-flex xs1>
+                        <v-btn icon @click="deleteItem(item.id)"><fa-icon size="lg" icon="window-close" /></v-btn>
+                    </v-flex>
+                </template>
+                <!--</v-layout>-->
+                <!--</v-flex>-->
             </v-layout>
         </v-container>
     </div>
@@ -76,15 +77,13 @@
     import { setTimeout } from 'core-js';
     import weightService from '../../services/weight'
 
-    import DatePicker from 'vue2-datepicker';
-    import 'vue2-datepicker/index.css';
-
     function getNewWeight() {
         return {
             id: -1,
-            created: new Date().toLocaleString(),
+            created: new Date().toISOString().substr(0, 10),
             value: '',
             userId: '',
+            notes: null
         }
     }
 
@@ -101,7 +100,6 @@
                 dialogOpen: false,
             }
         },
-        components: { DatePicker },
         created() {
             this.weight = getNewWeight();
             this.getData();
@@ -113,6 +111,7 @@
                     { text: 'Value', align: 'left', value: 'value' },
                 ];
             },
+            // TODO: Do this on the server and return it
             avgWeightLoss() {
                 let weightLoss = 0;
 

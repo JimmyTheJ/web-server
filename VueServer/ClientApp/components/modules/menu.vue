@@ -3,13 +3,14 @@
         <v-navigation-drawer style="top: 56px; overflow: hidden"
                              v-model="drawer"
                              class="grey lighten-4"
+                             disable-resize-watcher
                              width="150"
                              :height="getDrawerHeight"
                              absolute
                              app>
             <v-list light>
                 <template v-for="child in routes.children">
-                    <v-list-item :to="{ name: child.name }" v-if="authorized(child.meta.authLevel) && !child.meta.hidden">
+                    <v-list-item :to="{ name: child.name }" v-if="authorized(child) && !child.meta.hidden" @click="drawer = false">
                         <v-list-item-content>
                             {{ child.display }}
                         </v-list-item-content>
@@ -19,23 +20,21 @@
         </v-navigation-drawer>
 
         <v-app-bar color="purple" dark>
-            <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+            <v-app-bar-nav-icon @click.stop.prevent="drawer = !drawer"></v-app-bar-nav-icon>
             <div v-show="$vuetify.breakpoint.name !== 'xs'">
                 <v-toolbar-items dark>
-                    <template v-for="(child, index) in routes.children">
-                        <template v-if="authorized(child.meta.authLevel)">
+                    <div v-for="(child, index) in routes.children" class="menu-toolbar-item">
+                        <template v-if="authorized(child)">
                             <div v-show="(index+1) < maxMenuItems">
                                 <!--<router-link :to="child.route"></router-link>-->
                                 <template v-if="!child.meta.hidden">
-                                    <v-btn dark text @click="$router.push({ name: child.name })">{{ child.display }}</v-btn>
+                                    <v-btn :to="{ name: child.name }" dark text>{{ child.display }}</v-btn>
                                     <v-divider class="mx-3" inset vertical></v-divider>
                                 </template>
                             </div>
                         </template>
-                    </template>
-                    <!--<v-btn dark text @click="$router.push('/home/doc/ipsum')">Doc Ipsum</v-btn>
-                    <v-btn dark text @click="$router.push('/home/doc/two')">Doc Two</v-btn>-->
-                    <div v-show="maxMenuItems < menuItems">...</div>
+                    </div>
+                    <!--<div v-show="maxMenuItems < menuItems">...</div>-->
                 </v-toolbar-items>
             </div>
             <v-spacer></v-spacer>
@@ -64,7 +63,10 @@
 </template>
 
 <script>
+    import { mapState } from 'vuex'
+
     import Auth from '../../mixins/authentication'
+    import Module from '../../mixins/module'
     import { routes } from '../../routes'
     import { Roles } from '../../constants'
     import { setTimeout } from 'core-js';
@@ -75,24 +77,25 @@
                 routes: [],
                 drawer: false,
 
-                menu: '',
+                menu: false,
                 menuItems: 0,
+                maxMenuItems: 0,
 
                 authLevel: 0,
 
                 screenSize: window.outerWidth,
             }
         },
-        mixins: [Auth],
+        mixins: [Auth, Module],
         props: {
             source: String
         },
         computed: {
+            ...mapState({
+                modules: state => state.auth.modules
+            }),
             getDrawerHeight() {
                 return 16 + (this.menuItems * 48);
-            },
-            maxMenuItems() {
-                return (this.screenSize - 150) / 170;
             },
         },
         created() {
@@ -104,14 +107,39 @@
             this.getMenuItemCount();
         },
         mounted() {
+            this.getMaxMenuItems();
             window.addEventListener('resize', this.resizeScreen, false)
         },
         beforeDestroy() {
             window.removeEventListener('resize', this.resizeScreen, false);
         },
         methods: {
+            getMaxMenuItems() {
+                const menuItems = document.getElementsByClassName("menu-toolbar-item");
+                
+                // Display one menu item if something has gone wrong
+                if (typeof menuItems === 'undefined' || menuItems === null) {
+                    this.$_console_log('Menu items are null or empty');
+                    return 1;
+                }
+
+                let width = 0;
+
+                // Go through each of the HTML elements and add up their widths
+                menuItems.forEach(item => {
+                    if (typeof item.clientWidth === 'undefined')
+                        return;
+                    width += item.clientWidth;
+                });
+
+                const average = width / menuItems.length;
+
+                // Truncate the decimals of the value and make sure to factor in the to menu on the sides
+                this.maxMenuItems = Math.floor((this.screenSize - 96) / average);
+            },
             resizeScreen(e) {
                 this.screenSize = window.outerWidth;
+                this.getMaxMenuItems();
             },
             getAuthLevel() {
                 let role = this.$store.state.auth.role;
@@ -125,18 +153,27 @@
                 else
                     this.authLevel = Roles.Level.Default;
             },
-            authorized(level) {
-                if (level > this.authLevel) {
+            authorized(route) {
+                // Check authorization level first 
+                if (route.meta.authLevel > this.authLevel) {
                     //this.$_console_log("[Menu] Level is greater than auth level. Not authorized");
                     return false;
                 }
+                // Allow all default level routes without additional checks
+                if (route.meta.authLevel <= Roles.Level.Default) {
+                    return true;
+                }
+                // Show all admin only features to admins
+                if (this.authLevel === Roles.Level.Admin && route.meta.authLevel === Roles.Level.Admin) {
+                    return true;
+                }
 
-                return true;
+                return this.$_module_userHasModule(route);
             },
             getMenuItemCount() {
                 this.$_console_log('[Menu] Get Menu Count.');
                 for (let i = 0; i < this.routes.children.length; i++) {
-                    let auth = this.authorized(this.routes.children[i].meta.authLevel);
+                    let auth = this.authorized(this.routes.children[i]);
                     if (auth && !this.routes.children[i].meta.hidden) {
                         this.menuItems++;
                     }

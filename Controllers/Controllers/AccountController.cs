@@ -14,6 +14,9 @@ using VueServer.Models.Account;
 using VueServer.Services.Interface;
 using VueServer.Domain.Factory.Interface;
 
+using static VueServer.Domain.Constants;
+using VueServer.Models.Modules;
+
 namespace VueServer.Controllers
 {
     [Route("/api/account")]
@@ -95,6 +98,18 @@ namespace VueServer.Controllers
         public async Task<IActionResult> RefreshToken ([FromBody] RefreshTokenRequest model)
         {
             return _codeFactory.GetStatusCode(await _service.RefreshJwtToken(model));
+        }
+
+        /// <summary>
+        /// Get all user ids
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route("get-all-users")]
+        public async Task<IActionResult> GetAllUser ()
+        {
+            return _codeFactory.GetStatusCode(await _service.GetUsers());
         }
 
         #endregion
