@@ -31,9 +31,9 @@ using VueServer.Models;
 using VueServer.Models.Account;
 using VueServer.Models.Context;
 using VueServer.Models.Directory;
-using VueServer.Models.Identity;
 using VueServer.Models.User;
 using VueServer.Services.Concrete;
+using VueServer.Services.Identity;
 using VueServer.Services.Interface;
 
 namespace VueServer.Classes.Extensions
@@ -287,6 +287,31 @@ namespace VueServer.Classes.Extensions
                 options.Providers.Add<GzipCompressionProvider>();
                 options.EnableForHttps = false;
                 options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "image/svg+xml" });
+            });
+        }
+
+        /// <summary>
+        /// Serve the /video folder. This folder contains all the copied and transcoded files for video streaming
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="env"></param>
+        /// <param name="logger"></param>
+        public static void UseVideoFileServer(this IApplicationBuilder app, IWebHostEnvironment env, ILogger logger)
+        {
+            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"video"), "StartupExtensions: Error creating dist folder")) return;
+
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(env.WebRootPath, @"video")),
+                RequestPath = new PathString("/video"),
+                OnPrepareResponse = s =>
+                {
+                    s.Context.Response.GetTypedHeaders().CacheControl = new CacheControlHeaderValue()
+                    {
+                        Public = true,
+                        MaxAge = TimeSpan.FromDays(30)
+                    };
+                }
             });
         }
 

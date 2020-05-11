@@ -1,17 +1,23 @@
 <template>
-    <div class="video-container center">
-        <video id="video-player"
+    <iframe :src="path" width="480" height="320">
+
+    </iframe>
+    <!--<div class="video-container center">-->
+
+        <!--<video id="video-player"
                class="video-player"
                ref="player"
                preload="none"
                width="420"
                controls>
             <source :src="path" />
-        </video>
-    </div>
+        </video>-->
+    <!--</div>-->
 </template>
 
 <script>
+    import service from '../../../services/file-explorer'
+
     const basepath = process.env.API_URL;
 
     export default {
@@ -20,6 +26,7 @@
             return {
                 player: null,
                 path: null,
+                loadingFile: false,
             }
         },
         props: {
@@ -70,43 +77,63 @@
         },
         watch: {
             on(newValue) {
-                this.pausePlayer();
-                if (newValue === true)
-                    this.loadPlayer();
+                if (newValue === true) {
+                    this.getFile(this.url);
+                }
             },
+            //on(newValue) {
+            //    this.pausePlayer();
+            //    if (newValue === true)
+            //        this.loadPlayer();
+            //},
             url(newValue) {
                 this.$_console_log('[Video Player] Url watcher: url value', newValue)
-
-                this.pausePlayer();
-
-                if (typeof newValue === 'undefined' || newValue === null || newValue === '') {
-                    this.$_console_log('[Video Player] Empty url string');
-                    return;
-                }
-                else {
-                    this.loadPlayer();
-                }
+                this.getFile(newValue);
             },
+            //url(newValue) {
+            //    this.$_console_log('[Video Player] Url watcher: url value', newValue)
+
+            //    this.pausePlayer();
+
+            //    if (typeof newValue === 'undefined' || newValue === null || newValue === '') {
+            //        this.$_console_log('[Video Player] Empty url string');
+            //        return;
+            //    }
+            //    else {
+            //        this.loadPlayer();
+            //    }
+            //},
         },
         methods: {
-            loadPlayer() {
-                this.path = `${basepath}/api/serve-file/${this.url}`
+            getFile(val) {
+                if (this.loadingFile === false) {
+                    this.loadingFile = true;
 
-                const self = this;
-                setTimeout(() => {
-                    self.player.load();
-                    if (self.player.canPlayType(self.type)) {
-                        self.player.play();
-                    }
-                    else {
-                        self.$_console_log('[Video Player] Load Player: Can\'t play type');
-                    }
-                        
-                }, 25);   
-            },
-            pausePlayer() {
-                this.player.pause();
+                    service.getFilePath(val).then(resp => {
+                        this.path = `${basepath}/${resp.data}`;
+                    }).catch(() => this.$_console_log('Failed to serve media')).then(() => {
+                        this.loadingFile = false;
+                    });
+                }
             }
+            //loadPlayer() {
+            //    this.path = `${basepath}/api/serve-file/${this.url}`
+
+            //    const self = this;
+            //    setTimeout(() => {
+            //        self.player.load();
+            //        if (self.player.canPlayType(self.type)) {
+            //            self.player.play();
+            //        }
+            //        else {
+            //            self.$_console_log('[Video Player] Load Player: Can\'t play type');
+            //        }
+                        
+            //    }, 25);   
+            //},
+            //pausePlayer() {
+            //    this.player.pause();
+            //}
         }
     }
 </script>

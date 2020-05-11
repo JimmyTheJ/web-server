@@ -8,6 +8,8 @@ using VueServer.Domain.Factory.Interface;
 using VueServer.Models;
 using VueServer.Models.Request;
 using VueServer.Services.Interface;
+using Microsoft.AspNetCore.Http;
+using System.Linq;
 
 namespace VueServer.Controllers
 {
@@ -37,7 +39,15 @@ namespace VueServer.Controllers
             else
                 return PhysicalFile(file.Obj.Item1, file.Obj.Item2, file.Obj.Item3);
         }
-        
+
+        [HttpGet]
+        [Authorize(AuthenticationSchemes = "Identity.Application", Roles = ROLES_ALL)]
+        [Route("get-file-path/{*filename}")]
+        public async Task<IActionResult> GetFilePath(string filename)
+        {
+            return _codeFactory.GetStatusCode(await _service.GetFilePath(filename));
+        }
+
         [HttpGet]
         [Authorize(AuthenticationSchemes = "Identity.Application", Roles = ROLES_ALL)]
         [Route("/api/serve-file/{*filename}")]
@@ -52,9 +62,23 @@ namespace VueServer.Controllers
             else
             {
                 HttpContext.Response.Headers.Add("accept-ranges", "bytes");
-                HttpContext.Response.Headers.Add("content-length", file.Obj.Item3.ToString());
-                HttpContext.Response.Headers.Add("content-range", $"bytes {range.Item1}-{(file.Obj.Item3-1).ToString()}");
-                return PhysicalFile(file.Obj.Item1, file.Obj.Item2, false);
+                if (file.Obj.Item3 > 0)
+                {
+                    HttpContext.Response.Headers.Add("content-length", file.Obj.Item3.ToString());
+                    //HttpContext.Response.Headers.Add("content-range", $"bytes {range.Item1}-{(file.Obj.Item3 - 1).ToString()}");
+                }
+
+                // TODO: Remember that it's bytes that the HTTP request speaks in. While the FFmpeg speaks in duration. These aren't compatible.
+                if (range.Item2 == -1)
+                {
+                    HttpContext.Response.Headers.Add("content-range", $"bytes 0-{range.Item1.ToString()}");
+                }
+                else
+                {
+                    HttpContext.Response.Headers.Add("content-range", $"bytes {range.Item1.ToString()}-{range.Item2.ToString()}");
+                }
+                
+                return PhysicalFile(file.Obj.Item1, file.Obj.Item2, true);
 
             }
         }

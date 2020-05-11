@@ -37,8 +37,7 @@ bld/
 .vs/
 
 # Remove FFMpeg exes
-*/ffmpeg.exe
-*/ffprobe.exe
+*/ff*.exe
 
 # Webserver fileserver folders
 */wwwroot/.well-known/**

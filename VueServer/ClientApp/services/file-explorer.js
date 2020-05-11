@@ -2,6 +2,7 @@ import axios from '../axios'
 
 const LoadDirectoryUrl = `api/directory/folder`;
 const FileListUrl = `api/directory/list`;
+const GetFilePathUrl = `api/directory/get-file-path`;
 const GetFileUrl = `api/directory/download/file`;
 const DeleteUploadUrl = `api/directory/delete`;
 const UploadFilesUrl = `api/directory/upload`;
@@ -15,6 +16,9 @@ export default {
     },
     getFile(file) {
         return axios.get(`${GetFileUrl}/${file}`)
+    },
+    getFilePath(file) {
+        return axios.get(`${GetFilePathUrl}/${file}`)
     },
     getFolderList() {
         return axios.get(FileListUrl);

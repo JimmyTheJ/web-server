@@ -19,6 +19,8 @@ namespace VueServer.Services.Interface
 
         Task<IResult<Tuple<string, string, string>>> Download(string filename);
 
+        Task<IResult<string>> GetFilePath(string filename);
+
         Task<IResult<Tuple<string, string, long>>> StreamMedia(string filename, long start, long end);
 
         IResult<IOrderedEnumerable<WebServerFile>> Load (string directory, string subDir);

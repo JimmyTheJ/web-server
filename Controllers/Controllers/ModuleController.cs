@@ -10,7 +10,7 @@ using VueServer.Services.Interface;
 
 using static VueServer.Domain.Constants;
 
-namespace VueServer.Controllers.Controllers
+namespace VueServer.Controllers
 {
     [Route("api/modules")]
     public class ModuleController : Controller

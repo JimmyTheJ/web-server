@@ -27,7 +27,9 @@ namespace VueServer.Test.Integration.Services
         private Mock<IUserService> User;
     
         private Mock<IWebHostEnvironment> Env;
-    
+
+        private Mock<IWSContext> WSContext;
+
         private IConfigurationRoot Config;
 
         public WSContext Context { get; set; }
@@ -43,6 +45,7 @@ namespace VueServer.Test.Integration.Services
             LoggerFactory = new Mock<ILoggerFactory>();
             Logger = LoggerUtilities.LoggerMock<DirectoryService>();
             User = new Mock<IUserService>();
+            WSContext = new Mock<IWSContext>();
             Env = new Mock<IWebHostEnvironment>();
             
             Env.Setup(o => o.EnvironmentName).Returns("PRODUCTION");
@@ -264,7 +267,8 @@ namespace VueServer.Test.Integration.Services
                 LoggerFactory.Object, 
                 User.Object, 
                 Env.Object, 
-                Config);
+                Config,
+                WSContext.Object);
 
             return service;
         }

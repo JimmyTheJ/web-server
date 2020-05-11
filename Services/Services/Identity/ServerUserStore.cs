@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using VueServer.Models.Context;
 using VueServer.Models.User;
 
-namespace VueServer.Models.Identity
+namespace VueServer.Services.Identity
 {
     public class ServerUserStore : IUserStore<WSUser>, IUserRoleStore<WSUser>, IUserPasswordStore<WSUser>, IQueryableUserStore<WSUser>
     {

@@ -24,9 +24,13 @@ using VueServer.Models.Directory;
 using VueServer.Services.Interface;
 
 using Xabe.FFmpeg;
-using Xabe.FFmpeg.Enums;
 using Microsoft.AspNetCore.Http;
 using VueServer.Models.Request;
+using VueServer.Models.Context;
+using Microsoft.EntityFrameworkCore;
+using Xabe.FFmpeg.Exceptions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 
 namespace VueServer.Services.Concrete
 {
@@ -39,13 +43,16 @@ namespace VueServer.Services.Concrete
         private IWebHostEnvironment _env { get; set; }
 
         private IConfiguration _config { get; set; }
-         
-        public DirectoryService(ILoggerFactory logger, IUserService user, IWebHostEnvironment env, IConfigurationRoot config)
+
+        private IWSContext _wsContext { get; set; }
+
+        public DirectoryService(ILoggerFactory logger, IUserService user, IWebHostEnvironment env, IConfigurationRoot config, IWSContext context)
         {
             _logger = logger?.CreateLogger<DirectoryService>() ?? throw new ArgumentNullException("Logger null");
             _user = user ?? throw new ArgumentNullException("User service null");
             _env = env ?? throw new ArgumentNullException("Hosting environment null");
             _config = config ?? throw new ArgumentNullException("Configuration null");
+            _wsContext = context ?? throw new ArgumentNullException("WSContext is null");
         }
 
         # region -> Public Functions
@@ -54,6 +61,88 @@ namespace VueServer.Services.Concrete
         {
             var dirs = GetSingleDirectoryList(true);
             return new Result<IEnumerable<ServerDirectory>>(dirs, Domain.Enums.StatusCode.OK);
+        }
+
+        public async Task<IResult<string>> GetFilePath(string filename)
+        {
+            if (string.IsNullOrWhiteSpace(filename))
+            {
+                _logger.LogWarning("Directory.GetFilePath: Filename passed is null or empty");
+                return new Result<string>(null, StatusCode.BAD_REQUEST);
+            }
+
+            var tuple = GetStrippedFilename(filename);
+            if (tuple == null)
+            {
+                _logger.LogWarning("Directory.GetFilePath: Error stripping filename. Null Tuple object");
+                return new Result<string>(null, StatusCode.BAD_REQUEST);
+            }
+
+            if (tuple.Item1 == null)
+            {
+                _logger.LogWarning("Directory.GetFilePath: Error stripping filename. Null Tuple.Item1");
+                return new Result<string>(null, StatusCode.BAD_REQUEST);
+            }
+
+            if (tuple.Item2 == null)
+            {
+                _logger.LogWarning("Directory.GetFilePath: Error stripping filename. Null Tuple.Item2");
+                return new Result<string>(null, StatusCode.BAD_REQUEST);
+            }
+
+            if (tuple.Item1.Count() == 0)
+            {
+                _logger.LogWarning("Directory.GetFilePath: Filename contains no folders. Invalid filename");
+                return new Result<string>(null, StatusCode.BAD_REQUEST);
+            }
+
+            var list = GetSingleDirectoryList().ToList();
+            var folders = tuple.Item1.ToList();
+
+            var baseDir = list.Where(a => a.Name == folders[0]).Select(a => a.Path).FirstOrDefault();
+            if (baseDir == null)
+            {
+                _logger.LogWarning($"Directory.GetFilePath: Invalid folder name: {folders[0]}");
+                return new Result<string>(null, StatusCode.BAD_REQUEST);
+            }
+
+            string cleanFilename = null;
+            var sourcePath = GetSourcePath(baseDir, folders);
+            var sourceFile = GetSourceFile(sourcePath, tuple.Item2);
+            FileInfo file = null;
+
+            try
+            {
+                file = new FileInfo(sourceFile);
+            }
+            catch (Exception)
+            {
+                _logger.LogError("Directory.GetFilePath: Unknown exception accessing file");
+                return new Result<string>(null, StatusCode.SERVER_ERROR);
+            }
+
+            var streamPath = await StartFileStream(file);
+            if (streamPath == null)
+            {
+                // File exists and doesn't require transcoding
+                // TODO: Fix possible issues resulting from allowing any username here (invalid windows/linux paths)
+                var filePath = Path.Combine(_env.WebRootPath, "video", _user.Name, cleanFilename);
+                try
+                {
+                    File.Copy(file.FullName, filePath);
+                    Thread.Sleep(500);
+                }
+                catch
+                {
+                    _logger.LogInformation("Directory.GetFilePath: Error trying to copy file");
+                }
+
+                return new Result<string>(filePath, StatusCode.OK);
+            }
+            else
+            {
+                return new Result<string>(streamPath, StatusCode.OK);
+            }
         }
 
         public async Task<IResult<Tuple<string, string, long>>> StreamMedia(string filename, long start, long end)
@@ -110,6 +199,11 @@ namespace VueServer.Services.Concrete
                 // Check if the file exists on the server and if it's a directory zip it
                 var file = new FileInfo(sourceFile);
                 var stream = await ConvertFile(file, start, end);
+                if (stream == null)
+                {
+                    _logger.LogWarning("DownloadProtectedFile: File transcoding function returned null. Exiting.");
+                    return null;
+                }
                 
                 // Convert successful
                 cleanFilename = stream.Item1;
@@ -600,6 +694,52 @@ namespace VueServer.Services.Concrete
 
         }
 
+        private async Task<bool> ShouldTranscodeFile(FileInfo file)
+        {
+            bool audioTranscode = false;
+            bool videoTranscode = false;
+            var mediaInfo = await FFmpeg.GetMediaInfo(file.FullName);
+
+            var videoStreams = mediaInfo.VideoStreams.ToList();
+            foreach (var stream in videoStreams)
+            {
+                switch(stream.Codec)
+                {
+                    // Valid formats
+                    case "h264":
+                        videoTranscode = false;
+                        break;
+                    default:
+                        _logger.LogDebug($"DirectoryService.ShouldTranscodeFile: Unknown video format ({stream.Codec}). File needs transcoding.");
+                        videoTranscode = true;
+                        break;
+                }
+            }
+
+            var audioSreams = mediaInfo.AudioStreams.ToList();
+            foreach (var stream in audioSreams)
+            {
+                switch (stream.Codec)
+                {
+                    // Valid formats
+                    case "aac":
+                        audioTranscode = false;
+                        break;
+                    default:
+                        _logger.LogDebug($"DirectoryService.ShouldTranscodeFile: Unknown audio format ({stream.Codec}). File needs transcoding.");
+                        audioTranscode = true;
+                        break;
+                }
+            }
+
+            if (videoTranscode || audioTranscode)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Work in progress for live transcoding
         /// </summary>
@@ -607,12 +747,234 @@ namespace VueServer.Services.Concrete
         /// <returns></returns>
         private async Task<Tuple<string, string, long>> ConvertFile(FileInfo file, long start, long end)
         {
-            var format = ".mp4";
-            //Save file to the same location with changed extension
-            //string outputFileName = Path.ChangeExtension(file.FullName, ".mp4");
-            string outputFileName = Path.Combine(_env.WebRootPath, "tmp", Guid.NewGuid().ToString() + format);
+            SetFFmpegPath();
+            if (!(await ShouldTranscodeFile(file)))
+            {
+                var mI = await FFmpeg.GetMediaInfo(file.FullName);
+                return new Tuple<string, string, long>(file.Name, file.Extension, Convert.ToInt64(mI.Duration.TotalMilliseconds));
+            }
 
-            var mediaInfo = await MediaInfo.Get(file);
+            var format = ".mp4";
+
+            // Whole file
+            if (start == 0 && end == -1)
+            {
+                var transcodeObj = await _wsContext.TranscodeFiles.Where(x => x.BaseName == file.Name).FirstOrDefaultAsync();
+                if (transcodeObj == null)
+                {
+                    // No base object exists. Make one.
+                    var obj = new TranscodeFile() { Id = 0, BaseName = file.Name, TempFileName = Guid.NewGuid().ToString() + format };
+                    _wsContext.TranscodeFiles.Add(obj);
+                    try
+                    {
+                        await _wsContext.SaveChangesAsync();
+                    }
+                    catch
+                    {
+                        _logger.LogError("DirectoryService.ConvertFile: Error saving the database when adding a new TranscodeFile object.");
+                        return null;
+                    }
+                    var outputPath = Path.Combine(_env.WebRootPath, "tmp", obj.TempFileName);
+
+                    var mI = await FFmpeg.GetMediaInfo(file.FullName);
+                    //var conversion = FFmpeg.Conversions.New()
+                    //    //.AddParameter($"-i \"{Path.Combine(_env.WebRootPath, "black.png")}\"")
+                    //    // Set the video frame size
+                    //    .AddParameter("-s 640x480")
+                    //    // Set video format (raw video)
+                    //    .SetInputFormat("rawvideo")
+                    //    // Set video bitrate
+                    //    //.SetVideoBitrate(64)
+                    //    // Pixel format
+                    //    .SetPixelFormat("rgb24")
+                    //    // Build the video from an image
+                    //    .BuildVideoFromImages(0, _ => {
+                    //        return _env.WebRootPath;
+                    //    })
+                    //    //.BuildVideoFromImages(new List<string>()
+                    //    //{
+                    //    //    Path.Combine(_env.WebRootPath, "black.png")
+                    //    //})
+                    //    // Set the frame rate
+                    //    //.SetFrameRate(25)
+                    //    //Set output file path
+                    //    .SetOutput(outputPath)
+                    //    // Set the seek time (-ss)
+                    //    //.SetSeek(new TimeSpan(start))
+                    //    // Set how long to input video (-t) for (Range processing)
+                    //    //.SetInputTime(mI.Duration)
+                    //    // Set how long to output video (-t) for (Range processing)
+                    //    .SetOutputTime(mI.Duration)
+                    //    //SetOverwriteOutput to overwrite files. It's useful when we already run application before
+                    //    .SetOverwriteOutput(true)
+                    //    //Enable multithreading
+                    //    .UseMultiThread(true)
+                    //    // GPU Usage
+                    //    //.UseHardwareAcceleration()
+                    //    //Set conversion preset. You have to chose between file size and quality of video and duration of conversion
+                    //    .SetPreset(ConversionPreset.UltraFast);
+                    //;
+
+                    //var conversion = FFmpeg.Conversions.New()
+                    //    .AddParameter($"-t {mI.Duration} -f lavfi -i color=c=black:s=640x480 -c:v libx264 -tune stillimage -pix_fmt yuv420p")
+                    //    .SetOutputFormat(outputPath);
+
+                    var conversion = FFmpeg.Conversions.New()
+                        .AddParameter($"-t {mI.Duration} -f lavfi -i color=c=black:s=640x480 -c:v libx264 -tune stillimage -pix_fmt yuv420p")
+                        .SetOutput(outputPath);
+
+                    //Add log to OnProgress
+                    conversion.OnProgress += async (sender, args) =>
+                    {
+                            //Show all output from FFmpeg to console
+                            await Console.Out.WriteLineAsync($"[{args.Duration}/{args.TotalLength}][{args.Percent}%] {file.Name}");
+                    };
+                    //Start conversion
+                    try
+                    {
+                        await conversion.Start();
+                    }
+                    catch (ConversionException ex)
+                    {
+                        _logger.LogWarning(ex, "DirectoryService.ConvertFile: Error while trying to convert file.");
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        _logger.LogWarning(ex, "DirectoryService.ConvertFile: Error while trying to convert file.");
+                    }
+                    catch (ObjectDisposedException ex)
+                    {
+                        _logger.LogWarning(ex, "DirectoryService.ConvertFile: Error while trying to convert file.");
+                    }
+                    catch (InvalidOperationException ex)
+                    { 
+                        _logger.LogWarning(ex, "DirectoryService.ConvertFile: Error while trying to convert file."); 
+                    }
+
+                    await Console.Out.WriteLineAsync($"Finished converion file [{file.Name}]");
+                    return new Tuple<string, string, long>(outputPath, format, end);
+                }
+                else
+                {
+                    // Base object already exists. Just return it.
+                    var outputPath = Path.Combine(_env.WebRootPath, "tmp", transcodeObj.TempFileName);
+                    return new Tuple<string, string, long>(outputPath, format, end);
+                }
+            }
+            else
+            {
+                //Save file to the same location with changed extension
+                //string outputFileName = Path.ChangeExtension(file.FullName, ".mp4");
+                var outputFileName = Path.Combine(_env.WebRootPath, "tmp", Guid.NewGuid().ToString() + format);
+
+                var mediaInfo = await FFmpeg.GetMediaInfo(file.FullName);
+                var videoStream = mediaInfo.VideoStreams.First();
+                var audioStream = mediaInfo.AudioStreams.First();
+
+                //Change some parameters of video stream
+                videoStream
+                    //Set size to 480p
+                    .SetSize(VideoSize.Hd480)
+                    //Set codec which will be used to encode file. If not set it's set automatically according to output file extension
+                    .SetCodec(VideoCodec.h264);
+
+                if (end == -1)
+                {
+                    end = start;
+                    start = 0;
+                }
+
+                long duration = end - start;
+                if (duration < 0)
+                {
+                    duration = duration * -1;
+                }
+
+                // TODO: Fix this later
+                duration = duration * 50;
+
+                //Create new conversion object
+                var conversion = FFmpeg.Conversions.New()
+                    //Add video stream to output file
+                    .AddStream(videoStream)
+                    //Add audio stream to output file
+                    .AddStream(audioStream)
+                    //Set output file path
+                    .SetOutput(outputFileName)
+                    // Set the seek time (-ss)
+                    .SetSeek(new TimeSpan(start))
+                    // Set how long to input video (-t) for (Range processing)
+                    .SetInputTime(new TimeSpan(duration))
+                    // Set how long to output video (-t) for (Range processing)
+                    .SetOutputTime(new TimeSpan(duration))
+                    //SetOverwriteOutput to overwrite files. It's useful when we already run application before
+                    .SetOverwriteOutput(true)
+                    //Enable multithreading
+                    .UseMultiThread(true)
+                    //Set conversion preset. You have to chose between file size and quality of video and duration of conversion
+                    .SetPreset(ConversionPreset.UltraFast);
+                //Add log to OnProgress
+                conversion.OnProgress += async (sender, args) =>
+                {
+                    //Show all output from FFmpeg to console
+                    await Console.Out.WriteLineAsync($"[{args.Duration}/{args.TotalLength}][{args.Percent}%] {file.Name}");
+                };
+
+                //Start conversion
+                try
+                {
+                    await conversion.Start();
+                }
+                catch (ConversionException ex)
+                {
+                    _logger.LogWarning(ex, "DirectoryService.ConvertFile: Error while trying to convert file.");
+                }
+                catch (ArgumentException ex)
+                {
+                    _logger.LogWarning(ex, "DirectoryService.ConvertFile: Error while trying to convert file.");
+                }
+                catch (ObjectDisposedException ex)
+                {
+                    _logger.LogWarning(ex, "DirectoryService.ConvertFile: Error while trying to convert file.");
+                }
+                catch (InvalidOperationException ex)
+                {
+                    _logger.LogWarning(ex, "DirectoryService.ConvertFile: Error while trying to convert file.");
+                }
+
+                await Console.Out.WriteLineAsync($"Finished converion file [{file.Name}]");
+                return new Tuple<string, string, long>(outputFileName, format, duration);
+            }
+        }
+
+        private async Task<string> StartFileStream(FileInfo file)
+        {
+            SetFFmpegPath();
+            if (!(await ShouldTranscodeFile(file)))
+            {
+                var mI = await FFmpeg.GetMediaInfo(file.FullName);
+                return null;
+            }
+
+            var basepath = Path.Combine(_env.WebRootPath, "video", _user.Name);
+            if (!Directory.Exists(basepath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(basepath);
+                }
+                catch
+                {
+                    _logger.LogInformation("DirectoryService.StartFileStream: Unknown to create user folder in video folder.");
+                }
+            }
+            var fn = Guid.NewGuid().ToString() + ".mp4";
+
+            // Create temporary file to stream
+            // TODO: Fix possible issues resulting from allowing any username here (invalid windows/linux paths)
+            var outputFileName = Path.Combine(basepath, fn);
+
+            var mediaInfo = await FFmpeg.GetMediaInfo(file.FullName);
             var videoStream = mediaInfo.VideoStreams.First();
             var audioStream = mediaInfo.AudioStreams.First();
 
@@ -621,76 +983,94 @@ namespace VueServer.Services.Concrete
                 //Set size to 480p
                 .SetSize(VideoSize.Hd480)
                 //Set codec which will be used to encode file. If not set it's set automatically according to output file extension
-                .SetCodec(VideoCodec.H264);
+                .SetCodec(VideoCodec.h264);
 
-            long overrideDuration = 0;
-            long duration = 0;
+            //Set codec which will be used to encode file. If not set it's set automatically according to output file extension
+            audioStream.SetCodec(AudioCodec.aac);
 
-            // If we are requesting the whole file
-            //if (end == -1)
-            //{
-            //    if (start == 0)
-            //    {
-            //        Console.WriteLine("[ConvertFile]: Whole file requested");
-            //        //return new Tuple<string, string, long>(file.Name, format, videoStream.Duration.Ticks);
-            //        duration = videoStream.Duration.Ticks;
-            //        //outputFileName = Path.ChangeExtension(file.FullName, ".mp4");
-            //        //return new Tuple<string, string, long>(file.Name, format, duration);
-            //    }
-            //    else
-            //    {
-            //        Console.WriteLine("[ConvertFile]: Rest of file requested");
-            //        duration = videoStream.Duration.Ticks;
-            //    }
-
-            //}
-            //else
-            //{
-            //    duration = end - start;
-            //}
-
-            if (start == 0 && end == -1)
-            {
-                duration = 100000000l;
-                overrideDuration = videoStream.Duration.Ticks;
-            }
-            else if (end == -1)
-            {
-                duration = 100000000l;
-                overrideDuration = videoStream.Duration.Ticks - start;
-            }
 
             //Create new conversion object
-            var conversion = Conversion.New()
+            var conversion = FFmpeg.Conversions.New()
                 //Add video stream to output file
-                .AddStream(videoStream)
+                //.AddStream(videoStream)
                 //Add audio stream to output file
-                .AddStream(audioStream)
-                //Set output file path
-                .SetOutput(outputFileName)
+                //.AddStream(audioStream)
+                // Make it live streamable
+                .AddParameter("-re")
+                .AddParameter($"-i '{file.FullName}'")
                 // Set the seek time (-ss)
-                .SetSeek(new TimeSpan(start))
+                //.SetSeek(new TimeSpan(0))
                 // Set how long to input video (-t) for (Range processing)
-                .SetInputTime(new TimeSpan(duration))
+                //.SetInputTime(mediaInfo.Duration)
                 // Set how long to output video (-t) for (Range processing)
-                .SetOutputTime(new TimeSpan(duration))
+                //.SetOutputTime(mediaInfo.Duration)
                 //SetOverwriteOutput to overwrite files. It's useful when we already run application before
-                .SetOverwriteOutput(true)
+                //.SetOverwriteOutput(true)
                 //Enable multithreading
                 .UseMultiThread(true)
                 //Set conversion preset. You have to chose between file size and quality of video and duration of conversion
-                .SetPreset(ConversionPreset.UltraFast);
+                .SetPreset(ConversionPreset.UltraFast)
+                // Set output format
+                //.SetOutputFormat("flv")
+                //Set output file path
+                //.SetOutput(outputFileName);
+                //.AddParameter($"https:/localhost:7757/test-file/${fn}")
+                .AddParameter($"udp://10.1.0.102:1234")
+            ;
+
+            //var conversion = FFmpeg.Conversions.New()
+            //    .AddParameter($"-f dshow")
+            //    .AddParameter($"-i \"{file.Name}\"")
+            //    .AddParameter($"-preset ultrafast")
+            //    .AddParameter($"-vcodec libx264")
+            //    .AddParameter($"-tune zerolatency")
+            //    .AddParameter($"-b 900k")
+            //    .AddParameter($"-f mpegts udp://10.1.0.102:1234")
+            //;
+
             //Add log to OnProgress
             conversion.OnProgress += async (sender, args) =>
             {
                 //Show all output from FFmpeg to console
                 await Console.Out.WriteLineAsync($"[{args.Duration}/{args.TotalLength}][{args.Percent}%] {file.Name}");
             };
-            //Start conversion
-            await conversion.Start();
 
-            await Console.Out.WriteLineAsync($"Finished converion file [{file.Name}]");
-            return new Tuple<string, string, long>(outputFileName, format, overrideDuration == 0 ? duration : overrideDuration);
+            //Start conversion
+            try
+            {
+                await conversion.Start();
+            }
+            catch (ConversionException ex)
+            {
+                _logger.LogWarning(ex, "DirectoryService.StartFileStream: Error while trying to convert file.");
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "DirectoryService.StartFileStream: Error while trying to convert file.");
+            }
+            catch (ObjectDisposedException ex)
+            {
+                _logger.LogWarning(ex, "DirectoryService.StartFileStream: Error while trying to convert file.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "DirectoryService.StartFileStream: Error while trying to convert file.");
+            }
+
+            return outputFileName;
+        }
+
+        private void SetFFmpegPath()
+        {
+            if (_env.IsDevelopment())
+            {
+                FFmpeg.SetExecutablesPath(Path.Combine(_env.ContentRootPath, "../", "Services"));
+            }
+            else
+            {
+                FFmpeg.SetExecutablesPath(_env.ContentRootPath);
+            }
+            
         }
 
         // Code the ConvertFile function is based off of

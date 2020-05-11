@@ -123,6 +123,10 @@ namespace VueServer
             // Exposes everything in the /dist folder where all our front-end files have been placed through webpack
             app.UseWebpackFileServer(env, logger);
 
+            // Exposes everything in the /video folder where our video files from the video player are (transcoding too)
+            app.UseVideoFileServer(env, logger);
+
+
             // Necessary for CertifyTheWeb to automatically re-authorize the webserver's TLS cert
             if (Configuration.GetSection("Options").GetValue<bool>("Well-Known"))
                 app.UseAutoAuthorizerStaticFiles(env, logger);

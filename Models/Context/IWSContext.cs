@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using VueServer.Models.Modules;
 using VueServer.Models.Library;
 using VueServer.Models.User;
+using VueServer.Models.Directory;
 
 namespace VueServer.Models.Context
 {
@@ -17,6 +18,8 @@ namespace VueServer.Models.Context
         DbSet<Notes> Notes { get; set; }
 
         DbSet<Weight> Weight { get; set; }
+
+        DbSet<TranscodeFile> TranscodeFiles { get; set; }
 
         #region -> Modules
 
