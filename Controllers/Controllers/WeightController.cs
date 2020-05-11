@@ -42,6 +42,14 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _service.AddWeight(weight));
         }
 
+        [HttpPost]
+        [Authorize(Roles = ROLES_ALL)]
+        [Route("edit")]
+        public async Task<IActionResult> EditWeight([FromBody] Weight weight)
+        {
+            return _codeFactory.GetStatusCode(await _service.EditWeight(weight));
+        }
+
         [HttpDelete]
         [Authorize(Roles = ROLES_ALL)]
         [Route("delete")]

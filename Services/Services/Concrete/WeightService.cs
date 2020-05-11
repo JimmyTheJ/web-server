@@ -83,12 +83,46 @@ namespace VueServer.Services.Concrete
             }
             catch(Exception)
             {
-                _logger.LogError("[WeightService.AddWeight] Create: Error saving changes");
+                _logger.LogError("WeightService.AddWeight: Error saving changes");
                 return new Result<Weight>(null, StatusCode.BAD_REQUEST);
             }
 
             return new Result<Weight>(weight, StatusCode.OK);
         }
+
+        public async Task<IResult<Weight>> EditWeight(Weight weight)
+        {
+            if (weight == null)
+            {
+                _logger.LogInformation("WeightService.EditWeight: Weight is null");
+                return new Result<Weight>(null, StatusCode.BAD_REQUEST);
+            }
+
+            // Get old weight, only allow weights from current user
+            var oldWeight = await _wsContext.Weight.Where(x => x.Id == weight.Id && x.UserId == _user.Name).FirstOrDefaultAsync();
+            if (oldWeight == null)
+            {
+                _logger.LogInformation("WeightService.EditWeight: No weight exists with the passed in Id for this user");
+                return new Result<Weight>(null, StatusCode.BAD_REQUEST);
+            }
+
+            oldWeight.Created = weight.Created;
+            oldWeight.Value = weight.Value;
+            oldWeight.Notes = weight.Notes;
+
+            try
+            {
+                await _wsContext.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                _logger.LogError("WeightService.EditWeight: Error saving changes");
+                return new Result<Weight>(null, StatusCode.BAD_REQUEST);
+            }
+
+            return new Result<Weight>(weight, StatusCode.OK);
+        }
+
 
         public async Task<IResult<bool>> DeleteWeight (int id)
         {

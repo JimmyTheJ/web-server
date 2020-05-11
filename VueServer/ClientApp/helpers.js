@@ -30,3 +30,7 @@ export const getNewAuthor = function() {
         deceased: false
     }
 }
+
+export const padTwo = function(number) {
+    return (number < 10 ? '0' : '') + number;
+}

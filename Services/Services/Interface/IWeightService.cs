@@ -17,6 +17,8 @@ namespace VueServer.Services.Interface
 
         Task<IResult<Weight>> AddWeight (Weight weight);
 
+        Task<IResult<Weight>> EditWeight(Weight weight);
+
         Task<IResult<bool>> DeleteWeight (int id);
     }
 }

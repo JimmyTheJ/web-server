@@ -88,9 +88,7 @@
 
     import { mapState } from 'vuex'
 
-    function padTwo(number) {
-        return (number < 10 ? '0' : '') + number;
-    }
+    import { padTwo } from '../../helpers'
 
     export default {
         components: {
