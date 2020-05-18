@@ -15,7 +15,7 @@
 
                     <v-flex xs12>
                         <v-tabs v-model="activeType" fixed-tabs hide-slider>
-                            <v-tab v-for="(item, index) in typeList">
+                            <v-tab v-for="(item, index) in typeList" :key="index">
                                 {{ item }}
                             </v-tab>
                         </v-tabs>

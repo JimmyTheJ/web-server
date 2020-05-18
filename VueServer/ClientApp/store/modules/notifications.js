@@ -3,25 +3,30 @@ import ConMsgs from '../../mixins/console';
 
 let staticId = 1;
 
+function createMessage(obj) {
+    const message = {
+        id: staticId++,
+        text: '',
+        type: 1,
+        read: false
+    }
+
+    if (typeof obj.text !== 'undefined')
+        message.text = obj.text
+
+    if (typeof obj.type !== 'undefined')
+        message.type = obj.type
+
+    if (typeof obj.read !== 'undefined')
+        message.read = obj.read
+
+    return message
+}
+
 const state = {
-    //messages: [],
-    messages: [
-        {
-            id: 1,
-            text: 'Successfully uploaded some file!',
-            type: 0,
-            read: false,
-        },
-        {
-            id: 2,
-            text: 'Failed to upload some other file',
-            type: 2,
-            read: false,
-        }
-    ],
-    numMessages: 2,
-    numNewMessages: 2,
-    //numMessages: 0,
+    messages: [],
+    numMessages: 0,
+    numNewMessages: 0,
     opened: false
 }
 
@@ -48,6 +53,7 @@ const actions = {
     async popNotification({ commit }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Popping notification from message list')
 
+        commit(types.MESSAGE_READ, context)
         const item = commit(types.MESSAGE_POP, context)
 
         return item
@@ -83,18 +89,17 @@ const mutations = {
     [types.MESSAGE_PUSH](state, data) {
         ConMsgs.methods.$_console_log('[Vuex][Mutations] Pushing notification to message list')
 
-        data.id = staticId++;
-        state.messages.push(data)
+        state.messages.push(createMessage({ text: data.text, type: data.type }))
+
         state.numMessages++
+        state.numNewMessages++
     },
     [types.MESSAGE_POP](state, data) {
-        ConMsgs.methods.$_console_log('[Vuex][Actions] Popping notification from message list')
+        ConMsgs.methods.$_console_log('[Vuex][Mutations] Popping notification from message list')
 
         if (typeof data !== 'number') {
-            const item = state.messages.pop()
-            state.numMessages--
-
-            return item
+            ConMsgs.methods.$_console_log(`[Vuex][Mutations] Passed in value: ${data} is invalid`)
+            return null
         }
         else {
             const index = state.messages.findIndex(x => x.id === data)
@@ -107,7 +112,7 @@ const mutations = {
                 return item
             }
             else {
-                ConMsgs.methods.$_console_log(`[Vuex][Actions] Notification with id ${data} not found.`)
+                ConMsgs.methods.$_console_log(`[Vuex][Mutations] Notification with id ${data} not found.`)
             }
         }        
     }
