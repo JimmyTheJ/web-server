@@ -48,19 +48,11 @@
                                   class="elevation-1">
                         <template v-slot:body="{ items }">
                             <tbody>
-                                <tr v-for="(item, index) in weightList" @click="openAddOrEditWeight(item, $event)" :key="index">
-                                    <td>
-                                        {{ getDate(item.created) }}
-                                    </td>
-                                    <td>
-                                        {{ item.value }}
-                                    </td>
-                                    <td>
-                                        {{ item.notes }}
-                                    </td>
-                                    <td>
-                                        <v-btn icon @click="deleteItem(item.id)"><fa-icon size="lg" icon="window-close" /></v-btn>
-                                    </td>
+                                <tr v-for="item in items" :key="item.id" @click="openAddOrEditWeight(item, $event)">
+                                    <td>{{ getDate(item.created) }}</td>
+                                    <td>{{ item.value }}</td>
+                                    <td>{{ item.notes }}</td>
+                                    <td class="action-td"><fa-icon size="lg" icon="window-close" @click="deleteItem(item.id)" /></td>
                                 </tr>
                             </tbody>
                         </template>
@@ -72,8 +64,6 @@
                         </template>
                     </v-data-table>
                 </v-flex>
-                <!--</v-layout>-->
-                <!--</v-flex>-->
             </v-layout>
         </v-container>
     </div>
@@ -139,10 +129,10 @@
             },
             getHeaders() {
                 return [
-                    { text: 'Date', align: 'start', value: 'date', sortable: true, width: '31%', sort: (a, b) => { console.log(a); console.log(b); return 1; } },
-                    { text: 'Weight', align: 'start', value: 'value', sortable: true, width: '31%' },
-                    { text: 'Notes', align: 'start', value: 'notes', sortable: false, width: '31%' },
-                    { text: '', align: 'start', value: 'actions', sortable: false, width: '7%' },
+                    { text: 'Date', align: 'start', value: 'created', sortable: true, width: '21%' },
+                    { text: 'Weight', align: 'start', value: 'value', sortable: true, width: '21%' },
+                    { text: 'Notes', align: 'start', value: 'notes', sortable: false, width: '51%' },
+                    { text: 'Actions', align: 'start', value: 'actions', sortable: false, width: '7%' },
                 ];
             },
             // TODO: Do this on the server and return it
@@ -224,9 +214,9 @@
                     return;
                 }
 
-                if (evt !== null && (evt.target.classList.contains('v-btn__content')
-                    || evt.target.parentNode.classList.contains('v-btn__content')
-                    || evt.target.parentNode.parentNode.classList.contains('v-btn__content'))
+                if (evt !== null && (evt.target.classList.contains('action-td')
+                    || evt.target.parentNode.classList.contains('action-td')
+                    || evt.target.parentNode.parentNode.classList.contains('action-td'))
                 ) {
                     this.$_console_log('[Weight] Some button was pressed, don\'t open the dialog.');
                     return;
