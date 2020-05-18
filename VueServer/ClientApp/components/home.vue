@@ -2,11 +2,13 @@
     <div>
         <main-menu :source="`home`"></main-menu>
         <router-view :key="$route.fullPath"></router-view>
+        <notification-bar></notification-bar>
     </div>
 </template>
 
 <script>
     import Menu from './modules/menu'
+    import NotificationBar from './modules/notification-bar'
 
     export default {
         data() {
@@ -15,7 +17,8 @@
             }
         },
         components: {
-            'main-menu': Menu
+            'main-menu': Menu,
+            'notification-bar': NotificationBar,
         },
         created() {
             if (!this.$store.state.auth.isAuthorize)

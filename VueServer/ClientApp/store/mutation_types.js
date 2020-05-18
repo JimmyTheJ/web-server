@@ -44,3 +44,12 @@ export const DELETE_BOOK = 'DELETE_BOOK'
 export const DELETE_BOOKCASE = 'DELETE_BOOKCASE'
 export const DELETE_SERIES = 'DELETE_SERIES'
 export const DELETE_SHELF = 'DELETE_SHELF'
+
+/*
+ * Notifications
+ */
+
+export const MESSAGE_PUSH = 'MESSAGE_PUSH'
+export const MESSAGE_POP = 'MESSAGE_POP'
+export const MESSAGE_OPEN_DRAWER = 'MESSAGE_OPEN_DRAWER'
+export const MESSAGE_READ = 'MESSAGE_READ'

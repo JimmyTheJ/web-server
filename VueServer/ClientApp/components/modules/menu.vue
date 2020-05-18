@@ -38,6 +38,9 @@
                 </v-toolbar-items>
             </div>
             <v-spacer></v-spacer>
+            <v-badge bordered :content="numNewMessages" :value="numNewMessages" mr-2>
+                <v-icon medium @click="$store.dispatch('openNotifications')">mdi-bell</v-icon>
+            </v-badge>
             <v-menu :close-on-content-click="true"
                     :nudge-width="200"
                     v-model="menu"
@@ -58,7 +61,7 @@
                     </v-list>
                 </v-card>
             </v-menu>
-        </v-app-bar>
+</v-app-bar>
     </div>
 </template>
 
@@ -92,7 +95,9 @@
         },
         computed: {
             ...mapState({
-                modules: state => state.auth.modules
+                modules: state => state.auth.modules,
+                numMessages: state => state.notifications.numMessages,
+                numNewMessages: state => state.notifications.numNewMessages,
             }),
             getDrawerHeight() {
                 return 16 + (this.menuItems * 48);

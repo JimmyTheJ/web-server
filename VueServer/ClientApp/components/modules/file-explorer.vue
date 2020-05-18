@@ -1,25 +1,5 @@
 <template>
     <div>
-        <v-snackbar v-model="dialog.on"
-                    :bottom="dialog.y === 'bottom'"
-                    :left="dialog.x === 'left'"
-                    :color="dialog.type === 'success' ? 'success' : dialog.type === 'error' ? 'red' : 'info'"
-                    :multi-line="dialog.mode === 'multi-line'"
-                    :right="dialog.x === 'right'"
-                    :timeout="dialog.timeout"
-                    :top="dialog.y === 'top'"
-                    :vertical="dialog.mode === 'vertical'">
-            <div v-if="dialog.type === 'success'">
-                <fa-icon icon="check"></fa-icon>
-            </div>
-            <p class="black--text text--lighten-2">{{ dialog.message }}</p>
-            <v-btn color="pink"
-                   text
-                   @click="dialog.on = false">
-                Close
-            </v-btn>
-        </v-snackbar>
-
         <v-container grid-list-xl v-show="uploadFiles.length > 0">
             <div class="text-xs-center">Files being uploaded...</div>
             <v-list>
@@ -120,16 +100,6 @@
 
                 role: CONST.Roles.Level.Default,
                 roleOptions: CONST.Roles.Level,
-
-                dialog: {
-                    on: false,
-                    x: null,
-                    y: 'top',
-                    message: '',
-                    mode: 'multi-line',
-                    type: 'success',
-                    timeout: 5000
-                },
             }
         },
         mixins: [Auth],
@@ -485,7 +455,7 @@
                 this.$refs.fUpload.value = '';
                 this.$_console_log("Finished sending all files");
 
-                location.reload();
+                //location.reload();
             },
             async sendFile(file) {
                 let routeData = this.getPathFromRoute();
@@ -500,22 +470,18 @@
 
                 await service.uploadFile(formData).then(resp => {
                     this.$_console_log("Successfully uploaded file");
-                    //let fIndex = this.folderFiles.findIndex(x => x.folder === this.selectedFolder);
-                    //if (fIndex !== -1) {
-                    //    this.folderFiles[fIndex].files.push(file.name);
 
-                    //    this.dialog.on = true;
-                    //    this.dialog.message = `Successfully uploaded file ${file.name}`;
-                    //    this.dialog.type = 'success';
-                    //    this.dialog.timeout = 5000;
-                    //}
+                    this.$store.dispatch('pushNotification', {
+                        text: `Successfully uploaded file ${file.name}`,
+                        type: 0
+                    });
                 }).catch(() => {
                     this.$_console_log("Error uploading files");
 
-                    this.dialog.on = true;
-                    this.dialog.message = `Failed uploading file ${file.name}`;
-                    this.dialog.type = 'error';
-                    this.dialog.timeout = 15000;
+                    this.$store.dispatch('pushNotification', {
+                        text: `Failed uploading file ${file.name}`,
+                        type: 2
+                    });
                 });
             },
             async deleteItem(file) {
