@@ -8,7 +8,7 @@ const UploadFilesUrl = `api/directory/upload`;
 
 export default {
     loadDirectory(dir, subDir) {
-        if (!subDir)
+        if (typeof subDir === 'undefined' || subDir === null || subDir === '' || subDir === false)
             return axios.get(`${LoadDirectoryUrl}/${dir}`);
         else
             return axios.get(`${LoadDirectoryUrl}/${dir}/${subDir}`);

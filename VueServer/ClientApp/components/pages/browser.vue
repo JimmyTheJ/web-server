@@ -1,7 +1,6 @@
 <template>
     <div>
-        <file-explorer :folders="folders"
-                       parentView="browser"
+        <file-explorer parentView="browser"
                        :goFile="goFile"
                        @loadFile="loadFile"></file-explorer>
 
@@ -78,8 +77,6 @@
             }
             else
                 this.$router.push({ name: 'start' });
-
-            this.getFolders();
         },
         watch: {
             dialogOpen(newValue) {
@@ -102,13 +99,6 @@
             }
         },
         methods: {
-            async getFolders() {
-                await Service.getFolderList().then(resp => {
-                    this.folders = resp.data;
-                }).catch(() => {
-                    this.$_console_log("Failed to upload file");
-                });
-            },
             getType(file) {
                 if (typeof file === 'undefined' || file === '') {
                     this.$_console_log('[File Viewer] getType: Undefined or empty');

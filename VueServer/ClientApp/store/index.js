@@ -13,6 +13,7 @@ import * as getters from './getters'
 import auth from './modules/auth'
 import library from './modules/library'
 import notifications from './modules/notifications'
+import fileExplorer from './modules/file-explorer'
 
 
 Vue.use(Vuex)
@@ -27,6 +28,7 @@ export default new Vuex.Store({
         auth,
         library,
         notifications,
+        fileExplorer
     },
     strict: true
 })

@@ -28,7 +28,7 @@
             <v-form v-if="selectable">
                 <v-layout row wrap px-2>
                     <v-flex xs12>
-                        <v-select v-model="selectedFolder" :items="folders" :label="`Select a folder`" item-text="name" item-value="name"></v-select>
+                        <v-select v-model="selectedDirectory" :items="folders" :label="`Select a folder`" item-text="name" item-value="name"></v-select>
                     </v-flex>
                 </v-layout>
             </v-form>
@@ -45,7 +45,7 @@
                 </v-container>
             </v-card>
 
-            <v-list-item v-for="item in dirContents" :key="item.id">
+            <v-list-item v-for="item in contents" :key="item.id">
                 <v-list-item-action>
                     <a :href="getDownloadPath(item)" download><fa-icon icon="download" /></a>
                 </v-list-item-action>
@@ -74,26 +74,21 @@
 <script>
     import * as CONST from '../../constants'
     import service from '../../services/file-explorer'
-    import { mapGetters } from 'vuex'
+    import { mapState } from 'vuex'
     import Tooltip from './tooltip'
     import Auth from '../../mixins/authentication'
+
+    import { getSubdirectoryString, getSubdirectoryArray } from '../../helpers/browser'
 
     let path = process.env.API_URL;
 
     export default {
         data() {
             return {
-                selectedFolder: null,
-                selectedSubDirs: null,
-
-                childDirNames: [],
-                mainDirContents: [],
-                dirContents: [],
+                selectedDirectory: '',
 
                 loading: false,
                 changing: false,
-
-                defaultFolder: '',
 
                 // Upload
                 uploadFiles: [],
@@ -107,10 +102,6 @@
             "tooltip": Tooltip,
         },
         props: {
-            folders: {
-                type: Array,
-                required: true,
-            },
             selectable: {
                 type: Boolean,
                 default: true,
@@ -128,30 +119,25 @@
             },
         },
         mounted() {
-            this.changing = true;
-            this.setSelectedObjects(this.getPathFromRoute());
-
-            setTimeout(() => {
-                let defaultFol = this.folders.find(x => x.default === true);
-                if (typeof defaultFol === 'object')
-                    this.defaultFolder = defaultFol.name;
-
-                this.setRoute();
-                this.openDir();
-
-                this.changing = false;
-            }, 250);
+            this.loadFromPath();
 
             this.role = this.$_auth_convertRole(this.$store.state.auth.role);
         },
         computed: {
+            ...mapState({
+                contents: state => state.fileExplorer.contents,
+                folders: state => state.fileExplorer.folders,
+                directory: state => state.fileExplorer.directory,
+                subDirectories: state => state.fileExplorer.subDirectories,
+            }),
             fullPath() {
-                if (typeof this.selectedFolder !== 'undefined' && this.selectedFolder !== null) {
-                    if (this.selectedSubDirs !== null) {
-                        return `${this.selectedFolder}/${this.selectedSubDirs}`;
+                if (typeof this.directory !== 'undefined' && this.directory !== null) {
+                    if (Array.isArray(this.subDirectories) && this.subDirectories.length > 0) {
+                        // TODO: Fix to build the list of subdirs
+                        return `${this.directory}/${getSubdirectoryString(this.subDirectories)}`;
                     }
                     else {
-                        return this.selectedFolder;
+                        return this.directory;
                     }
                 }
                 else {
@@ -160,12 +146,34 @@
             }
         },
         watch: {
-            selectedFolder: function (newValue, oldValue) {
-                if (!this.changing && newValue !== oldValue) {
-                    this.$_console_log('[FileExplorer] Watcher - selectedFolder: Setting child dir names to empty array', newValue, oldValue);
-                    this.setRoute(newValue, true);
-                    this.openDir();
+            // Local prop
+            selectedDirectory: function (newValue) {
+                if (!this.changing) {
+                    this.$_console_log('[FileExplorer] Watcher - Selected directory: ', newValue);
+
+                    this.$store.dispatch('changeDirectory', newValue);
                 }
+            },
+            // Vuex prop
+            directory: function (newValue) {
+                if (!this.changing) {
+                    this.$_console_log('[FileExplorer] Watcher - Vuex Directory:', newValue);
+
+                    this.$store.dispatch('loadDirectory');
+                    //this.setRoute(newValue, true);
+                    //this.openDir();
+                }
+            },
+            // Vuex prop
+            subDirectories: {
+                handler(newValue) {
+                    if (!this.changing) {
+                        this.$_console_log('[FileExplorer] Watcher - Vuex SubDirectories:', newValue);
+
+                        this.$store.dispatch('loadDirectory');
+                    }
+                },
+                deep: true
             },
             goFile: {
                 handler(newValue) {
@@ -180,7 +188,7 @@
                         return;
                     }
 
-                    const folderlessList = this.dirContents.filter(x => x.isFolder === false).slice(0);
+                    const folderlessList = this.contents.filter(x => x.isFolder === false).slice(0);
                     this.$_console_log('Folderless List:', folderlessList);
                     if (folderlessList.length === 0) {
                         this.$_console_log('[FileExplorer] goFile watcher: This folder only contains other folders. Nothing to load.');
@@ -211,175 +219,57 @@
             }
         },
         methods: {
-            setSelectedObjects(obj) {
-                if (obj.code > 0) {
-                    this.selectedFolder = obj.dir;
-
-                    if (obj.subDir !== null) {
-                        this.selectedSubDirs = obj.subDir;
-                    }
-                    else {
-                        this.selectedSubDirs = null;
-                    }
-                }
-                else {
-                    this.selectedFolder = null;
-                    this.selectedSubDirs = null;
-                }
-            },
-            setRoute(value, override) {
+            async loadFromPath() {
                 this.changing = true;
-                //this.$_console_log('[FileExplorer] SetRoute: Route', this.$route);
-                let routeObj = this.getPathFromRoute();
-                let routePath = this.$route.fullPath;
+                let hasFolder = false;
 
-                this.$_console_log('[SETROUTE] Route path then Route obj:', routePath, routeObj, value);
-                //if (routeObj.code === 0)
-                //    return this.openDir();
+                let getFolderPromise = this.$store.dispatch('getFolders');
 
-                if (value) {
-                    this.$_console_log('[SETROUTE] We passed a value!', value);
-                    // Change base dir 
-                    if (override) {
-                        this.$router.push(`${routeObj.basePath}/${value}`);
+                let route = this.$route;
+                this.$_console_log(route);
+
+                // If additional folder params are passed in, extract them so we can load it with the correct path
+                if (typeof route.params.folder !== 'undefined') {
+                    const dirArray = getSubdirectoryArray(route.params.folder);
+
+                    if (dirArray.length === 1) {
+                        hasFolder = true;
+                        this.$store.dispatch('changeDirectory', dirArray[0]);
                     }
-                    // Go Back
-                    else if (value === '../') {
-                        if (routeObj.code === 0 || routeObj.dir === null)
-                            return; // Can't go back from nothing
-                        else if (routeObj.subDir === null)
-                            this.$router.push(`${routeObj.basePath}/${routeObj.dir}`);  // Go back to base path
-                        else {
-                            let index = routeObj.subDir.lastIndexOf('/');
-                            let newSub = routeObj.subDir.substring(0, index);
-                            this.$router.push(`${routeObj.basePath}/${routeObj.dir}/${newSub}`);
-                        }
-                            
-                    }
-                    // Go forward
-                    else {
-                        if (routeObj.dir === null)
-                            this.$router.push(`${routeObj.basePath}/${value}`);
-                        else if (routeObj.subDir === null)
-                            this.$router.push(`${routeObj.basePath}/${routeObj.dir}/${value}`);
-                        else
-                            this.$router.push(`${routeObj.basePath}/${routeObj.dir}/${routeObj.subDir}/${value}`);
-                    }
-                }
-                else {
-                    // Default folder logic
-                    if (routeObj.code === 0) {
-                        let subRoute = `${routeObj.basePath}/${this.defaultFolder}`;
-                        this.$_console_log('[SETROUTE] Route / Sub Route', routePath, subRoute);
-                        if (routePath !== subRoute) {
-                            this.selectedFolder = this.defaultFolder;
-                            this.$router.push(`${routeObj.basePath}/${this.defaultFolder}`);
+                    else if (dirArray.length > 1) {
+                        hasFolder = true;
+                        this.$store.dispatch('changeDirectory', dirArray[0]);
+
+                        for (let i = 1; i < dirArray.length; i++) {
+                            await this.$store.dispatch('goForwardDirectory', dirArray[i]);
                         }
                     }
                 }
 
-                this.changing = false;
-            },
-            openDir() {
-                let pathObj = this.getPathFromRoute();
-                if (pathObj.code === -1)
-                    return false;
-                else if (pathObj.code === 0) {
-                    this.setRoute();
-                    setTimeout(() => { this.changing = false }, 25);
-                    //return;
-                }
-                else {
-                    this.setRoute();
-                    setTimeout(() => { this.changing = false }, 25);
+                // Use default folder if one exists
+                if (hasFolder === false) {
+                    await getFolderPromise;
+
+                    let fol = this.folders.find(x => x.default === true);
+                    this.$_console_log('[File Explorer] LoadFromPath: No folder present in path', fol);
+                    if (typeof fol !== 'undefined') {
+                        this.selectedDirectory = fol.name;
+                        this.$store.dispatch('changeDirectory', fol.name);
+                        //this.$store.dispatch('changeDirectory', fol.name)
+                    }
                 }
 
-                //service.loadDirectory(dir, subDir).then(resp => {
-                service.loadDirectory(pathObj.dir, pathObj.subDir).then(resp => {
-                    this.$_console_log('Service load dir: ', resp);
-                    this.dirContents = resp.data;
-                }).catch(() => {
-                    // TODO: Determine how to handle this properly
-                    this.$_console_log('[FileExplorer] OpenDir: Error getting the directory');
-                    this.goBack();
-                }).then(() => {
-                    this.loading = false;
+                setTimeout(() => {
                     this.changing = false;
-                });
+                    this.$store.dispatch('loadDirectory');
+                }, 250);
             },
-            getPathFromRoute() {
-                // Regex path matching. Setup to /home/[parentView]/[someword&numbers&-_]*
-                // Ex: /home/browser/meMe-town_Land
-                let regexPath = new RegExp(`(\/home\/${this.parentView}(\/([a-z0-9-_'" ]*))*)`, 'gi');
-                if (this.$route.fullPath.match(regexPath)) {
-                    this.$_console_log('Matched');
 
-                    let ss = `/home/${this.parentView}`;
-                    let route = this.$route.fullPath.substring(ss.length);
-                    let basePath = this.$route.fullPath.substring(0, ss.length);
-
-                    this.$_console_log('[GETPATHFROMROUTE] basepath + route', basePath, route, ss);
-
-                    if (route.length > 0) {
-                        // Clean first /
-                        if (route[0] === '/') {
-                            route = route.substring(1);
-                            this.$_console_log(`[GETPATHFROMROUTE] Clean route dir`, route);
-                        }
-
-                        // Path was /home/parentView/ treat this same as else statement of parent if statement
-                        if (route === '') {
-                            this.$_console_log(`[GETPATHFROMROUTE] Route is '' exiting with code 0`, route);
-                            return { basePath: basePath, path: null, subDir: null, code: 0 };
-                        }
-
-                        // Directory part
-                        let dir = '';
-                        let subDir = '';
-                        if (route.includes('/')) {
-                            dir = route.substring(0, route.indexOf('/'));
-                            route = route.substring(dir.length);
-                            this.$_console_log(`[GETPATHFROMROUTE] dir`, dir, route);
-
-                            // Clean first /
-                            if (route[0] === '/') {
-                                route = route.substring(1);
-                                this.$_console_log(`[GETPATHFROMROUTE] Clean route subDir`, route);
-                            }
-
-                            // Subdirectory part
-                            if (route.length > 0) {
-                                subDir = route;                                
-                                this.$_console_log(`[GETPATHFROMROUTE] subDir`, route);
-                            }
-                        }
-                        else {
-                            dir = route.substring(0);
-                            route = route.substring(dir.length);
-                            this.$_console_log(`[GETPATHFROMROUTE] dir`, route);
-                        }
-
-                        return {
-                            basePath: basePath,
-                            dir: dir,
-                            subDir: subDir === '' ? null : subDir,
-                            code: subDir === '' ? 2 : 1 };
-                    }
-                    else {
-                        return { basePath: basePath, code: 0 };
-                    }
-                }
-                else {
-                    this.$_console_log(`[FileExplorer] SetRoute: Route doesn't match /home/${this.parentView}[/String]*', can't load directory.`);
-                    return { code: -1 };
-                }
-            },
             open(item) {
                 if (item.isFolder) {
-                    this.setRoute(item.title);
+                    this.$store.dispatch('goForwardDirectory', item.title);
                 }
                 else {
-                    //this.$emit('loadFile', `${path}/home/${this.parentView}/${this.fullPath}/${item.title}`);
                     this.$_console_log('[FILE EXPLORER] Open Item: item, dl path', item, this.getFilePath(item))
                     setTimeout(() => {
                         this.$emit('loadFile', this.getFilePath(item));
@@ -387,8 +277,11 @@
                 }
             },
             goBack() {
-                this.setRoute('../');
+                this.$store.dispatch('goBackDirectory');
             },
+
+
+
             getDownloadPath(item) {
                 return `${path}/api/directory/download/file/${encodeURI(this.fullPath)}/${encodeURIComponent(item.title)}`;
                 //return `${path}/api/directory/download?fileName=${encodeURI(item.title)}&folder=${encodeURI(fullFolderPath)}`;
@@ -455,6 +348,7 @@
                 this.$refs.fUpload.value = '';
                 this.$_console_log("Finished sending all files");
 
+                // TODO: Repopulate the list with the new file
                 //location.reload();
             },
             async sendFile(file) {
@@ -496,9 +390,9 @@
 
                 await service.deleteFile(file.title, routeData.dir, routeData.subDir === null ? '' : routeData.subDir).then(resp => {
                     this.$_console_log('Successfully deleted the file');
-                    let index = this.dirContents.findIndex(x => x.title === file.title);
+                    let index = this.contents.findIndex(x => x.title === file.title);
                     if (index > -1) {
-                        this.dirContents.splice(index, 1);
+                        this.contents.splice(index, 1);
                     }
                 }).catch(() => this.$_console_log('Error deleting the item in upload'));
             },
