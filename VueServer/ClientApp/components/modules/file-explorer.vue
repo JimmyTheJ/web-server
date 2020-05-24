@@ -386,14 +386,10 @@
                     return this.$_console_log("Invalid file info, can't delete");
 
                 this.$_console_log(`Delete: ${file.title}`);
-                let routeData = this.getPathFromRoute();
 
-                await service.deleteFile(file.title, routeData.dir, routeData.subDir === null ? '' : routeData.subDir).then(resp => {
+                await service.deleteFile(file.title, this.directory, getSubdirectoryString(this.subDirectories)).then(resp => {
                     this.$_console_log('Successfully deleted the file');
-                    let index = this.contents.findIndex(x => x.title === file.title);
-                    if (index > -1) {
-                        this.contents.splice(index, 1);
-                    }
+                    this.$store.dispatch('deleteFile', file);
                 }).catch(() => this.$_console_log('Error deleting the item in upload'));
             },
         }

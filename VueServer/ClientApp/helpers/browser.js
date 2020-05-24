@@ -1,9 +1,10 @@
 export const getSubdirectoryString = function (subDirs) {
-    if (!Array.isArray(subDirs)) {
-        return null;
-    }
-
     let path = '';
+
+    if (!Array.isArray(subDirs)) {
+        return path;
+    }
+    
     for (let i = 0; i < subDirs.length; i++) {
         path += subDirs[i];
 

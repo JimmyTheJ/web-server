@@ -72,6 +72,11 @@ const actions = {
 
         commit(types.BROWSER_POP_DIRECTORY)
     },
+    async deleteFile({ commit }, context) {
+        ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting a file')
+
+        commit(types.BROWSER_DELETE_FILE, context)
+    }
 }
 
 const mutations = {
@@ -111,6 +116,14 @@ const mutations = {
             state.subDirectories.pop()
         }
     },
+    [types.BROWSER_DELETE_FILE](state, data) {
+        ConMsgs.methods.$_console_log('[Vuex][Mutations] Deleting a file')
+
+        let index = state.contents.findIndex(x => x.title === data.title);
+        if (index > -1) {
+            state.contents.splice(index, 1);
+        }
+    }
 }
 
 export default {
