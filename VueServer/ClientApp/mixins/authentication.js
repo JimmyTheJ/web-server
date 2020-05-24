@@ -50,8 +50,12 @@ export default {
         async $_auth_logout() {
             ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_logout: Called');
             await this.$store.dispatch("signout")
-                .then(resp => ConMsgs.methods.$_console_log("Logout success"))
-                .catch(() => ConMsgs.methods.$_console_log("logout fail"))
+                .then(resp => {
+                    ConMsgs.methods.$_console_log("Logout success. Clearing state.")
+                    this.$store.dispatch("clearNotifications")
+                    this.$store.dispatch("clearLibrary")
+                    this.$store.dispatch("clearFileExplorer")
+                }).catch(() => ConMsgs.methods.$_console_log("logout fail"))
                 .then(() => this.$router.push({ name: 'index' }) );
         },
         $_auth_convertRole(r) {

@@ -17,13 +17,18 @@ const getters = {
 }
 
 const actions = {
+    async clearLibrary({ commit }) {
+        ConMsgs.methods.$_console_log('[Vuex][Actions] Clearing library')
+
+        commit(types.LIBRARY_CLEAR)
+    },
     // Author
     async getAuthors({ commit }) {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Getting author list')
 
             const res = await libraryAPI.author.getList()
-            commit(types.GET_AUTHORS, res.data)
+            commit(types.LIBRARY_AUTHOR_GET_ALL, res.data)
 
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -36,7 +41,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Adding author')
 
             const res = await libraryAPI.author.add(context)
-            commit(types.ADD_AUTHOR, res.data)
+            commit(types.LIBRARY_AUTHOR_ADD, res.data)
 
             return await Promise.resolve(res.data)
         }
@@ -50,7 +55,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Editing author')
 
             const res = await libraryAPI.author.update(context)
-            commit(types.EDIT_AUTHOR, res.data)
+            commit(types.LIBRARY_AUTHOR_EDIT, res.data)
 
             return await Promise.resolve(res.data)
         }
@@ -64,7 +69,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting author')
 
             const res = await libraryAPI.author.delete(context)
-            commit(types.DELETE_AUTHOR, res.data)
+            commit(types.LIBRARY_AUTHOR_DELETE, res.data)
 
             return await Promise.resolve(res.data)
         }
@@ -80,7 +85,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Getting book list')
 
             const res = await libraryAPI.book.getList()
-            commit(types.GET_BOOKS, res.data)
+            commit(types.LIBRARY_BOOK_GET_ALL, res.data)
 
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -95,16 +100,16 @@ const actions = {
             const res = await libraryAPI.book.add(context)
 
             // Add book
-            commit(types.ADD_BOOK, res.data)
+            commit(types.LIBRARY_BOOK_ADD, res.data)
 
             // Add objects
-            commit(types.ADD_BOOKCASE, res.data.bookcase)
-            commit(types.ADD_SERIES, res.data.series)
-            commit(types.ADD_SHELF, res.data.shelf)
+            commit(types.LIBRARY_BOOKCASE_ADD, res.data.bookcase)
+            commit(types.LIBRARY_SERIES_ADD, res.data.series)
+            commit(types.LIBRARY_SHELF_ADD, res.data.shelf)
 
             if (Array.isArray(res.data.bookAuthors)) {
                 res.data.bookAuthors.forEach(element => {
-                    commit(types.ADD_AUTHOR, element.author)
+                    commit(types.LIBRARY_AUTHOR_ADD, element.author)
                 })
             }
 
@@ -120,16 +125,16 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Editing book')
 
             const res = await libraryAPI.book.update(context)
-            commit(types.EDIT_BOOK, res.data)
+            commit(types.LIBRARY_BOOK_EDIT, res.data)
 
             // Add objects
-            commit(types.ADD_BOOKCASE, res.data.bookcase)
-            commit(types.ADD_SERIES, res.data.series)
-            commit(types.ADD_SHELF, res.data.shelf)
+            commit(types.LIBRARY_BOOKCASE_ADD, res.data.bookcase)
+            commit(types.LIBRARY_SERIES_ADD, res.data.series)
+            commit(types.LIBRARY_SHELF_ADD, res.data.shelf)
 
             if (Array.isArray(res.data.bookAuthors)) {
                 res.data.bookAuthors.forEach(element => {
-                    commit(types.ADD_AUTHOR, element.author)
+                    commit(types.LIBRARY_AUTHOR_ADD, element.author)
                 })
             }
 
@@ -145,7 +150,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting book')
 
             const res = await libraryAPI.book.delete(context)
-            commit(types.DELETE_BOOK, res.data)
+            commit(types.LIBRARY_BOOK_DELETE, res.data)
 
             return await Promise.resolve(res.data)
         }
@@ -161,7 +166,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Getting bookcase list')
 
             const res = await libraryAPI.bookcase.getList()
-            commit(types.GET_BOOKCASES, res.data)
+            commit(types.LIBRARY_BOOKCASE_GET_ALL, res.data)
 
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -174,7 +179,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Adding bookcase')
 
             const res = await libraryAPI.bookcase.add(context)
-            commit(types.ADD_BOOKCASE, res.data)
+            commit(types.LIBRARY_BOOKCASE_ADD, res.data)
 
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -187,7 +192,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Editing bookcase')
 
             const res = await libraryAPI.bookcase.update(context)
-            commit(types.EDIT_BOOKCASE, res.data)
+            commit(types.LIBRARY_BOOKCASE_EDIT, res.data)
 
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -200,7 +205,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting bookcase')
 
             const res = await libraryAPI.bookcase.delete(context)
-            commit(types.DELETE_BOOKCASE, res.data)
+            commit(types.LIBRARY_BOOKCASE_DELETE, res.data)
 
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -215,7 +220,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Getting genre list')
 
             const res = await libraryAPI.genre.getList()
-            commit(types.GET_GENRES, res.data)
+            commit(types.LIBRARY_GENRE_GET_ALL, res.data)
 
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -230,7 +235,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Getting series list')
 
             const res = await libraryAPI.series.getList()
-            commit(types.GET_SERIES, res.data)
+            commit(types.LIBRARY_SERIES_GET_ALL, res.data)
 
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -243,7 +248,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Adding series')
 
             const res = await libraryAPI.series.add(context)
-            commit(types.ADD_SERIES, res.data)
+            commit(types.LIBRARY_SERIES_ADD, res.data)
 
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -256,7 +261,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Editing series')
 
             const res = await libraryAPI.series.update(context)
-            commit(types.EDIT_SERIES, res.data)
+            commit(types.LIBRARY_SERIES_EDIT, res.data)
 
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -269,7 +274,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting series')
 
             const res = await libraryAPI.series.delete(context)
-            commit(types.DELETE_SERIES, res.data)
+            commit(types.LIBRARY_SERIES_DELETE, res.data)
 
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -284,7 +289,7 @@ const actions = {
             ConMsgs.methods.$_console_log('Getting shelf list')
 
             const res = await libraryAPI.shelf.getList()
-            commit(types.GET_SHELVES, res.data)
+            commit(types.LIBRARY_SHELF_GET_ALL, res.data)
 
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -297,7 +302,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Adding shelf')
 
             const res = await libraryAPI.shelf.add(context)
-            commit(types.ADD_SHELF, res.data)
+            commit(types.LIBRARY_SHELF_ADD, res.data)
 
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -310,7 +315,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Updating shelf')
 
             const res = await libraryAPI.shelf.update(context)
-            commit(types.EDIT_SHELF, res.data)
+            commit(types.LIBRARY_SHELF_EDIT, res.data)
 
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -323,7 +328,7 @@ const actions = {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting shelf')
 
             const res = await libraryAPI.shelf.delete(context)
-            commit(types.DELETE_SHELF, res.data)
+            commit(types.LIBRARY_SHELF_DELETE, res.data)
 
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -334,12 +339,23 @@ const actions = {
 }
 
 const mutations = {
+    [types.LIBRARY_CLEAR](state) {
+        ConMsgs.methods.$_console_log("[Vuex][Mutations] Clearing library")
+
+        state.authors = []
+        state.books = []
+        state.bookcases = []
+        state.genres = []
+        state.series = []
+        state.shelves = []
+    },
     // Author
-    [types.GET_AUTHORS](state, data) {
+    [types.LIBRARY_AUTHOR_GET_ALL](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Get authors")
+
         state.authors = data
     },
-    [types.ADD_AUTHOR](state, data) {
+    [types.LIBRARY_AUTHOR_ADD](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Add author")
 
         // Check if it's a valid object with a valid id
@@ -355,7 +371,7 @@ const mutations = {
             }
         }
     },
-    [types.EDIT_AUTHOR](state, data) {
+    [types.LIBRARY_AUTHOR_EDIT](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Edit author")
 
         // Check if it's a valid object with a valid id
@@ -371,7 +387,7 @@ const mutations = {
             }
         }
     },
-    [types.DELETE_AUTHOR](state, data) {
+    [types.LIBRARY_AUTHOR_DELETE](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Delete author")
         // Error state, failed to delete author
         if (typeof data !== 'number' || data <= 0) {
@@ -392,11 +408,11 @@ const mutations = {
     },
 
     // Book
-    [types.GET_BOOKS](state, data) {
+    [types.LIBRARY_BOOK_GET_ALL](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Get books")
         state.books = data
     },
-    [types.ADD_BOOK](state, data) {
+    [types.LIBRARY_BOOK_ADD](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Add book")
 
         // Check if it's a valid object with a valid id
@@ -412,7 +428,7 @@ const mutations = {
             }
         }
     },
-    [types.EDIT_BOOK](state, data) {
+    [types.LIBRARY_BOOK_EDIT](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Edit book")
 
         // Check if it's a valid object with a valid id
@@ -428,7 +444,7 @@ const mutations = {
             }
         }
     },
-    [types.DELETE_BOOK](state, data) {
+    [types.LIBRARY_BOOK_DELETE](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Delete book")
         // Error state, failed to delete book
         if (typeof data !== 'number' || data <= 0) {
@@ -448,12 +464,12 @@ const mutations = {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Book deleted")
     },
 
-    // Bookcase
-    [types.GET_BOOKCASES](state, data) {
+    [types.LIBRARY_BOOKCASE_GET_ALL](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Get bookcases")
+
         state.bookcases = data
     },
-    [types.ADD_BOOKCASE](state, data) {
+    [types.LIBRARY_BOOKCASE_ADD](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Add bookcase")
 
         // Check if it's a valid object with a valid id
@@ -469,7 +485,7 @@ const mutations = {
             }
         }
     },
-    [types.EDIT_BOOKCASE](state, data) {
+    [types.LIBRARY_BOOKCASE_EDIT](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Edit bookcase")
 
         // Check if it's a valid object with a valid id
@@ -485,7 +501,7 @@ const mutations = {
             }
         }
     },
-    [types.DELETE_BOOKCASE](state, data) {
+    [types.LIBRARY_BOOKCASE_DELETE](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Delete bookcase")
         // Error state, failed to delete bookcase
         if (typeof data !== 'number' || data <= 0) {
@@ -505,19 +521,18 @@ const mutations = {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Bookcase deleted")
     },
 
-    // Genre
-    [types.GET_GENRES](state, data) {
+    [types.LIBRARY_GENRE_GET_ALL](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Get genres")
         state.genres = data
     },
 
 
     // Series
-    [types.GET_SERIES](state, data) {
+    [types.LIBRARY_SERIES_GET_ALL](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Get series")
         state.series = data
     },
-    [types.ADD_SERIES](state, data) {
+    [types.LIBRARY_SERIES_ADD](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Add series")
 
         // Check if it's a valid object with a valid id
@@ -533,7 +548,7 @@ const mutations = {
             }
         }
     },
-    [types.EDIT_SERIES](state, data) {
+    [types.LIBRARY_SERIES_EDIT](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Edit series")
 
         // Check if it's a valid object with a valid id
@@ -549,7 +564,7 @@ const mutations = {
             }
         }
     },
-    [types.DELETE_SERIES](state, data) {
+    [types.LIBRARY_SERIES_DELETE](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Delete series")
         // Error state, failed to delete series
         if (typeof data !== 'number' || data <= 0) {
@@ -570,11 +585,11 @@ const mutations = {
     },
 
     // Shelf
-    [types.GET_SHELVES](state, data) {
+    [types.LIBRARY_SHELF_GET_ALL](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Get shelves")
         state.shelves = data
     },
-    [types.ADD_SHELF](state, data) {
+    [types.LIBRARY_SHELF_ADD](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Add shelf")
 
         // Check if it's a valid object with a valid id
@@ -590,7 +605,7 @@ const mutations = {
             }
         }
     },
-    [types.EDIT_SHELF](state, data) {
+    [types.LIBRARY_SHELF_EDIT](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Edit shelf")
 
         // Check if it's a valid object with a valid id
@@ -606,7 +621,7 @@ const mutations = {
             }
         }
     },
-    [types.DELETE_SHELF](state, data) {
+    [types.LIBRARY_SHELF_DELETE](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Delete shelf")
         // Error state, failed to delete shelf
         if (typeof data !== 'number' || data <= 0) {

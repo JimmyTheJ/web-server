@@ -15,6 +15,11 @@ const getters = {
 }
 
 const actions = {
+    async clearFileExplorer({ commit }) {
+        ConMsgs.methods.$_console_log('[Vuex][Actions] Clearing file-explorer')
+
+        commit(types.BROWSER_CLEAR)
+    },
     async getFolders({ commit }) {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Getting folder list')
@@ -70,6 +75,14 @@ const actions = {
 }
 
 const mutations = {
+    [types.BROWSER_CLEAR](state) {
+        ConMsgs.methods.$_console_log('[Vuex][Mutations] Clearing file-explorer')
+
+        state.contents = []
+        state.folders = []
+        state.directory = ''
+        state.subDirectories = []
+    },
     [types.BROWSER_GET_FOLDERS](state, data) {
         ConMsgs.methods.$_console_log('[Vuex][Mutations] Getting folder list')
 

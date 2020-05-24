@@ -35,6 +35,11 @@ const getters = {
 }
 
 const actions = {
+    async clearNotifications({ commit }) {
+        ConMsgs.methods.$_console_log('[Vuex][Actions] Clearing notifications')
+
+        commit(types.MESSAGE_CLEAR)
+    },
     async openNotifications({ commit }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Opening / closing notification message list')
 
@@ -61,6 +66,14 @@ const actions = {
 }
 
 const mutations = {
+    [types.MESSAGE_CLEAR](state) {
+        ConMsgs.methods.$_console_log('[Vuex][Mutations] Clearing notifications')
+
+        state.messages = []
+        state.numMessages = 0
+        state.numNewMessages = 0
+        state.opened = false
+    },
     [types.MESSAGE_OPEN_DRAWER](state, data) {
         ConMsgs.methods.$_console_log('[Vuex][Mutations] Open / Close message list')
 
