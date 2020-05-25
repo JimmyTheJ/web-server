@@ -336,6 +336,8 @@
             },
             async uploadMultipleFiles() {
                 for (let i = 0; i < this.uploadFiles.length; i++) {
+                    this.$_console_log(this.uploadFiles[i].name);
+
                     await this.sendFile(this.uploadFiles[i]).then(resp => {
                         this.$_console_log("File sent!");
                     }).catch(() => {
@@ -347,24 +349,22 @@
                 this.uploadFiles = [];
                 this.$refs.fUpload.value = '';
                 this.$_console_log("Finished sending all files");
-
-                // TODO: Repopulate the list with the new file
-                //location.reload();
             },
             async sendFile(file) {
-                let routeData = this.getPathFromRoute();
-                this.$_console_log('[FILE EXPLORER] Sendfile then route data:', routeData);
-
                 let formData = new FormData();
                 formData.append("File", file);
                 formData.append("Name", file.name);
-                formData.append("Directory", routeData.dir);
-                if (routeData.subDir !== null)
-                    formData.append("SubDirectory", routeData.subDir);
+                formData.append("Directory", this.directory);
+
+                let subDirs = getSubdirectoryString(this.subDirectories);
+                this.$_console_log('SubDirs: ', subDirs);
+                if (subDirs !== '')
+                    formData.append("SubDirectory", subDirs);
 
                 await service.uploadFile(formData).then(resp => {
                     this.$_console_log("Successfully uploaded file");
 
+                    this.$store.dispatch('addFile', resp.data);
                     this.$store.dispatch('pushNotification', {
                         text: `Successfully uploaded file ${file.name}`,
                         type: 0
@@ -389,7 +389,7 @@
 
                 await service.deleteFile(file.title, this.directory, getSubdirectoryString(this.subDirectories)).then(resp => {
                     this.$_console_log('Successfully deleted the file');
-                    this.$store.dispatch('deleteFile', file);
+                    this.$store.dispatch('deleteFile', file.title);
                 }).catch(() => this.$_console_log('Error deleting the item in upload'));
             },
         }

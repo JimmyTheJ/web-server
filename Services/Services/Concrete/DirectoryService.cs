@@ -53,7 +53,7 @@ namespace VueServer.Services.Concrete
         public IResult<IEnumerable<ServerDirectory>> GetDirectories ()
         {
             var dirs = GetSingleDirectoryList(true);
-            return new Result<IEnumerable<ServerDirectory>>(dirs, Domain.Enums.StatusCode.OK);
+            return new Result<IEnumerable<ServerDirectory>>(dirs, StatusCode.OK);
         }
 
         public async Task<IResult<Tuple<string, string, string>>> Download (string filename, bool media = false)
@@ -61,32 +61,32 @@ namespace VueServer.Services.Concrete
             if (string.IsNullOrWhiteSpace(filename))
             {
                 _logger.LogWarning("Directory.Download: Filename passed is null or empty");
-                return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             var tuple = GetStrippedFilename(filename);
             if (tuple == null)
             {
                 _logger.LogWarning("Directory.Download: Error stripping filename. Null Tuple object");
-                return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             if (tuple.Item1 == null)
             {
                 _logger.LogWarning("Directory.Download: Error stripping filename. Null Tuple.Item1");
-                return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             if (tuple.Item2 == null)
             {
                 _logger.LogWarning("Directory.Download: Error stripping filename. Null Tuple.Item2");
-                return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             if (tuple.Item1.Count() == 0)
             {
                 _logger.LogWarning("Directory.Download: Filename contains no folders. Invalid filename");
-                return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             var list = GetSingleDirectoryList().ToList();
@@ -96,7 +96,7 @@ namespace VueServer.Services.Concrete
             if (baseDir == null)
             {
                 _logger.LogWarning($"Directory.Download: Invalid folder name: {folders[0]}");
-                return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             var cleanFilename = tuple.Item2;
@@ -131,37 +131,37 @@ namespace VueServer.Services.Concrete
                     catch (ArgumentException)
                     {
                         _logger.LogError("DownloadProtectedFile: ArgumentException");
-                        return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+                        return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
                     catch (PathTooLongException)
                     {
                         _logger.LogError("DownloadProtectedFile: PathTooLongException");
-                        return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+                        return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
                     catch (DirectoryNotFoundException)
                     {
                         _logger.LogError("DownloadProtectedFile: DirectoryNotFoundException");
-                        return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+                        return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
                     catch (IOException e)
                     {
                         _logger.LogError("DownloadProtectedFile: IOException");
                         _logger.LogError(e.StackTrace);
-                        return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+                        return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
                     catch (UnauthorizedAccessException)
                     {
                         _logger.LogError("DownloadProtectedFile: UnauthorizedException");
-                        return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+                        return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
                     catch (NotSupportedException)
                     {
                         _logger.LogError("DownloadProtectedFile: NotSupportedException");
-                        return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+                        return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
 
                     _logger.LogInformation("Private zip archive download begun by " + _user.Name + " @ " + _user.IP + " - name=" + filename);
-                    return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(zipPath, contentType, cleanFilename), Domain.Enums.StatusCode.OK);
+                    return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(zipPath, contentType, cleanFilename), StatusCode.OK);
                 }
                 //else
                 //{
@@ -177,7 +177,7 @@ namespace VueServer.Services.Concrete
             catch (Exception)
             {
                 _logger.LogError("DownloadProtectedFile: Unknown exception accessing file");
-                return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+                return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
             }
 
             _logger.LogInformation("Private download begun by " + _user.Name + " @ " + _user.IP + " - name=" + filename);
@@ -192,7 +192,7 @@ namespace VueServer.Services.Concrete
             if (string.IsNullOrWhiteSpace(directory))
             {
                 _logger.LogWarning("Directory.Load: Directory is null. Can't get list.");
-                return new Result<IOrderedEnumerable<WebServerFile>>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
             }
 
             var list = GetSingleDirectoryList().ToList();
@@ -200,7 +200,7 @@ namespace VueServer.Services.Concrete
             if (basePath == null)
             {
                 _logger.LogWarning($"Directory.Load: Invalid folder name: {directory}");
-                return new Result<IOrderedEnumerable<WebServerFile>>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
             }
 
             string fullPath = string.Empty;
@@ -216,13 +216,13 @@ namespace VueServer.Services.Concrete
                     if (!uri.AbsolutePath.ToLower().StartsWith(basePath.ToLower()) && !uri.LocalPath.ToLower().StartsWith(basePath.ToLower()))
                     {
                         _logger.LogWarning($"{_user.Name} @ {_user.IP} is trying to do a path escalation attack!");
-                        return new Result<IOrderedEnumerable<WebServerFile>>(null, Domain.Enums.StatusCode.FORBIDDEN);
+                        return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.FORBIDDEN);
                     }
                 }
                 catch
                 {
                     _logger.LogInformation($"{_user.Name} @ {_user.IP} sent malformed URI path in sub directory.");
-                    return new Result<IOrderedEnumerable<WebServerFile>>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                    return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
                 }
             }
             else
@@ -242,7 +242,7 @@ namespace VueServer.Services.Concrete
             catch (Exception)
             {
                 _logger.LogWarning($"Directory.Load: Error getting directory or file system info at: {basePath}");
-                return new Result<IOrderedEnumerable<WebServerFile>>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
             }
 
             var fileList = new List<WebServerFile>();
@@ -251,10 +251,10 @@ namespace VueServer.Services.Concrete
                 fileList.Add(new WebServerFile(file));
             }
 
-            return new Result<IOrderedEnumerable<WebServerFile>>(fileList.OrderByDescending(x => x.IsFolder).ThenBy(x => x.Title), Domain.Enums.StatusCode.OK);
+            return new Result<IOrderedEnumerable<WebServerFile>>(fileList.OrderByDescending(x => x.IsFolder).ThenBy(x => x.Title), StatusCode.OK);
         }
 
-        public async Task<IResult> Upload(UploadFileRequest model)
+        public async Task<IResult<WebServerFile>> Upload(UploadFileRequest model)
         {
             var uploadDirs = GetSingleDirectoryList();
             string baseSaveDir = uploadDirs.Where(x => x.Name == model.Directory).Select(y => y.Path).FirstOrDefault();
@@ -270,7 +270,7 @@ namespace VueServer.Services.Concrete
             if (!Directory.Exists(saveDir))
             {
                 _logger.LogInformation($"{_user.Name} @ {_user.IP} is attempting to create a folder while uploading a file");
-                return new Result<IResult>(null, Domain.Enums.StatusCode.FORBIDDEN);
+                return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
             }
 
             try
@@ -279,18 +279,18 @@ namespace VueServer.Services.Concrete
                 if (!uri.LocalPath.StartsWith(baseSaveDir))
                 {
                     _logger.LogWarning($"{_user.Name} @ {_user.IP} is trying to do a path escalation attack!");
-                    return new Result<IResult>(null, Domain.Enums.StatusCode.FORBIDDEN);
+                    return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
                 }
             }
             catch
             {
                 _logger.LogInformation($"{_user.Name} @ {_user.IP} sent malformed URI path.");
-                return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
             try
             {
-                using (FileStream fs = File.Create(saveDir + "\\" + model.File.FileName))
+                using (FileStream fs = File.Create(Path.Combine(saveDir, model.File.FileName)))
                 {
                     await model.File.CopyToAsync(fs);
                     fs.Flush();
@@ -301,23 +301,34 @@ namespace VueServer.Services.Concrete
             {
                 Console.WriteLine("Failed to write file dir\n" + e.StackTrace);
                 _logger.LogInformation("Upload FAILED from " + _user.Name + " @ " + _user.IP + " - Filename=" + model.File.FileName);
-                return new Result<IResult>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+                return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
-            return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
+            try
+            {
+                var file = new FileInfo(Path.Combine(saveDir, model.File.FileName));
+                var webServerFile = new WebServerFile(file);
+                return new Result<WebServerFile>(webServerFile, StatusCode.OK);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to write file dir\n" + e.StackTrace);
+                _logger.LogInformation("Failed to validate file exists after successful upload. " + _user.Name + " @ " + _user.IP + " - Filename=" + model.File.FileName);
+                return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
+            }
         }
 
         public IResult Delete(DeleteFileModel model)
         {
             if (string.IsNullOrWhiteSpace(model.Name))
-                return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<IResult>(null, StatusCode.BAD_REQUEST);
 
             var uploadDirs = GetSingleDirectoryList();
             string dir = uploadDirs.Where(x => x.Name == model.Directory).Select(y => y.Path).FirstOrDefault();
             if (dir == null)
             {
                 _logger.LogInformation("Invalid folder name provided. Protected file deletion attempt by " + _user.Name + " @ " + _user.IP + " - Filename=" + model.Name);
-                return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<IResult>(null, StatusCode.BAD_REQUEST);
             }
 
             FileInfo fi = null;
@@ -328,13 +339,13 @@ namespace VueServer.Services.Concrete
             catch
             {
                 _logger.LogInformation("Invalid file provided. Protected file deletion attempt by " + _user.Name + " @ " + _user.IP + " - Filename=" + model.Name);
-                return new Result<IResult>(null, Domain.Enums.StatusCode.UNAUTHORIZED);
+                return new Result<IResult>(null, StatusCode.UNAUTHORIZED);
             }
 
             if (!fi.Directory.FullName.StartsWith(dir))
             {
-                _logger.LogWarning($"Path escalation attack attempted by {_user.Name} @ {_user.IP} - Filename={fi.Directory.FullName.ToString()}\\{model.Name}!");
-                return new Result<IResult>(null, Domain.Enums.StatusCode.FORBIDDEN);
+                _logger.LogWarning($"Path escalation attack attempted by {_user.Name} @ {_user.IP} - Filename={fi.Directory.FullName.ToString()}{Path.DirectorySeparatorChar}{model.Name}!");
+                return new Result<IResult>(null, StatusCode.FORBIDDEN);
             }
 
             if (fi.Exists)
@@ -346,22 +357,22 @@ namespace VueServer.Services.Concrete
                 catch (UnauthorizedAccessException)
                 {
                     _logger.LogError("Unauthorized protected file deletion attempt by " + _user.Name + " @ " + _user.IP + " - Filename=" + model.Name);
-                    return new Result<IResult>(null, Domain.Enums.StatusCode.UNAUTHORIZED);
+                    return new Result<IResult>(null, StatusCode.UNAUTHORIZED);
                 }
                 catch (SecurityException)
                 {
                     _logger.LogError("Security exception in protected file deletion attempt by " + _user.Name + " @ " + _user.IP + " - Filename=" + model.Name);
-                    return new Result<IResult>(null, Domain.Enums.StatusCode.UNAUTHORIZED);
+                    return new Result<IResult>(null, StatusCode.UNAUTHORIZED);
                 }
                 catch (IOException)
                 {
                     _logger.LogError("IO exception in protected file deletion attempt by " + _user.Name + " @ " + _user.IP + " - Filename=" + model.Name);
-                    return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                    return new Result<IResult>(null, StatusCode.BAD_REQUEST);
                 }
             }
 
 
-            return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
+            return new Result<IResult>(null, StatusCode.OK);
         }
 
         #endregion
@@ -425,8 +436,8 @@ namespace VueServer.Services.Concrete
                 return null;
 
             string fn = string.Copy(dir);
-            if (!dir.Contains('\\'))
-                fn += "\\";
+            if (!dir.Contains(Path.DirectorySeparatorChar))
+                fn += Path.DirectorySeparatorChar;
 
             for (int i = 0; i < folders.Count; i++)
             {
@@ -434,8 +445,8 @@ namespace VueServer.Services.Concrete
                 if (i == 0)
                     continue;
 
-                if (fn[fn.Length-1] != '\\')
-                    fn += "\\";
+                if (fn[fn.Length-1] != Path.DirectorySeparatorChar)
+                    fn += Path.DirectorySeparatorChar;
                 
                 fn += folders[i];
             }
