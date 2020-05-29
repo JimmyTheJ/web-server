@@ -18,6 +18,6 @@ namespace VueServer.Models.Modules
 
         public virtual ModuleAddOn ModuleAddOn { get; set; }
 
-        public virtual IEnumerable<UserHasModuleFeature> ModuleFeatures { get; set; }
+        public virtual IEnumerable<UserHasModuleFeature> UserModuleFeatures { get; set; }
     }
 }

@@ -41,15 +41,23 @@ namespace VueServer.Services.Concrete
             var userModules = await _context.UserHasModule
                 .Include(x => x.ModuleAddOn)
                 .Where(x => x.UserId == _user.Name)
-                .Select(x => x.ModuleAddOn)
-                .ToListAsync();
+                .Select(x => new ModuleAddOn()
+                {
+                    Id = x.ModuleAddOn.Id,
+                    Name = x.ModuleAddOn.Name,
+                    UserModuleFeatures = _context.UserHasFeature
+                        .Include(y => y.ModuleFeature)
+                        .Include(y => y.User)
+                        .Where(y => y.ModuleFeature.ModuleAddOnId == x.ModuleAddOnId)
+                        .ToList()
+                }).ToListAsync();
 
             return new Result<IEnumerable<ModuleAddOn>>(userModules, Domain.Enums.StatusCode.OK);
         }
 
         public async Task<IResult<IEnumerable<ModuleAddOn>>> GetAllModules()
         {
-            var userModules = await _context.Modules.ToListAsync();
+            var userModules = await _context.Modules.Include(x => x.Features).ToListAsync();
 
             return new Result<IEnumerable<ModuleAddOn>>(userModules, Domain.Enums.StatusCode.OK);
         }
@@ -60,7 +68,21 @@ namespace VueServer.Services.Concrete
                 .Include(x => x.ModuleAddOn)
                 .Include(x => x.User)
                 .OrderBy(x => x.UserId)
-                .ToListAsync();
+                .Select(x => new UserHasModuleAddOn()
+                {
+                    ModuleAddOn = new ModuleAddOn() {
+                        Id = x.ModuleAddOn.Id,
+                        Name = x.ModuleAddOn.Name,
+                        UserModuleFeatures = _context.UserHasFeature
+                            .Include(y => y.ModuleFeature)
+                            .Include(y => y.User)
+                            .Where(y => y.ModuleFeature.ModuleAddOnId == x.ModuleAddOnId)
+                            .ToList()
+                    },
+                    ModuleAddOnId = x.ModuleAddOnId,
+                    User = x.User,
+                    UserId = x.UserId
+                }).ToListAsync();
 
             return new Result<IEnumerable<UserHasModuleAddOn>>(userModules, Domain.Enums.StatusCode.OK);
         }
@@ -145,13 +167,13 @@ namespace VueServer.Services.Concrete
         {
             if (userFeature == null)
             {
-                _logger.LogInformation("[ModuleService] AddFeatureToUser: User Module is null");
+                _logger.LogInformation("[ModuleService] AddFeatureToUser: User Feature is null");
                 return new Result<UserHasModuleFeature>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (string.IsNullOrWhiteSpace(userFeature.ModuleFeatureId))
             {
-                _logger.LogInformation("[ModuleService] AddFeatureToUser: Module to add is null");
+                _logger.LogInformation("[ModuleService] AddFeatureToUser: Feature to add is null");
                 return new Result<UserHasModuleFeature>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -179,13 +201,13 @@ namespace VueServer.Services.Concrete
         {
             if (userFeature == null)
             {
-                _logger.LogInformation("[ModuleService] DeleteFeatureFromUser: User Module is null");
+                _logger.LogInformation("[ModuleService] DeleteFeatureFromUser: User Feature is null");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (string.IsNullOrWhiteSpace(userFeature.ModuleFeatureId))
             {
-                _logger.LogInformation("[ModuleService] DeleteFeatureFromUser: Module to delete is null");
+                _logger.LogInformation("[ModuleService] DeleteFeatureFromUser: Feature to delete is null");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -198,7 +220,7 @@ namespace VueServer.Services.Concrete
             var dbUserFeature = _context.UserHasFeature.Where(x => x.UserId == userFeature.UserId && x.ModuleFeatureId == userFeature.ModuleFeatureId).FirstOrDefault();
             if (dbUserFeature == null)
             {
-                _logger.LogInformation("[ModuleService] DeleteFeatureFromUser: UserModule doesn't exist in database");
+                _logger.LogInformation("[ModuleService] DeleteFeatureFromUser: UserFeature doesn't exist in database");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 

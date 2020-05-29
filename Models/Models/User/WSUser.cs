@@ -22,7 +22,7 @@ namespace VueServer.Models.User
 
         public virtual IList<WSUserInRoles> Roles { get; set; }
 
-        public virtual IList<UserHasModuleAddOn> ModuleAddOns { get; set; }
-        public virtual IList<UserHasModuleFeature> ModuleFeatures { get; set; }
+        public virtual IList<UserHasModuleAddOn> UserModuleAddOns { get; set; }
+        public virtual IList<UserHasModuleFeature> UserModuleFeatures { get; set; }
     }
 }

@@ -39,13 +39,13 @@ namespace VueServer.Models.Context
 
             // User Modules many to many setup
             modelBuilder.Entity<UserHasModuleAddOn>().HasKey(x => new { x.UserId, x.ModuleAddOnId });
-            modelBuilder.Entity<UserHasModuleAddOn>().HasOne(x => x.User).WithMany(x => x.ModuleAddOns).HasForeignKey(x => x.UserId);
-            modelBuilder.Entity<UserHasModuleAddOn>().HasOne(x => x.ModuleAddOn).WithMany(x => x.ModuleAddOns).HasForeignKey(x => x.ModuleAddOnId);
+            modelBuilder.Entity<UserHasModuleAddOn>().HasOne(x => x.User).WithMany(x => x.UserModuleAddOns).HasForeignKey(x => x.UserId);
+            modelBuilder.Entity<UserHasModuleAddOn>().HasOne(x => x.ModuleAddOn).WithMany(x => x.UserModuleAddOns).HasForeignKey(x => x.ModuleAddOnId);
 
             // Module Features many to many setup
             modelBuilder.Entity<UserHasModuleFeature>().HasKey(x => new { x.UserId, x.ModuleFeatureId });
-            modelBuilder.Entity<UserHasModuleFeature>().HasOne(x => x.User).WithMany(x => x.ModuleFeatures).HasForeignKey(x => x.UserId);
-            modelBuilder.Entity<UserHasModuleFeature>().HasOne(x => x.ModuleFeature).WithMany(x => x.ModuleFeatures).HasForeignKey(x => x.ModuleFeatureId);
+            modelBuilder.Entity<UserHasModuleFeature>().HasOne(x => x.User).WithMany(x => x.UserModuleFeatures).HasForeignKey(x => x.UserId);
+            modelBuilder.Entity<UserHasModuleFeature>().HasOne(x => x.ModuleFeature).WithMany(x => x.UserModuleFeatures).HasForeignKey(x => x.ModuleFeatureId);
 
             // Data Seeding
             SeedGenres(modelBuilder);
