@@ -42,9 +42,15 @@ namespace VueServer.Models.Context
             modelBuilder.Entity<UserHasModuleAddOn>().HasOne(x => x.User).WithMany(x => x.ModuleAddOns).HasForeignKey(x => x.UserId);
             modelBuilder.Entity<UserHasModuleAddOn>().HasOne(x => x.ModuleAddOn).WithMany(x => x.ModuleAddOns).HasForeignKey(x => x.ModuleAddOnId);
 
+            // Module Features many to many setup
+            modelBuilder.Entity<UserHasModuleFeature>().HasKey(x => new { x.UserId, x.ModuleFeatureId });
+            modelBuilder.Entity<UserHasModuleFeature>().HasOne(x => x.User).WithMany(x => x.ModuleFeatures).HasForeignKey(x => x.UserId);
+            modelBuilder.Entity<UserHasModuleFeature>().HasOne(x => x.ModuleFeature).WithMany(x => x.ModuleFeatures).HasForeignKey(x => x.ModuleFeatureId);
+
             // Data Seeding
             SeedGenres(modelBuilder);
             SeedModules(modelBuilder);
+            SeedModuleFeatures(modelBuilder);
         }
 
         #region -> Database tables
@@ -56,8 +62,9 @@ namespace VueServer.Models.Context
         #region -> Modules
 
         public DbSet<ModuleAddOn> Modules { get; set; }
-
         public DbSet<UserHasModuleAddOn> UserHasModule { get; set; }
+        public DbSet<ModuleFeature> Features { get; set; }
+        public DbSet<UserHasModuleFeature> ModuleHasFeature { get; set; }
 
         #endregion
 
@@ -186,6 +193,13 @@ namespace VueServer.Models.Context
             modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = "library", Name = "Library" });
             modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = "notes", Name = "Notes" });
             modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = "weight", Name = "Weight" });
+        }
+
+        private void SeedModuleFeatures(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = "upload", Name = "Upload", ModuleAddOnId = "browser" });
+            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = "delete", Name = "Delete", ModuleAddOnId = "browser" });
+            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = "viewer", Name = "Viewer", ModuleAddOnId = "browser" });
         }
 
         #endregion

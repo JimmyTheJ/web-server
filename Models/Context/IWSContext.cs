@@ -21,8 +21,9 @@ namespace VueServer.Models.Context
         #region -> Modules
 
         DbSet<ModuleAddOn> Modules { get; set; }
-
         DbSet<UserHasModuleAddOn> UserHasModule { get; set; }
+        DbSet<ModuleFeature> Features { get; set; }
+        DbSet<UserHasModuleFeature> ModuleHasFeature { get; set; }
 
         #endregion
 

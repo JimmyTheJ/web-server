@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RootNamespace>VueServer.Models</RootNamespace>
+    <RootNamespace>VueServer</RootNamespace>
     <!--<RootNamespace>VueServer.Models</RootNamespace>-->
     <!--<RuntimeFrameworkVersion>2.2.0</RuntimeFrameworkVersion>-->
     <!--<AspNetCoreModuleName>AspNetCoreModuleNameV2</AspNetCoreModuleName>

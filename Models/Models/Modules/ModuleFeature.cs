@@ -1,19 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
-using VueServer.Models.User;
 
 namespace VueServer.Models.Modules
 {
-    public class ModuleAddOn
+    public class ModuleFeature
     {
         [Key]
         public string Id { get; set; }
 
         public string Name { get; set; }
 
-        public virtual IEnumerable<UserHasModuleAddOn> ModuleAddOns { get; set; }
+        [ForeignKey("ModuleAddOn")]
+        public string ModuleAddOnId { get; set; }
+
+        public virtual ModuleAddOn ModuleAddOn { get; set; }
+
         public virtual IEnumerable<UserHasModuleFeature> ModuleFeatures { get; set; }
     }
 }
