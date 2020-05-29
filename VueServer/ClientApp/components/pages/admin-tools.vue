@@ -157,10 +157,13 @@ import modules from '../../services/modules';
                     this.$_console_log(currentlySelectedModule, userModuleIndex);
 
                     if (userModuleIndex > 0) {
-                        if (!Array.isArray(this.usersHaveModuleList[userModuleIndex].userHasFeature))
-                            this.usersHaveModuleList[userModuleIndex].userHasFeature = [];
-
-                        this.usersHaveModuleList[userModuleIndex].userHasFeature.push(obj);
+                        if (Array.isArray(this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures)) {
+                            const featureIndex = this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures.findIndex(x => x.moduleFeatureId === feature.id);
+                            if (featureIndex >= 0) {
+                                this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures.splice(featureIndex, 1);
+                            }
+                            
+                        }
                     }
                     else {
                         // It failed somehow
@@ -203,10 +206,10 @@ import modules from '../../services/modules';
                     this.$_console_log(currentlySelectedModule, userModuleIndex);
 
                     if (userModuleIndex >= 0) {
-                        if (!Array.isArray(this.usersHaveModuleList[userModuleIndex].userHasFeature))
-                            this.usersHaveModuleList[userModuleIndex].userHasFeature = [];
+                        if (!Array.isArray(this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures))
+                            this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures = [];
 
-                        this.usersHaveModuleList[userModuleIndex].userHasFeature.push(obj);
+                        this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures.push(obj);
                     }
                     else {
                         // It failed somehow
