@@ -78,7 +78,7 @@
     import Tooltip from './tooltip'
     import Auth from '../../mixins/authentication'
 
-    import { getSubdirectoryString, getSubdirectoryArray } from '../../helpers/browser'
+    import { getSubdirectoryString, getSubdirectoryArray, splitPathFromRoute } from '../../helpers/browser'
 
     let path = process.env.API_URL;
 
@@ -118,7 +118,12 @@
                 }
             },
         },
-        mounted() {
+        async mounted() {
+            if (!Array.isArray(this.folders) || (Array.isArray(this.folders) && this.folders.length === 0))
+                await this.$store.dispatch('getFolders');
+
+            this.readRoute();
+
             this.loadFromPath();
 
             this.role = this.$_auth_convertRole(this.$store.state.auth.role);
@@ -159,9 +164,7 @@
                 if (!this.changing) {
                     this.$_console_log('[FileExplorer] Watcher - Vuex Directory:', newValue);
 
-                    this.$store.dispatch('loadDirectory');
-                    //this.setRoute(newValue, true);
-                    //this.openDir();
+                    this.$router.push({ name: 'browser-folder', params: { folder: newValue } })
                 }
             },
             // Vuex prop
@@ -170,7 +173,15 @@
                     if (!this.changing) {
                         this.$_console_log('[FileExplorer] Watcher - Vuex SubDirectories:', newValue);
 
-                        this.$store.dispatch('loadDirectory');
+                        let baseDir = this.directory;
+                        let theCharIs = baseDir.charAt(baseDir.length - 1);
+
+                        this.$_console_log('BaseDir and CharAt:', baseDir, theCharIs);
+
+                        if (theCharIs === '/')
+                            baseDir = baseDir.substr(0, baseDir.length - 1);
+
+                        this.$router.push({ name: 'browser-folder', params: { folder: `${baseDir}/${getSubdirectoryString(newValue)}` } })
                     }
                 },
                 deep: true
@@ -219,50 +230,84 @@
             }
         },
         methods: {
-            async loadFromPath() {
+            readRoute() {
                 this.changing = true;
-                let hasFolder = false;
+                if (typeof this.directory === 'undefined' || this.directory === null || this.directory === '') {
+                    const route = this.$route;
+                    this.$_console_log('Route: ', route);
+                    if (typeof route.params.folder !== 'undefined') {
+                        const splitPath = splitPathFromRoute(route.params.folder);
+                        this.selectedDirectory = splitPath.base;
+                        this.$store.dispatch('changeDirectory', this.selectedDirectory);
 
-                let getFolderPromise = this.$store.dispatch('getFolders');
-
-                let route = this.$route;
-                this.$_console_log(route);
-
-                // If additional folder params are passed in, extract them so we can load it with the correct path
-                if (typeof route.params.folder !== 'undefined') {
-                    const dirArray = getSubdirectoryArray(route.params.folder);
-
-                    if (dirArray.length === 1) {
-                        hasFolder = true;
-                        this.$store.dispatch('changeDirectory', dirArray[0]);
-                    }
-                    else if (dirArray.length > 1) {
-                        hasFolder = true;
-                        this.$store.dispatch('changeDirectory', dirArray[0]);
-
-                        for (let i = 1; i < dirArray.length; i++) {
-                            await this.$store.dispatch('goForwardDirectory', dirArray[i]);
+                        const subDirArray = getSubdirectoryArray(splitPath.subDirs);
+                        this.$_console_log('Folder and subdir array:', splitPath, subDirArray);
+                        if (subDirArray.length > 0) {
+                            for (let i = 0; i < subDirArray.length; i++) {
+                                this.$store.dispatch('goForwardDirectory', subDirArray[i]);
+                            }
                         }
                     }
-                }
+                    else {
+                        // Load default folder
 
-                // Use default folder if one exists
-                if (hasFolder === false) {
-                    await getFolderPromise;
-
-                    let fol = this.folders.find(x => x.default === true);
-                    this.$_console_log('[File Explorer] LoadFromPath: No folder present in path', fol);
-                    if (typeof fol !== 'undefined') {
-                        this.selectedDirectory = fol.name;
-                        this.$store.dispatch('changeDirectory', fol.name);
-                        //this.$store.dispatch('changeDirectory', fol.name)
                     }
+                }
+                else {
+                    this.selectedDirectory = this.directory;
                 }
 
                 setTimeout(() => {
                     this.changing = false;
+                }, 5);
+            },
+            async loadFromPath() {
+                //setTimeout(() => {
+                //    this.changing = true;
+                //}, 5);
+                
+                //let hasFolder = false;
+
+                //let route = this.$route;
+                //this.$_console_log(route);
+
+                // If additional folder params are passed in, extract them so we can load it with the correct path
+                //if (typeof route.params.folder !== 'undefined') {
+                //    const dirArray = getSubdirectoryArray(route.params.folder);
+
+                //    if (dirArray.length === 1) {
+                //        hasFolder = true;
+                //        this.$store.dispatch('changeDirectory', dirArray[0]);
+                //    }
+                //    else if (dirArray.length > 1) {
+                //        hasFolder = true;
+                //        this.$store.dispatch('changeDirectory', dirArray[0]);
+
+                //        for (let i = 1; i < dirArray.length; i++) {
+                //            await this.$store.dispatch('goForwardDirectory', dirArray[i]);
+                //        }
+                //    }
+                //}
+
+                // Use default folder if one exists
+                //if (hasFolder === false) {
+
+                //    let fol = this.folders.find(x => x.default === true);
+                //    this.$_console_log('[File Explorer] LoadFromPath: No folder present in path', fol);
+                //    if (typeof fol !== 'undefined') {
+                //        this.selectedDirectory = fol.name;
+                //        this.$store.dispatch('changeDirectory', fol.name);
+                //        //this.$store.dispatch('changeDirectory', fol.name)
+                //    }
+                //}
+
+
+                
+
+                setTimeout(() => {
                     this.$store.dispatch('loadDirectory');
-                }, 250);
+                    this.changing = false;                    
+                }, 150);
             },
 
             open(item) {
