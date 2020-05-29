@@ -11,14 +11,13 @@ namespace VueServer.Services.Interface
     public interface IModuleService
     {
         Task<IResult<IEnumerable<ModuleAddOn>>> GetActiveModulesForUser();
-
         Task<IResult<IEnumerable<ModuleAddOn>>> GetAllModules();
-
         Task<IResult<IEnumerable<UserHasModuleAddOn>>> GetActiveModulesForAllUsers();
-
         Task<IResult<UserHasModuleAddOn>> AddModuleToUser(UserHasModuleAddOn userModule);
-
         Task<IResult<bool>> DeleteModuleFromUser(UserHasModuleAddOn userModule);
-        
+
+        Task<IResult<UserHasModuleFeature>> AddFeatureToUser(UserHasModuleFeature userFeature);
+        Task<IResult<bool>> DeleteFeatureFromUser(UserHasModuleFeature userFeature);
+
     }
 }

@@ -18,10 +18,6 @@ namespace VueServer.Services.Concrete
 {
     public class ModuleService : IModuleService
     {
-        /// <summary>Hosting environment</summary>
-        private readonly IWebHostEnvironment _env;
-        /// <summary> Configuration file. </summary>
-        private readonly IConfiguration _config;
         /// <summary>Logger</summary>
         private readonly ILogger _logger;
         /// <summary>User Context (Database)</summary>
@@ -31,12 +27,10 @@ namespace VueServer.Services.Concrete
 
         public ModuleService(
             IWSContext context,
-            IWebHostEnvironment env,
             ILoggerFactory logger,
             IUserService user
         )
         {
-            _env = env ?? throw new ArgumentNullException("Hosting environment is null");
             _user = user ?? throw new ArgumentNullException("User service is null");
             _context = context ?? throw new ArgumentNullException("User context is null");
             _logger = logger?.CreateLogger<ModuleService>() ?? throw new ArgumentNullException("Logger factory is null");
@@ -101,7 +95,7 @@ namespace VueServer.Services.Concrete
             catch
             {
                 _logger.LogWarning("[ModuleService] AddModuleToUser: Error saving database");
-            }            
+            }
 
             return new Result<UserHasModuleAddOn>(newUserModule, Domain.Enums.StatusCode.OK);
         }
@@ -146,5 +140,81 @@ namespace VueServer.Services.Concrete
 
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
+
+        public async Task<IResult<UserHasModuleFeature>> AddFeatureToUser(UserHasModuleFeature userFeature)
+        {
+            if (userFeature == null)
+            {
+                _logger.LogInformation("[ModuleService] AddFeatureToUser: User Module is null");
+                return new Result<UserHasModuleFeature>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            if (string.IsNullOrWhiteSpace(userFeature.ModuleFeatureId))
+            {
+                _logger.LogInformation("[ModuleService] AddFeatureToUser: Module to add is null");
+                return new Result<UserHasModuleFeature>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            if (string.IsNullOrWhiteSpace(userFeature.UserId))
+            {
+                _logger.LogInformation("[ModuleService] AddFeatureToUser: User to add is null");
+                return new Result<UserHasModuleFeature>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            var newUserFeature = new UserHasModuleFeature() { UserId = userFeature.UserId, ModuleFeatureId = userFeature.ModuleFeatureId };
+            _context.UserHasFeature.Add(newUserFeature);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                _logger.LogWarning("[ModuleService] AddFeatureToUser: Error saving database");
+            }
+
+            return new Result<UserHasModuleFeature>(newUserFeature, Domain.Enums.StatusCode.OK);
+        }
+        public async Task<IResult<bool>> DeleteFeatureFromUser(UserHasModuleFeature userFeature)
+        {
+            if (userFeature == null)
+            {
+                _logger.LogInformation("[ModuleService] DeleteFeatureFromUser: User Module is null");
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            if (string.IsNullOrWhiteSpace(userFeature.ModuleFeatureId))
+            {
+                _logger.LogInformation("[ModuleService] DeleteFeatureFromUser: Module to delete is null");
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            if (string.IsNullOrWhiteSpace(userFeature.UserId))
+            {
+                _logger.LogInformation("[ModuleService] DeleteFeatureFromUser: User to delete is null");
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            var dbUserFeature = _context.UserHasFeature.Where(x => x.UserId == userFeature.UserId && x.ModuleFeatureId == userFeature.ModuleFeatureId).FirstOrDefault();
+            if (dbUserFeature == null)
+            {
+                _logger.LogInformation("[ModuleService] DeleteFeatureFromUser: UserModule doesn't exist in database");
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            _context.UserHasFeature.Remove(dbUserFeature);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                _logger.LogWarning("[ModuleService] DeleteFeatureFromUser: Error saving database");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            return new Result<bool>(true, Domain.Enums.StatusCode.OK);
+        }
+
     }
 }

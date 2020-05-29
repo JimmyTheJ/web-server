@@ -67,5 +67,21 @@ namespace VueServer.Controllers.Controllers
         {
             return _codeFactory.GetStatusCode(await _service.DeleteModuleFromUser(module));
         }
+
+        [HttpPost]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route("add-feature-to-user")]
+        public async Task<IActionResult> AddFeatureToUser([FromBody] UserHasModuleFeature feature)
+        {
+            return _codeFactory.GetStatusCode(await _service.AddFeatureToUser(feature));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route("delete-feature-from-user")]
+        public async Task<IActionResult> DeleteFeatureFromUser([FromBody] UserHasModuleFeature feature)
+        {
+            return _codeFactory.GetStatusCode(await _service.DeleteFeatureFromUser(feature));
+        }
     }
 }
