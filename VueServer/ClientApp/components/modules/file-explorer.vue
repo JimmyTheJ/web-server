@@ -1,28 +1,6 @@
 <template>
     <div>
-        <v-container grid-list-xl v-show="uploadFiles.length > 0">
-            <div class="text-xs-center">Files being uploaded...</div>
-            <v-list>
-                <template v-for="(file, i) in uploadFiles">
-                    <v-list-item>
-                        <v-list-item-content>
-                            {{ file.name }}
-                        </v-list-item-content>
-                    </v-list-item>
-                </template>
-            </v-list>
-        </v-container>
-
-        <v-container mt-1 class="upload-area" v-if="role >= roleOptions.Elevated">
-            <v-form enctype="multipart/form-data">
-                <v-layout row wrap>
-                    <v-flex xs12>
-                        <label id="upload-button" for="upload-files" class="upload-button">UPLOAD FILES</label>
-                    </v-flex>
-                    <input ref="fUpload" type="file" name="upload-files" id="upload-files" class="file-upload" multiple @change="setFiles" hidden />
-                </v-layout>
-            </v-form>
-        </v-container>
+        <file-upload v-if="features.upload === true"></file-upload>
 
         <v-container>
             <v-form v-if="selectable">
@@ -59,7 +37,7 @@
                     {{ getFileSize(item.size) }}
                 </v-list-item-action>
                 <!-- Ensure admin and not a folder for delete -->
-                <v-list-item-action v-if="role === roleOptions.Admin && !item.isFolder">
+                <v-list-item-action v-if="features.delete">
                     <v-btn icon @click="deleteItem(item)"><fa-icon size="lg" icon="window-close" /></v-btn>
                 </v-list-item-action>
             </v-list-item>
@@ -72,11 +50,14 @@
 </template>
 
 <script>
-    import * as CONST from '../../constants'
     import service from '../../services/file-explorer'
     import { mapState } from 'vuex'
+
     import Tooltip from './tooltip'
+    import FileUpload from './file-upload'
+
     import Auth from '../../mixins/authentication'
+
 
     import { getSubdirectoryString, getSubdirectoryArray, splitPathFromRoute } from '../../helpers/browser'
 
@@ -89,17 +70,17 @@
 
                 loading: false,
                 changing: false,
-
-                // Upload
-                uploadFiles: [],
-
-                role: CONST.Roles.Level.Default,
-                roleOptions: CONST.Roles.Level,
+                features: {
+                    upload: false,
+                    delete: false,
+                    viewing: false,
+                }                
             }
         },
         mixins: [Auth],
         components: {
             "tooltip": Tooltip,
+            "file-upload": FileUpload,
         },
         props: {
             selectable: {
@@ -122,8 +103,9 @@
             if (!Array.isArray(this.folders) || (Array.isArray(this.folders) && this.folders.length === 0))
                 await this.$store.dispatch('getFolders');
 
-            this.readRoute();
+            this.setActiveFeatures();
 
+            this.readRoute();
             this.loadFromPath();
 
             this.role = this.$_auth_convertRole(this.$store.state.auth.role);
@@ -134,6 +116,7 @@
                 folders: state => state.fileExplorer.folders,
                 directory: state => state.fileExplorer.directory,
                 subDirectories: state => state.fileExplorer.subDirectories,
+                activeModules: state => state.auth.activeModules,
             }),
             fullPath() {
                 if (typeof this.directory !== 'undefined' && this.directory !== null) {
@@ -148,7 +131,7 @@
                 else {
                     return '';
                 }
-            }
+            },
         },
         watch: {
             // Local prop
@@ -230,6 +213,20 @@
             }
         },
         methods: {
+            setActiveFeatures() {
+                const browserObj = this.activeModules.find(x => x.id === 'browser');
+                if (typeof browserObj === 'undefined' || !Array.isArray(browserObj.userModuleFeatures))
+                    return;
+
+                if (browserObj.userModuleFeatures.some(x => x.moduleFeatureId === 'upload'))
+                    this.features.upload = true;
+
+                if (browserObj.userModuleFeatures.some(x => x.moduleFeatureId === 'delete'))
+                    this.features.delete = true;
+
+                if (browserObj.userModuleFeatures.some(x => x.moduleFeatureId === 'viewer'))
+                    this.features.viewing = true;
+            },
             readRoute() {
                 this.changing = true;
                 if (typeof this.directory === 'undefined' || this.directory === null || this.directory === '') {
@@ -250,7 +247,11 @@
                     }
                     else {
                         // Load default folder
-
+                        const defaultFolder = this.folders.find(x => x.default === true);
+                        if (typeof defaultFolder !== 'undefined') {
+                            this.selectedDirectory = defaultFolder.name;
+                            this.$store.dispatch('changeDirectory', this.selectedDirectory);
+                        }
                     }
                 }
                 else {
@@ -262,48 +263,6 @@
                 }, 5);
             },
             async loadFromPath() {
-                //setTimeout(() => {
-                //    this.changing = true;
-                //}, 5);
-                
-                //let hasFolder = false;
-
-                //let route = this.$route;
-                //this.$_console_log(route);
-
-                // If additional folder params are passed in, extract them so we can load it with the correct path
-                //if (typeof route.params.folder !== 'undefined') {
-                //    const dirArray = getSubdirectoryArray(route.params.folder);
-
-                //    if (dirArray.length === 1) {
-                //        hasFolder = true;
-                //        this.$store.dispatch('changeDirectory', dirArray[0]);
-                //    }
-                //    else if (dirArray.length > 1) {
-                //        hasFolder = true;
-                //        this.$store.dispatch('changeDirectory', dirArray[0]);
-
-                //        for (let i = 1; i < dirArray.length; i++) {
-                //            await this.$store.dispatch('goForwardDirectory', dirArray[i]);
-                //        }
-                //    }
-                //}
-
-                // Use default folder if one exists
-                //if (hasFolder === false) {
-
-                //    let fol = this.folders.find(x => x.default === true);
-                //    this.$_console_log('[File Explorer] LoadFromPath: No folder present in path', fol);
-                //    if (typeof fol !== 'undefined') {
-                //        this.selectedDirectory = fol.name;
-                //        this.$store.dispatch('changeDirectory', fol.name);
-                //        //this.$store.dispatch('changeDirectory', fol.name)
-                //    }
-                //}
-
-
-                
-
                 setTimeout(() => {
                     this.$store.dispatch('loadDirectory');
                     this.changing = false;                    
@@ -315,10 +274,12 @@
                     this.$store.dispatch('goForwardDirectory', item.title);
                 }
                 else {
-                    this.$_console_log('[FILE EXPLORER] Open Item: item, dl path', item, this.getFilePath(item))
-                    setTimeout(() => {
-                        this.$emit('loadFile', this.getFilePath(item));
-                    }, 125);
+                    if (this.features.viewing) {
+                        this.$_console_log('[FILE EXPLORER] Open Item: item, dl path', item, this.getFilePath(item))
+                        setTimeout(() => {
+                            this.$emit('loadFile', this.getFilePath(item));
+                        }, 125);
+                    }                    
                 }
             },
             goBack() {
@@ -365,67 +326,10 @@
                 }
             },
 
-
-            // Upload
-            setFiles(e) {
-                if (this.role < CONST.Roles.Level.Elevated) {
-                    this.$_console_log('Users without elevated or higher access cannot upload files');
-                    return;
-                }
-
-                this.$_console_log(e.target.files);
-                for (let i = 0; i < e.target.files.length; i++) {
-                    this.uploadFiles.push(e.target.files[i]);
-                }
-                this.uploadMultipleFiles();
-            },
-            async uploadMultipleFiles() {
-                for (let i = 0; i < this.uploadFiles.length; i++) {
-                    this.$_console_log(this.uploadFiles[i].name);
-
-                    await this.sendFile(this.uploadFiles[i]).then(resp => {
-                        this.$_console_log("File sent!");
-                    }).catch(() => {
-                        this.$_console_log("Failed to upload file")
-                    });
-                }
-
-                // Clean the list 
-                this.uploadFiles = [];
-                this.$refs.fUpload.value = '';
-                this.$_console_log("Finished sending all files");
-            },
-            async sendFile(file) {
-                let formData = new FormData();
-                formData.append("File", file);
-                formData.append("Name", file.name);
-                formData.append("Directory", this.directory);
-
-                let subDirs = getSubdirectoryString(this.subDirectories);
-                this.$_console_log('SubDirs: ', subDirs);
-                if (subDirs !== '')
-                    formData.append("SubDirectory", subDirs);
-
-                await service.uploadFile(formData).then(resp => {
-                    this.$_console_log("Successfully uploaded file");
-
-                    this.$store.dispatch('addFile', resp.data);
-                    this.$store.dispatch('pushNotification', {
-                        text: `Successfully uploaded file ${file.name}`,
-                        type: 0
-                    });
-                }).catch(() => {
-                    this.$_console_log("Error uploading files");
-
-                    this.$store.dispatch('pushNotification', {
-                        text: `Failed uploading file ${file.name}`,
-                        type: 2
-                    });
-                });
-            },
             async deleteItem(file) {
-                if (this.role < CONST.Roles.Level.Admin)
-                    return this.$_console_log("Non Admins are not allowed to delete files");                    
+                if (this.deleteEnabled === false) {
+                    return this.$_console_log("Non Admins are not allowed to delete files");
+                }
 
                 if (typeof file === 'undefined' || file === null || file === '')
                     return this.$_console_log("Invalid file info, can't delete");
@@ -446,29 +350,6 @@
         position: fixed;
         left: 50%;
         top: 50%;
-    }
-
-    .upload-area:hover {
-        border: 1px dashed #D8D8D8;
-        background-color: #646464;
-        color: #323232;
-        font-weight: bold;
-    }
-
-    .upload-area {
-        border-radius: 5px;
-        background-color: #424242;        
-    }
-
-    .upload-button {
-        display: block;
-        text-align: center;
-        line-height: 150%;
-        font-size: .85em;
-    }
-
-    .small {
-        height: 80px;
     }
 
     .hide-extra {
