@@ -151,6 +151,7 @@ const mutations = {
         state.refreshToken = ''
         state.csrfToken = ''
         state.isAuthorize = false
+        state.activeModules = []
 
         localStorage.removeItem('username')
         localStorage.removeItem('userRole')
@@ -158,6 +159,7 @@ const mutations = {
         localStorage.removeItem('refreshToken')
         localStorage.removeItem('csrfToken')
         localStorage.removeItem('isAuthorize')
+        localStorage.removeItem('activeModules')
     },
     [types.GET_MODULES](state, data) {
         ConMsgs.methods.$_console_log("Mutating get modules");

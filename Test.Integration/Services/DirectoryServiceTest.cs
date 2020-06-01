@@ -7,7 +7,7 @@ using Moq;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
-using static VueServer.Domain.Constants;
+using static VueServer.Domain.Constants.Authentication;
 using VueServer.Models.Context;
 using VueServer.Services.Concrete;
 using VueServer.Services.Interface;
@@ -30,7 +30,7 @@ namespace VueServer.Test.Integration.Services
     
         private IConfigurationRoot Config;
 
-        public WSContext Context { get; set; }
+        public IWSContext Context { get; set; }
 
         private const string MAIN_IP = "https://127.0.0.1";
         private const string USERNAME = "Jimmy";
@@ -264,7 +264,8 @@ namespace VueServer.Test.Integration.Services
                 LoggerFactory.Object, 
                 User.Object, 
                 Env.Object, 
-                Config);
+                Config,
+                Context);
 
             return service;
         }

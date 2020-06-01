@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
-using static VueServer.Domain.Constants;
+using static VueServer.Domain.Constants.Authentication;
 using VueServer.Domain.Enums;
 using VueServer.Domain.Factory.Interface;
 using VueServer.Models;
@@ -44,8 +44,10 @@ namespace VueServer.Controllers
         public async Task<IActionResult> ServeMedia(string filename)
         {
             var file = await _service.Download(filename, true);
-            if (file == null || file.Obj == null)
-                return BadRequest();
+            if (file.Code != Domain.Enums.StatusCode.OK && file.Code != Domain.Enums.StatusCode.NO_CONTENT)
+            {
+                return _codeFactory.GetStatusCode(file);
+            }
             else
             {
                 var rangeFile = PhysicalFile(file.Obj.Item1, file.Obj.Item2, file.Obj.Item3);
@@ -71,7 +73,7 @@ namespace VueServer.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Authorize(Roles = ROLES_ALL)]
         [Route("delete")]
         //[Authorize(AuthenticationSchemes = "Identity.Application", Roles = "Administrator")]
         public IActionResult Delete([FromBody] DeleteFileModel model)
@@ -80,7 +82,7 @@ namespace VueServer.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = ROLES_ADMIN_ELEVATED)]
+        [Authorize(Roles = ROLES_ALL)]
         [Route("upload")]
         public async Task<IActionResult> UploadAsync([FromForm] UploadFileRequest model)
         {

@@ -14,7 +14,7 @@ using VueServer.Models.Account;
 using VueServer.Services.Interface;
 using VueServer.Domain.Factory.Interface;
 
-using static VueServer.Domain.Constants;
+using static VueServer.Domain.Constants.Authentication;
 using VueServer.Models.Modules;
 
 namespace VueServer.Controllers

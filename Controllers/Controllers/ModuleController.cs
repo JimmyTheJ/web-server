@@ -8,7 +8,7 @@ using VueServer.Domain.Factory.Interface;
 using VueServer.Models.Modules;
 using VueServer.Services.Interface;
 
-using static VueServer.Domain.Constants;
+using static VueServer.Domain.Constants.Authentication;
 
 namespace VueServer.Controllers.Controllers
 {

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using static VueServer.Domain.Constants;
+using static VueServer.Domain.Constants.Authentication;
 using VueServer.Domain.Factory.Interface;
 using VueServer.Models;
 using VueServer.Models.Account;

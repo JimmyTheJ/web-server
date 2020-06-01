@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using static VueServer.Domain.Constants;
+using static VueServer.Domain.Constants.Authentication;
 using VueServer.Domain.Factory.Interface;
 using VueServer.Services.Interface;
 using System.Threading.Tasks;

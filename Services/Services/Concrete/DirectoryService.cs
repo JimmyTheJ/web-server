@@ -27,25 +27,27 @@ using Xabe.FFmpeg;
 using Xabe.FFmpeg.Enums;
 using Microsoft.AspNetCore.Http;
 using VueServer.Models.Request;
+using VueServer.Models.Context;
+
+using static VueServer.Domain.Constants.Authentication;
 
 namespace VueServer.Services.Concrete
 {
     public class DirectoryService : IDirectoryService
     {
-        private ILogger _logger { get; set; }
-
-        private IUserService _user { get; set; }
-
-        private IWebHostEnvironment _env { get; set; }
-
-        private IConfiguration _config { get; set; }
+        private readonly ILogger _logger;
+        private readonly IUserService _user;
+        private readonly IWebHostEnvironment _env;
+        private readonly IConfiguration _config;
+        private readonly IWSContext _wSContext;
          
-        public DirectoryService(ILoggerFactory logger, IUserService user, IWebHostEnvironment env, IConfigurationRoot config)
+        public DirectoryService(ILoggerFactory logger, IUserService user, IWebHostEnvironment env, IConfigurationRoot config, IWSContext wSContext)
         {
             _logger = logger?.CreateLogger<DirectoryService>() ?? throw new ArgumentNullException("Logger null");
             _user = user ?? throw new ArgumentNullException("User service null");
             _env = env ?? throw new ArgumentNullException("Hosting environment null");
             _config = config ?? throw new ArgumentNullException("Configuration null");
+            _wSContext = wSContext ?? throw new ArgumentNullException("WS Context null");
         }
 
         # region -> Public Functions
@@ -58,6 +60,13 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<Tuple<string, string, string>>> Download (string filename, bool media = false)
         { 
+            if (media)
+            {
+                // Check if current user has access permissions to upload
+                if (!_wSContext.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.VIEWER_ID && x.UserId == _user.Name).Any())
+                    return new Result<Tuple<string, string, string>>(null, StatusCode.FORBIDDEN);
+            }
+
             if (string.IsNullOrWhiteSpace(filename))
             {
                 _logger.LogWarning("Directory.Download: Filename passed is null or empty");
@@ -256,6 +265,10 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<WebServerFile>> Upload(UploadFileRequest model)
         {
+            // Check if current user has access permissions to upload
+            if (!_wSContext.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.UPLOAD_ID && x.UserId == _user.Name).Any())
+                return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
+
             var uploadDirs = GetSingleDirectoryList();
             string baseSaveDir = uploadDirs.Where(x => x.Name == model.Directory).Select(y => y.Path).FirstOrDefault();
             string saveDir = baseSaveDir;
@@ -320,6 +333,10 @@ namespace VueServer.Services.Concrete
 
         public IResult Delete(DeleteFileModel model)
         {
+            // Check if current user has access permissions to delete
+            if (!_wSContext.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.DELETE_ID && x.UserId == _user.Name).Any())
+                return new Result<IResult>(null, StatusCode.FORBIDDEN);
+
             if (string.IsNullOrWhiteSpace(model.Name))
                 return new Result<IResult>(null, StatusCode.BAD_REQUEST);
 
@@ -381,11 +398,11 @@ namespace VueServer.Services.Concrete
 
         private ACCESS_LEVELS GetMaxLevel ()
         {
-            if (_user.Context.User.IsInRole(Constants.ADMINISTRATOR_STRING) )
+            if (_user.Context.User.IsInRole(ADMINISTRATOR_STRING) )
                 return ACCESS_LEVELS.ADMIN;
-            else if (_user.Context.User.IsInRole(Constants.ELEVATED_STRING) )
+            else if (_user.Context.User.IsInRole(ELEVATED_STRING) )
                 return ACCESS_LEVELS.ELEVATED;
-            else if (_user.Context.User.IsInRole(Constants.USER_STRING) )
+            else if (_user.Context.User.IsInRole(USER_STRING) )
                 return ACCESS_LEVELS.GENERAL;
             else
                 return 0;
@@ -393,14 +410,14 @@ namespace VueServer.Services.Concrete
 
         private string GetMaxLevelString ()
         {
-            if (_user.Context.User.IsInRole(Constants.ADMINISTRATOR_STRING) )
-                return Constants.ADMINISTRATOR_STRING;
-            else if (_user.Context.User.IsInRole(Constants.ELEVATED_STRING) )
-                return Constants.ELEVATED_STRING;
-            else if (_user.Context.User.IsInRole(Constants.USER_STRING) )
-                return Constants.USER_STRING;
+            if (_user.Context.User.IsInRole(ADMINISTRATOR_STRING) )
+                return ADMINISTRATOR_STRING;
+            else if (_user.Context.User.IsInRole(ELEVATED_STRING) )
+                return ELEVATED_STRING;
+            else if (_user.Context.User.IsInRole(USER_STRING) )
+                return USER_STRING;
             else
-                return Constants.INVALID_STRING;
+                return INVALID_STRING;
         }
 
         private Tuple<IEnumerable<string>, string> GetStrippedFilename(string fn)
