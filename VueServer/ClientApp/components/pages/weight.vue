@@ -38,8 +38,10 @@
 
                 <v-flex xs12 sm6>
                     <div class="text-sm-left text-md-right headline font-weight-bold">Average weight loss / week:</div>
-                    <!--<div>{{ avgWeightLoss + " lbs" }}</div>-->
                     <div class="text-sm-left text-md-right headline" :class="weightLossCss">{{ avgWeightLossWeek + " lbs" }}</div>
+
+                    <div class="text-sm-left text-md-right headline font-weight-bold">Total Weight Loss:</div>
+                    <div class="text-sm-left text-md-right headline" :class="weightLossCss">{{ totalWeightLoss + " lbs" }}</div>
                 </v-flex>
 
                 <v-flex xs12>
@@ -95,6 +97,10 @@
                     sortDesc: [true],
                     itemsPerPage: 25
                 },
+                startDate: null,
+                endDate: null,
+                startWeight: 0,
+                endWeight: 0,
                 dialogOpen: false,
             }
         },
@@ -135,46 +141,27 @@
                     { text: 'Actions', align: 'start', value: 'actions', sortable: false, width: '7%' },
                 ];
             },
-            // TODO: Do this on the server and return it
+            totalWeightLoss() {
+                return this.startWeight - this.endWeight;
+            },
             avgWeightLoss() {
                 let weightLoss = 0;
 
-                if (typeof this.weightList === 'undefined' || this.weightList == null || this.weightList.length === 0) {
+                if (!Array.isArray(this.weightList) || this.weightList.length === 0) {
+                    this.$_console_log('[AverageWeightLoss] No weights in list');
                     return weightLoss;
                 }
 
-                const dates = this.weightList.map(x => new Date(x.created));
-                const weights = this.weightList.map(x => x.value);
-
-                const maxDate = new Date(Math.max.apply(null, dates));
-                const minDate = new Date(Math.min.apply(null, dates));
-                const diffTime = Math.abs(maxDate - minDate);
+                const diffTime = Math.abs(this.endDate - this.startDate);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 if (diffDays === 0) {
-                    console.log('Difference in days is 0, can\'t divide by 0');
+                    this.$_console_log('[AverageWeightLoss] Difference in days is 0, can\'t divide by 0');
                     return weightLoss;
                 }
-
-                console.log(this.weightList[0].created);
-                console.log(new Date(this.weightList[0].created));
-
-                const maxWeight = this.weightList.find(x => new Date(x.created).getTime() == minDate.getTime()).value;
-                const minWeight = this.weightList.find(x => new Date(x.created).getTime() == maxDate.getTime()).value;
-
-                //const maxWeight = Math.max.apply(null, weights); //.map(x => x.value);
-                //const minWeight = Math.min.apply(null, weights); //.map(x => x.value);
-
-
-                console.log(minDate);
-                console.log(maxDate);
-                console.log(diffDays);
-
-                console.log(maxWeight);
-                console.log(minWeight);
                 
-                weightLoss = ((maxWeight - minWeight) / diffDays);
+                weightLoss = ((this.startWeight - this.endWeight) / diffDays);
 
-                console.log(weightLoss);
+                this.$_console_log('[AverageWeightLoss] Weight loss: ' + weightLoss);
                 return weightLoss;
             },
             avgWeightLossWeek() {
@@ -194,6 +181,31 @@
                 else if (this.avgWeightLossWeek < 0) {
                     return 'red--text';
                 }
+            }
+        },
+        watch: {
+            weightList: {
+                handler(newValue) {
+                    if (!Array.isArray(newValue) || newValue.length === 0) {
+                        this.startDate = null;
+                        this.endDate = null;
+                        this.startWeight = 0;
+                        this.endWeight = 0;
+
+                        return;
+                    }
+
+                    const dates = newValue.map(x => new Date(x.created));
+
+                    this.endDate = new Date(Math.max.apply(null, dates));
+                    this.startDate = new Date(Math.min.apply(null, dates));
+
+                    // TODO: Fix this.. This currently won't necessary give correct values if we have multiple weights on the same day,
+                    // there is no guarantee it picks the right value
+                    this.endWeight = newValue.find(x => new Date(x.created).getTime() == this.endDate.getTime()).value;
+                    this.startWeight = newValue.find(x => new Date(x.created).getTime() == this.startDate.getTime()).value;
+                },
+                deep: true
             }
         },
         methods: {
