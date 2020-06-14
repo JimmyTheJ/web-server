@@ -24,10 +24,10 @@
     "aspnet-webpack": "3.0.0",
     "babel-loader": "8.1.0",
     "cross-env": "7.0.2",
-    "css-loader": "3.5.3",
-    "deepmerge": "^4.2.2",
+    "css-loader": "3.6.0",
+    "deepmerge": "4.2.2",
     "event-source-polyfill": "1.0.12",
-    "extract-text-webpack-plugin": "^4.0.0-beta.0",
+    "extract-text-webpack-plugin": "4.0.0-beta.0",
     "fibers": "5.0.0",
     "file-loader": "6.0.0",
     "mini-css-extract-plugin": "0.9.0",
@@ -39,11 +39,11 @@
     "style-loader": "1.2.1",
     "url-loader": "4.1.0",
     "vue-loader": "15.9.2",
-    "vuetify-loader": "1.4.3",
+    "vuetify-loader": "1.5.0",
     "webpack": "4.43.0",
     "webpack-cli": "3.3.11",
     "webpack-dev-middleware": "3.7.2",
-    "webpack-hot-middleware": "2.25.0"
+    "webpack-hot-middleware": "2.23.1"
   },
   "dependencies": {
     "@fortawesome/fontawesome": "1.2.0-6",
@@ -58,12 +58,12 @@
     "vue": "2.6.11",
     "vue-cookie": "1.1.4",
     "vue-moment-lib": "1.2.2",
-    "vue-router": "3.1.6",
+    "vue-router": "3.3.4",
     "vue-server-renderer": "2.6.11",
     "vue-template-compiler": "2.6.11",
     "vue2-editor": "2.10.2",
-    "vuetify": "2.2.27",
-    "vuex": "3.3.0",
+    "vuetify": "2.3.0",
+    "vuex": "3.4.0",
     "vuex-router-sync": "5.0.0"
   }
 }

@@ -63,7 +63,7 @@
                                           v-bind="attrs"
                                           v-on="on">
                                 <template v-slot:append-outer>
-                                    <v-btn @click="filterStartDate = null" flat icon>
+                                    <v-btn @click="filterStartDate = null" text icon>
                                         <fa-icon icon="window-close"></fa-icon>
                                     </v-btn>
                                 </template>
@@ -87,7 +87,7 @@
                                           v-bind="attrs"
                                           v-on="on">
                                 <template v-slot:append-outer>
-                                    <v-btn @click="filterEndDate = null" flat icon>
+                                    <v-btn @click="filterEndDate = null" text icon>
                                         <fa-icon icon="window-close"></fa-icon>
                                     </v-btn>
                                 </template>
