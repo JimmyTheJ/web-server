@@ -201,9 +201,12 @@
                 ];
             },
             totalWeightLoss() {
-                return this.startWeight - this.endWeight;
+                if (typeof this.startWeight !== 'number' || typeof this.endWeight !== 'number')
+                    return 0;
+
+                return (this.startWeight - this.endWeight).toFixed(2);
             },
-            avgWeightLoss() {
+            avgWeightLossPerDay() {
                 let weightLoss = 0;
 
                 if (!Array.isArray(this.weightList) || this.weightList.length === 0) {
@@ -224,7 +227,7 @@
                 return weightLoss;
             },
             avgWeightLossWeek() {
-                return (this.avgWeightLoss * 7).toFixed(2);
+                return (this.avgWeightLossPerDay * 7).toFixed(2);
             },
             weightLossCss() {
                 console.log(this.avgWeightLossWeek);
