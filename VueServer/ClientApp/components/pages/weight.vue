@@ -44,9 +44,63 @@
                     <div class="text-sm-left text-md-right headline" :class="weightLossCss">{{ totalWeightLoss + " lbs" }}</div>
                 </v-flex>
 
+                <!-- Filtering by dates -->
+                <v-flex xs12>
+                    <div class="headline">Filtering:</div>
+                </v-flex>
+                <v-flex xs12 sm6>
+                    <v-menu v-model="filterStartDateMenu"
+                            :close-on-content-click="false"
+                            :nudge-right="40"
+                            transition="scale-transition"
+                            offset-y
+                            min-width="290px">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-text-field v-model="filterStartDate"
+                                          label="Filter Start Date"
+                                          prepend-icon="event"
+                                          readonly
+                                          v-bind="attrs"
+                                          v-on="on">
+                                <template v-slot:append-outer>
+                                    <v-btn @click="filterStartDate = null" flat icon>
+                                        <fa-icon icon="window-close"></fa-icon>
+                                    </v-btn>
+                                </template>
+                            </v-text-field>
+                        </template>
+                        <v-date-picker v-model="filterStartDate" @input="filterStartDateMenu = false"></v-date-picker>
+                    </v-menu>
+                </v-flex>
+                <v-flex xs12 sm6>
+                    <v-menu v-model="filterEndDateMenu"
+                            :close-on-content-click="false"
+                            :nudge-right="40"
+                            transition="scale-transition"
+                            offset-y
+                            min-width="290px">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-text-field v-model="filterEndDate"
+                                          label="End Date"
+                                          prepend-icon="event"
+                                          readonly
+                                          v-bind="attrs"
+                                          v-on="on">
+                                <template v-slot:append-outer>
+                                    <v-btn @click="filterEndDate = null" flat icon>
+                                        <fa-icon icon="window-close"></fa-icon>
+                                    </v-btn>
+                                </template>
+                            </v-text-field>
+                        </template>
+                        <v-date-picker v-model="filterEndDate" @input="filterEndDateMenu = false"></v-date-picker>                        
+                    </v-menu>
+                </v-flex>
+
+                <!-- Filtered list results -->
                 <v-flex xs12>
                     <v-data-table :headers="getHeaders"
-                                  :items="weightList"
+                                  :items="filteredWeightList"
                                   class="elevation-1">
                         <template v-slot:body="{ items }">
                             <tbody>
@@ -90,6 +144,11 @@
     export default {
         data() {
             return {
+                filteredWeightList: [],
+                filterStartDate: null,
+                filterEndDate: null,
+                filterStartDateMenu: false,
+                filterEndDateMenu: false,
                 weightList: [],
                 weight: null,
                 tableOptions: {
@@ -186,6 +245,14 @@
         watch: {
             weightList: {
                 handler(newValue) {
+                    if (this.filterStartDate === null || this.filterEndDate === null) {
+                        this.filteredWeightList = newValue;
+                    }
+                },
+                deep: true
+            },
+            filteredWeightList: {
+                handler(newValue) {
                     if (!Array.isArray(newValue) || newValue.length === 0) {
                         this.startDate = null;
                         this.endDate = null;
@@ -206,6 +273,42 @@
                     this.startWeight = newValue.find(x => new Date(x.created).getTime() == this.startDate.getTime()).value;
                 },
                 deep: true
+            },
+            filterStartDate(newValue) {
+                if (this.filterEndDate === null || newValue === null) {
+                    this.filteredWeightList = this.weightList.slice(0);
+                    return;
+                }
+
+                const startDate = new Date(newValue).getTime();
+                const endDate = new Date(this.filterEndDate).getTime();
+                this.filteredWeightList = this.weightList.slice(0).filter(x => {
+                    var date = new Date(x.created).getTime();
+
+                    if (date >= startDate && date <= endDate)
+                        return true;
+                    else
+                        return false;
+                });
+
+                //this.filteredWeightList = this.weightList.slice(0).filter(x => new Date(x.created) >= newValue && new Date(x.created) <= this.filterEndDate);
+            },
+            filterEndDate(newValue) {
+                if (this.filterStartDate === null || newValue === null) {
+                    this.filteredWeightList = this.weightList.slice(0);
+                    return;
+                }
+
+                const startDate = new Date(this.filterStartDate).getTime();
+                const endDate = new Date(newValue).getTime();
+                this.filteredWeightList = this.weightList.slice(0).filter(x => {
+                    var date = new Date(x.created).getTime();
+
+                    if (date >= startDate && date <= endDate)
+                        return true;
+                    else
+                        return false;
+                });
             }
         },
         methods: {
@@ -214,8 +317,13 @@
                 weightService.getWeightList().then(resp => {
                     this.$_console_log('[Weight] Success getting weights');
                     this.$_console_log(resp.data);
-                    if (resp.data !== '')
+                    if (Array.isArray(resp.data)) {
                         this.weightList = resp.data;
+                    }
+                    else {
+                        this.weightList = [];
+                    }
+                        
                 }).catch(() => this.$_console_log('[Weight] Error getting weights') );
             },
             openAddOrEditWeight(item, evt) {
@@ -312,7 +420,8 @@
                     this.$_console_log('[Weight] Success deleting weight');
 
                     let weightIndex = this.weightList.findIndex(x => x.id === id);
-                    this.weightList.splice(weightIndex, 1);
+                    if (weightIndex >= 0)
+                        this.weightList.splice(weightIndex, 1);
                 }).catch(() => this.$_console_log('[Weight] Error creating weight'));
             },
         },
