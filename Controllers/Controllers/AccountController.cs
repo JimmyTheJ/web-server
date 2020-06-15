@@ -101,15 +101,27 @@ namespace VueServer.Controllers
         }
 
         /// <summary>
-        /// Get all user ids
+        /// Get all user objects
         /// </summary>
         /// <returns></returns>
         [HttpGet]
         [Authorize(Roles = ADMINISTRATOR_STRING)]
-        [Route("get-all-users")]
-        public async Task<IActionResult> GetAllUser ()
+        [Route("user/get-all")]
+        public async Task<IActionResult> GetAllUsers ()
         {
             return _codeFactory.GetStatusCode(await _service.GetUsers());
+        }
+
+        /// <summary>
+        /// Get all user ids
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Authorize(Roles = ROLES_ALL)]
+        [Route("user/get-all-ids")]
+        public async Task<IActionResult> GetAllUserIds()
+        {
+            return _codeFactory.GetStatusCode(await _service.GetUserIds());
         }
 
         #endregion

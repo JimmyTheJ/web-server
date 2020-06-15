@@ -25,6 +25,7 @@ using System.Linq;
 using System.IO;
 using VueServer.Domain.Helper;
 using Microsoft.Extensions.Hosting;
+using VueServer.Services.Hubs;
 
 namespace VueServer
 {
@@ -53,6 +54,7 @@ namespace VueServer
                 options.SizeLimit = 256 * 1024 * 1024;
             });
 
+            services.AddSignalR();
             services.AddCustomSession();
             services.AddCustomAntiforgery();
 
@@ -143,6 +145,7 @@ namespace VueServer
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHealthChecks("/healthcheck");
+                endpoints.MapHub<ChatHub>("/chat-hub");
                 endpoints.MapDefaultControllerRoute();
                 endpoints.MapControllers();
                 endpoints.MapFallbackToController("Index", "Home");

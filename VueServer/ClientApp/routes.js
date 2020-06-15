@@ -7,6 +7,7 @@ import Register from './components/modules/register'
 import Home from './components/home'
 import Start from './components/pages/start'
 import AdminTools from './components/pages/admin-tools'
+import Chat from './components/pages/chat-messaging'
 import Browser from './components/pages/browser'
 import Notes from './components/pages/notes'
 import Documentation from './components/pages/documentation'
@@ -58,6 +59,16 @@ export const routes = [
                 display: 'Admin Tools',
                 meta: {
                     authLevel: Roles.Level.Admin,
+                    hidden: false,
+                }
+            },
+            {
+                path: 'chat',
+                name: 'chat',
+                component: Chat,
+                display: 'Chat',
+                meta: {
+                    authLevel: Roles.Level.General,
                     hidden: false,
                 }
             },

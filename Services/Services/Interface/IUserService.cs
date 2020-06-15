@@ -9,16 +9,8 @@ namespace VueServer.Services.Interface
         HttpContext Context { get; }
 
         string Name { get; }
-
+        string Id { get;  }
         string IP { get; }
-
-        //HttpContext GetContext();
-
-        //string GetUserName();
-
-        //string GetUserIP();
-
-        //string GetUsername();
 
         Task<WSUser> GetUserAsync();
     }

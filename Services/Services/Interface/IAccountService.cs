@@ -24,6 +24,8 @@ namespace VueServer.Services.Interface
 
         Task<IResult<RefreshTokenResponse>> RefreshJwtToken (RefreshTokenRequest model);
 
-        Task<IResult<IList<WSUser>>> GetUsers();
+        Task<IResult<IEnumerable<WSUser>>> GetUsers();
+
+        Task<IResult<IEnumerable<string>>> GetUserIds();
     }
 }

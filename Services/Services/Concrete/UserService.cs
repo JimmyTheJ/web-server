@@ -42,6 +42,12 @@ namespace VueServer.Services.Concrete
             }
         }
 
+
+        public string Id
+        {
+            get => Name?.ToLower();
+        }
+
         public string IP {
             get {
                 return _httpContext.HttpContext.Connection.RemoteIpAddress.ToString();

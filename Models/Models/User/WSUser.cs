@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using VueServer.Domain.Interface;
+using VueServer.Models.Chat;
 using VueServer.Models.Modules;
 
 namespace VueServer.Models.User
@@ -22,7 +23,8 @@ namespace VueServer.Models.User
 
         public virtual IList<WSUserInRoles> Roles { get; set; }
 
-        public virtual IList<UserHasModuleAddOn> UserModuleAddOns { get; set; }
-        public virtual IList<UserHasModuleFeature> UserModuleFeatures { get; set; }
+        public virtual IEnumerable<UserHasModuleAddOn> UserModuleAddOns { get; set; }
+        public virtual IEnumerable<UserHasModuleFeature> UserModuleFeatures { get; set; }
+        public virtual IEnumerable<ConversationHasUser> ConversationUser { get; set; }
     }
 }

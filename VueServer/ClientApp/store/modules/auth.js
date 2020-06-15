@@ -5,7 +5,7 @@ import ConMsgs from '../../mixins/console';
 
 const state = {
     isAuthorize: Boolean(localStorage.getItem('isAuthorize')) || false,
-    username: localStorage.getItem('username') || '',
+    user: JSON.parse(localStorage.getItem('user')) || { },
     role: localStorage.getItem('userRole') || '',
 
     accessToken: localStorage.getItem('accessToken') || '',
@@ -128,14 +128,14 @@ const mutations = {
         ConMsgs.methods.$_console_log("Mutating login success")
         let role = data.roles[0].toString()
 
-        state.username = data.username
+        state.user = data.user
         state.role = role
         state.accessToken = data.token
         state.refreshToken = data.refreshToken
         state.csrfToken = data.csrfToken
         state.isAuthorize = true
 
-        localStorage.setItem('username', data.username)
+        localStorage.setItem('user', JSON.stringify(data.user))
         localStorage.setItem('userRole', role)
         localStorage.setItem('accessToken', data.token)
         localStorage.setItem('refreshToken', data.refreshToken)
@@ -145,7 +145,7 @@ const mutations = {
     [types.LOGOUT](state) {
         ConMsgs.methods.$_console_log("Mutating logout");
 
-        state.username = ''
+        state.user = {}
         state.role = ''
         state.accessToken = ''
         state.refreshToken = ''
@@ -153,7 +153,7 @@ const mutations = {
         state.isAuthorize = false
         state.activeModules = []
 
-        localStorage.removeItem('username')
+        localStorage.removeItem('user')
         localStorage.removeItem('userRole')
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')

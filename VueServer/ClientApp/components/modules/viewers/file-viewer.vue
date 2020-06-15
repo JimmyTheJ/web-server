@@ -1,5 +1,11 @@
 <template>
-    <v-dialog v-model="dialog" :max-width="getMaxWidth">
+    <v-dialog v-model="dialog" :max-width="getMaxWidth" :fullscreen="isMobile">
+        <v-toolbar>
+            <v-toolbar-item>
+                <fa-icon icon="window-close"></fa-icon>
+            </v-toolbar-item>
+            
+        </v-toolbar>
         <v-card>
             <v-card-title class="headline">
                 <slot name="header">
@@ -76,6 +82,9 @@
                 else
                     return this.windowWidth * 0.95;
             },
+            isMobile: function () {
+                return this.getMaxWidth < 960;
+            }
         },
         watch: {
             dialog: function (newValue) {

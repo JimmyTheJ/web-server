@@ -18,6 +18,7 @@ export default new Vuetify({
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 // User stuff
+import ChatHub from './plugins/chat-hub'
 import axios from './axios'
 import router from './router'
 import store from './store'
@@ -31,6 +32,11 @@ import ConMsgs from './mixins/console'
 Vue.use(Vuetify);
 Vue.use(VueCookie);
 Vue.use(Moment);
+
+/*******************
+ * Use Plugins
+ */
+Vue.use(ChatHub);
 
 /*******************
  * Global components

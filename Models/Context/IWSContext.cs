@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using VueServer.Models.Modules;
 using VueServer.Models.Library;
 using VueServer.Models.User;
+using VueServer.Models.Chat;
 
 namespace VueServer.Models.Context
 {
@@ -14,9 +15,23 @@ namespace VueServer.Models.Context
     {
         #region -> Tables
 
+        #region -> Misc
+
         DbSet<Notes> Notes { get; set; }
 
         DbSet<Weight> Weight { get; set; }
+
+        #endregion
+
+        #region -> Chat System
+
+        DbSet<Conversation> Conversations { get; set; }
+
+        DbSet<ConversationHasUser> ConversationHasUser { get; set; }
+
+        DbSet<ChatMessage> Messages { get; set; }
+
+        #endregion
 
         #region -> Modules
 

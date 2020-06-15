@@ -169,7 +169,7 @@ namespace VueServer.Services.Concrete
             await InvalidateAllRefreshTokensForUser(user.Id, _user.IP);
             await SaveRefreshToken(user.Id, refreshToken);
 
-            var resp = new LoginResponse(token, refreshToken, user.UserName, roles);
+            var resp = new LoginResponse(token, refreshToken, user, roles);
 
             return new Result<LoginResponse>(resp, Domain.Enums.StatusCode.OK);
         }
@@ -210,11 +210,20 @@ namespace VueServer.Services.Concrete
             return new Result<RefreshTokenResponse>(new RefreshTokenResponse(newJwtToken, newRefreshToken), Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IList<WSUser>>> GetUsers ()
+        public async Task<IResult<IEnumerable<WSUser>>> GetUsers ()
         {
             var users = await _context.Users.ToListAsync();
+            // Remove password from the results
+            users.ForEach(x => x.PasswordHash = null);
 
-            return new Result<IList<WSUser>>(users, Domain.Enums.StatusCode.OK);
+            return new Result<IEnumerable<WSUser>>(users, Domain.Enums.StatusCode.OK);
+        }
+
+        public async Task<IResult<IEnumerable<string>>> GetUserIds()
+        {
+            var userIds = await _context.Users.Select(x => x.Id).ToListAsync();
+
+            return new Result<IEnumerable<string>>(userIds, Domain.Enums.StatusCode.OK);
         }
 
         #endregion
