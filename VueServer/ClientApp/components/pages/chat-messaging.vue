@@ -24,11 +24,25 @@
         </v-layout>
 
         <v-layout row>
-            <template v-if="Array.isArray(conversations) && conversations.length > 0">
-                <div v-for="(convo, index) in conversations" :key="index">
-                    <chat-conversation :conversation="convo"></chat-conversation>
-                </div>
-            </template>
+            <v-flex xs4 md3 lg2>
+                <template v-if="Array.isArray(conversations) && conversations.length > 0">
+                    <v-list shaped>
+                        <v-list-item v-for="(convo, index) in conversations" :key="index" @click="selectedConversation = convo">
+                            <v-list-item-icon>
+                                <v-icon name="account"></v-icon>
+                            </v-list-item-icon>
+                            <v-list-item-content>
+                                {{ getConversationName(convo.conversationUsers) }}
+                            </v-list-item-content>
+                        </v-list-item>
+                    </v-list>
+                </template>
+            </v-flex>
+            <v-flex xs8 md9 lg10>
+                <template v-if="selectedConversation !== null">
+                    <chat-conversation :conversation="selectedConversation" :time="currentTime"></chat-conversation>
+                </template>                
+            </v-flex>
         </v-layout>
         
     </v-container>
@@ -43,12 +57,14 @@
         data() {
             return {
                 conversations: [],
+                selectedConversation: null,
                 newConversation: {
                     users: [],
                 },
                 userList: [],
                 search: null,
-                isLoading: false
+                isLoading: false,
+                currentTime: null
             }
         },
         components: {
@@ -57,6 +73,14 @@
         created() {
             this.getAllUsers();
             this.getAllConversations();
+        },
+        mounted() {
+            const self = this;
+            self.currentTime = Math.trunc(new Date().getTime() / 1000);
+
+            setTimeout(() => {
+                self.currentTime = Math.trunc(new Date().getTime() / 1000);
+            }, 15000);
         },
         methods: {
             async getAllUsers() {
@@ -91,6 +115,21 @@
                     }
                 }).catch(() => this.$_console_log('StartConversation: Error starting conversation'))
                     .then(() => this.newConversation.users = []);
+            },
+            getConversationName(conversationUsers) {
+                if (!Array.isArray(conversationUsers) || conversationUsers.length === 0) {
+                    return '';
+                }
+
+                let name = '';
+                for (let i = 0; i < conversationUsers.length; i++) {
+                    name += conversationUsers[i].userId;
+                    if (i + 1 < conversationUsers.length) {
+                        name += ', ';
+                    }
+                }
+
+                return name;
             }
         },
     }

@@ -25,6 +25,6 @@ namespace VueServer.Models.User
 
         public virtual IEnumerable<UserHasModuleAddOn> UserModuleAddOns { get; set; }
         public virtual IEnumerable<UserHasModuleFeature> UserModuleFeatures { get; set; }
-        public virtual IEnumerable<ConversationHasUser> ConversationUser { get; set; }
+        public virtual IEnumerable<ConversationHasUser> ConversationUsers { get; set; }
     }
 }

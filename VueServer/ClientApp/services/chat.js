@@ -14,8 +14,6 @@ export default {
         return axios.get(`${GetConversationUrl}/${id}`);
     },
     getAllConversations(userId) {
-        console.log('Getting all conversations');
-        console.log(userId);
         return axios.get(`${GetAllConversationsUrl}/${userId}`);
     },
     getMessage(id) {

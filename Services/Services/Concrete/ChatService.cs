@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using VueServer.Domain.Concrete;
@@ -80,7 +81,7 @@ namespace VueServer.Services.Concrete
                 return new Result<Conversation>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
-            conversation.ConversationUser = conversationUserList;
+            conversation.ConversationUsers = conversationUserList;
             conversation.Messages = new List<ChatMessage>();
             return new Result<Conversation>(conversation, Domain.Enums.StatusCode.OK);
         }
@@ -89,7 +90,7 @@ namespace VueServer.Services.Concrete
         {
             var conversation = await _context.Conversations
                 .Include(x => x.Messages)
-                .Include(x => x.ConversationUser)
+                .Include(x => x.ConversationUsers)
                 .Where(x => x.Id == id)
                 .OrderByDescending(x => x.Messages.OrderByDescending(y => y.Timestamp))
                 .SingleOrDefaultAsync();
@@ -107,14 +108,9 @@ namespace VueServer.Services.Concrete
 
             var conversationList = await _context.Conversations
                 .Include(x => x.Messages)
-                .Include(x => x.ConversationUser)
-                .Select(x => new Conversation()
-                {
-                    ConversationUser = _context.ConversationHasUser.Where(y => conversationUsers.Any(z => z.ConversationId == y.ConversationId)).ToList()
-                })
+                .Include(x => x.ConversationUsers)
+                .Where(x => x.ConversationUsers.Any(y => y.ConversationId == x.Id && y.UserId == userId))
                 .ToListAsync();
-            //.Where(x => conversationUsers.Any(y => x.ConversationUser.Contains(y)))
-            //.OrderByDescending(x => x.Messages.OrderByDescending(y => y.Timestamp))
 
             return new Result<IEnumerable<Conversation>>(conversationList, Domain.Enums.StatusCode.OK);
         }
@@ -142,7 +138,7 @@ namespace VueServer.Services.Concrete
                 ConversationId = message.ConversationId,
                 Text = message.Text,
                 UserId = _user.Name,
-                Timestamp = DateTime.Now.ToFileTime()
+                Timestamp = DateTimeOffset.Now.ToUnixTimeSeconds()
             };
 
             _context.Messages.Add(newMessage);
@@ -158,7 +154,7 @@ namespace VueServer.Services.Concrete
 
             await _chatHubContext.Clients.All.SendMessage(newMessage);
 
-            return new Result<ChatMessage>(message, Domain.Enums.StatusCode.OK);
+            return new Result<ChatMessage>(newMessage, Domain.Enums.StatusCode.OK);
         }
     }    
 }

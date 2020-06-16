@@ -18,6 +18,8 @@ namespace VueServer.Models.Chat
         [ForeignKey("Conversation")]
         public Guid ConversationId { get; set; }
 
+        public bool Read { get; set; }
+
         public string Text { get; set; }
 
         public long Timestamp { get; set; }

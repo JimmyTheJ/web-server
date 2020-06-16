@@ -13,6 +13,6 @@ namespace VueServer.Models.Chat
 
         public virtual IEnumerable<ChatMessage> Messages { get; set; }
 
-        public virtual IList<ConversationHasUser> ConversationUser { get; set; }
+        public virtual IList<ConversationHasUser> ConversationUsers { get; set; }
     }
 }

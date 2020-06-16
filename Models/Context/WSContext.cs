@@ -50,8 +50,8 @@ namespace VueServer.Models.Context
 
             // Conversation User many to many setup
             modelBuilder.Entity<ConversationHasUser>().HasKey(x => new { x.ConversationId, x.UserId });
-            modelBuilder.Entity<ConversationHasUser>().HasOne(x => x.Conversation).WithMany(x => x.ConversationUser).HasForeignKey(x => x.ConversationId);
-            modelBuilder.Entity<ConversationHasUser>().HasOne(x => x.User).WithMany(x => x.ConversationUser).HasForeignKey(x => x.UserId);
+            modelBuilder.Entity<ConversationHasUser>().HasOne(x => x.Conversation).WithMany(x => x.ConversationUsers).HasForeignKey(x => x.ConversationId);
+            modelBuilder.Entity<ConversationHasUser>().HasOne(x => x.User).WithMany(x => x.ConversationUsers).HasForeignKey(x => x.UserId);
 
             // Data Seeding
             SeedGenres(modelBuilder);

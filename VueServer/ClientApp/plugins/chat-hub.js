@@ -14,8 +14,8 @@ export default {
         // every component will use this.$chatHub to access the event bus
         Vue.prototype.$chatHub = chatHub
         // Forward server side SignalR events through $chatHub, where components will listen to them
-        connection.on('SendMessage', (user, message) => {
-            chatHub.$emit('message-received', { user, message })
+        connection.on('SendMessage', message => {
+            chatHub.$emit('message-received', message)
         })
 
         let startedPromise = null
