@@ -144,11 +144,10 @@ namespace VueServer
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapFallbackToController("Index", "Home");
                 endpoints.MapHealthChecks("/healthcheck");
                 endpoints.MapHub<ChatHub>("/chat-hub");
-                endpoints.MapDefaultControllerRoute();
                 endpoints.MapControllers();
-                endpoints.MapFallbackToController("Index", "Home");
             });
         }
     }

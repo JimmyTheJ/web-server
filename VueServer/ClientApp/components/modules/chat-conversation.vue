@@ -18,7 +18,7 @@
         <v-container>
             <v-layout row ma-2 style="max-width: 1100px">
                 <v-toolbar>
-                    <v-btn text @click="editingTitle = true">
+                    <v-btn text @click="editingTitle = !editingTitle">
                         <v-icon>mdi-account-edit</v-icon>
                     </v-btn>
                     <v-toolbar-title v-if="!editingTitle">
@@ -26,7 +26,7 @@
                     </v-toolbar-title>
                     <v-toolbar-title v-else style="width: 100%" class="ml-3 pl-2">
                         <div style="display: flex; flex-direction: row">
-                            <v-text-field v-model="newTitle" @keyup.enter.prevent="updateTitle"></v-text-field>
+                            <v-text-field v-model="newTitle" @keyup.enter.prevent="updateTitle" autofocus></v-text-field>
                             <v-btn @click="updateTitle">SAVE</v-btn>
                         </div>
                     </v-toolbar-title>
@@ -37,7 +37,7 @@
                     <chat-bubble :message="message" :currentTime="time" :owner="isOwner(message)" :color="getTextColor(message)" @deleteMessage="deleteMessage"></chat-bubble>
                 </v-flex>
                 <v-flex xs12 class="text-right">
-                    <v-text-field v-model="newMessage.text" label="Message"></v-text-field>
+                    <v-text-field v-model="newMessage.text" label="Message" ref="newMessage" @keyup.enter.prevent="sendMessage" autofocus></v-text-field>
                     <v-btn @click="sendMessage">Send</v-btn>
                 </v-flex>
             </v-layout>
@@ -97,18 +97,14 @@
             },
         },
         watch: {
-            conversation: {
-                handler(newValue, oldValue) {
-                    if (typeof newValue === 'undefined' || newValue === null || typeof oldValue == 'undefined' || oldValue === null) {
-                        return;
-                    }
-
-                    if (newValue.title !== oldValue.title) {
-                        this.editingTitle = false;
-                    }
-                },
-                deep: true
-            }
+            editingTitle(newValue) {
+                if (newValue === false) {
+                    this.newTitle = null;
+                }
+                else {
+                    this.newTitle = this.conversation.title;
+                }
+            },
         },
         methods: {
             onMessageReceived(message) {
@@ -121,7 +117,7 @@
                     return;
                 }
 
-                this.$emit('addMessage', { conversationId: this.conversation.id, message: message })
+                this.$store.dispatch('addChatMessage', { conversationId: this.conversation.id, message: message })
             },
             async sendMessage() {
                 this.newMessage.userId = this.user.id;
@@ -129,6 +125,7 @@
                 await service.sendMessage(this.newMessage);
 
                 this.newMessage = { text: '' };
+                this.$refs.newMessage.focus();
             },
             getTextPosition(message) {
                 if (message.userId === this.user.id) {
@@ -147,19 +144,23 @@
                 }
             },
             deleteConversation() {
-                this.$emit('deleteConversation', this.conversation.id);
-                this.deleteConversationDialog = false;
+                this.$store.dispatch('deleteConversation', this.conversation.id)
+                    .then(() => { }).catch(() => { }).then(() => this.deleteConversationDialog = false);
+            },
+            updateTitle() {
+                this.$_console_log('New Title is: ' + this.newTitle);
+                const title = this.newTitle;
+
+                if (/^\s*$/.test(title)) {
+                    this.editingTitle = false;
+                    return;
+                }
+
+                this.$store.dispatch('updateConversationTitle', { conversationId: this.conversation.id, title: title })
+                    .then(() => { }).catch(() => { }).then(() => this.editingTitle = false);
             },
             deleteMessage(id) {
-                service.deleteMessage(id).then(resp => {
-                    if (typeof resp.data === 'boolean' && resp.data === true) {
-                        const messageIndex = this.conversation.messages.findIndex(x => x.id === id);
-                        if (messageIndex >= 0) {
-                            this.conversation.messages.splice(messageIndex, 1);
-                        }
-                    }
-
-                }).catch(() => this.$_console_log('DeleteMessage: Failed to delete message. API call failed.'))
+                this.$store.dispatch('deleteChatMessage', { conversationId: this.conversation.id, messageId: id });
             },
             canDeleteMessage(message) {
                 if (this.isMessageDeletable) {
@@ -172,17 +173,6 @@
             },
             isOwner(message) {
                 return this.user.id === message.userId;
-            },
-            updateTitle() {
-                this.$_console_log('New Title is: ' + this.newTitle);
-                const title = this.newTitle;
-
-                if (/^\s*$/.test(title)) {
-                    this.editingTitle = false;
-                    return;
-                }
-
-                this.$emit('updateTitle', { conversationId: this.conversation.id, title: title})
             },
         }
     }

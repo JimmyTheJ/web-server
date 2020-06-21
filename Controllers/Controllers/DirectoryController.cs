@@ -76,9 +76,9 @@ namespace VueServer.Controllers
         [Authorize(Roles = ROLES_ALL)]
         [Route("delete")]
         //[Authorize(AuthenticationSchemes = "Identity.Application", Roles = "Administrator")]
-        public IActionResult Delete([FromBody] DeleteFileModel model)
+        public async Task<IActionResult> Delete([FromBody] DeleteFileModel model)
         {
-            return _codeFactory.GetStatusCode(_service.Delete(model));
+            return _codeFactory.GetStatusCode(await _service.Delete(model));
         }
 
         [HttpPost]
