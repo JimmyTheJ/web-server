@@ -5,9 +5,11 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using VueServer.Domain;
 using VueServer.Domain.Concrete;
 using VueServer.Domain.Interface;
 using VueServer.Models.Chat;
@@ -45,27 +47,62 @@ namespace VueServer.Services.Concrete
 
             var conversationUserList = new List<ConversationHasUser>();
 
-            // Add self to conversation
+            // Get current user, this shouldn't be able to fail
+            var currentUser = await _user.GetUserByNameAsync(_user.Name);
+
+            // Get all this users conversations to see if they are trying to make a conversation that already exists
+            var allUsersConversations = (await GetAllConversations(currentUser.Id))?.Obj;
+            if (allUsersConversations != null && allUsersConversations.Count() > 0)
+            {
+                var allUsersInEachConvo = allUsersConversations.Select(x => x.ConversationUsers).ToList();
+                foreach (var convo in allUsersInEachConvo)
+                {
+                    // Same number of users, so it's possible we have a match
+                    if (convo.Count == request.Users.Count())
+                    {
+                        var userMatches = convo.Where(x => request.Users.Contains(x.UserId));
+                        // All users match, can't create this conversation
+                        if (userMatches.Count() == request.Users.Count())
+                        {
+                            return new Result<Conversation>(null, Domain.Enums.StatusCode.NO_CONTENT);
+                        }
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+            }
+
+            // Add current user to conversation
             var selfUser = new ConversationHasUser()
             {
                 ConversationId = conversation.Id,
-                UserId = _user.Id,
+                UserId = currentUser.Id,
                 Owner = true
             };
             _context.ConversationHasUser.Add(selfUser);
-            conversationUserList.Add(selfUser);
+            conversationUserList.Add(selfUser);           
 
             // Add all the other users to the conversation
-            foreach (var user in request.Users.Where(x => x != _user.Id))
+            foreach (var username in request.Users.Where(x => x != currentUser.Id))
             {
-                if (string.IsNullOrWhiteSpace(user)) {
+                if (string.IsNullOrWhiteSpace(username)) {
+                    continue;
+                }
+
+                var user = await _user.GetUserByIdAsync(username);
+                if (user == null) 
+                {
+                    _logger.LogInformation($"Invalid userId: {username}. Cannot create a conversation with this user as they don't exist.");
                     continue;
                 }
 
                 var conversationUser = new ConversationHasUser()
                 {
                     ConversationId = conversation.Id,
-                    UserId = user
+                    UserId = user.Id,
+                    UserDisplayName = user.DisplayName
                 };
                 _context.ConversationHasUser.Add(conversationUser);
                 conversationUserList.Add(conversationUser);
@@ -92,8 +129,17 @@ namespace VueServer.Services.Concrete
                 .Include(x => x.Messages)
                 .Include(x => x.ConversationUsers)
                 .Where(x => x.Id == id)
-                .OrderByDescending(x => x.Messages.OrderByDescending(y => y.Timestamp))
                 .SingleOrDefaultAsync();
+
+            // Sort messages
+            conversation.Messages.OrderByDescending(x => x.Timestamp);
+
+            // TODO: This is very inneficient. Figure out a better way with LINQ
+            foreach (var userConversation in conversation.ConversationUsers)
+            {
+                var usr = await _user.GetUserByIdAsync(userConversation.UserId);
+                userConversation.UserDisplayName = usr.DisplayName;
+            }
 
             return new Result<Conversation>(conversation, Domain.Enums.StatusCode.OK);
         }
@@ -112,7 +158,170 @@ namespace VueServer.Services.Concrete
                 .Where(x => x.ConversationUsers.Any(y => y.ConversationId == x.Id && y.UserId == userId))
                 .ToListAsync();
 
+            foreach(var conversation in conversationList)
+            {
+                if (conversation.ConversationUsers != null)
+                {
+                    // TODO: This is very inneficient. Figure out a better way with LINQ
+                    foreach (var userConversation in conversation.ConversationUsers)
+                    {
+                        // Don't bother doing a lookup on our own name
+                        if (userConversation.UserId == userId)
+                        {
+                            continue;
+                        }
+
+                        var usr = await _user.GetUserByIdAsync(userConversation.UserId);
+                        userConversation.UserDisplayName = usr.DisplayName;
+                    }
+                }
+
+                if (conversation.Messages != null)
+                {
+                    // Sort messages
+                    conversation.Messages.OrderByDescending(x => x.Timestamp);
+                }
+            }
+
             return new Result<IEnumerable<Conversation>>(conversationList, Domain.Enums.StatusCode.OK);
+        }
+
+        public async Task<IResult<bool>> UpdateConversationTitle(Guid conversationId, string title)
+        {
+            var user = await _user.GetUserByNameAsync(_user.Name);
+            if (user == null)
+            {
+                _logger.LogWarning($"UpdateConversationTitle: Unable to get user by name with name ({_user.Name})");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            var conversation = (await GetConversation(conversationId))?.Obj;
+            if (conversation == null)
+            {
+                _logger.LogInformation($"UpdateConversationTitle: Conversation with id ({conversationId}) does not exist. Cannot delete it");
+                return new Result<bool>(false, Domain.Enums.StatusCode.NO_CONTENT);
+            }
+
+            var selfUser = conversation.ConversationUsers.Where(x => x.UserId == user.Id).SingleOrDefault();
+            if (selfUser == null)
+            {
+                _logger.LogWarning($"UpdateConversationTitle: Conversation with id ({conversationId}) does not include user ({user.Id}) as one of it's members. This is likely an escalation attack");
+                return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
+            }
+
+            if (!selfUser.Owner)
+            {
+                _logger.LogInformation($"UpdateConversationTitle: User ({user.Id}) is not the owner of this conversation ({conversationId}). They cannot change it's title.");
+                return new Result<bool>(false, Domain.Enums.StatusCode.UNAUTHORIZED);
+            }
+
+            conversation.Title = title;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                _logger.LogError("UpdateConversationTitle: Error saving database on updating the conversation's title");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            return new Result<bool>(true, Domain.Enums.StatusCode.OK);
+        }
+
+        public async Task<IResult<bool>> DeleteConversation(Guid conversationId)
+        {
+            var user = await _user.GetUserByNameAsync(_user.Name);
+            if (user == null)
+            {
+                _logger.LogWarning($"DeleteConversation: Unable to get user by name with name ({_user.Name})");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            if (_context.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.Chat.DELETE_CONVERSATION_ID && x.UserId == user.Id).SingleOrDefault() == null)
+            {
+                _logger.LogInformation($"DeleteConversation: User ({user.Id}) does not have permission to delete conversations");
+                return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
+            }
+
+            var conversation = (await GetConversation(conversationId))?.Obj;
+            if (conversation == null)
+            {
+                _logger.LogInformation($"DeleteConversation: Conversation with id ({conversationId}) does not exist. Cannot delete it");
+                return new Result<bool>(false, Domain.Enums.StatusCode.NO_CONTENT);
+            }
+
+            _context.ConversationHasUser.RemoveRange(conversation.ConversationUsers);
+            _context.Messages.RemoveRange(conversation.Messages);
+            _context.Conversations.Remove(conversation);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                _logger.LogError("DeleteConversation: Error saving database on deleting conversation");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            return new Result<bool>(true, Domain.Enums.StatusCode.OK);
+        }
+
+        public async Task<IResult<bool>> DeleteMessage(Guid messageId)
+        {
+            var user = await _user.GetUserByNameAsync(_user.Name);
+            if (user == null)
+            {
+                _logger.LogWarning($"DeleteMessage: Unable to get user by name with name ({_user.Name})");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            if (_context.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.Chat.DELETE_MESSAGE_ID && x.UserId == user.Id).SingleOrDefault() == null)
+            {
+                _logger.LogInformation($"DeleteMessage: User ({user.Id}) does not have permission to delete messages");
+                return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
+            }
+
+            var message = _context.Messages.Where(x => x.Id == messageId).SingleOrDefault();
+            if (message == null)
+            {
+                _logger.LogInformation($"DeleteMessage: Message with id ({messageId}) does not exist. Cannot delete it");
+                return new Result<bool>(false, Domain.Enums.StatusCode.NO_CONTENT);
+            }
+
+            // User deleting the message is the one who sent the message
+            if (message.UserId == user.Id)
+            {
+                _context.Messages.Remove(message);
+            }
+            else
+            {
+                // If another user is trying to delete a user's messages ensure that user is an administrator
+                var userRoles = await _user.GetUserRolesAsync(user);
+                if (userRoles != null && userRoles.Contains(Constants.Authentication.ADMINISTRATOR_STRING))
+                {
+                    _context.Messages.Remove(message);
+                }
+                else
+                {
+                    _logger.LogInformation($"DeleteMessage: User ({user.Id}) does not have permission to delete messages");
+                    return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
+                }
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                _logger.LogError("DeleteMessage: Error saving database on deleting message");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
         public async Task<IResult<ChatMessage>> GetMessage(Guid id)
@@ -133,11 +342,18 @@ namespace VueServer.Services.Concrete
                 return new Result<ChatMessage>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
+            var user = await _user.GetUserByNameAsync(_user.Name);
+            if (user == null)
+            {
+                _logger.LogWarning($"AddMessage: Unable to get user by name with name ({_user.Name})");
+                return new Result<ChatMessage>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
             var newMessage = new ChatMessage()
             {
                 ConversationId = message.ConversationId,
                 Text = message.Text,
-                UserId = _user.Name,
+                UserId = user.Id,
                 Timestamp = DateTimeOffset.Now.ToUnixTimeSeconds()
             };
 

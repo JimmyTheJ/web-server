@@ -1,68 +1,66 @@
 <template>
-    <v-container>
-        <v-layout row ma-2 style="max-width: 1100px">
-            <v-flex xs12 v-for="(message, index) in conversation.messages" :key="index" :class="getTextPosition(message)">
-                <v-chip large :color="getTextColor(message)">
-                    {{ message.text }}<br />
-                    {{ getTimeSince(message.timestamp) }}
-                </v-chip>
-            </v-flex>
-            <v-flex xs12 class="text-right">
-                <v-text-field v-model="newMessage.text" label="Message"></v-text-field>
-                <v-btn @click="sendMessage">Send</v-btn>
-            </v-flex>
-        </v-layout>
-    </v-container>
-    <!--<v-list>
-        <v-list-item v-for="(message, index) in conversation.messages">
-            <v-list-item-content>
-                {{ message.text }}
-            </v-list-item-content>
-        </v-list-item>
-    </v-list>
-    <v-container>
-        <v-layout row>
-            <v-flex xs12>
-                <v-card>
-                    <v-card-title>
-                        <template v-for="(user, index) in conversation.conversationUsers">
-                            <span>{{ user.userId }}</span>
-                            <span v-if="index < conversation.conversationUsers.length">, </span>
-                        </template>
-                    </v-card-title>
-                    <template v-for="(message, index) in conversation.messages">
-                        <template v-if="index === 0 || message.userId !== conversation.messages[index-1].userId">
-                            <v-card-text :class="[getTextPosition(message), getTextColor(message)]">{{ message.userId }}</v-card-text>
-                        </template>
-                        <v-card-text :class="[getTextPosition(message), getTextColor(message)]">{{ message.text }}</v-card-text>
-                    </template>
-                    <v-card-text>
-                        <v-text-field v-model="newMessage.text" label="Message"></v-text-field>
-                    </v-card-text>
-                    <v-card-text>
-                        <v-btn @click="sendMessage">Send</v-btn>
-                    </v-card-text>
-                </v-card>
-            </v-flex>
-        </v-layout>
-    </v-container>-->
+    <div>
+        <v-dialog v-model="deleteConversationDialog" max-width="400">
+            <v-card>
+                <v-card-title>
+                    Delete Conversation
+                </v-card-title>
+                <v-card-text>
+                    Are you sure you want to delete this conversation ?
+                </v-card-text>
+                <v-card-actions>
+                    <v-btn @click="deleteConversation">Yes</v-btn>
+                    <v-btn @click="deleteConversationDialog = false">No</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+        <v-container>
+            <v-layout row ma-2 style="max-width: 1100px">
+                <v-toolbar>
+                    <v-btn text @click="editingTitle = true">
+                        <v-icon>mdi-account-edit</v-icon>
+                    </v-btn>
+                    <v-toolbar-title v-if="!editingTitle">
+                        {{ conversation.title }}
+                    </v-toolbar-title>
+                    <v-toolbar-title v-else style="width: 100%" class="ml-3 pl-2">
+                        <div style="display: flex; flex-direction: row">
+                            <v-text-field v-model="newTitle" @keyup.enter.prevent="updateTitle"></v-text-field>
+                            <v-btn @click="updateTitle">SAVE</v-btn>
+                        </div>
+                    </v-toolbar-title>
+                    <v-spacer></v-spacer>
+                    <v-btn text v-if="isConversationDeletable" @click="deleteConversationDialog = true"><v-icon>mdi-delete</v-icon></v-btn>
+                </v-toolbar>
+                <v-flex xs12 v-for="(message, index) in conversation.messages" :key="index">
+                    <chat-bubble :message="message" :currentTime="time" :owner="isOwner(message)" :color="getTextColor(message)" @deleteMessage="deleteMessage"></chat-bubble>
+                </v-flex>
+                <v-flex xs12 class="text-right">
+                    <v-text-field v-model="newMessage.text" label="Message"></v-text-field>
+                    <v-btn @click="sendMessage">Send</v-btn>
+                </v-flex>
+            </v-layout>
+        </v-container>
+    </div>
 </template>
 <script>
+    import ChatBubble from './chat-bubble'
     import service from '../../services/chat'
 
-    function newMessage(conversationId, userId) {
-        return {
-            conversationId: conversationId,
-            userId: userId,
-            text: null
-        }
-    }
+    import { mapState } from 'vuex'
 
     export default {
         data() {
             return {
                 newMessage: null,
+                deleteConversationDialog: false,
+                editingTitle: false,
+                newTitle: null,
             }
+        },
+        components: {
+            'chat-bubble': ChatBubble,
         },
         props: {
             conversation: {
@@ -75,11 +73,42 @@
             },
         },
         created() {
-            this.newMessage = newMessage(this.conversation.id, this.$store.state.auth.user.id);
-            this.$chatHub.$on('message-received', this.onMessageReceived)
+            this.newMessage = { text: '' };
+            this.$chatHub.$on('message-received', this.onMessageReceived);
         },
         beforeDestroy() {
-            this.$chatHub.$off('message-received', this.onMessageReceived)
+            this.$chatHub.$off('message-received', this.onMessageReceived);
+        },
+        computed: {
+            ...mapState({
+                user: state => state.auth.user,
+                activeModules: state => state.auth.activeModules
+            }),
+            isConversationDeletable() {
+                const chatModule = this.activeModules.find(x => x.id === 'chat');
+                if (typeof chatModule !== 'undefined') {
+                    const feature = chatModule.userModuleFeatures.find(x => x.moduleFeatureId === 'chat-delete-conversation')
+                    if (typeof feature !== 'undefined') {
+                        return true;
+                    }
+                }
+
+                return false;
+            },
+        },
+        watch: {
+            conversation: {
+                handler(newValue, oldValue) {
+                    if (typeof newValue === 'undefined' || newValue === null || typeof oldValue == 'undefined' || oldValue === null) {
+                        return;
+                    }
+
+                    if (newValue.title !== oldValue.title) {
+                        this.editingTitle = false;
+                    }
+                },
+                deep: true
+            }
         },
         methods: {
             onMessageReceived(message) {
@@ -92,34 +121,17 @@
                     return;
                 }
 
-                this.conversation.messages.push(Object.assign({}, message))
+                this.$emit('addMessage', { conversationId: this.conversation.id, message: message })
             },
             async sendMessage() {
+                this.newMessage.userId = this.user.id;
+                this.newMessage.conversationId = this.conversation.id;
                 await service.sendMessage(this.newMessage);
 
-                this.newMessage = newMessage(this.conversation.id, this.$store.state.auth.user.id);
-            },
-            getTimeSince(current) {
-                let seconds = this.time - current;
-                if (seconds < 60) {
-                    return `${Math.trunc(seconds)}s`;
-                }
-
-                let minutes = seconds / 60;
-                if (minutes < 60) {
-                    return `${Math.trunc(minutes)}m`;
-                }
-
-                let hours = minutes / 60;
-                if (hours < 24) {
-                    return `${Math.trunc(hours)}h`;
-                }
-
-                let days = hours / 24;
-                return `${Math.trunc(days)}d`;
+                this.newMessage = { text: '' };
             },
             getTextPosition(message) {
-                if (message.userId === this.$store.state.auth.user.userName) {
+                if (message.userId === this.user.id) {
                     return 'text-right';
                 }
                 else {
@@ -127,12 +139,50 @@
                 }
             },
             getTextColor(message) {
-                if (message.userId === this.$store.state.auth.user.userName) {
+                if (message.userId === this.user.id) {
                     return 'blue';
                 }
                 else {
                     return 'green';
                 }
+            },
+            deleteConversation() {
+                this.$emit('deleteConversation', this.conversation.id);
+                this.deleteConversationDialog = false;
+            },
+            deleteMessage(id) {
+                service.deleteMessage(id).then(resp => {
+                    if (typeof resp.data === 'boolean' && resp.data === true) {
+                        const messageIndex = this.conversation.messages.findIndex(x => x.id === id);
+                        if (messageIndex >= 0) {
+                            this.conversation.messages.splice(messageIndex, 1);
+                        }
+                    }
+
+                }).catch(() => this.$_console_log('DeleteMessage: Failed to delete message. API call failed.'))
+            },
+            canDeleteMessage(message) {
+                if (this.isMessageDeletable) {
+                    if (message.userId === this.user.id) {
+                        return true;
+                    }
+                }
+
+                return false;
+            },
+            isOwner(message) {
+                return this.user.id === message.userId;
+            },
+            updateTitle() {
+                this.$_console_log('New Title is: ' + this.newTitle);
+                const title = this.newTitle;
+
+                if (/^\s*$/.test(title)) {
+                    this.editingTitle = false;
+                    return;
+                }
+
+                this.$emit('updateTitle', { conversationId: this.conversation.id, title: title})
             },
         }
     }

@@ -194,7 +194,7 @@ namespace VueServer.Classes.Extensions
             services.AddScoped<ILibraryService, LibraryService>();
             services.AddScoped<IWeightService, WeightService>();
 
-            services.AddScoped<IUserService, UserService>();
+            services.AddTransient<IUserService, UserService>();
 
             // Scheduled task for deleting the files from the temporary folder
             services.AddSingleton<IScheduledTask, TempFileDeletionTask>();

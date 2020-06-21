@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 using VueServer.Models.User;
 
@@ -14,5 +15,11 @@ namespace VueServer.Models.Chat
 
         public Conversation Conversation { get; set; }
         public WSUser User { get; set; }
+
+        [NotMapped]
+        public string Color { get; set; }
+
+        [NotMapped]
+        public string UserDisplayName { get; set; }
     }
 }

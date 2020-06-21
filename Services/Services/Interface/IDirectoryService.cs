@@ -22,6 +22,6 @@ namespace VueServer.Services.Interface
 
         Task<IResult<WebServerFile>> Upload(UploadFileRequest model);
 
-        IResult Delete(DeleteFileModel model);
+        Task<IResult<bool>> Delete(DeleteFileModel model);
     }
 }

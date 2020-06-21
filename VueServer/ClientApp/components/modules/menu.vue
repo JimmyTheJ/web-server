@@ -52,7 +52,7 @@
                     <v-list>
                         <v-list-item>
                             <v-icon left>fas fa-user</v-icon>
-                            <v-list-item-title class="ml-2">{{ $store.state.auth.username }}</v-list-item-title>
+                            <v-list-item-title class="ml-2">{{ user.displayName }}</v-list-item-title>
                         </v-list-item>
                         <v-list-item @click="$_auth_logout">
                             <v-icon left>fas fa-door-open</v-icon>
@@ -96,6 +96,7 @@
         computed: {
             ...mapState({
                 modules: state => state.auth.modules,
+                user: state => state.auth.user,
                 numMessages: state => state.notifications.numMessages,
                 numNewMessages: state => state.notifications.numNewMessages,
             }),

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using VueServer.Models.User;
 
@@ -9,9 +10,12 @@ namespace VueServer.Services.Interface
         HttpContext Context { get; }
 
         string Name { get; }
-        string Id { get;  }
         string IP { get; }
 
-        Task<WSUser> GetUserAsync();
+        Task<WSUser> GetCurrentUserAsync();
+        Task<WSUser> GetUserByNameAsync(string name);
+        Task<WSUser> GetUserByIdAsync(string id);
+        Task<IList<string>> GetUserRolesAsync(WSUser user);
+        Task<WSRole> GetUserRoleByNameAsync(string name);
     }
 }

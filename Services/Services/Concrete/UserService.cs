@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,14 +19,18 @@ namespace VueServer.Services.Concrete
 
         private UserManager<WSUser> _userManager { get; set; }
 
+        private RoleManager<WSRole> _roleManager { get; set; }
+
         public UserService() {}
 
         public UserService (
             IHttpContextAccessor httpContext,
-            UserManager<WSUser> userManager)
+            UserManager<WSUser> userManager,
+            RoleManager<WSRole> roleManager)
         {
             _httpContext = httpContext ?? throw new ArgumentNullException("HttpContextAccessor is null");
             _userManager = userManager ?? throw new ArgumentNullException("User manager is null");
+            _roleManager = roleManager ?? throw new ArgumentNullException("Role manager is null");
         }
 
         public HttpContext Context {
@@ -42,18 +48,16 @@ namespace VueServer.Services.Concrete
             }
         }
 
-
-        public string Id
-        {
-            get => Name?.ToLower();
-        }
-
         public string IP {
             get {
                 return _httpContext.HttpContext.Connection.RemoteIpAddress.ToString();
             }
         }
 
-        public Task<WSUser> GetUserAsync() => _userManager.GetUserAsync(_httpContext.HttpContext.User);
+        public Task<WSUser> GetCurrentUserAsync() => _userManager.GetUserAsync(_httpContext.HttpContext.User);
+        public Task<WSUser> GetUserByNameAsync(string name) => _userManager.FindByNameAsync(name);
+        public Task<WSUser> GetUserByIdAsync(string id) => _userManager.FindByIdAsync(id);
+        public Task<IList<string>> GetUserRolesAsync(WSUser user) => _userManager.GetRolesAsync(user);
+        public Task<WSRole> GetUserRoleByNameAsync(string name) => _roleManager.FindByNameAsync(name);
     }
 }

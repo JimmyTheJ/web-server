@@ -11,6 +11,8 @@ namespace VueServer.Models.Chat
         [Key]
         public Guid Id { get; set; }
 
+        public string Title { get; set; }
+
         public virtual IEnumerable<ChatMessage> Messages { get; set; }
 
         public virtual IList<ConversationHasUser> ConversationUsers { get; set; }

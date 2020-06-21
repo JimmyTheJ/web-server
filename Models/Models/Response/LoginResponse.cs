@@ -21,8 +21,6 @@ namespace VueServer.Models.Response
         {
             Token = token;
             RefreshToken = refreshToken;
-            if (user.PasswordHash != null)
-                user.PasswordHash = null;
             User = user;
             Roles = roles;
         }

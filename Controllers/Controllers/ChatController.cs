@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Concurrent;
@@ -10,6 +11,7 @@ using VueServer.Domain.Factory.Interface;
 using VueServer.Models.Chat;
 using VueServer.Models.Request;
 using VueServer.Services.Interface;
+using static VueServer.Domain.Constants.Authentication;
 
 namespace VueServer.Controllers
 {
@@ -46,6 +48,26 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _chatService.GetAllConversations(userId));
         }
 
+        [Route("conversation/update-title/{conversationId}")]
+        [HttpPost]
+        public async Task<IActionResult> UpdateConversationTitle(Guid conversationId, [FromBody] UpdateConversationTitleRequest request)
+        {
+            return _codeFactory.GetStatusCode(await _chatService.UpdateConversationTitle(conversationId, request?.Title));
+        }
+
+        [Route("conversation/delete/{conversationId}")]
+        [HttpDelete]
+        public async Task<IActionResult> DeleteConversation(Guid conversationId)
+        {
+            return _codeFactory.GetStatusCode(await _chatService.DeleteConversation(conversationId));
+        }
+
+        [Route("message/delete/{messageId}")]
+        [HttpDelete]
+        public async Task<IActionResult> DeleteMessage(Guid messageId)
+        {
+            return _codeFactory.GetStatusCode(await _chatService.DeleteMessage(messageId));
+        }
 
         [Route("message/get/{id}")]
         [HttpGet]

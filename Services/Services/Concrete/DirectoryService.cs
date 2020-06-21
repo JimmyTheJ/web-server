@@ -62,8 +62,15 @@ namespace VueServer.Services.Concrete
         { 
             if (media)
             {
-                // Check if current user has access permissions to upload
-                if (!_wSContext.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.VIEWER_ID && x.UserId == _user.Name).Any())
+                var user = await _user.GetUserByNameAsync(_user.Name);
+                if (user == null)
+                {
+                    _logger.LogWarning($"Download: Unable to get user by name with name ({_user.Name})");
+                    return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+                }
+
+                // Check if current user has access permissions to view
+                if (!_wSContext.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.Browser.VIEWER_ID && x.UserId == user.Id).Any())
                     return new Result<Tuple<string, string, string>>(null, StatusCode.FORBIDDEN);
             }
 
@@ -265,8 +272,15 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<WebServerFile>> Upload(UploadFileRequest model)
         {
+            var user = await _user.GetUserByNameAsync(_user.Name);
+            if (user == null)
+            {
+                _logger.LogWarning($"Download: Unable to get user by name with name ({_user.Name})");
+                return new Result<WebServerFile>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
             // Check if current user has access permissions to upload
-            if (!_wSContext.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.UPLOAD_ID && x.UserId == _user.Name).Any())
+            if (!_wSContext.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.Browser.UPLOAD_ID && x.UserId == user.Id).Any())
                 return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
 
             var uploadDirs = GetSingleDirectoryList();
@@ -331,21 +345,28 @@ namespace VueServer.Services.Concrete
             }
         }
 
-        public IResult Delete(DeleteFileModel model)
+        public async Task<IResult<bool>> Delete(DeleteFileModel model)
         {
+            var user = await _user.GetUserByNameAsync(_user.Name);
+            if (user == null)
+            {
+                _logger.LogWarning($"Delete: Unable to get user by name with name ({_user.Name})");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
             // Check if current user has access permissions to delete
-            if (!_wSContext.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.DELETE_ID && x.UserId == _user.Name).Any())
-                return new Result<IResult>(null, StatusCode.FORBIDDEN);
+            if (!_wSContext.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.Browser.DELETE_ID && x.UserId == user.Id).Any())
+                return new Result<bool>(false, StatusCode.FORBIDDEN);
 
             if (string.IsNullOrWhiteSpace(model.Name))
-                return new Result<IResult>(null, StatusCode.BAD_REQUEST);
+                return new Result<bool>(false, StatusCode.BAD_REQUEST);
 
             var uploadDirs = GetSingleDirectoryList();
             string dir = uploadDirs.Where(x => x.Name == model.Directory).Select(y => y.Path).FirstOrDefault();
             if (dir == null)
             {
                 _logger.LogInformation("Invalid folder name provided. Protected file deletion attempt by " + _user.Name + " @ " + _user.IP + " - Filename=" + model.Name);
-                return new Result<IResult>(null, StatusCode.BAD_REQUEST);
+                return new Result<bool>(false, StatusCode.BAD_REQUEST);
             }
 
             FileInfo fi = null;
@@ -356,13 +377,13 @@ namespace VueServer.Services.Concrete
             catch
             {
                 _logger.LogInformation("Invalid file provided. Protected file deletion attempt by " + _user.Name + " @ " + _user.IP + " - Filename=" + model.Name);
-                return new Result<IResult>(null, StatusCode.UNAUTHORIZED);
+                return new Result<bool>(false, StatusCode.UNAUTHORIZED);
             }
 
             if (!fi.Directory.FullName.StartsWith(dir))
             {
                 _logger.LogWarning($"Path escalation attack attempted by {_user.Name} @ {_user.IP} - Filename={fi.Directory.FullName.ToString()}{Path.DirectorySeparatorChar}{model.Name}!");
-                return new Result<IResult>(null, StatusCode.FORBIDDEN);
+                return new Result<bool>(false, StatusCode.FORBIDDEN);
             }
 
             if (fi.Exists)
@@ -374,22 +395,22 @@ namespace VueServer.Services.Concrete
                 catch (UnauthorizedAccessException)
                 {
                     _logger.LogError("Unauthorized protected file deletion attempt by " + _user.Name + " @ " + _user.IP + " - Filename=" + model.Name);
-                    return new Result<IResult>(null, StatusCode.UNAUTHORIZED);
+                    return new Result<bool>(false, StatusCode.UNAUTHORIZED);
                 }
                 catch (SecurityException)
                 {
                     _logger.LogError("Security exception in protected file deletion attempt by " + _user.Name + " @ " + _user.IP + " - Filename=" + model.Name);
-                    return new Result<IResult>(null, StatusCode.UNAUTHORIZED);
+                    return new Result<bool>(false, StatusCode.UNAUTHORIZED);
                 }
                 catch (IOException)
                 {
                     _logger.LogError("IO exception in protected file deletion attempt by " + _user.Name + " @ " + _user.IP + " - Filename=" + model.Name);
-                    return new Result<IResult>(null, StatusCode.BAD_REQUEST);
+                    return new Result<bool>(false, StatusCode.BAD_REQUEST);
                 }
             }
 
 
-            return new Result<IResult>(null, StatusCode.OK);
+            return new Result<bool>(true, StatusCode.OK);
         }
 
         #endregion

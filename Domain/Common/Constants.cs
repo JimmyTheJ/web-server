@@ -1,4 +1,6 @@
-﻿namespace VueServer.Domain
+﻿using System.Data.Common;
+
+namespace VueServer.Domain
 {
     public class Constants
     {
@@ -20,11 +22,61 @@
 
         public static class Models
         {
+            public static class ModuleAddOns
+            {
+                public static class Browser
+                {
+                    public const string Id = "browser";
+                    public const string Name = "Browser";
+                }
+                public static class Chat
+                {
+                    public const string Id = "chat";
+                    public const string Name = "Chat";
+                }
+                public static class Documentation
+                {
+                    public const string Id = "documentation";
+                    public const string Name = "Documentation";
+                }
+                public static class Library
+                {
+                    public const string Id = "library";
+                    public const string Name = "Library";
+                }
+                public static class Notes
+                {
+                    public const string Id = "notes";
+                    public const string Name = "Notes";
+                }
+                public static class Weight
+                {
+                    public const string Id = "weight";
+                    public const string Name = "Weight";
+                }
+            }
+
             public static class ModuleFeatures
             {
-                public const string DELETE_ID = "delete";
-                public const string UPLOAD_ID = "upload";
-                public const string VIEWER_ID = "viewer";
+                public static class Browser
+                {
+                    public const string DELETE_ID = "browser-delete";
+                    public const string UPLOAD_ID = "browser-upload";
+                    public const string VIEWER_ID = "browser-viewer";
+
+                    public const string DELETE_NAME = "Delete";
+                    public const string UPLOAD_NAME = "Upload";
+                    public const string VIEWER_NAME = "Viewer";
+                }
+                
+                public static class Chat
+                {
+                    public const string DELETE_CONVERSATION_ID = "chat-delete-conversation";
+                    public const string DELETE_MESSAGE_ID = "chat-delete-message";
+
+                    public const string DELETE_CONVERSATION_NAME = "Delete Conversations";
+                    public const string DELETE_MESSAGE_NAME = "Delete Messages";
+                }
             }
         }
     }

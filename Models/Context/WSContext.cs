@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
+using VueServer.Domain;
 using VueServer.Models.Chat;
 using VueServer.Models.Library;
 using VueServer.Models.Modules;
@@ -208,19 +209,22 @@ namespace VueServer.Models.Context
         
         private void SeedModules(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = "browser", Name = "Browser" });
-            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = "documentation", Name = "Documentation" });
-            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = "library", Name = "Library" });
-            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = "notes", Name = "Notes" });
-            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = "weight", Name = "Weight" });
-            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = "chat", Name = "Chat" });
+            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = Constants.Models.ModuleAddOns.Browser.Id, Name = Constants.Models.ModuleAddOns.Browser.Name });
+            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = Constants.Models.ModuleAddOns.Chat.Id, Name = Constants.Models.ModuleAddOns.Chat.Name });
+            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = Constants.Models.ModuleAddOns.Documentation.Id, Name = Constants.Models.ModuleAddOns.Documentation.Name });
+            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = Constants.Models.ModuleAddOns.Library.Id, Name = Constants.Models.ModuleAddOns.Library.Name });
+            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = Constants.Models.ModuleAddOns.Notes.Id, Name = Constants.Models.ModuleAddOns.Notes.Name });
+            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = Constants.Models.ModuleAddOns.Weight.Id, Name = Constants.Models.ModuleAddOns.Weight.Name });
         }
 
         private void SeedModuleFeatures(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = "upload", Name = "Upload", ModuleAddOnId = "browser" });
-            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = "delete", Name = "Delete", ModuleAddOnId = "browser" });
-            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = "viewer", Name = "Viewer", ModuleAddOnId = "browser" });
+            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = Constants.Models.ModuleFeatures.Browser.DELETE_ID, Name = Constants.Models.ModuleFeatures.Browser.DELETE_NAME, ModuleAddOnId = Constants.Models.ModuleAddOns.Browser.Id });
+            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = Constants.Models.ModuleFeatures.Browser.UPLOAD_ID, Name = Constants.Models.ModuleFeatures.Browser.UPLOAD_NAME, ModuleAddOnId = Constants.Models.ModuleAddOns.Browser.Id });
+            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = Constants.Models.ModuleFeatures.Browser.VIEWER_ID, Name = Constants.Models.ModuleFeatures.Browser.VIEWER_NAME, ModuleAddOnId = Constants.Models.ModuleAddOns.Browser.Id });
+
+            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = Constants.Models.ModuleFeatures.Chat.DELETE_MESSAGE_ID, Name = Constants.Models.ModuleFeatures.Chat.DELETE_MESSAGE_NAME, ModuleAddOnId = Constants.Models.ModuleAddOns.Chat.Id });
+            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = Constants.Models.ModuleFeatures.Chat.DELETE_CONVERSATION_ID, Name = Constants.Models.ModuleFeatures.Chat.DELETE_CONVERSATION_NAME, ModuleAddOnId = Constants.Models.ModuleAddOns.Chat.Id });
         }
 
         #endregion

@@ -14,6 +14,7 @@ namespace VueServer.Models.User
 
         public string UserName { get; set; }
 
+        [JsonIgnore]
         public string NormalizedUserName { get; set; }
 
         public string DisplayName { get; set; }
@@ -21,10 +22,18 @@ namespace VueServer.Models.User
         [JsonIgnore]
         public string PasswordHash { get; set; }
 
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public virtual IList<WSUserInRoles> Roles { get; set; }
 
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public virtual IEnumerable<UserHasModuleAddOn> UserModuleAddOns { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public virtual IEnumerable<UserHasModuleFeature> UserModuleFeatures { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public virtual IEnumerable<ConversationHasUser> ConversationUsers { get; set; }
     }
 }
