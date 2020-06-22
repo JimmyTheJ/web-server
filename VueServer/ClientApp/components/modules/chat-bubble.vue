@@ -3,7 +3,7 @@
         <v-menu absolute offset-y>
             <template v-slot:activator="{ on, attr }">
                 <div v-on="on" class="order-2">
-                    <span class="pa-1" style="height: 100%; margin: 0 auto">...</span>
+                    <span v-show="hover" class="pa-1" style="height: 100%; margin: 0 auto">...</span>
                 </div>
             </template>
             <v-list>
@@ -53,6 +53,11 @@
                 type: Boolean,
                 required: true,
             },
+            hover: {
+                type: Boolean,
+                required: false,
+                default: false,
+            }
         },
         computed: {
             ...mapState({
@@ -113,7 +118,7 @@
                 this.optionDialog = false;
             },
             moreInfo() {
-                this.$emit('moreInfo', this.message.id);
+                this.$emit('moreInfo', this.message);
                 this.optionDialog = false;
             }
         }
@@ -130,6 +135,7 @@
         border-radius: 15px;
         display: flex;
         flex-direction: column;
+        max-width: 70%;
     }
 
     .flex-left {

@@ -25,6 +25,7 @@ import { faFolder } from '@fortawesome/free-solid-svg-icons/faFolder'
 import { faHome } from '@fortawesome/free-solid-svg-icons/faHome'
 import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus'
 import { faNewspaper } from '@fortawesome/free-solid-svg-icons/faNewspaper'
+import { faPaperPlane } from '@fortawesome/free-solid-svg-icons/faPaperPlane'
 import { faPlay } from '@fortawesome/free-solid-svg-icons/faPlay'
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus'
 import { faProjectDiagram } from '@fortawesome/free-solid-svg-icons/faProjectDiagram'
@@ -67,6 +68,7 @@ library.add(
     faHome,
     faMinus,
     faNewspaper,
+    faPaperPlane,
     faPlay,
     faPlus,
     faProjectDiagram,

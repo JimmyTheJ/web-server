@@ -38,11 +38,11 @@
                     </v-list>
                 </template>
             </v-flex>
-            <v-flex xs8 md9 lg10>
+            <v-flex xs8 md9 lg10 class="chat-conversation-window">
                 <template v-for="(conversation, index) in conversations">
-                    <chat-conversation v-show="shouldShowConversation(conversation)"
-                                       :conversation="conversation"
-                                       :time="currentTime">
+                    <chat-conversation :conversation="conversation"
+                                       :time="currentTime"
+                                       :show="shouldShowConversation(conversation)">
                     </chat-conversation>
                 </template>     
             </v-flex>
@@ -127,3 +127,9 @@
         },
     }
 </script>
+
+<style scoped>
+    .chat-conversation-window {
+        max-height: 800px;
+    }
+</style>
