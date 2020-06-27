@@ -270,7 +270,7 @@ namespace VueServer.Services.Concrete
             return new Result<IOrderedEnumerable<WebServerFile>>(fileList.OrderByDescending(x => x.IsFolder).ThenBy(x => x.Title), StatusCode.OK);
         }
 
-        public async Task<IResult<WebServerFile>> Upload(UploadFileRequest model)
+        public async Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model)
         {
             var user = await _user.GetUserByNameAsync(_user.Name);
             if (user == null)

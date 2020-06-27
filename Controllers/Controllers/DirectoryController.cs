@@ -84,7 +84,7 @@ namespace VueServer.Controllers
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
         [Route("upload")]
-        public async Task<IActionResult> UploadAsync([FromForm] UploadFileRequest model)
+        public async Task<IActionResult> UploadAsync([FromForm] UploadDirectoryFileRequest model)
         {
             return _codeFactory.GetStatusCode(await _service.Upload(model));
         }

@@ -20,7 +20,7 @@ namespace VueServer.Services.Interface
 
         IResult<IOrderedEnumerable<WebServerFile>> Load (string directory, string subDir);
 
-        Task<IResult<WebServerFile>> Upload(UploadFileRequest model);
+        Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model);
 
         Task<IResult<bool>> Delete(DeleteFileModel model);
     }

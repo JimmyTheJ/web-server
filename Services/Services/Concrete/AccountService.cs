@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Formatters.Xml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -10,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -58,7 +60,7 @@ namespace VueServer.Services.Concrete
             IUserService user
         )
         {
-            _antiForgery = forgery ?? throw new ArgumentNullException("Logger factory is null");
+            _antiForgery = forgery ?? throw new ArgumentNullException("Anti-Forgery service is null");
             _config = config ?? throw new ArgumentNullException("Configuration is null");
             _env = env ?? throw new ArgumentNullException("Hosting environment is null");
             _roleManager = roleManager ?? throw new ArgumentNullException("Role manager is null");
@@ -85,12 +87,12 @@ namespace VueServer.Services.Concrete
                 _logger.LogError("[AccountService] Register: Failed to initialize the roles");
                 return new Result<IResult>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
-                
 
             // Create a new identity user to pass to the registration method
+            var userId = model.Username.ToLower();
             var newUser = new WSUser
             {
-                Id = model.Username.ToLower(),
+                Id = userId,
                 UserName = model.Username,
                 NormalizedUserName = model.Username.ToUpper(),
                 DisplayName = model.Username
@@ -117,6 +119,14 @@ namespace VueServer.Services.Concrete
 
             // Role applied successfully, update user
             var resultUpdate = await _userManager.UpdateAsync(newUser);
+            if (!resultUpdate.Succeeded)
+            {
+                _logger.LogInformation("[AccountService] Register: Failed to update user with new role.");
+                return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            // Create profile for user
+            await CreateUserProfile(userId);
 
             // Login was a success and now they should log in
             return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
@@ -225,6 +235,81 @@ namespace VueServer.Services.Concrete
 
             return new Result<IEnumerable<string>>(userIds, Domain.Enums.StatusCode.OK);
         }
+
+        public async Task<IResult<string>> UpdateUserAvatar(IFormFile file)
+        {
+            var user = await _user.GetUserByNameAsync(_user.Name);
+            if (user == null)
+            {
+                _logger.LogWarning($"[AccountService] UpdateUserAvatar: Unable to get user by name with name ({_user.Name})");
+                return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            if (file == null)
+            {
+                _logger.LogInformation($"[AccountService] UpdateUserAvatar: File is null");
+                return new Result<string>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            var userProfile = await _context.UserProfile.Where(x => x.UserId == user.Id).SingleOrDefaultAsync();
+            if (userProfile == null)
+            {
+                if (await CreateUserProfile(user.Id))
+                {
+                    userProfile = await _context.UserProfile.Where(x => x.UserId == user.Id).SingleOrDefaultAsync();
+                }
+                else
+                {
+                    _logger.LogInformation($"[AccountService] UpdateUserAvatar: Can't create user profile for {user.Id}");
+                    return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+                }
+            }
+
+            var filename = Guid.NewGuid().ToString();
+            var path = Path.Combine(_env.WebRootPath, "public");
+
+            if (!Directory.Exists(path))
+            {
+                try
+                {
+                    Directory.CreateDirectory(path);
+                }
+                catch
+                {
+                    _logger.LogError($"[AccountService] UpdateUserAvatar: Cannot create directory {path}");
+                    return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+                }
+            }            
+
+            try
+            {
+                using (FileStream fs = File.Create(Path.Combine(path, filename)))
+                {
+                    await file.CopyToAsync(fs);
+                    fs.Flush();
+                    _logger.LogInformation($"[AccountService] UpdateUserAvatar: Upload success {filename}");
+                }
+            }
+            catch
+            {
+                _logger.LogInformation($"[AccountService] UpdateUserAvatar: Upload FAILED {filename}");
+                return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            userProfile.AvatarPath = filename;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                _logger.LogWarning($"[AccountService] CreateUserProfile: Error saving after updating profile user '{user.Id}' avatar");
+                return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            return new Result<string>(filename, Domain.Enums.StatusCode.OK);
+        }
+
 
         #endregion
 
@@ -494,6 +579,33 @@ namespace VueServer.Services.Concrete
             }
 
             // If it makes it this far it was a success
+            return true;
+        }
+
+        private async Task<bool> CreateUserProfile(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                _logger.LogInformation($"[AccountService] CreateUserProfile: User id is null or empty");
+                return false;
+            }
+
+            WSUserProfile profile = new WSUserProfile()
+            {
+                UserId = userId
+            };
+
+            _context.UserProfile.Add(profile);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                _logger.LogWarning($"[AccountService] CreateUserProfile: Error saving after creating a profile for user '{userId}'");
+                return false;
+            }
+
             return true;
         }
 

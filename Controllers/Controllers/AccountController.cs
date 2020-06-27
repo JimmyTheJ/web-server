@@ -16,6 +16,7 @@ using VueServer.Domain.Factory.Interface;
 
 using static VueServer.Domain.Constants.Authentication;
 using VueServer.Models.Modules;
+using VueServer.Models.Request;
 
 namespace VueServer.Controllers
 {
@@ -122,6 +123,18 @@ namespace VueServer.Controllers
         public async Task<IActionResult> GetAllUserIds()
         {
             return _codeFactory.GetStatusCode(await _service.GetUserIds());
+        }
+
+        /// <summary>
+        /// Update the active user's avatar image
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Authorize(Roles = ROLES_ALL)]
+        [Route("user/update-avatar")]
+        public async Task<IActionResult> UpdateUserAvatar(UploadRegularFileRequest request)
+        {
+            return _codeFactory.GetStatusCode(await _service.UpdateUserAvatar(request?.File));
         }
 
         #endregion
