@@ -13,6 +13,8 @@ const refreshTokenUrl = `api/account/refresh-jwt`
 const registerUrl = `api/account/register`
 const getUsersUrl = `api/account/user/get-all`
 const getUserIdsUrl = `api/account/user/get-all-ids`
+const updateAvatarImageUrl = `api/account/user/update-avatar`
+const updateDisplayNameUrl = `api/account/user/update-display-name`
 
 /**
  * Export
@@ -49,5 +51,8 @@ export default {
     },
     getUserIds() {
         return axios.get(getUserIdsUrl)
+    },
+    uploadAvatarImage(file) {
+        return axios.post(updateAvatarImageUrl, file)
     },
 }

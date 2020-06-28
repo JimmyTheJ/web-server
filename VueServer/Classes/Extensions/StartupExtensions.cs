@@ -45,7 +45,7 @@ namespace VueServer.Classes.Extensions
         /// </summary>
         /// <param name="services"></param>
         /// <param name="config"></param>
-        public static void AddCustomAuthentication (this IServiceCollection services, IConfiguration config)
+        public static void AddCustomAuthentication(this IServiceCollection services, IConfiguration config)
         {
             DatabaseTypes dbType = (DatabaseTypes)config.GetSection("Options").GetValue<int>("DatabaseType");
             if (dbType == DatabaseTypes.MSSQLSERVER)
@@ -98,7 +98,7 @@ namespace VueServer.Classes.Extensions
                     {
                         OnAuthenticationFailed = context =>
                         {
-                            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException) )
+                            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
                             {
                                 context.Response.Headers.Add("Token-Expired", "true");
                             }
@@ -146,7 +146,7 @@ namespace VueServer.Classes.Extensions
         /// Session settings for the application
         /// </summary>
         /// <param name="services"></param>
-        public static void AddCustomSession (this IServiceCollection services)
+        public static void AddCustomSession(this IServiceCollection services)
         {
             services.AddSession(options =>
             {
@@ -181,7 +181,7 @@ namespace VueServer.Classes.Extensions
         /// Add all services needed for the application
         /// </summary>
         /// <param name="services"></param>
-        public static void AddCustomServices (this IServiceCollection services, IConfigurationRoot config)
+        public static void AddCustomServices(this IServiceCollection services, IConfigurationRoot config)
         {
             services.AddSingleton(a => config);
             services.AddSingleton<IStatusCodeFactory<IActionResult>, StatusCodeFactory>();
@@ -210,11 +210,11 @@ namespace VueServer.Classes.Extensions
         /// </summary>
         /// <param name="services"></param>
         /// <param name="config"></param>
-        public static void AddCustomDataStore (this IServiceCollection services, IConfiguration config)
+        public static void AddCustomDataStore(this IServiceCollection services, IConfiguration config)
         {
             ConnectionStrings.WSCONTEXT = config.GetConnectionString("WebServerDbConnectionString");
 
-            DatabaseTypes dbType = (DatabaseTypes) config.GetSection("Options").GetValue<int>("DatabaseType");
+            DatabaseTypes dbType = (DatabaseTypes)config.GetSection("Options").GetValue<int>("DatabaseType");
             if (dbType == DatabaseTypes.MSSQLSERVER)
             {
                 using (var client = new SqlServerWSContext())
@@ -277,7 +277,7 @@ namespace VueServer.Classes.Extensions
         /// Add GZip compression to non-HTTPS requests
         /// </summary>
         /// <param name="services"></param>
-        public static void AddCustomCompression (this IServiceCollection services)
+        public static void AddCustomCompression(this IServiceCollection services)
         {
             services.Configure<GzipCompressionProviderOptions>(options =>
             {
@@ -297,7 +297,7 @@ namespace VueServer.Classes.Extensions
         /// <param name="app"></param>
         /// <param name="env"></param>
         /// <param name="logger"></param>
-        public static void UseWebpackFileServer (this IApplicationBuilder app, IWebHostEnvironment env, ILogger logger)
+        public static void UseWebpackFiles(this IApplicationBuilder app, IWebHostEnvironment env, ILogger logger)
         {
             if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"dist"), "StartupExtensions: Error creating dist folder")) return;
 
@@ -305,6 +305,31 @@ namespace VueServer.Classes.Extensions
             {
                 FileProvider = new PhysicalFileProvider(Path.Combine(env.WebRootPath, @"dist")),
                 RequestPath = new PathString("/dist"),
+                OnPrepareResponse = s =>
+                {
+                    s.Context.Response.GetTypedHeaders().CacheControl = new CacheControlHeaderValue()
+                    {
+                        Public = true,
+                        MaxAge = TimeSpan.FromDays(30)
+                    };
+                }
+            });
+        }
+
+        /// <summary>
+        /// Serve the /public folder. This folder contains all public files from users
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="env"></param>
+        /// <param name="logger"></param>
+        public static void UsePublicFiles(this IApplicationBuilder app, IWebHostEnvironment env, ILogger logger)
+        {
+            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"public"), "StartupExtensions: Error creating dist folder")) return;
+
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(env.WebRootPath, @"public")),
+                RequestPath = new PathString("/public"),
                 OnPrepareResponse = s =>
                 {
                     s.Context.Response.GetTypedHeaders().CacheControl = new CacheControlHeaderValue()

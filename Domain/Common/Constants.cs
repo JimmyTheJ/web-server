@@ -20,6 +20,11 @@ namespace VueServer.Domain
             public const string ROLES_ALL = "Administrator, Elevated, User";
         }
 
+        public static class Helper
+        {
+            public const string MIMETYPE_FOLDER = "_FOLDER";
+        }
+
         public static class Models
         {
             public static class ModuleAddOns

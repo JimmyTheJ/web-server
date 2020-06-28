@@ -43,6 +43,7 @@ bld/
 # Webserver fileserver folders
 */wwwroot/.well-known/**
 */wwwroot/tmp/**
+*/wwwroot/public/**
 
 # Webpack build results
 */wwwroot/dist/**

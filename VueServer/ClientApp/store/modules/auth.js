@@ -90,7 +90,19 @@ const actions = {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from get modules', e.response)
             return await Promise.reject(e.response);
         }
-    }
+    },
+    async updateAvatarImage({ commit }, context) {
+        try {
+            const res = await authAPI.uploadAvatarImage(context)
+            ConMsgs.methods.$_console_log(res.data);
+            commit(types.USER_UPDATE_AVATAR, res.data)
+            return await Promise.resolve(res)
+        }
+        catch (e) {
+            ConMsgs.methods.$_console_group('[Vuex][Actions] Error from update avatar image', e.response)
+            return await Promise.reject(e.response);
+        }
+    },
 }
 
 const mutations = {
@@ -166,7 +178,7 @@ const mutations = {
 
         // Clean up
         localStorage.removeItem('activeModules')
-        state.activeModules = [];
+        state.activeModules = []
 
         // Add modules to list
         if (typeof data !== 'undefined' && data !== null && data.length > 0) {
@@ -174,7 +186,15 @@ const mutations = {
         }
 
         localStorage.setItem('activeModules', JSON.stringify(state.activeModules))
-    }
+    },
+    [types.USER_UPDATE_AVATAR](state, data) {
+        ConMsgs.methods.$_console_log("Mutating update user avatar");
+
+        state.user.avatar = data
+
+        localStorage.removeItem('user')
+        localStorage.setItem('user', JSON.stringify(state.user))
+    },
 }
 
 export default {

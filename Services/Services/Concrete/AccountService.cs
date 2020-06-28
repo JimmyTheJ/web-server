@@ -18,6 +18,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using VueServer.Domain.Concrete;
+using VueServer.Domain.Helper;
 using VueServer.Domain.Interface;
 using VueServer.Models.Account;
 using VueServer.Models.Context;
@@ -179,8 +180,10 @@ namespace VueServer.Services.Concrete
             await InvalidateAllRefreshTokensForUser(user.Id, _user.IP);
             await SaveRefreshToken(user.Id, refreshToken);
 
-            var resp = new LoginResponse(token, refreshToken, user, roles);
+            // Try to get user profile. If we don't find one, that is okay it won't have any real impact on the app
+            user.UserProfile = await _context.UserProfile.Where(x => x.UserId == user.Id).SingleOrDefaultAsync();
 
+            var resp = new LoginResponse(token, refreshToken, new WSUserResponse(user), roles);
             return new Result<LoginResponse>(resp, Domain.Enums.StatusCode.OK);
         }
 
@@ -223,17 +226,21 @@ namespace VueServer.Services.Concrete
         public async Task<IResult<IEnumerable<WSUser>>> GetUsers ()
         {
             var users = await _context.Users.ToListAsync();
-            // Remove password from the results
-            users.ForEach(x => x.PasswordHash = null);
 
             return new Result<IEnumerable<WSUser>>(users, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<string>>> GetUserIds()
+        public async Task<IResult<IEnumerable<WSUserResponse>>> GetUserIds()
         {
-            var userIds = await _context.Users.Select(x => x.Id).ToListAsync();
+            var users = await _context.Users.ToListAsync();
 
-            return new Result<IEnumerable<string>>(userIds, Domain.Enums.StatusCode.OK);
+            var list = new List<WSUserResponse>();
+            foreach (var user in users)
+            {
+                list.Add(new WSUserResponse(user));
+            }
+
+            return new Result<IEnumerable<WSUserResponse>>(list, Domain.Enums.StatusCode.OK);
         }
 
         public async Task<IResult<string>> UpdateUserAvatar(IFormFile file)
@@ -251,6 +258,13 @@ namespace VueServer.Services.Concrete
                 return new Result<string>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
+            var fileType = MimeTypeHelper.GetFileType(file.ContentType);
+            if (fileType != Domain.Enums.MimeFileType.Photo)
+            {   
+                _logger.LogInformation($"[AccountService] UpdateUserAvatar: File {file.FileName} uploaded is not an image");
+                return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
             var userProfile = await _context.UserProfile.Where(x => x.UserId == user.Id).SingleOrDefaultAsync();
             if (userProfile == null)
             {
@@ -265,7 +279,7 @@ namespace VueServer.Services.Concrete
                 }
             }
 
-            var filename = Guid.NewGuid().ToString();
+            var filename = $"{user.Id}-{file.FileName}";
             var path = Path.Combine(_env.WebRootPath, "public");
 
             if (!Directory.Exists(path))

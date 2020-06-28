@@ -10,6 +10,8 @@
             <v-flex xs12 sm10 md9>
                 <v-autocomplete v-model="newConversation.users"
                                 :items="userList"
+                                item-value="id"
+                                item-text="displayName"
                                 prepend-icon="mdi-database-search"
                                 label="Select user(s)"
                                 :loading="isLoading"

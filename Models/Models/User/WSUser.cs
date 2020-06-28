@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using VueServer.Domain.Interface;
 using VueServer.Models.Chat;
 using VueServer.Models.Modules;
@@ -35,5 +36,9 @@ namespace VueServer.Models.User
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public virtual IEnumerable<ConversationHasUser> ConversationUsers { get; set; }
+
+        [NotMapped]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public virtual WSUserProfile UserProfile { get; set; }
     }
 }

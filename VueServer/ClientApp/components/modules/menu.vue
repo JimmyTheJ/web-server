@@ -50,12 +50,15 @@
                 </template>
                 <v-card>
                     <v-list>
-                        <v-list-item>
-                            <v-icon left>fas fa-user</v-icon>
+                        <v-list-item :to="{ name: 'profile' }">
+                            <v-avatar>
+                                <v-img v-if="hasAvatar" :src="avatarPath"></v-img>
+                                <fa-icon v-else icon="user" size="2x"></fa-icon>
+                            </v-avatar>
                             <v-list-item-title class="ml-2">{{ user.displayName }}</v-list-item-title>
                         </v-list-item>
                         <v-list-item @click="$_auth_logout">
-                            <v-icon left>fas fa-door-open</v-icon>
+                            <fa-icon icon="door-open" size="2x"></fa-icon>
                             <v-list-item-title class="ml-2">Logout</v-list-item-title>
                         </v-list-item>
                     </v-list>
@@ -102,6 +105,16 @@
             }),
             getDrawerHeight() {
                 return 16 + (this.menuItems * 48);
+            },
+            hasAvatar() {
+                if (typeof this.user.avatar === 'undefined' || this.user.avatar === null || this.user.avatar === '') {
+                    return false;
+                }
+
+                return true;
+            },
+            avatarPath() {
+                return `${process.env.API_URL}/public/${this.user.avatar}`;
             },
         },
         created() {

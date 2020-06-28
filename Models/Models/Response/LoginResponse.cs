@@ -11,13 +11,13 @@ namespace VueServer.Models.Response
 
         public string RefreshToken { get; set; }
 
-        public WSUser User { get; set; }
+        public WSUserResponse User { get; set; }
 
         public IList<String> Roles { get; set; }
 
         public LoginResponse () { }
 
-        public LoginResponse (String token, String refreshToken, WSUser user, IList<String> roles)
+        public LoginResponse (string token, string refreshToken, WSUserResponse user, IList<string> roles)
         {
             Token = token;
             RefreshToken = refreshToken;

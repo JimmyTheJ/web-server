@@ -6,6 +6,7 @@ import Register from './components/modules/register'
 
 import Home from './components/home'
 import Start from './components/pages/start'
+import Profile from './components/pages/profile'
 import AdminTools from './components/pages/admin-tools'
 import Chat from './components/pages/chat-messaging'
 import Browser from './components/pages/browser'
@@ -50,6 +51,16 @@ export const routes = [
                 meta: {
                     authLevel: Roles.Level.Default,
                     hidden: false,
+                }
+            },
+            {
+                path: 'profile',
+                name: 'profile',
+                component: Profile,
+                display: 'Profile',
+                meta: {
+                    authLevel: Roles.Level.Default,
+                    hidden: true,
                 }
             },
             {

@@ -16,6 +16,9 @@ export const CSRF_DESTROY = 'CSRF_TOKEN_DESTROY'
 
 export const GET_MODULES = 'GET_MODULES'
 
+export const USER_UPDATE_AVATAR = 'USER_UPDATE_AVATAR'
+export const USER_UPDATE_DISPLAY_NAME = 'USER_UPDATE_DISPLAY_NAME'
+
 /*
  * Library
  */
