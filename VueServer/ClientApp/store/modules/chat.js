@@ -17,15 +17,27 @@ const getters = {
 }
 
 const actions = {
-    async getAllConversationsForUser({ commit, rootState }, context) {
-        ConMsgs.methods.$_console_log('[Vuex][Actions] Getting all conversations for user')
+    async getNewConversationNotifications() {
+        ConMsgs.methods.$_console_log('[Vuex][Actions] Getting all new conversation notifications')
         try {
-            const res = await chatAPI.getAllConversations(context)
+            const res = await chatAPI.getAllNewMessagesForConversations()
+            //commit(types.CHAT_CONVERSATION_NOTIFICATIONS_GET_NEW, { list: res.data, userId: rootState.auth.user.id })
+            return await Promise.resolve(res)
+        }
+        catch (e) {
+            ConMsgs.methods.$_console_group('[Vuex][Actions] Error from get all new conversation notifications', e.response)
+            return await Promise.reject(e.response);
+        }
+    },
+    async getAllConversationsForUser({ commit, rootState }) {
+        ConMsgs.methods.$_console_log('[Vuex][Actions] Getting all conversations')
+        try {
+            const res = await chatAPI.getAllConversations()
             commit(types.CHAT_CONVERSATION_GET_ALL, { list: res.data, userId: rootState.auth.user.id })
             return await Promise.resolve(res)
         }
         catch (e) {
-            ConMsgs.methods.$_console_group('[Vuex][Actions] Error from get all conversations for user', e.response)
+            ConMsgs.methods.$_console_group('[Vuex][Actions] Error from get all conversations', e.response)
             return await Promise.reject(e.response);
         }
     },

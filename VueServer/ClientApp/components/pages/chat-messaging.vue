@@ -88,6 +88,16 @@
                 conversations: state => state.chat.conversations,
             }),
         },
+        watch: {
+            selectedConversation: {
+                handler(newValue) {
+                    if (typeof newValue === 'object' && newValue !== null) {
+                        this.$store.dispatch('getMessagesForConversation', newValue.id);
+                    }
+                },
+                deep: true
+            }
+        },
         methods: {
             countTime() {
                 this.currentTime = Math.trunc(new Date().getTime() / 1000);
@@ -109,7 +119,7 @@
                     .then(() => this.isLoading = false);
             },
             async getAllConversations() {
-                this.$store.dispatch('getAllConversationsForUser', this.user.id);
+                this.$store.dispatch('getAllConversationsForUser');
             },
             async startConversation() {
                 this.$store.dispatch('startNewConversation', this.newConversation)

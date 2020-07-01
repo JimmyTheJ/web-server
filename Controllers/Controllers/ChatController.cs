@@ -41,11 +41,18 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _chatService.GetConversation(id));
         }
 
-        [Route("conversation/get-all/{userId}")]
+        [Route("conversation/notifications/get-all")]
         [HttpGet]
-        public async Task<IActionResult> GetAllConversations(string userId)
+        public async Task<IActionResult> GetNewMessageNotifications()
         {
-            return _codeFactory.GetStatusCode(await _chatService.GetAllConversations(userId));
+            return _codeFactory.GetStatusCode(await _chatService.GetNewMessageNotifications());
+        }        
+
+        [Route("conversation/get-all")]
+        [HttpGet]
+        public async Task<IActionResult> GetAllConversations()
+        {
+            return _codeFactory.GetStatusCode(await _chatService.GetAllConversations());
         }
 
         [Route("conversation/update-title/{conversationId}")]

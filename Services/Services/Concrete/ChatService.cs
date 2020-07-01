@@ -15,6 +15,7 @@ using VueServer.Domain.Interface;
 using VueServer.Models.Chat;
 using VueServer.Models.Context;
 using VueServer.Models.Request;
+using VueServer.Services.Enums;
 using VueServer.Services.Hubs;
 using VueServer.Services.Interface;
 
@@ -47,11 +48,8 @@ namespace VueServer.Services.Concrete
 
             var conversationUserList = new List<ConversationHasUser>();
 
-            // Get current user, this shouldn't be able to fail
-            var currentUser = await _user.GetUserByNameAsync(_user.Name);
-
             // Get all this users conversations to see if they are trying to make a conversation that already exists
-            var allUsersConversations = (await GetAllConversations(currentUser.Id))?.Obj;
+            var allUsersConversations = (await GetAllConversations())?.Obj;
             if (allUsersConversations != null && allUsersConversations.Count() > 0)
             {
                 var allUsersInEachConvo = allUsersConversations.Select(x => x.ConversationUsers).ToList();
@@ -73,6 +71,9 @@ namespace VueServer.Services.Concrete
                     }
                 }
             }
+
+            // Get current user, this shouldn't be able to fail
+            var currentUser = await _user.GetUserByNameAsync(_user.Name);
 
             // Add current user to conversation
             var selfUser = new ConversationHasUser()
@@ -144,45 +145,20 @@ namespace VueServer.Services.Concrete
             return new Result<Conversation>(conversation, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<Conversation>>> GetAllConversations(string userId)
+        public async Task<IResult<IEnumerable<Conversation>>> GetNewMessageNotifications()
         {
-            var conversationUsers = await _context.ConversationHasUser.Where(x => x.UserId == userId).ToListAsync();
-            if (conversationUsers == null)
+            var conversationList = await GetAllConversationAsync(GetMessageType.New);
+            if (conversationList == null)
             {
-                return new Result<IEnumerable<Conversation>>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<IEnumerable<Conversation>>(null, Domain.Enums.StatusCode.NO_CONTENT);
             }
 
-            var conversationList = await _context.Conversations
-                .Include(x => x.Messages)
-                .Include(x => x.ConversationUsers)
-                .Where(x => x.ConversationUsers.Any(y => y.ConversationId == x.Id && y.UserId == userId))
-                .ToListAsync();
+            return new Result<IEnumerable<Conversation>>(conversationList, Domain.Enums.StatusCode.OK);
+        }
 
-            foreach(var conversation in conversationList)
-            {
-                if (conversation.ConversationUsers != null)
-                {
-                    // TODO: This is very inneficient. Figure out a better way with LINQ
-                    foreach (var userConversation in conversation.ConversationUsers)
-                    {
-                        // Don't bother doing a lookup on our own name
-                        if (userConversation.UserId == userId)
-                        {
-                            continue;
-                        }
-
-                        var usr = await _user.GetUserByIdAsync(userConversation.UserId);
-                        userConversation.UserDisplayName = usr.DisplayName;
-                    }
-                }
-
-                if (conversation.Messages != null)
-                {
-                    // Sort messages
-                    conversation.Messages.OrderByDescending(x => x.Timestamp);
-                }
-            }
-
+        public async Task<IResult<IEnumerable<Conversation>>> GetAllConversations()
+        {
+            var conversationList = await GetAllConversationAsync();
             return new Result<IEnumerable<Conversation>>(conversationList, Domain.Enums.StatusCode.OK);
         }
 
@@ -396,6 +372,59 @@ namespace VueServer.Services.Concrete
             await _chatHubContext.Clients.All.SendMessage(newMessage);
 
             return new Result<ChatMessage>(newMessage, Domain.Enums.StatusCode.OK);
+        }
+
+        private async Task<IEnumerable<Conversation>> GetAllConversationAsync (GetMessageType getMessages = GetMessageType.None)
+        {
+            var user = await _user.GetUserByNameAsync(_user.Name);
+            if (user == null)
+            {
+                _logger.LogWarning($"GetAllConversationAsync: Unable to get user by name with name ({_user.Name})");
+                return null;
+            }
+
+            IQueryable<Conversation> conversationQuery = _context.Set<Conversation>().AsQueryable();
+            conversationQuery = conversationQuery.Include(x => x.ConversationUsers)
+                .Where(x => x.ConversationUsers.Any(y => y.ConversationId == x.Id && y.UserId == user.Id));
+            
+            if (getMessages == GetMessageType.All)
+                conversationQuery = conversationQuery.Include(x => x.Messages);
+            else if (getMessages == GetMessageType.New)
+                conversationQuery = conversationQuery.Include(x => x.Messages).Where(x => x.Messages.Any(y => y.Read == false));
+
+            var conversationList = await conversationQuery.ToListAsync();
+            if (conversationList == null)
+            {
+                _logger.LogInformation($"GetAllConversationAsync: Conversation list is empty for user ({_user.Name})");
+                return null;
+            }
+
+            foreach (var conversation in conversationList)
+            {
+                if (conversation.ConversationUsers != null)
+                {
+                    // TODO: This is very inneficient. Figure out a better way with LINQ
+                    foreach (var userConversation in conversation.ConversationUsers)
+                    {
+                        // Don't bother doing a lookup on our own name
+                        if (userConversation.UserId == user.Id)
+                        {
+                            continue;
+                        }
+
+                        var usr = await _user.GetUserByIdAsync(userConversation.UserId);
+                        userConversation.UserDisplayName = usr.DisplayName;
+                    }
+                }
+
+                if (conversation.Messages != null)
+                {
+                    // Sort messages
+                    conversation.Messages.OrderByDescending(x => x.Timestamp);
+                }
+            }
+
+            return conversationList;
         }
     }    
 }
