@@ -29,5 +29,7 @@ namespace VueServer.Services.Interface
         Task<IResult<IEnumerable<WSUserResponse>>> GetUserIds();
 
         Task<IResult<string>> UpdateUserAvatar(IFormFile file);
+
+        Task<IResult<bool>> UpdateDisplayName(string name);
     }
 }

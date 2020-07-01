@@ -137,6 +137,18 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _service.UpdateUserAvatar(request?.File));
         }
 
+        /// <summary>
+        /// Update the active user's avatar image
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Authorize(Roles = ROLES_ALL)]
+        [Route("user/update-displayname")]
+        public async Task<IActionResult> UpdateDisplayName(string name)
+        {
+            return _codeFactory.GetStatusCode(await _service.UpdateDisplayName(name));
+        }
+
         #endregion
     }
 }

@@ -324,6 +324,37 @@ namespace VueServer.Services.Concrete
             return new Result<string>(filename, Domain.Enums.StatusCode.OK);
         }
 
+        public async Task<IResult<bool>> UpdateDisplayName(string name)
+        {
+            var user = await _user.GetUserByNameAsync(_user.Name);
+            if (user == null)
+            {
+                _logger.LogWarning($"[AccountService] UpdateDisplayName: Unable to get user by name with name ({_user.Name})");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            var wsUser = await _context.Users.Where(x => x.Id == user.Id).SingleOrDefaultAsync();
+            if (wsUser == null)
+            {
+                _logger.LogWarning($"[AccountService] UpdateDisplayName: User with user id ({user.Id}) doesn't exist. This shouldn't be possible though.");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            // TODO: Add some kind of validation for what is acceptable for a user name
+            wsUser.DisplayName = name;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                _logger.LogWarning($"[AccountService] CreateUserProfile: Error saving after updating profile user '{user.Id}' avatar");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            return new Result<bool>(true, Domain.Enums.StatusCode.OK);
+        }
+
 
         #endregion
 
