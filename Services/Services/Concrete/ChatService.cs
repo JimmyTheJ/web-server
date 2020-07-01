@@ -36,6 +36,8 @@ namespace VueServer.Services.Concrete
             _logger = logger?.CreateLogger<ChatService>() ?? throw new ArgumentNullException("Logger factory is null");
         }
 
+        #region -> Public Functions
+
         public async Task<IResult<Conversation>> StartConversation(StartConversationRequest request)
         {
             if (request == null || request.Users == null || request.Users.Count() == 0)
@@ -374,6 +376,51 @@ namespace VueServer.Services.Concrete
             return new Result<ChatMessage>(newMessage, Domain.Enums.StatusCode.OK);
         }
 
+        public async Task<IResult<bool>> ReadMessage(Guid id)
+        {
+            var user = await _user.GetUserByNameAsync(_user.Name);
+            if (user == null)
+            {
+                _logger.LogWarning($"ReadMessage: Unable to get user by name with name ({_user.Name})");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            var message = await _context.Messages.Where(x => x.Id == id).SingleOrDefaultAsync();
+            if (message == null)
+            {
+                _logger.LogInformation($"ReadMessage: Message ({id}) doesn't exist");
+                return new Result<bool>(false, Domain.Enums.StatusCode.NOT_FOUND);
+            }
+
+            if (message.UserId != user.Id)
+            {
+                _logger.LogWarning($"ReadMessage: Unable to read this message as it is not owned by the current user ({_user.Name})");
+                return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
+            }
+
+            if (message.Read)
+            {
+                return new Result<bool>(true, Domain.Enums.StatusCode.OK);
+            }
+
+            message.Read = true;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                _logger.LogError($"ReadMessage: Error saving database on updating the read status of the message {id}");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            return new Result<bool>(true, Domain.Enums.StatusCode.OK);
+        }
+
+        #endregion
+
+        #region -> Private Functions
+
         private async Task<IEnumerable<Conversation>> GetAllConversationAsync (GetMessageType getMessages = GetMessageType.None)
         {
             var user = await _user.GetUserByNameAsync(_user.Name);
@@ -426,5 +473,7 @@ namespace VueServer.Services.Concrete
 
             return conversationList;
         }
-    }    
+
+        #endregion
+    }
 }
