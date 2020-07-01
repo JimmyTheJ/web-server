@@ -55,4 +55,7 @@ export default {
     uploadAvatarImage(file) {
         return axios.post(updateAvatarImageUrl, file)
     },
+    updateDisplayName(name) {
+        return axios.post(updateDisplayNameUrl, name)
+    }
 }

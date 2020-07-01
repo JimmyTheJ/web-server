@@ -18,8 +18,14 @@
                     <v-flex xs4>
                         Display name:
                     </v-flex>
-                    <v-flex xs8>
+                    <v-flex xs8 @click="editDisplayName = !editDisplayName" v-if="editDisplayName === false">
                         {{ user.displayName }}
+                    </v-flex>
+                    <v-flex xs8 v-else>
+                        <v-text-field v-model="newDisplayName"
+                                      label="New Display Name"
+                                      @keyup.enter="updateDisplayName()"
+                                      @keyup.esc="editDisplayName = false"></v-text-field>
                     </v-flex>
                 </v-layout>
             </v-card-text>
@@ -34,6 +40,8 @@
         data() {
             return {
                 uploadFile: null,
+                editDisplayName: false,
+                newDisplayName: '',
             }
         },
         computed: {
@@ -69,6 +77,10 @@
                         this.uploadFile = null;
                         this.$refs.fUpload.value = '';
                     });
+            },
+            updateDisplayName() {
+                this.$store.dispatch('updateDisplayName', this.newDisplayName)
+                    .then(() => { }).catch(() => { }).then(() => this.editDisplayName = false);
             },
         },
     }

@@ -103,6 +103,18 @@ const actions = {
             return await Promise.reject(e.response);
         }
     },
+    async updateDisplayName({ commit }, context) {
+        try {
+            const res = await authAPI.updateDisplayName(context)
+            ConMsgs.methods.$_console_log(res.data);
+            commit(types.USER_UPDATE_DISPLAY_NAME, context)
+            return await Promise.resolve(res)
+        }
+        catch (e) {
+            ConMsgs.methods.$_console_group('[Vuex][Actions] Error from update display name', e.response)
+            return await Promise.reject(e.response);
+        }
+    },
 }
 
 const mutations = {
@@ -191,6 +203,14 @@ const mutations = {
         ConMsgs.methods.$_console_log("Mutating update user avatar");
 
         state.user.avatar = data
+
+        localStorage.removeItem('user')
+        localStorage.setItem('user', JSON.stringify(state.user))
+    },
+    [types.USER_UPDATE_DISPLAY_NAME](state, data) {
+        ConMsgs.methods.$_console_log("Mutating update user display name");
+
+        state.user.displayName = data
 
         localStorage.removeItem('user')
         localStorage.setItem('user', JSON.stringify(state.user))
