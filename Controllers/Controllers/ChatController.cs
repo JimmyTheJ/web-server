@@ -62,6 +62,13 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _chatService.DeleteConversation(conversationId));
         }
 
+        [Route("conversation/get/messages/{id}")]
+        [HttpGet]
+        public async Task<IActionResult> GetMessagesForConversation(Guid id)
+        {
+            return _codeFactory.GetStatusCode(await _chatService.GetMessagesForConversation(id));
+        }
+
         [Route("message/delete/{messageId}")]
         [HttpDelete]
         public async Task<IActionResult> DeleteMessage(Guid messageId)

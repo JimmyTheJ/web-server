@@ -83,6 +83,18 @@ const actions = {
             return await Promise.reject(e.response);
         }
     },
+    async getMessagesForConversation({ commit }, context) {
+        ConMsgs.methods.$_console_log('[Vuex][Actions] Get messages for conversation')
+        try {
+            const res = await chatAPI.getMessagesForConversation(context)
+            commit(types.CHAT_CONVERSATION_GET_MESSAGES, { messages: res.data, conversationId: context })
+            return await Promise.resolve(res)
+        }
+        catch (e) {
+            ConMsgs.methods.$_console_group('[Vuex][Actions] Error from getting messages for conversation', e.response)
+            return await Promise.reject(e.response);
+        }
+    },
     async addChatMessage({ commit }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Add chat message')
         commit(types.CHAT_MESSAGE_ADD, context)
@@ -149,6 +161,17 @@ const mutations = {
         }
 
         conversation.title = data.title
+    },
+    [types.CHAT_CONVERSATION_GET_MESSAGES](state, data) {
+        ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating get messages for conversation")
+
+        let conversation = state.conversations.find(x => x.id === data.conversationId)
+        if (typeof conversation === 'undefined') {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] UpdateConversation: Can\'t find conversation to update the title of')
+            return
+        }
+
+        conversation.messages = data.messages
     },
     [types.CHAT_MESSAGE_ADD](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating add chat message")

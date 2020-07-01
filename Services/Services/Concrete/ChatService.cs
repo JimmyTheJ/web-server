@@ -269,6 +269,31 @@ namespace VueServer.Services.Concrete
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
+        public async Task<IResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(Guid id)
+        {
+            var user = await _user.GetUserByNameAsync(_user.Name);
+            if (user == null)
+            {
+                _logger.LogWarning($"GetMessagesForConversation: Unable to get user by name with name ({_user.Name})");
+                return new Result<IEnumerable<ChatMessage>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            var conversation = await _context.Conversations.Include(x => x.ConversationUsers).Include(x => x.Messages).Where(x => x.Id == id).SingleOrDefaultAsync();
+            if (conversation == null)
+            {
+                _logger.LogWarning($"GetMessagesForConversation: Unable to get conversation by id ({id})");
+                return new Result<IEnumerable<ChatMessage>>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            if (!conversation.ConversationUsers.Any(x => x.UserId == user.Id))
+            {
+                _logger.LogInformation($"GetMessagesForConversation: User ({user.Id}) is not part of the conversation with id ({id}), cannot access this conversation");
+                return new Result<IEnumerable<ChatMessage>>(null, Domain.Enums.StatusCode.FORBIDDEN);
+            }
+
+            return new Result<IEnumerable<ChatMessage>>(conversation.Messages, Domain.Enums.StatusCode.OK);
+        }
+
         public async Task<IResult<bool>> DeleteMessage(Guid messageId)
         {
             var user = await _user.GetUserByNameAsync(_user.Name);
