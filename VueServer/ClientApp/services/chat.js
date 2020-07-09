@@ -10,6 +10,7 @@ const GetMessagesForConversation = `api/chat/conversation/get/messages`
 const DeleteMessageUrl = `api/chat/message/delete`
 const GetMessageUrl = 'api/chat/message/get'
 const SendMessageUrl = 'api/chat/message/send'
+const ReadMessageUrl = 'api/chat/message/read'
 
 export default {
     startConversation(obj) {
@@ -47,5 +48,11 @@ export default {
     },
     sendMessage(obj) {
         return axios.post(SendMessageUrl, obj);
+    },
+    readMessage(conversationId, messageId) {
+        return axios.request({
+            url: `${ReadMessageUrl}/${conversationId}/${messageId}`,
+            method: 'put'
+        });
     },
 }

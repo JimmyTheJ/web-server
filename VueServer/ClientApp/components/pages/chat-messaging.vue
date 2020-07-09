@@ -90,9 +90,11 @@
         },
         watch: {
             selectedConversation: {
-                handler(newValue) {
+                handler(newValue, oldValue) {
                     if (typeof newValue === 'object' && newValue !== null) {
-                        this.$store.dispatch('getMessagesForConversation', newValue.id);
+                        if ((typeof oldValue === 'object' && oldValue !== null && newValue.id !== oldValue.id) || typeof oldValue !== 'object' || oldValue === null) {
+                            this.$store.dispatch('getMessagesForConversation', newValue.id);
+                        }                        
                     }
                 },
                 deep: true

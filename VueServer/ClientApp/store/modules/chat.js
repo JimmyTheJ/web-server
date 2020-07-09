@@ -128,6 +128,17 @@ const actions = {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from deleting chat message', e.response)
             return await Promise.reject(e.response);
         }
+    },
+    async readChatMessage({ commit }, context) {
+        ConMsgs.methods.$_console_log('[Vuex][Actions] Read chat message')
+        try {
+            const res = await chatAPI.readMessage(context.conversationId, context.messageId)
+            commit(types.CHAT_MESSAGE_READ, context)
+        }
+        catch (e) {
+            ConMsgs.methods.$_console_group('[Vuex][Actions] Error from reading chat message', e.response)
+            return await Promise.reject(e.response);
+        }
     }
 }
 
@@ -212,7 +223,25 @@ const mutations = {
         }
 
         state.conversations[conversationIndex].messages.splice(messageIndex, 1)
-    }
+    },
+    [types.CHAT_MESSAGE_READ](state, data) {
+        ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating read chat message")
+
+        const conversationIndex = state.conversations.findIndex(x => x.id === data.conversationId)
+        if (conversationIndex < 0) {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Can\'t find conversation to read the message from')
+            return
+        }
+
+        const messageIndex = state.conversations[conversationIndex].messages.findIndex(x => x.id === data.messageId)
+        if (messageIndex < 0) {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Can\'t find message to read')
+            return
+        }
+
+        state.conversations[conversationIndex].messages[messageIndex].read = true
+    },
+    
 }
 
 export default {

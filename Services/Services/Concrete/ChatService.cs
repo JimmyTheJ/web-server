@@ -376,7 +376,7 @@ namespace VueServer.Services.Concrete
             return new Result<ChatMessage>(newMessage, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> ReadMessage(Guid id)
+        public async Task<IResult<bool>> ReadMessage(Guid conversationId, Guid messageId)
         {
             var user = await _user.GetUserByNameAsync(_user.Name);
             if (user == null)
@@ -385,22 +385,23 @@ namespace VueServer.Services.Concrete
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
-            var message = await _context.Messages.Where(x => x.Id == id).SingleOrDefaultAsync();
-            if (message == null)
+            var conversationUser = await _context.ConversationHasUser.Where(x => x.ConversationId == conversationId && x.UserId == user.Id).FirstOrDefaultAsync();
+            if (conversationUser == null)
             {
-                _logger.LogInformation($"ReadMessage: Message ({id}) doesn't exist");
-                return new Result<bool>(false, Domain.Enums.StatusCode.NOT_FOUND);
+                _logger.LogInformation($"ReadMessage: User ({user.Id}) is not part of conversation ({conversationId})");
+                return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
-            if (message.UserId != user.Id)
+            var message = await _context.Messages.Where(x => x.Id == messageId).SingleOrDefaultAsync();
+            if (message == null)
             {
-                _logger.LogWarning($"ReadMessage: Unable to read this message as it is not owned by the current user ({_user.Name})");
-                return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
+                _logger.LogInformation($"ReadMessage: Message ({message.Id}) doesn't exist");
+                return new Result<bool>(false, Domain.Enums.StatusCode.NOT_FOUND);
             }
 
             if (message.Read)
             {
-                return new Result<bool>(true, Domain.Enums.StatusCode.OK);
+                return new Result<bool>(true, Domain.Enums.StatusCode.NO_CONTENT);
             }
 
             message.Read = true;
@@ -410,7 +411,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogError($"ReadMessage: Error saving database on updating the read status of the message {id}");
+                _logger.LogError($"ReadMessage: Error saving database on updating the read status of the message {messageId}");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 

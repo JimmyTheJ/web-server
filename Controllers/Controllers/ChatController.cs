@@ -97,11 +97,11 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _chatService.AddMessage(message));
         }
 
-        [Route("message/read/{id}")]
+        [Route("message/read/{conversationId}/{messageId}")]
         [HttpPut]
-        public async Task<IActionResult> ReadMessage(Guid id)
+        public async Task<IActionResult> ReadMessage(Guid conversationId, Guid messageId)
         {
-            return _codeFactory.GetStatusCode(await _chatService.ReadMessage(id));
+            return _codeFactory.GetStatusCode(await _chatService.ReadMessage(conversationId, messageId));
         }
     }
 }

@@ -20,7 +20,7 @@
             </v-list>
         </v-menu>
 
-        <div :class="['bubble-container', color, 'pa-2', 'order-1']">
+        <div :class="['bubble-container', color, 'pa-2', 'order-1']" @click="readMessage()">
             <div class="text-body-1">{{ message.text }}</div>
             <div class="text-caption text-right">{{ timeSince }}</div>
         </div>
@@ -120,7 +120,12 @@
             moreInfo() {
                 this.$emit('moreInfo', this.message);
                 this.optionDialog = false;
-            }
+            },
+            readMessage() {
+                if (!this.message.read) {
+                    this.$store.dispatch('readChatMessage', { conversationId: this.message.conversationId, messageId: this.message.id });
+                }
+            },
         }
     }
 </script>
