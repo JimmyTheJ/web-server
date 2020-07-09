@@ -26,10 +26,10 @@ namespace VueServer.Models.Context
         #region -> Chat System
 
         DbSet<Conversation> Conversations { get; set; }
-
         DbSet<ConversationHasUser> ConversationHasUser { get; set; }
-
         DbSet<ChatMessage> Messages { get; set; }
+        DbSet<ChatMessageHasReadReceipt> MessageHasReadReceipt { get; set; }
+        DbSet<ReadReceipt> ReadReceipts { get; set; }
 
         #endregion
 
@@ -45,19 +45,12 @@ namespace VueServer.Models.Context
         #region -> Library 
 
         DbSet<Author> Authors { get; set; }
-
         DbSet<Book> Books { get; set; }
-
         DbSet<Bookcase> Bookcases { get; set; }
-
         DbSet<Genre> Genres { get; set; }
-
         DbSet<Series> Series { get; set; }
-
         DbSet<Shelf> Shelves { get; set; }
-
         DbSet<BookAuthor> BookHasAuthors { get; set; }
-
         DbSet<BookGenre> BookHasGenres { get; set; }
 
         #endregion

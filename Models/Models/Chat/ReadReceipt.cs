@@ -1,30 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Security.Permissions;
 using System.Text;
 using VueServer.Models.User;
 
 namespace VueServer.Models.Chat
 {
-    public class ChatMessage
+    public class ReadReceipt
     {
-        [Key]
-        public Guid Id { get; set; }
+        public long Id { get; set; }
+
+        public long Timestamp { get; set; }
 
         [ForeignKey("User")]
         public string UserId { get; set; }
 
-        [ForeignKey("Conversation")]
-        public Guid ConversationId { get; set; }
-
-        public string Text { get; set; }
-
-        public long Timestamp { get; set; }
+        [ForeignKey("Message")]
+        public Guid MessageId { get; set; }
 
         public virtual WSUser User { get; set; }
 
-        public virtual Conversation Conversation { get; set; }
+        public virtual ChatMessage Message { get; set; }
 
         public virtual IEnumerable<ChatMessageHasReadReceipt> MessageReadReceipts { get; set; }
     }

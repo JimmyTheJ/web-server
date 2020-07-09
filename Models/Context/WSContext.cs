@@ -54,6 +54,11 @@ namespace VueServer.Models.Context
             modelBuilder.Entity<ConversationHasUser>().HasOne(x => x.Conversation).WithMany(x => x.ConversationUsers).HasForeignKey(x => x.ConversationId);
             modelBuilder.Entity<ConversationHasUser>().HasOne(x => x.User).WithMany(x => x.ConversationUsers).HasForeignKey(x => x.UserId);
 
+            // Message Read Receipt many to many setup
+            modelBuilder.Entity<ChatMessageHasReadReceipt>().HasKey(x => new { x.MessageId, x.ReadReceiptId });
+            modelBuilder.Entity<ChatMessageHasReadReceipt>().HasOne(x => x.Message).WithMany(x => x.MessageReadReceipts).HasForeignKey(x => x.MessageId);
+            modelBuilder.Entity<ChatMessageHasReadReceipt>().HasOne(x => x.ReadReceipt).WithMany(x => x.MessageReadReceipts).HasForeignKey(x => x.ReadReceiptId);
+
             // Data Seeding
             SeedGenres(modelBuilder);
             SeedModules(modelBuilder);
@@ -73,10 +78,10 @@ namespace VueServer.Models.Context
         #region -> Chat System
 
         public DbSet<Conversation> Conversations { get; set; }
-
         public DbSet<ConversationHasUser> ConversationHasUser { get; set; }
-
         public DbSet<ChatMessage> Messages { get; set; }
+        public DbSet<ChatMessageHasReadReceipt> MessageHasReadReceipt { get; set; }
+        public DbSet<ReadReceipt> ReadReceipts { get; set; }
 
         #endregion
 
@@ -92,19 +97,12 @@ namespace VueServer.Models.Context
         #region -> Library 
 
         public DbSet<Author> Authors { get; set; }
-
         public DbSet<Book> Books { get; set; }
-
         public DbSet<Bookcase> Bookcases { get; set; }
-
         public DbSet<Genre> Genres { get; set; }
-
         public DbSet<Series> Series { get; set; }
-
         public DbSet<Shelf> Shelves { get; set; }
-
         public DbSet<BookAuthor> BookHasAuthors { get; set; }
-
         public DbSet<BookGenre> BookHasGenres { get; set; }
 
         #endregion
