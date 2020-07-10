@@ -399,6 +399,12 @@ namespace VueServer.Services.Concrete
                 return new Result<bool>(false, Domain.Enums.StatusCode.NOT_FOUND);
             }
 
+            if (message.UserId == user.Id)
+            {
+                // Can't read your own messages
+                return new Result<bool>(true, Domain.Enums.StatusCode.NO_CONTENT);
+            }
+
             void CreateReadReceipt() {
                 var readReceipt = new ReadReceipt()
                 {
