@@ -36,7 +36,7 @@ namespace VueServer.Controllers
 
         [Route("conversation/get/{id}")]
         [HttpGet]
-        public async Task<IActionResult> GetConversation(Guid id)
+        public async Task<IActionResult> GetConversation(long id)
         {
             return _codeFactory.GetStatusCode(await _chatService.GetConversation(id));
         }
@@ -57,35 +57,35 @@ namespace VueServer.Controllers
 
         [Route("conversation/update-title/{conversationId}")]
         [HttpPost]
-        public async Task<IActionResult> UpdateConversationTitle(Guid conversationId, [FromBody] UpdateConversationTitleRequest request)
+        public async Task<IActionResult> UpdateConversationTitle(long conversationId, [FromBody] UpdateConversationTitleRequest request)
         {
             return _codeFactory.GetStatusCode(await _chatService.UpdateConversationTitle(conversationId, request?.Title));
         }
 
         [Route("conversation/delete/{conversationId}")]
         [HttpDelete]
-        public async Task<IActionResult> DeleteConversation(Guid conversationId)
+        public async Task<IActionResult> DeleteConversation(long conversationId)
         {
             return _codeFactory.GetStatusCode(await _chatService.DeleteConversation(conversationId));
         }
 
         [Route("conversation/get/messages/{id}")]
         [HttpGet]
-        public async Task<IActionResult> GetMessagesForConversation(Guid id)
+        public async Task<IActionResult> GetMessagesForConversation(long id)
         {
             return _codeFactory.GetStatusCode(await _chatService.GetMessagesForConversation(id));
         }
 
         [Route("message/delete/{messageId}")]
         [HttpDelete]
-        public async Task<IActionResult> DeleteMessage(Guid messageId)
+        public async Task<IActionResult> DeleteMessage(long messageId)
         {
             return _codeFactory.GetStatusCode(await _chatService.DeleteMessage(messageId));
         }
 
         [Route("message/get/{id}")]
         [HttpGet]
-        public async Task<IActionResult> GetMessage(Guid id)
+        public async Task<IActionResult> GetMessage(long id)
         {
             return _codeFactory.GetStatusCode(await _chatService.GetMessage(id));
         }
@@ -99,7 +99,7 @@ namespace VueServer.Controllers
 
         [Route("message/read/{conversationId}/{messageId}")]
         [HttpPut]
-        public async Task<IActionResult> ReadMessage(Guid conversationId, Guid messageId)
+        public async Task<IActionResult> ReadMessage(long conversationId, long messageId)
         {
             return _codeFactory.GetStatusCode(await _chatService.ReadMessage(conversationId, messageId));
         }

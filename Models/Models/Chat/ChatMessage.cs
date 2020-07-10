@@ -10,13 +10,13 @@ namespace VueServer.Models.Chat
     public class ChatMessage
     {
         [Key]
-        public Guid Id { get; set; }
+        public long Id { get; set; }
 
         [ForeignKey("User")]
         public string UserId { get; set; }
 
         [ForeignKey("Conversation")]
-        public Guid ConversationId { get; set; }
+        public long ConversationId { get; set; }
 
         public string Text { get; set; }
 
@@ -26,6 +26,6 @@ namespace VueServer.Models.Chat
 
         public virtual Conversation Conversation { get; set; }
 
-        public virtual IEnumerable<ChatMessageHasReadReceipt> MessageReadReceipts { get; set; }
+        public virtual IEnumerable<ReadReceipt> ReadReceipts { get; set; }
     }
 }

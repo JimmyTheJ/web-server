@@ -28,7 +28,6 @@ namespace VueServer.Models.Context
         DbSet<Conversation> Conversations { get; set; }
         DbSet<ConversationHasUser> ConversationHasUser { get; set; }
         DbSet<ChatMessage> Messages { get; set; }
-        DbSet<ChatMessageHasReadReceipt> MessageHasReadReceipt { get; set; }
         DbSet<ReadReceipt> ReadReceipts { get; set; }
 
         #endregion

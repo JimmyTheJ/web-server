@@ -70,7 +70,7 @@
                                               ref="newMessage"
                                               @keyup.enter.prevent="sendMessage">
                                     <template v-slot:append-outer>
-                                        <v-btn icon text><fa-icon size="lg" icon="paper-plane"></fa-icon></v-btn>
+                                        <v-btn icon text @click="sendMessage"><fa-icon size="lg" icon="paper-plane"></fa-icon></v-btn>
                                     </template>
                                 </v-text-field>
                             </v-flex>
@@ -84,6 +84,7 @@
         </div>
     </div>
 </template>
+
 <script>
     import ChatBubble from './chat-bubble'
     import service from '../../services/chat'
@@ -175,8 +176,10 @@
                 })
             },
             async sendMessage() {
+                this.newMessage.id = 0;
                 this.newMessage.userId = this.user.id;
                 this.newMessage.conversationId = this.conversation.id;
+                console.log(this.newMessage);
                 await service.sendMessage(this.newMessage);
 
                 this.newMessage = { text: '' };
@@ -237,17 +240,17 @@
             },
             scrollToBottom() {
                 const chatWindow = document.getElementById('chat-body-container');
-                chatWindow.scrollTop = chatWindow.scrollHeight;
+                if (chatWindow != null)
+                    chatWindow.scrollTop = chatWindow.scrollHeight;
             }
         }
     }
 </script>
 
-<style scoped>
+<style>
     #chat-container {
         max-height: 800px;
         max-width: 1100px;
-
     }
 
     #chat-body-container {

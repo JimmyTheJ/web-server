@@ -54,11 +54,6 @@ namespace VueServer.Models.Context
             modelBuilder.Entity<ConversationHasUser>().HasOne(x => x.Conversation).WithMany(x => x.ConversationUsers).HasForeignKey(x => x.ConversationId);
             modelBuilder.Entity<ConversationHasUser>().HasOne(x => x.User).WithMany(x => x.ConversationUsers).HasForeignKey(x => x.UserId);
 
-            // Message Read Receipt many to many setup
-            modelBuilder.Entity<ChatMessageHasReadReceipt>().HasKey(x => new { x.MessageId, x.ReadReceiptId });
-            modelBuilder.Entity<ChatMessageHasReadReceipt>().HasOne(x => x.Message).WithMany(x => x.MessageReadReceipts).HasForeignKey(x => x.MessageId);
-            modelBuilder.Entity<ChatMessageHasReadReceipt>().HasOne(x => x.ReadReceipt).WithMany(x => x.MessageReadReceipts).HasForeignKey(x => x.ReadReceiptId);
-
             // Data Seeding
             SeedGenres(modelBuilder);
             SeedModules(modelBuilder);
@@ -80,7 +75,6 @@ namespace VueServer.Models.Context
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<ConversationHasUser> ConversationHasUser { get; set; }
         public DbSet<ChatMessage> Messages { get; set; }
-        public DbSet<ChatMessageHasReadReceipt> MessageHasReadReceipt { get; set; }
         public DbSet<ReadReceipt> ReadReceipts { get; set; }
 
         #endregion

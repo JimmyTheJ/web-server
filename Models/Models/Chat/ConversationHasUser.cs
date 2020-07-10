@@ -8,7 +8,7 @@ namespace VueServer.Models.Chat
 {
     public class ConversationHasUser
     {
-        public Guid ConversationId { get; set; }
+        public long ConversationId { get; set; }
         public string UserId { get; set; }
 
         public bool Owner { get; set; }

@@ -47,6 +47,15 @@ namespace VueServer.Services.Concrete
 
             var conversation = new Conversation();
             _context.Conversations.Add(conversation);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("StartConversation: Error saving database on starting a conversation", e.StackTrace);
+                return new Result<Conversation>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
 
             var conversationUserList = new List<ConversationHasUser>();
 
@@ -115,9 +124,9 @@ namespace VueServer.Services.Concrete
             {
                 await _context.SaveChangesAsync();
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                _logger.LogError("StartConversation: Error saving database on starting a conversation");
+                _logger.LogError("StartConversation: Error saving database on adding users to a conversation", e.StackTrace);
                 return new Result<Conversation>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -126,7 +135,7 @@ namespace VueServer.Services.Concrete
             return new Result<Conversation>(conversation, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<Conversation>> GetConversation(Guid id)
+        public async Task<IResult<Conversation>> GetConversation(long id)
         {
             var conversation = await _context.Conversations
                 .Include(x => x.Messages)
@@ -164,7 +173,7 @@ namespace VueServer.Services.Concrete
             return new Result<IEnumerable<Conversation>>(conversationList, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> UpdateConversationTitle(Guid conversationId, string title)
+        public async Task<IResult<bool>> UpdateConversationTitle(long conversationId, string title)
         {
             var user = await _user.GetUserByNameAsync(_user.Name);
             if (user == null)
@@ -208,7 +217,7 @@ namespace VueServer.Services.Concrete
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> DeleteConversation(Guid conversationId)
+        public async Task<IResult<bool>> DeleteConversation(long conversationId)
         {
             var user = await _user.GetUserByNameAsync(_user.Name);
             if (user == null)
@@ -247,7 +256,7 @@ namespace VueServer.Services.Concrete
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(Guid id)
+        public async Task<IResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(long id)
         {
             var user = await _user.GetUserByNameAsync(_user.Name);
             if (user == null)
@@ -272,7 +281,7 @@ namespace VueServer.Services.Concrete
             return new Result<IEnumerable<ChatMessage>>(conversation.Messages, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> DeleteMessage(Guid messageId)
+        public async Task<IResult<bool>> DeleteMessage(long messageId)
         {
             var user = await _user.GetUserByNameAsync(_user.Name);
             if (user == null)
@@ -327,7 +336,7 @@ namespace VueServer.Services.Concrete
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<ChatMessage>> GetMessage(Guid id)
+        public async Task<IResult<ChatMessage>> GetMessage(long id)
         {
             var message = await _context.Messages.Where(x => x.Id == id).SingleOrDefaultAsync();
             if (message == null)
@@ -376,7 +385,7 @@ namespace VueServer.Services.Concrete
             return new Result<ChatMessage>(newMessage, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> ReadMessage(Guid conversationId, Guid messageId)
+        public async Task<IResult<bool>> ReadMessage(long conversationId, long messageId)
         {
             var user = await _user.GetUserByNameAsync(_user.Name);
             if (user == null)
@@ -392,7 +401,7 @@ namespace VueServer.Services.Concrete
                 return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
-            var message = await _context.Messages.Include(x => x.MessageReadReceipts).Where(x => x.Id == messageId).SingleOrDefaultAsync();
+            var message = await _context.Messages.Include(x => x.ReadReceipts).Where(x => x.Id == messageId).SingleOrDefaultAsync();
             if (message == null)
             {
                 _logger.LogInformation($"ReadMessage: Message ({message.Id}) doesn't exist");
@@ -414,24 +423,15 @@ namespace VueServer.Services.Concrete
                 };
 
                 _context.ReadReceipts.Add(readReceipt);
-
-                var messageReadReceipt = new ChatMessageHasReadReceipt()
-                {
-                    MessageId = message.Id,
-                    ReadReceiptId = readReceipt.Id,
-                    UserId = user.Id
-                };
-
-                _context.MessageHasReadReceipt.Add(messageReadReceipt);
             }
 
-            if (message.MessageReadReceipts == null)
+            if (message.ReadReceipts == null)
             {
                 CreateReadReceipt();
             }
             else
             {
-                if (message.MessageReadReceipts.Any(x => x.UserId == user.Id))
+                if (message.ReadReceipts.Any(x => x?.Message.UserId == user.Id))
                 {
                     return new Result<bool>(true, Domain.Enums.StatusCode.NO_CONTENT);
                 }
@@ -477,8 +477,8 @@ namespace VueServer.Services.Concrete
             }                
             else if (getMessages == GetMessageType.New)
             {
-                conversationQuery = conversationQuery.Include(x => x.Messages).ThenInclude(x => x.MessageReadReceipts)
-                    .Where(x => x.Messages.Any(y => y.UserId != user.Id && y.MessageReadReceipts == null));
+                conversationQuery = conversationQuery.Include(x => x.Messages).ThenInclude(x => x.ReadReceipts)
+                    .Where(x => x.Messages.Any(y => y.UserId != user.Id && y.ReadReceipts == null));
             }                
 
             var conversationList = await conversationQuery.ToListAsync();

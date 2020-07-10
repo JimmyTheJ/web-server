@@ -10,14 +10,16 @@ namespace VueServer.Models.Chat
     {
         public Guid MessageId { get; set; }
 
-        public long ReadReceiptId { get; set; }
+        //public long ReadReceiptId { get; set; }
+
+        public long Timestamp { get; set; }
 
         [ForeignKey("User")]
         public string UserId { get; set; }
 
         public virtual ChatMessage Message { get; set; }
 
-        public virtual ReadReceipt ReadReceipt { get; set; }
+        //public virtual ReadReceipt ReadReceipt { get; set; }
 
         public virtual WSUser User { get; set; }
     }

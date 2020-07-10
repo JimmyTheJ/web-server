@@ -17,12 +17,10 @@ namespace VueServer.Models.Chat
         public string UserId { get; set; }
 
         [ForeignKey("Message")]
-        public Guid MessageId { get; set; }
+        public long MessageId { get; set; }
 
         public virtual WSUser User { get; set; }
 
         public virtual ChatMessage Message { get; set; }
-
-        public virtual IEnumerable<ChatMessageHasReadReceipt> MessageReadReceipts { get; set; }
     }
 }

@@ -21,7 +21,7 @@ const actions = {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Getting all new conversation notifications')
         try {
             const res = await chatAPI.getAllNewMessagesForConversations()
-            //commit(types.CHAT_CONVERSATION_NOTIFICATIONS_GET_NEW, { list: res.data, userId: rootState.auth.user.id })
+            commit(types.CHAT_CONVERSATION_NOTIFICATIONS_GET_NEW, { list: res.data, userId: rootState.auth.user.id })
             return await Promise.resolve(res)
         }
         catch (e) {
