@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
+using VueServer.Models.User;
 
 namespace VueServer.Models.Chat
 {
@@ -10,8 +12,13 @@ namespace VueServer.Models.Chat
 
         public long ReadReceiptId { get; set; }
 
-        public ChatMessage Message { get; set; }
+        [ForeignKey("User")]
+        public string UserId { get; set; }
 
-        public ReadReceipt ReadReceipt { get; set; }
+        public virtual ChatMessage Message { get; set; }
+
+        public virtual ReadReceipt ReadReceipt { get; set; }
+
+        public virtual WSUser User { get; set; }
     }
 }

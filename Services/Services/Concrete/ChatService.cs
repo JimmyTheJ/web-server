@@ -392,19 +392,49 @@ namespace VueServer.Services.Concrete
                 return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
-            var message = await _context.Messages.Where(x => x.Id == messageId).SingleOrDefaultAsync();
+            var message = await _context.Messages.Include(x => x.MessageReadReceipts).Where(x => x.Id == messageId).SingleOrDefaultAsync();
             if (message == null)
             {
                 _logger.LogInformation($"ReadMessage: Message ({message.Id}) doesn't exist");
                 return new Result<bool>(false, Domain.Enums.StatusCode.NOT_FOUND);
             }
 
-            if (message.Read)
-            {
-                return new Result<bool>(true, Domain.Enums.StatusCode.NO_CONTENT);
+            void CreateReadReceipt() {
+                var readReceipt = new ReadReceipt()
+                {
+                    MessageId = message.Id,
+                    UserId = user.Id,
+                    Timestamp = DateTimeOffset.Now.ToUnixTimeSeconds()
+                };
+
+                _context.ReadReceipts.Add(readReceipt);
+
+                var messageReadReceipt = new ChatMessageHasReadReceipt()
+                {
+                    MessageId = message.Id,
+                    ReadReceiptId = readReceipt.Id,
+                    UserId = user.Id
+                };
+
+                _context.MessageHasReadReceipt.Add(messageReadReceipt);
             }
 
-            message.Read = true;
+            if (message.MessageReadReceipts == null)
+            {
+                CreateReadReceipt();
+            }
+            else
+            {
+                if (message.MessageReadReceipts.Any(x => x.UserId == user.Id))
+                {
+                    return new Result<bool>(true, Domain.Enums.StatusCode.NO_CONTENT);
+                }
+                else
+                {
+                    CreateReadReceipt();
+                }
+            }
+
             try
             {
                 await _context.SaveChangesAsync();
@@ -436,9 +466,14 @@ namespace VueServer.Services.Concrete
                 .Where(x => x.ConversationUsers.Any(y => y.ConversationId == x.Id && y.UserId == user.Id));
             
             if (getMessages == GetMessageType.All)
+            {
                 conversationQuery = conversationQuery.Include(x => x.Messages);
+            }                
             else if (getMessages == GetMessageType.New)
-                conversationQuery = conversationQuery.Include(x => x.Messages).Where(x => x.Messages.Any(y => y.Read == false));
+            {
+                conversationQuery = conversationQuery.Include(x => x.Messages).ThenInclude(x => x.MessageReadReceipts)
+                    .Where(x => x.Messages.Any(y => y.UserId != user.Id && y.MessageReadReceipts == null));
+            }                
 
             var conversationList = await conversationQuery.ToListAsync();
             if (conversationList == null)
