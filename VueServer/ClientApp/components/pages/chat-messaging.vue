@@ -110,7 +110,7 @@
             },
             async getAllUsers() {
                 this.isLoading = true;
-                authService.getUserIds().then(resp => {
+                authService.getAllOtherUsers().then(resp => {
                     if (Array.isArray(resp.data)) {
                         this.userList = resp.data;
                     }

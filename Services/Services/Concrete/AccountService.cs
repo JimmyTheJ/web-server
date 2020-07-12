@@ -230,14 +230,21 @@ namespace VueServer.Services.Concrete
             return new Result<IEnumerable<WSUser>>(users, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<WSUserResponse>>> GetUserIds()
+        public async Task<IResult<IEnumerable<WSUserResponse>>> GetAllOtherUsers()
         {
-            var users = await _context.Users.ToListAsync();
+            var user = await _user.GetUserByNameAsync(_user.Name);
+            if (user == null)
+            {
+                _logger.LogWarning($"GetAllOtherUsers: Unable to get user by name with name ({_user.Name})");
+                return new Result<IEnumerable<WSUserResponse>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            var users = await _context.Users.Where(x => x.Id != user.Id).ToListAsync();
 
             var list = new List<WSUserResponse>();
-            foreach (var user in users)
+            foreach (var usr in users)
             {
-                list.Add(new WSUserResponse(user));
+                list.Add(new WSUserResponse(usr));
             }
 
             return new Result<IEnumerable<WSUserResponse>>(list, Domain.Enums.StatusCode.OK);

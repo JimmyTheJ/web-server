@@ -12,7 +12,7 @@ const getCsrfTokenUrl = `api/account/get-csrf-token`
 const refreshTokenUrl = `api/account/refresh-jwt`
 const registerUrl = `api/account/register`
 const getUsersUrl = `api/account/user/get-all`
-const getUserIdsUrl = `api/account/user/get-all-ids`
+const getAllOtherUsersUrl = `api/account/user/get-all-others`
 const updateAvatarImageUrl = `api/account/user/update-avatar`
 const updateDisplayNameUrl = `api/account/user/update-display-name`
 
@@ -49,8 +49,8 @@ export default {
     getUsers() {
         return axios.get(getUsersUrl)
     },
-    getUserIds() {
-        return axios.get(getUserIdsUrl)
+    getAllOtherUsers() {
+        return axios.get(getAllOtherUsersUrl)
     },
     uploadAvatarImage(file) {
         return axios.post(updateAvatarImageUrl, file)

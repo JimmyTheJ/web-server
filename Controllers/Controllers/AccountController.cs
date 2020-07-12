@@ -119,10 +119,10 @@ namespace VueServer.Controllers
         /// <returns></returns>
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
-        [Route("user/get-all-ids")]
-        public async Task<IActionResult> GetAllUserIds()
+        [Route("user/get-all-others")]
+        public async Task<IActionResult> GetAllOtherUsers()
         {
-            return _codeFactory.GetStatusCode(await _service.GetUserIds());
+            return _codeFactory.GetStatusCode(await _service.GetAllOtherUsers());
         }
 
         /// <summary>
