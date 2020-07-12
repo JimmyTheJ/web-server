@@ -239,7 +239,7 @@ namespace VueServer.Services.Concrete
                 return new Result<IEnumerable<WSUserResponse>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
-            var users = await _context.Users.Where(x => x.Id != user.Id).ToListAsync();
+            var users = await _context.Users.Include(x => x.UserProfile).Where(x => x.Id != user.Id).ToListAsync();
 
             var list = new List<WSUserResponse>();
             foreach (var usr in users)

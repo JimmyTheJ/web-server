@@ -31,7 +31,19 @@
                     <v-list shaped>
                         <v-list-item v-for="(convo, index) in conversations" :key="index" @click="selectedConversation = convo">
                             <v-list-item-icon>
-                                <v-icon name="account"></v-icon>
+                                <template v-if="convo.conversationUsers.length > 2">
+                                    <fa-icon icon="users" size="2x"></fa-icon>
+                                </template>
+                                <template v-else-if="friendHasAvatar(convo) !== false">
+                                    <v-avatar>
+                                        <v-img :src="friendHasAvatar(convo)"></v-img>
+                                    </v-avatar>                                    
+                                </template>
+                                <template v-else>
+                                    <v-avatar :color="getFriendColor(convo)">
+                                        <span class="white--text headline">{{ getFriendAvatarText(convo) }}</span>
+                                    </v-avatar>
+                                </template>                                
                             </v-list-item-icon>
                             <v-list-item-content>
                                 {{ convo.title }}
@@ -137,7 +149,70 @@
                 }
 
                 return false;
-            }
+            },
+            friendHasAvatar(conversation) {
+                if (typeof conversation !== 'object' || conversation === null || !Array.isArray(conversation.conversationUsers)) {
+                    return false;
+                }
+
+                if (!Array.isArray(this.userList)) {
+                    return false;
+                }
+
+                var friend = conversation.conversationUsers.find(x => x.userId !== this.user.id);
+                if (typeof friend === 'undefined') {
+                    return false;
+                }
+
+                var user = this.userList.find(x => x.id === friend.userId);
+                if (typeof user === 'undefined') {
+                    return false;
+                }
+
+                if (typeof user.avatar === 'undefined') {
+                    return false;
+                }
+
+                return `${process.env.API_URL}/public/${user.avatar}`;
+            },
+            getFriendColor(conversation) {
+                const defaultColor = 'blue';
+                if (typeof conversation !== 'object' || conversation === null || !Array.isArray(conversation.conversationUsers)) {
+                    return defaultColor;
+                }
+
+                var friend = conversation.conversationUsers.find(x => x.userId !== this.user.id);
+                if (typeof friend === 'undefined') {
+                    return defaultColor;
+                }
+
+                if (friend.color === null) {
+                    return defaultColor;
+                }
+
+                return friend.color;
+            },
+            getFriendAvatarText(conversation) {
+                if (typeof conversation !== 'object' || conversation === null || !Array.isArray(conversation.conversationUsers)) {
+                    return false;
+                }
+
+                if (!Array.isArray(this.userList)) {
+                    return false;
+                }
+
+                var friend = conversation.conversationUsers.find(x => x.userId !== this.user.id);
+                if (typeof friend === 'undefined') {
+                    return false;
+                }
+
+                var user = this.userList.find(x => x.id === friend.userId);
+                if (typeof user === 'undefined') {
+                    return false;
+                }
+
+                return user.displayName.charAt(0);
+            },
         },
     }
 </script>

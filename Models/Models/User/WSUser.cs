@@ -37,7 +37,6 @@ namespace VueServer.Models.User
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public virtual IEnumerable<ConversationHasUser> ConversationUsers { get; set; }
 
-        [NotMapped]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public virtual WSUserProfile UserProfile { get; set; }
     }

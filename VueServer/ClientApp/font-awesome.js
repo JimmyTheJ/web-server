@@ -35,6 +35,7 @@ import { faSlash } from '@fortawesome/free-solid-svg-icons/faSlash'
 import { faUniversity } from '@fortawesome/free-solid-svg-icons/faUniversity'
 import { faUnlock } from '@fortawesome/free-solid-svg-icons/faUnlock'
 import { faUser } from '@fortawesome/free-solid-svg-icons/faUser'
+import { faUsers } from '@fortawesome/free-solid-svg-icons/faUsers'
 import { faUserSecret } from '@fortawesome/free-solid-svg-icons/faUserSecret'
 import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes'
 import { faWindowClose } from '@fortawesome/free-solid-svg-icons/faWindowClose'
@@ -78,6 +79,7 @@ library.add(
     faUniversity,
     faUnlock,
     faUser,
+    faUsers,
     faUserSecret,
     faTimes,
     faWindowClose,
