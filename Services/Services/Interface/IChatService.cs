@@ -20,6 +20,6 @@ namespace VueServer.Services.Interface
         Task<IResult<bool>> DeleteMessage(long messageId);
         Task<IResult<ChatMessage>> GetMessage(long id);
         Task<IResult<ChatMessage>> AddMessage(ChatMessage message);
-        Task<IResult<bool>> ReadMessage(long conversationId, long messageId);
+        Task<IResult<ReadReceipt>> ReadMessage(long conversationId, long messageId);
     }
 }

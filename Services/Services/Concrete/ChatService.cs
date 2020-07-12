@@ -265,7 +265,7 @@ namespace VueServer.Services.Concrete
                 return new Result<IEnumerable<ChatMessage>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
-            var conversation = await _context.Conversations.Include(x => x.ConversationUsers).Include(x => x.Messages).Where(x => x.Id == id).SingleOrDefaultAsync();
+            var conversation = await _context.Conversations.Include(x => x.ConversationUsers).Include(x => x.Messages).ThenInclude(x => x.Re).Where(x => x.Id == id).SingleOrDefaultAsync();
             if (conversation == null)
             {
                 _logger.LogWarning($"GetMessagesForConversation: Unable to get conversation by id ({id})");
@@ -385,36 +385,48 @@ namespace VueServer.Services.Concrete
             return new Result<ChatMessage>(newMessage, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> ReadMessage(long conversationId, long messageId)
+        public async Task<IResult<ReadReceipt>> ReadMessage(long conversationId, long messageId)
         {
+            ReadReceipt receipt = null;
+
             var user = await _user.GetUserByNameAsync(_user.Name);
             if (user == null)
             {
                 _logger.LogWarning($"ReadMessage: Unable to get user by name with name ({_user.Name})");
-                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+                return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
             var conversationUser = await _context.ConversationHasUser.Where(x => x.ConversationId == conversationId && x.UserId == user.Id).FirstOrDefaultAsync();
             if (conversationUser == null)
             {
                 _logger.LogInformation($"ReadMessage: User ({user.Id}) is not part of conversation ({conversationId})");
-                return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
+                return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
             var message = await _context.Messages.Include(x => x.ReadReceipts).Where(x => x.Id == messageId).SingleOrDefaultAsync();
             if (message == null)
             {
                 _logger.LogInformation($"ReadMessage: Message ({message.Id}) doesn't exist");
-                return new Result<bool>(false, Domain.Enums.StatusCode.NOT_FOUND);
+                return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.NOT_FOUND);
             }
 
             if (message.UserId == user.Id)
             {
                 // Can't read your own messages
-                return new Result<bool>(true, Domain.Enums.StatusCode.NO_CONTENT);
+                return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.NO_CONTENT);
             }
 
-            void CreateReadReceipt() {
+            if (message.ReadReceipts != null && message.ReadReceipts.Count() > 0)
+            {
+                var userReceipt = message.ReadReceipts.Where(x => x.UserId == user.Id).SingleOrDefault();
+                if (userReceipt != null)
+                {
+                    // Can't read an already read messages
+                    return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.NO_CONTENT);
+                }
+            }
+
+            ReadReceipt CreateReadReceipt() {
                 var readReceipt = new ReadReceipt()
                 {
                     MessageId = message.Id,
@@ -423,21 +435,24 @@ namespace VueServer.Services.Concrete
                 };
 
                 _context.ReadReceipts.Add(readReceipt);
+                return readReceipt;
             }
 
-            if (message.ReadReceipts == null)
+            
+            if (message.ReadReceipts == null || message.ReadReceipts.Count() == 0)
             {
-                CreateReadReceipt();
+                receipt = CreateReadReceipt();
             }
             else
             {
-                if (message.ReadReceipts.Any(x => x?.Message.UserId == user.Id))
+                var oldReceipt = message.ReadReceipts.Where(x => x.Message.UserId == user.Id).SingleOrDefault();
+                if (oldReceipt != null)
                 {
-                    return new Result<bool>(true, Domain.Enums.StatusCode.NO_CONTENT);
+                    return new Result<ReadReceipt>(oldReceipt, Domain.Enums.StatusCode.NO_CONTENT);
                 }
                 else
                 {
-                    CreateReadReceipt();
+                    receipt = CreateReadReceipt();
                 }
             }
 
@@ -448,10 +463,10 @@ namespace VueServer.Services.Concrete
             catch (Exception)
             {
                 _logger.LogError($"ReadMessage: Error saving database on updating the read status of the message {messageId}");
-                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+                return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
-            return new Result<bool>(true, Domain.Enums.StatusCode.OK);
+            return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.OK);
         }
 
         #endregion
@@ -469,48 +484,43 @@ namespace VueServer.Services.Concrete
 
             IQueryable<Conversation> conversationQuery = _context.Set<Conversation>().AsQueryable();
             conversationQuery = conversationQuery.Include(x => x.ConversationUsers)
-                .Where(x => x.ConversationUsers.Any(y => y.ConversationId == x.Id && y.UserId == user.Id));
+                .Where(x => x.ConversationUsers.Any(y => y.ConversationId == x.Id && y.UserId == user.Id))
+                .Select(x => new Conversation()
+                {
+                    ConversationUsers = x.ConversationUsers.Select(y => new ConversationHasUser()
+                    {
+                        ConversationId = y.ConversationId,
+                        Color = y.Color,
+                        Owner = y.Owner,
+                        UserId = y.UserId,
+                        UserDisplayName = _context.Users.Where(z => z.Id == y.UserId).Select(z => z.DisplayName).SingleOrDefault()
+                    }).ToList(),
+                    Id = x.Id,
+                    Title = x.Title
+                });
             
             if (getMessages == GetMessageType.All)
             {
-                conversationQuery = conversationQuery.Include(x => x.Messages);
+                conversationQuery = conversationQuery.Include(x => x.Messages).ThenInclude(x => x.ReadReceipts);
             }                
             else if (getMessages == GetMessageType.New)
             {
-                conversationQuery = conversationQuery.Include(x => x.Messages).ThenInclude(x => x.ReadReceipts)
-                    .Where(x => x.Messages.Any(y => y.UserId != user.Id && y.ReadReceipts == null));
-            }                
+                conversationQuery = conversationQuery.Select(x => new Conversation()
+                    {
+                        ConversationUsers = x.ConversationUsers,
+                        Id = x.Id,
+                        Title = x.Title,
+                        Messages = _context.Messages.Include(y => y.ReadReceipts).Where(y => y.ConversationId == x.Id && y.UserId != user.Id &&
+                                (y.ReadReceipts == null || (y.ReadReceipts != null && !y.ReadReceipts.Any(z => z.UserId == user.Id))))
+                                .OrderByDescending(y => y.Timestamp)
+                });
+            }
 
             var conversationList = await conversationQuery.ToListAsync();
             if (conversationList == null)
             {
                 _logger.LogInformation($"GetAllConversationAsync: Conversation list is empty for user ({_user.Name})");
                 return null;
-            }
-
-            foreach (var conversation in conversationList)
-            {
-                if (conversation.ConversationUsers != null)
-                {
-                    // TODO: This is very inneficient. Figure out a better way with LINQ
-                    foreach (var userConversation in conversation.ConversationUsers)
-                    {
-                        // Don't bother doing a lookup on our own name
-                        if (userConversation.UserId == user.Id)
-                        {
-                            continue;
-                        }
-
-                        var usr = await _user.GetUserByIdAsync(userConversation.UserId);
-                        userConversation.UserDisplayName = usr.DisplayName;
-                    }
-                }
-
-                if (conversation.Messages != null)
-                {
-                    // Sort messages
-                    conversation.Messages.OrderByDescending(x => x.Timestamp);
-                }
             }
 
             return conversationList;

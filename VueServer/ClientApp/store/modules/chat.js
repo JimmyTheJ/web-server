@@ -21,7 +21,6 @@ const actions = {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Getting all new conversation notifications')
         try {
             const res = await chatAPI.getAllNewMessagesForConversations()
-            commit(types.CHAT_CONVERSATION_NOTIFICATIONS_GET_NEW, { list: res.data, userId: rootState.auth.user.id })
             return await Promise.resolve(res)
         }
         catch (e) {
@@ -133,7 +132,11 @@ const actions = {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Read chat message')
         try {
             const res = await chatAPI.readMessage(context.conversationId, context.messageId)
-            commit(types.CHAT_MESSAGE_READ, context)
+            commit(types.CHAT_MESSAGE_READ, {
+                conversationId: context.conversationId,
+                messageId: context.messageId,
+                resp: res
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from reading chat message', e.response)
@@ -227,6 +230,11 @@ const mutations = {
     [types.CHAT_MESSAGE_READ](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating read chat message")
 
+        if (data.resp === null) {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Response was null')
+            return
+        }
+
         const conversationIndex = state.conversations.findIndex(x => x.id === data.conversationId)
         if (conversationIndex < 0) {
             ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Can\'t find conversation to read the message from')
@@ -239,7 +247,11 @@ const mutations = {
             return
         }
 
-        state.conversations[conversationIndex].messages[messageIndex].read = true
+        if (!Array.isArray(state.conversations[conversationIndex].messages[messageIndex].readReciepts)) {
+            state.conversations[conversationIndex].messages[messageIndex].readReciepts = []
+        }
+
+        state.conversations[conversationIndex].messages[messageIndex].readReciepts.push(data.resp)
     },
     
 }

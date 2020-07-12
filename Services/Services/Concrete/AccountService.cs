@@ -326,6 +326,12 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<bool>> UpdateDisplayName(string name)
         {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                _logger.LogWarning($"[AccountService] UpdateDisplayName: Must provide a new name, null or empty is not valid");
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
             var user = await _user.GetUserByNameAsync(_user.Name);
             if (user == null)
             {

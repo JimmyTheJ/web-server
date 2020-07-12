@@ -122,7 +122,8 @@
                 this.optionDialog = false;
             },
             readMessage() {
-                if (!this.message.read) {
+                if (this.user.id !== this.message.userId || !Array.isArray(this.message.readReceipts)
+                        || typeof this.message.readReceipts.find(x => x.userId === this.user.id) !== 'undefined') {
                     this.$store.dispatch('readChatMessage', { conversationId: this.message.conversationId, messageId: this.message.id });
                 }
             },
