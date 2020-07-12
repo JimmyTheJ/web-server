@@ -265,7 +265,7 @@ namespace VueServer.Services.Concrete
                 return new Result<IEnumerable<ChatMessage>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
-            var conversation = await _context.Conversations.Include(x => x.ConversationUsers).Include(x => x.Messages).ThenInclude(x => x.Re).Where(x => x.Id == id).SingleOrDefaultAsync();
+            var conversation = await _context.Conversations.Include(x => x.ConversationUsers).Include(x => x.Messages).ThenInclude(x => x.ReadReceipts).Where(x => x.Id == id).SingleOrDefaultAsync();
             if (conversation == null)
             {
                 _logger.LogWarning($"GetMessagesForConversation: Unable to get conversation by id ({id})");
