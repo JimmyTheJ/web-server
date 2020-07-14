@@ -59,26 +59,21 @@
                                      @moreInfo="openMoreInfo"
                                      @deleteMessage="deleteMessage"></chat-bubble>
                     </v-flex>
-                    <v-flex xs12 class="text-right px-1">
-                        <v-layout row>
-                            <v-flex xs12 class="px-2 mx-2">
-                                <v-text-field v-model="newMessage.text"
-                                              autofocus
-                                              label="Message"
-                                              ref="newMessage"
-                                              @keyup.enter.prevent="sendMessage">
-                                    <template v-slot:append-outer>
-                                        <v-btn icon text @click="sendMessage"><fa-icon size="lg" icon="paper-plane"></fa-icon></v-btn>
-                                    </template>
-                                </v-text-field>
-                            </v-flex>
-                            <!--<v-flex xs2 class="pt-2 pr-2">
-                            <v-btn @click="sendMessage" text><fa-icon size="2x" icon="paper-plane"></fa-icon></v-btn>
-                        </v-flex>-->
-                        </v-layout>
-                    </v-flex>
                 </v-layout>
             </div>
+            <v-layout row>
+                <v-flex xs12 class="px-2 mx-2">
+                    <v-text-field v-model="newMessage.text"
+                                  autofocus
+                                  label="Message"
+                                  ref="newMessage"
+                                  @keyup.enter.prevent="sendMessage">
+                        <template v-slot:append-outer>
+                            <v-btn icon text @click="sendMessage"><fa-icon size="lg" icon="paper-plane"></fa-icon></v-btn>
+                        </template>
+                    </v-text-field>
+                </v-flex>
+            </v-layout>
         </div>
     </div>
 </template>
