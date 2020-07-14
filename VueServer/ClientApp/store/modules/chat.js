@@ -142,7 +142,13 @@ const actions = {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from reading chat message', e.response)
             return await Promise.reject(e.response);
         }
-    }
+    },
+    async highlightMessage({ commit }, context) {
+        commit(types.CHAT_MESSAGE_HIGHLIGHT, context)
+    },
+    async unhighlightMessage({ commit }, context) {
+        commit(types.CHAT_MESSAGE_UNHIGHLIGHT, context)
+    },
 }
 
 const mutations = {
@@ -230,7 +236,7 @@ const mutations = {
     [types.CHAT_MESSAGE_READ](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating read chat message")
 
-        if (data.resp === null) {
+        if (data.resp.status === 204) {
             ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Response was null')
             return
         }
@@ -247,13 +253,42 @@ const mutations = {
             return
         }
 
-        if (!Array.isArray(state.conversations[conversationIndex].messages[messageIndex].readReciepts)) {
-            state.conversations[conversationIndex].messages[messageIndex].readReciepts = []
+        if (!Array.isArray(state.conversations[conversationIndex].messages[messageIndex].readReceipts)) {
+            state.conversations[conversationIndex].messages[messageIndex].readReceipts = []
         }
 
-        state.conversations[conversationIndex].messages[messageIndex].readReciepts.push(data.resp)
+        state.conversations[conversationIndex].messages[messageIndex].readReceipts.push(data.resp.data)
     },
-    
+    [types.CHAT_MESSAGE_HIGHLIGHT](state, data) {
+        const conversationIndex = state.conversations.findIndex(x => x.id === data.conversationId)
+        if (conversationIndex < 0) {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Can\'t find conversation to read the message from')
+            return
+        }
+
+        const messageIndex = state.conversations[conversationIndex].messages.findIndex(x => x.id === data.messageId)
+        if (messageIndex < 0) {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Can\'t find message to read')
+            return
+        }
+
+        state.conversations[conversationIndex].messages[messageIndex].highlighted = true
+    },
+    [types.CHAT_MESSAGE_UNHIGHLIGHT](state, data) {
+        const conversationIndex = state.conversations.findIndex(x => x.id === data.conversationId)
+        if (conversationIndex < 0) {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Can\'t find conversation to read the message from')
+            return
+        }
+
+        const messageIndex = state.conversations[conversationIndex].messages.findIndex(x => x.id === data.messageId)
+        if (messageIndex < 0) {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Can\'t find message to read')
+            return
+        }
+
+        state.conversations[conversationIndex].messages[messageIndex].highlighted = false
+    },
 }
 
 export default {

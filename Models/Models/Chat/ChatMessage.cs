@@ -27,5 +27,11 @@ namespace VueServer.Models.Chat
         public virtual Conversation Conversation { get; set; }
 
         public virtual IEnumerable<ReadReceipt> ReadReceipts { get; set; }
+
+        [NotMapped]
+        public bool Highlighted { get; set; }
+
+        [NotMapped]
+        public string Color { get; set; }
     }
 }

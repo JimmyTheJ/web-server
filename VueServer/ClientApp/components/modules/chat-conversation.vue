@@ -57,7 +57,6 @@
                                      :currentTime="time"
                                      :owner="isOwner(message)"
                                      :hover="message.hovering"
-                                     :color="getTextColor(message)"
                                      @moreInfo="openMoreInfo"
                                      @deleteMessage="deleteMessage"></chat-bubble>
                     </v-flex>
@@ -100,6 +99,7 @@
                 editingTitle: false,
                 newTitle: null,
                 moreInfo: {},
+                chatWindow: null,
             }
         },
         components: {
@@ -122,6 +122,9 @@
         created() {
             this.newMessage = { text: '' };
             this.$chatHub.$on('message-received', this.onMessageReceived);
+        },
+        mounted() {
+            this.chatWindow = document.getElementById('chat-body-container');
         },
         beforeDestroy() {
             this.$chatHub.$off('message-received', this.onMessageReceived);
@@ -152,10 +155,36 @@
                     this.newTitle = this.conversation.title;
                 }
             },
+            'conversation.messages.length': {
+                handler(newValue, oldValue) {
+                    if (typeof newValue === 'undefined' || newValue === null) {
+                        this.$_console_log('ConversationMessages length watcher: New Value is null or undefined');
+                        return;
+                    }
+
+                    if (typeof oldValue === 'undefined' || oldValue === null || newValue > oldValue) {
+                        this.$_console_log('Old value is null or new value is greater than old value');
+                        this.scrollToLastReadMessage();
+                    }
+
+                    //if (newValue > oldValue) {
+                    //    this.$_console_log('Message list has grown');
+                    //    setTimeout(() => {
+                    //        this.scrollToBottom();
+                    //    }, 50);
+                    //}
+                    
+                },
+                deep: true
+            },
             show(newValue) {
                 if (newValue === true) {
                     setTimeout(() => {
-                        this.scrollToBottom();
+                        this.$_console_log('Show watcher: value is true');
+                        if (Array.isArray(this.conversation.messages) && this.conversation.messages.length > 0) {
+                            this.$_console_log('Show watcher: Message length is greater than 0. Scrolling to last read message');
+                            this.scrollToLastReadMessage();
+                        }
                     }, 10);                    
                 }
             },
@@ -172,7 +201,11 @@
                 }
 
                 this.$store.dispatch('addChatMessage', { conversationId: this.conversation.id, message: message }).then(() => {
-                    this.scrollToBottom();
+                    //this.scrollToBottom();
+
+                    //if (message.userId !== this.user.id) {
+                    //    this.$store.dispatch('readChatMessage', { conversationId: this.conversation.id, messageId: message.id });
+                    //}
                 })
             },
             async sendMessage() {
@@ -191,14 +224,6 @@
                 }
                 else {
                     return 'text-left';
-                }
-            },
-            getTextColor(message) {
-                if (message.userId === this.user.id) {
-                    return 'blue';
-                }
-                else {
-                    return 'green';
                 }
             },
             deleteConversation() {
@@ -239,9 +264,34 @@
                 return this.user.id === message.userId;
             },
             scrollToBottom() {
-                const chatWindow = document.getElementById('chat-body-container');
-                if (chatWindow != null)
-                    chatWindow.scrollTop = chatWindow.scrollHeight;
+                this.chatWindow.scrollTop = chatWindow.scrollHeight;
+            },
+            scrollToLastReadMessage() {
+                let lastMessage = this.conversation.messages.find(x => this.user.id !== x.userId &&
+                    (x.readReceipts.length === 0 || typeof x.readReceipts.find(y => y.userId !== this.user.id) !== 'undefined'));
+
+                if (typeof lastMessage !== 'undefined') {
+                    this.$_console_log(lastMessage);
+
+                    this.$store.dispatch('highlightMessage', { messageId: lastMessage.id, conversationId: lastMessage.conversationId })
+                }
+                else {
+                    this.$_console_log('ScrollToLastReadMessage: All messages are read.');
+                }
+
+                //this.chatWindow.scrollTop = chatWindow.scrollHeight / 2;
+            },
+            readAllMessages() {
+                if (!Array.isArray(this.conversation.messages)) {
+                    return;
+                }
+
+                const newMessages = this.conversation.messages.filter(x => (!Array.isArray(x.readReceipts) || x.readReceipts.length === 0) && x.userId !== this.user.id);
+
+                console.log(newMessages);
+                //if (mesasage.userId !== this.user.id) {
+                //    this.$store.dispatch('readChatMessage', { conversationId: this.conversation.id, messageId: this.message.id });
+                //} 
             }
         }
     }

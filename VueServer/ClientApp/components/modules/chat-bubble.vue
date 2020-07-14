@@ -20,7 +20,7 @@
             </v-list>
         </v-menu>
 
-        <div :class="['bubble-container', color, 'pa-2', 'order-1']" @click="readMessage()">
+        <div :class="['bubble-container', getColor, 'pa-2', 'order-1']" @click="readMessage()">
             <div class="text-body-1">{{ message.text }}</div>
             <div class="text-caption text-right">{{ timeSince }}</div>
         </div>
@@ -43,10 +43,6 @@
             },
             currentTime: {
                 type: Number,
-                required: false,
-            },
-            color: {
-                type: String,
                 required: false,
             },
             owner: {
@@ -111,6 +107,37 @@
                     return 'flex-left';
                 }
             },
+            getColor() {
+                if (this.message.highlighted === true) {
+                    return 'highlight'
+                }
+                else {
+                    if (this.message.color === null) {
+                        if (this.message.userId === this.user.id) {
+                            return 'blue';
+                        }
+                        else {
+                            return 'green';
+                        }
+                    }
+                    else {
+                        return this.message.color;
+                    }
+                }
+            }
+        },
+        watch: {
+            message: {
+                handler(newValue) {
+                    if (typeof newValue !== 'undefined' && newValue.highlighted === true) {
+                        this.$_console_log('Message.Highlighted watcher: highlight = true');
+                        setTimeout(() => {
+                            this.$store.dispatch('unhighlightMessage', { messageId: newValue.id, conversationId: newValue.conversationId });
+                        }, 6000);
+                    }
+                },
+                deep: true
+            }
         },
         methods: {
             deleteMessage() {
@@ -121,11 +148,28 @@
                 this.$emit('moreInfo', this.message);
                 this.optionDialog = false;
             },
-            readMessage() {
-                if (this.user.id !== this.message.userId || !Array.isArray(this.message.readReceipts)
-                        || typeof this.message.readReceipts.find(x => x.userId === this.user.id) !== 'undefined') {
-                    this.$store.dispatch('readChatMessage', { conversationId: this.message.conversationId, messageId: this.message.id });
+            isMessageReadable() {
+                // Not self
+                if (this.user.id !== this.message.userId) {
+                    // No array or array length is 0
+                    if (!Array.isArray(this.message.readReceipts) || (Array.isArray(this.message.readReceipts) && this.message.readReceipts.length === 0)) {
+                        return true;
+                    }
+                    // No read receipts from self
+                    else if (typeof this.message.readReceipts.find(x => x.userId === this.user.id) === 'undefined') {
+                        return true;
+                    }
                 }
+
+                return false;
+            },
+            readMessage() {
+                if (!this.isMessageReadable()) {
+                    this.$_console_log('ReadMessage: Message is not readable');
+                    return;
+                }
+
+                this.$store.dispatch('readChatMessage', { conversationId: this.message.conversationId, messageId: this.message.id });
             },
         }
     }
@@ -166,5 +210,10 @@
 
     .blue {
         background-color: blue;
+    }
+
+    .highlight {
+        /* Get this to shift the color somehow */
+        background-color: aquamarine;
     }
 </style>

@@ -37,7 +37,7 @@
                                 <template v-else-if="friendHasAvatar(convo) !== false">
                                     <v-avatar>
                                         <v-img :src="friendHasAvatar(convo)"></v-img>
-                                    </v-avatar>                                    
+                                    </v-avatar>
                                 </template>
                                 <template v-else>
                                     <v-avatar :color="getFriendColor(convo)">
