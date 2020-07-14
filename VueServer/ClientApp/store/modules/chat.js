@@ -144,11 +144,17 @@ const actions = {
         }
     },
     async highlightMessage({ commit }, context) {
-        commit(types.CHAT_MESSAGE_HIGHLIGHT, context)
+        if (context.on)
+            commit(types.CHAT_MESSAGE_HIGHLIGHT, context)
+        else
+            commit(types.CHAT_MESSAGE_UNHIGHLIGHT, context)
     },
-    async unhighlightMessage({ commit }, context) {
-        commit(types.CHAT_MESSAGE_UNHIGHLIGHT, context)
-    },
+    async setMessageHover({ commit }, context) {
+        if (context.on)
+            commit(types.CHAT_MESSAGE_HOVER, context)
+        else
+            commit(types.CHAT_MESSAGE_UNHOVER, context)
+    },    
 }
 
 const mutations = {
@@ -262,13 +268,13 @@ const mutations = {
     [types.CHAT_MESSAGE_HIGHLIGHT](state, data) {
         const conversationIndex = state.conversations.findIndex(x => x.id === data.conversationId)
         if (conversationIndex < 0) {
-            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Can\'t find conversation to read the message from')
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageHighlight: Can\'t find conversation to read the message from')
             return
         }
 
         const messageIndex = state.conversations[conversationIndex].messages.findIndex(x => x.id === data.messageId)
         if (messageIndex < 0) {
-            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Can\'t find message to read')
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageHighlight: Can\'t find message to read')
             return
         }
 
@@ -277,17 +283,47 @@ const mutations = {
     [types.CHAT_MESSAGE_UNHIGHLIGHT](state, data) {
         const conversationIndex = state.conversations.findIndex(x => x.id === data.conversationId)
         if (conversationIndex < 0) {
-            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Can\'t find conversation to read the message from')
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageUnhighlight: Can\'t find conversation to read the message from')
             return
         }
 
         const messageIndex = state.conversations[conversationIndex].messages.findIndex(x => x.id === data.messageId)
         if (messageIndex < 0) {
-            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Can\'t find message to read')
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageUnhighlight: Can\'t find message to read')
             return
         }
 
         state.conversations[conversationIndex].messages[messageIndex].highlighted = false
+    },
+    [types.CHAT_MESSAGE_HOVER](state, data) {
+        const conversationIndex = state.conversations.findIndex(x => x.id === data.conversationId)
+        if (conversationIndex < 0) {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageHover: Can\'t find conversation to read the message from')
+            return
+        }
+
+        const messageIndex = state.conversations[conversationIndex].messages.findIndex(x => x.id === data.messageId)
+        if (messageIndex < 0) {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageHover: Can\'t find message to read')
+            return
+        }
+
+        state.conversations[conversationIndex].messages[messageIndex].hover = true
+    },
+    [types.CHAT_MESSAGE_UNHOVER](state, data) {
+        const conversationIndex = state.conversations.findIndex(x => x.id === data.conversationId)
+        if (conversationIndex < 0) {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageUnhover: Can\'t find conversation to read the message from')
+            return
+        }
+
+        const messageIndex = state.conversations[conversationIndex].messages.findIndex(x => x.id === data.messageId)
+        if (messageIndex < 0) {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageUnhover: Can\'t find message to read')
+            return
+        }
+
+        state.conversations[conversationIndex].messages[messageIndex].hover = false
     },
 }
 

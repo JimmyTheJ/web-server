@@ -52,11 +52,10 @@
 
             <div id="chat-body-container">
                 <v-layout row class="px-2">
-                    <v-flex xs12 v-for="(message, index) in conversation.messages" :key="index" @mouseover="message.hovering = true" @mouseleave="message.hovering = false" class="px-1">
+                    <v-flex xs12 v-for="(message, index) in conversation.messages" :key="index" @mouseover="setMessageHover(message, true)" @mouseleave="setMessageHover(message, false)" class="px-1">
                         <chat-bubble :message="message"
                                      :currentTime="time"
                                      :owner="isOwner(message)"
-                                     :hover="message.hovering"
                                      @moreInfo="openMoreInfo"
                                      @deleteMessage="deleteMessage"></chat-bubble>
                     </v-flex>
@@ -100,6 +99,7 @@
                 newTitle: null,
                 moreInfo: {},
                 chatWindow: null,
+                scrollHeight: 0,
             }
         },
         components: {
@@ -125,9 +125,11 @@
         },
         mounted() {
             this.chatWindow = document.getElementById('chat-body-container');
+            this.chatWindow.addEventListener('scroll', this.windowScroll)
         },
         beforeDestroy() {
             this.$chatHub.$off('message-received', this.onMessageReceived);
+            this.chatWindow.removeEventListener('scroll', this.windowScroll)
         },
         computed: {
             ...mapState({
@@ -144,6 +146,9 @@
                 }
 
                 return false;
+            },
+            scrollWindowHeight() {
+                return this.chatWindow.scrollTop;
             },
         },
         watch: {
@@ -188,8 +193,17 @@
                     }, 10);                    
                 }
             },
+            'chatWindow.scrollTop': {
+                handler(newValue) {
+                    console.log(newValue);
+                },
+                deep: true
+            }
         },
         methods: {
+            windowScroll(event) {
+                this.scrollHeight = event.target.scrollTop;
+            },
             onMessageReceived(message) {
                 if (typeof message !== 'object' || message === null) {
                     this.$_console_log('OnMessageReceived: Null object returned');
@@ -217,6 +231,14 @@
 
                 this.newMessage = { text: '' };
                 this.$refs.newMessage.focus();
+            },
+            isOwner(message) {
+                if (this.user.id === message.userId) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
             },
             getTextPosition(message) {
                 if (message.userId === this.user.id) {
@@ -260,9 +282,6 @@
 
                 return false;
             },
-            isOwner(message) {
-                return this.user.id === message.userId;
-            },
             scrollToBottom() {
                 this.chatWindow.scrollTop = chatWindow.scrollHeight;
             },
@@ -271,15 +290,32 @@
                     (x.readReceipts.length === 0 || typeof x.readReceipts.find(y => y.userId !== this.user.id) !== 'undefined'));
 
                 if (typeof lastMessage !== 'undefined') {
-                    this.$_console_log(lastMessage);
+                    this.$nextTick(() => {
+                        const ids = document.getElementsByClassName('bubble-id');
 
-                    this.$store.dispatch('highlightMessage', { messageId: lastMessage.id, conversationId: lastMessage.conversationId })
+                        let correctElement = null;
+                        let height = 0;
+                        for (let i = 0; i < ids.length; i++) {
+                            height += ids[i].parentNode.offsetHeight;
+                            if (parseInt(ids[i].innerText, 10) === lastMessage.id) {
+                                correctElement = ids[i];
+                                break;
+                            }
+                        }
+
+                        if (correctElement !== null) {
+                            this.chatWindow.scrollTo(0, height - this.chatWindow.offsetTop);
+
+                            this.$store.dispatch('highlightMessage', { messageId: lastMessage.id, conversationId: lastMessage.conversationId, on: true });
+                            setTimeout(() => {
+                                this.$store.dispatch('highlightMessage', { messageId: lastMessage.id, conversationId: lastMessage.conversationId, on: false });
+                            }, 3000);
+                        }
+                    })
                 }
                 else {
                     this.$_console_log('ScrollToLastReadMessage: All messages are read.');
                 }
-
-                //this.chatWindow.scrollTop = chatWindow.scrollHeight / 2;
             },
             readAllMessages() {
                 if (!Array.isArray(this.conversation.messages)) {
@@ -292,8 +328,29 @@
                 //if (mesasage.userId !== this.user.id) {
                 //    this.$store.dispatch('readChatMessage', { conversationId: this.conversation.id, messageId: this.message.id });
                 //} 
+            },
+            setMessageHover(message, on) {
+                if (on) {
+                    this.$store.dispatch('setMessageHover', { messageId: message.id, conversationId: message.conversationId, on: true });
+                }
+                else {
+                    this.$store.dispatch('setMessageHover', { messageId: message.id, conversationId: message.conversationId, on: false });
+                }
             }
         }
+    }
+
+    function getPosition(element) {
+        var xPosition = 0;
+        var yPosition = 0;
+
+        while (element) {
+            xPosition += (element.offsetLeft - element.scrollLeft + element.clientLeft);
+            yPosition += (element.offsetTop - element.scrollTop + element.clientTop);
+            element = element.offsetParent;
+        }
+
+        return { x: xPosition, y: yPosition };
     }
 </script>
 

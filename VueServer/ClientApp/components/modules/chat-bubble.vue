@@ -3,7 +3,7 @@
         <v-menu absolute offset-y>
             <template v-slot:activator="{ on, attr }">
                 <div v-on="on" class="order-2">
-                    <span v-show="hover" class="pa-1" style="height: 100%; margin: 0 auto">...</span>
+                    <span v-show="message.hover" class="pa-1" style="height: 100%; margin: 0 auto">...</span>
                 </div>
             </template>
             <v-list>
@@ -23,6 +23,7 @@
         <div :class="['bubble-container', getColor, 'pa-2', 'order-1']" @click="readMessage()">
             <div class="text-body-1">{{ message.text }}</div>
             <div class="text-caption text-right">{{ timeSince }}</div>
+            <div class="bubble-id" style="display: none">{{ message.id }}</div>
         </div>
     </div>
 </template>
@@ -47,11 +48,6 @@
             },
             owner: {
                 type: Boolean,
-                required: true,
-            },
-            hover: {
-                type: Boolean,
-                required: false,
                 default: false,
             }
         },
@@ -132,7 +128,7 @@
                     if (typeof newValue !== 'undefined' && newValue.highlighted === true) {
                         this.$_console_log('Message.Highlighted watcher: highlight = true');
                         setTimeout(() => {
-                            this.$store.dispatch('unhighlightMessage', { messageId: newValue.id, conversationId: newValue.conversationId });
+                            this.$store.dispatch('highlightMessage', { messageId: newValue.id, conversationId: newValue.conversationId, on: false });
                         }, 6000);
                     }
                 },
