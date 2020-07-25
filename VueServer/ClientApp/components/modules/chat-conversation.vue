@@ -155,28 +155,6 @@
                     this.newTitle = this.conversation.title;
                 }
             },
-            'conversation.messages.length': {
-                handler(newValue, oldValue) {
-                    if (typeof newValue === 'undefined' || newValue === null) {
-                        this.$_console_log('ConversationMessages length watcher: New Value is null or undefined');
-                        return;
-                    }
-
-                    if (typeof oldValue === 'undefined' || oldValue === null || newValue > oldValue) {
-                        this.$_console_log('Old value is null or new value is greater than old value');
-                        this.scrollToLastReadMessage();
-                    }
-
-                    //if (newValue > oldValue) {
-                    //    this.$_console_log('Message list has grown');
-                    //    setTimeout(() => {
-                    //        this.scrollToBottom();
-                    //    }, 50);
-                    //}
-                    
-                },
-                deep: true
-            },
             show(newValue) {
                 if (newValue === true) {
                     setTimeout(() => {
@@ -187,12 +165,6 @@
                         }
                     }, 10);                    
                 }
-            },
-            'chatWindow.scrollTop': {
-                handler(newValue) {
-                    console.log(newValue);
-                },
-                deep: true
             },
             scrollHeight(newValue, oldValue) {
                 if (newValue === this.chatWindow.scrollTopMax && newValue !== oldValue) {
@@ -216,6 +188,7 @@
                 }
 
                 this.$store.dispatch('addChatMessage', { conversationId: this.conversation.id, message: message }).then(() => {
+                    // Scroll to bottom when active user sends a message. This will ultimately cause all messages to be read
                     if (message.userId === this.user.id) {
                         this.scrollToBottom();
                     }
@@ -225,7 +198,7 @@
                 this.newMessage.id = 0;
                 this.newMessage.userId = this.user.id;
                 this.newMessage.conversationId = this.conversation.id;
-                console.log(this.newMessage);
+
                 await service.sendMessage(this.newMessage);
 
                 this.newMessage = { text: '' };
