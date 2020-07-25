@@ -31,19 +31,7 @@
                     <v-list shaped>
                         <v-list-item v-for="(convo, index) in conversations" :key="index" @click="selectedConversation = convo">
                             <v-list-item-icon>
-                                <template v-if="convo.conversationUsers.length > 2">
-                                    <fa-icon icon="users" size="2x"></fa-icon>
-                                </template>
-                                <template v-else-if="friendHasAvatar(convo) !== false">
-                                    <v-avatar>
-                                        <v-img :src="friendHasAvatar(convo)"></v-img>
-                                    </v-avatar>
-                                </template>
-                                <template v-else>
-                                    <v-avatar :color="getFriendColor(convo)">
-                                        <span class="white--text headline">{{ getFriendAvatarText(convo) }}</span>
-                                    </v-avatar>
-                                </template>                                
+                                <chat-badge :conversation="convo" />
                             </v-list-item-icon>
                             <v-list-item-content>
                                 {{ convo.title }}
@@ -66,8 +54,8 @@
 </template>
 
 <script>
-    import Conversation from '../modules/chat-conversation'
-    import authService from '../../services/auth'
+    import Conversation from '../modules/chat/chat-conversation'
+    import ChatBadge from '../modules/chat/chat-badge'
 
     import { mapState } from 'vuex';
 
@@ -78,7 +66,6 @@
                 newConversation: {
                     users: [],
                 },
-                userList: [],
                 search: null,
                 isLoading: false,
                 currentTime: null
@@ -86,10 +73,7 @@
         },
         components: {
             'chat-conversation': Conversation,
-        },
-        created() {
-            this.getAllUsers();
-            //this.getAllConversations();
+            'chat-badge': ChatBadge,
         },
         mounted() {
             this.countTime();
@@ -97,6 +81,7 @@
         computed: {
             ...mapState({
                 user: state => state.auth.user,
+                userList: state => state.auth.otherUsers,
                 conversations: state => state.chat.conversations,
             }),
         },
@@ -119,18 +104,6 @@
                 setTimeout(() => {
                     this.countTime();
                 }, 1000);
-            },
-            async getAllUsers() {
-                this.isLoading = true;
-                authService.getAllOtherUsers().then(resp => {
-                    if (Array.isArray(resp.data)) {
-                        this.userList = resp.data;
-                    }
-                    else {
-                        this.$_console_log('GetAllUsers: Data returned isn\'t an array');
-                    }
-                }).catch(() => this._console_log('GetAllUsers: Failed to get all users'))
-                    .then(() => this.isLoading = false);
             },
             async getAllConversations() {
                 this.$store.dispatch('getAllConversationsForUser').then(resp => {
@@ -155,69 +128,6 @@
                 }
 
                 return false;
-            },
-            friendHasAvatar(conversation) {
-                if (typeof conversation !== 'object' || conversation === null || !Array.isArray(conversation.conversationUsers)) {
-                    return false;
-                }
-
-                if (!Array.isArray(this.userList)) {
-                    return false;
-                }
-
-                var friend = conversation.conversationUsers.find(x => x.userId !== this.user.id);
-                if (typeof friend === 'undefined') {
-                    return false;
-                }
-
-                var user = this.userList.find(x => x.id === friend.userId);
-                if (typeof user === 'undefined') {
-                    return false;
-                }
-
-                if (typeof user.avatar === 'undefined') {
-                    return false;
-                }
-
-                return `${process.env.API_URL}/public/${user.avatar}`;
-            },
-            getFriendColor(conversation) {
-                const defaultColor = 'blue';
-                if (typeof conversation !== 'object' || conversation === null || !Array.isArray(conversation.conversationUsers)) {
-                    return defaultColor;
-                }
-
-                var friend = conversation.conversationUsers.find(x => x.userId !== this.user.id);
-                if (typeof friend === 'undefined') {
-                    return defaultColor;
-                }
-
-                if (friend.color === null) {
-                    return defaultColor;
-                }
-
-                return friend.color;
-            },
-            getFriendAvatarText(conversation) {
-                if (typeof conversation !== 'object' || conversation === null || !Array.isArray(conversation.conversationUsers)) {
-                    return false;
-                }
-
-                if (!Array.isArray(this.userList)) {
-                    return false;
-                }
-
-                var friend = conversation.conversationUsers.find(x => x.userId !== this.user.id);
-                if (typeof friend === 'undefined') {
-                    return false;
-                }
-
-                var user = this.userList.find(x => x.id === friend.userId);
-                if (typeof user === 'undefined') {
-                    return false;
-                }
-
-                return user.displayName.charAt(0);
             },
         },
     }

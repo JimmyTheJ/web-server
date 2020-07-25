@@ -10,6 +10,8 @@
     import Menu from './modules/menu'
     import NotificationBar from './modules/notification-bar'
 
+    import { mapState } from 'vuex'
+
     export default {
         data() {
             return {
@@ -20,6 +22,12 @@
             'main-menu': Menu,
             'notification-bar': NotificationBar,
         },
+        computed: {
+            ...mapState({
+                user: state => state.auth.user,
+                conversations: state => state.chat.conversations,
+            })
+        },
         created() {
             if (!this.$store.state.auth.isAuthorize)
                 this.$router.push('/');
@@ -28,11 +36,32 @@
                 this.$router.push({ name: 'start' });
 
             this.getUserConversations();
+            this.$chatHub.$on('message-received', this.onMessageReceived);
+        },
+        beforeDestroy() {
+            this.$chatHub.$off('message-received', this.onMessageReceived);
         },
         methods: {
-            getUserConversations() {
+            onMessageReceived(message) {
+                if (typeof message !== 'object' || message === null) {
+                    return;
+                }
+
+                let conversation = this.conversations.find(x => x.id === message.conversationId);
+                if (message.userId === this.user.id || typeof conversation === 'undefined' || !Array.isArray(conversation.conversationUsers)
+                        || typeof conversation.conversationUsers.find(x => x.userId === this.user.id) === 'undefined') {
+                    return;
+                }
+
+                // Increment unread messages for this conversation as the message came from another user that was a member of your conversation
+                this.$store.dispatch('incrementConversationUnreadMessageCount', conversation.id);
+                this.$store.dispatch('pushNotification', { text: `${message.userId} says: ${message.text}`, type: 1 }).then(() => {
+
+                });
+            },
+            async getUserConversations() {
                 // Get all conversations for this user
-                this.$store.dispatch('getAllConversationsForUser').then(resp1 => {
+                await this.$store.dispatch('getAllConversationsForUser').then(resp1 => {
                     // Get all new messages for these conversations
                     this.$store.dispatch('getNewConversationNotifications')
                         .then(resp2 => {

@@ -111,10 +111,15 @@ const actions = {
             return await Promise.reject(e.response);
         }
     },
+    async incrementConversationUnreadMessageCount({ commit }, context) {
+        ConMsgs.methods.$_console_log('[Vuex][Actions] Increment conversation\'s unread chat message count')
+
+        commit(types.CHAT_CONVERSATION_UNREAD_MESSAGES_INCREMENT, context)
+    },
     async addChatMessage({ commit, rootState }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Add chat message')
 
-        commit(types.CHAT_MESSAGE_ADD, { ...context, userId: rootState.user.id })
+        commit(types.CHAT_MESSAGE_ADD, { ...context, userId: rootState.auth.user.id })
     },
     async deleteChatMessage({ commit }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Delete chat message')
@@ -230,7 +235,7 @@ const mutations = {
 
         let conversation = state.conversations.find(x => x.id === data.conversationId)
         if (typeof conversation === 'undefined') {
-            ConMsgs.methods.$_console_log('[Vuex][Mutations] UpdateConversation: Can\'t find conversation to update the title of')
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] UpdateConversationTitle: Can\'t find conversation to update the title of')
             return
         }
 
@@ -241,11 +246,22 @@ const mutations = {
 
         let conversation = state.conversations.find(x => x.id === data.conversationId)
         if (typeof conversation === 'undefined') {
-            ConMsgs.methods.$_console_log('[Vuex][Mutations] UpdateConversation: Can\'t find conversation to update the title of')
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ConversationGetMessages: Can\'t find conversation to get messages for')
             return
         }
 
         conversation.messages = data.messages
+    },
+    [types.CHAT_CONVERSATION_UNREAD_MESSAGES_INCREMENT](state, data) {
+        ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating incrementing the conversation's unread message count")
+
+        let conversation = state.conversations.find(x => x.id === data)
+        if (typeof conversation === 'undefined') {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ConversationUnreadMessageIncrement: Can\'t find conversation to increment the unread message count of')
+            return
+        }
+
+        conversation.unreadMessages++
     },
     [types.CHAT_MESSAGE_ADD](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating add chat message")
@@ -256,11 +272,11 @@ const mutations = {
             return
         }
 
-        state.conversations[conversationIndex].messages.push(Object.assign({}, data.message))
+        if (!Array.isArray(state.conversations[conversationIndex].messages)) {
+            state.conversations[conversationIndex].messages = []
+        }
 
-        if (data.userId !== data.message.userId) {
-            state.conversations[conversationsIndex].unreadMessages++
-        }        
+        state.conversations[conversationIndex].messages.push(Object.assign({}, data.message))       
     },
     [types.CHAT_MESSAGE_DELETE](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating delete chat message")

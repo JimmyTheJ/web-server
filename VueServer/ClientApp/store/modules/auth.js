@@ -12,7 +12,8 @@ const state = {
     refreshToken: localStorage.getItem('refreshToken') || '',
     csrfToken: localStorage.getItem('csrfToken') || '',
 
-    activeModules: JSON.parse(localStorage.getItem('activeModules')) || []
+    activeModules: JSON.parse(localStorage.getItem('activeModules')) || [],
+    otherUsers: JSON.parse(localStorage.getItem('otherUsers')) || [],
 }
 
 const getters = {
@@ -115,6 +116,18 @@ const actions = {
             return await Promise.reject(e.response);
         }
     },
+    async getAllOtherUsers({ commit }) {
+        try {
+            const res = await authAPI.getAllOtherUsers();
+            ConMsgs.methods.$_console_log(res.data);
+            commit(types.USER_GET_OTHERS, res.data)
+            return await Promise.resolve(res)
+        }
+        catch (e) {
+            ConMsgs.methods.$_console_group('[Vuex][Actions] Error from get all other users', e.response)
+            return await Promise.reject(e.response);
+        }
+    },
 }
 
 const mutations = {
@@ -176,6 +189,7 @@ const mutations = {
         state.csrfToken = ''
         state.isAuthorize = false
         state.activeModules = []
+        state.otherUsers = []
 
         localStorage.removeItem('user')
         localStorage.removeItem('userRole')
@@ -184,6 +198,7 @@ const mutations = {
         localStorage.removeItem('csrfToken')
         localStorage.removeItem('isAuthorize')
         localStorage.removeItem('activeModules')
+        localStorage.removeItem('otherUsers')
     },
     [types.GET_MODULES](state, data) {
         ConMsgs.methods.$_console_log("Mutating get modules");
@@ -215,6 +230,14 @@ const mutations = {
         localStorage.removeItem('user')
         localStorage.setItem('user', JSON.stringify(state.user))
     },
+    [types.USER_GET_OTHERS](state, data) {
+        ConMsgs.methods.$_console_log("Mutating get all other users");
+
+        state.otherUsers = data
+
+        localStorage.removeItem('otherUsers')
+        localStorage.setItem('otherUsers', JSON.stringify(data))
+    }
 }
 
 export default {

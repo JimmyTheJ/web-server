@@ -80,7 +80,7 @@
 
 <script>
     import ChatBubble from './chat-bubble'
-    import service from '../../services/chat'
+    import service from '../../../services/chat'
 
     import { mapState } from 'vuex'
 
@@ -120,11 +120,11 @@
         },
         mounted() {
             this.chatWindow = document.getElementById('chat-body-container');
-            this.chatWindow.addEventListener('scroll', this.windowScroll)
+            this.chatWindow.addEventListener('scroll', this.windowScroll);
         },
         beforeDestroy() {
             this.$chatHub.$off('message-received', this.onMessageReceived);
-            this.chatWindow.removeEventListener('scroll', this.windowScroll)
+            this.chatWindow.removeEventListener('scroll', this.windowScroll);
         },
         computed: {
             ...mapState({
@@ -257,9 +257,13 @@
             scrollToBottom() {
                 this.$nextTick(() => {
                     this.chatWindow.scrollTo(0, this.chatWindow.scrollHeight);
-                })                
+                });
             },
             scrollToLastReadMessage() {
+                if (!this.show) {
+                    return;
+                }
+
                 let lastMessage = this.conversation.messages.find(x => this.user.id !== x.userId &&
                     (x.readReceipts.length === 0 || typeof x.readReceipts.find(y => y.userId !== this.user.id) !== 'undefined'));
 
@@ -285,7 +289,7 @@
                                 this.$store.dispatch('highlightMessage', { messageId: lastMessage.id, conversationId: lastMessage.conversationId, on: false });
                             }, 3000);
                         }
-                    })
+                    });
                 }
                 else {
                     this.$_console_log('ScrollToLastReadMessage: All messages are read.');

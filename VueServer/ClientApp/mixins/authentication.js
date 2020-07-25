@@ -21,7 +21,12 @@ export default {
                     // Get CSRF token
                     this.$store.dispatch('getCsrfToken')
                         .then(() => ConMsgs.methods.$_console_log("Got csrf token!"))
-                        .catch(() => ConMsgs.methods.$_console_log("Did not get token :("))
+                        .catch(() => ConMsgs.methods.$_console_log("Failed to get csrf token :("))
+
+                    // Get the list of all other users for the chat system
+                    this.$store.dispatch('getAllOtherUsers')
+                        .then(() => ConMsgs.methods.$_console_log("Got user list"))
+                        .catch(() => ConMsgs.methods.$_console_log("Failed to get user list"))
 
                     // Get modules for this user
                     await this.$store.dispatch('getModules')
