@@ -216,11 +216,9 @@
                 }
 
                 this.$store.dispatch('addChatMessage', { conversationId: this.conversation.id, message: message }).then(() => {
-                    //this.scrollToBottom();
-
-                    //if (message.userId !== this.user.id) {
-                    //    this.$store.dispatch('readChatMessage', { conversationId: this.conversation.id, messageId: message.id });
-                    //}
+                    if (message.userId === this.user.id) {
+                        this.scrollToBottom();
+                    }
                 })
             },
             async sendMessage() {
@@ -284,7 +282,9 @@
                 return false;
             },
             scrollToBottom() {
-                this.chatWindow.scrollTop = chatWindow.scrollHeight;
+                this.$nextTick(() => {
+                    this.chatWindow.scrollTo(0, this.chatWindow.scrollHeight);
+                })                
             },
             scrollToLastReadMessage() {
                 let lastMessage = this.conversation.messages.find(x => this.user.id !== x.userId &&
@@ -316,6 +316,7 @@
                 }
                 else {
                     this.$_console_log('ScrollToLastReadMessage: All messages are read.');
+                    this.scrollToBottom();
                 }
             },
             readAllMessages() {
