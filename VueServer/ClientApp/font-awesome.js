@@ -29,6 +29,7 @@ import { faPaperPlane } from '@fortawesome/free-solid-svg-icons/faPaperPlane'
 import { faPlay } from '@fortawesome/free-solid-svg-icons/faPlay'
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus'
 import { faProjectDiagram } from '@fortawesome/free-solid-svg-icons/faProjectDiagram'
+import { faReply } from '@fortawesome/free-solid-svg-icons/faReply'
 import { faRoad } from '@fortawesome/free-solid-svg-icons/faRoad'
 import { faShieldAlt } from '@fortawesome/free-solid-svg-icons/faShieldAlt'
 import { faSlash } from '@fortawesome/free-solid-svg-icons/faSlash'
@@ -73,6 +74,7 @@ library.add(
     faPlay,
     faPlus,
     faProjectDiagram,
+    faReply,
     faRoad,
     faShieldAlt,
     faSlash,

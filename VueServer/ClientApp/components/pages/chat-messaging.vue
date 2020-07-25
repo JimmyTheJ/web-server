@@ -6,7 +6,7 @@
             </v-flex>
             </v-layout>
 
-        <v-layout row>
+        <v-layout row v-show="(isMobile && !hideMobile) || !isMobile">
             <v-flex xs12 sm10 md9>
                 <v-autocomplete v-model="newConversation.users"
                                 :items="userList"
@@ -26,7 +26,7 @@
         </v-layout>
 
         <v-layout row>
-            <v-flex xs4 md3 lg2>
+            <v-flex xs12 md3 lg2 v-show="(isMobile && !hideMobile)|| !isMobile">
                 <template v-if="Array.isArray(conversations) && conversations.length > 0">
                     <v-list shaped>
                         <v-list-item v-for="(convo, index) in conversations" :key="index" @click="selectedConversation = convo">
@@ -40,12 +40,13 @@
                     </v-list>
                 </template>
             </v-flex>
-            <v-flex xs8 md9 lg10 class="chat-conversation-window">
+            <v-flex xs12 md9 lg10 class="chat-conversation-window" v-if="(isMobile && hideMobile)|| !isMobile">
                 <template v-for="(conversation, index) in conversations">
                     <chat-conversation :conversation="conversation"
                                        :time="currentTime"
-                                       :show="shouldShowConversation(conversation)">
-                    </chat-conversation>
+                                       :show="shouldShowConversation(conversation)"
+                                       :mobile="isMobile"
+                                       @goBack="closeConversation" />
                 </template>     
             </v-flex>
         </v-layout>
@@ -68,15 +69,24 @@
                 },
                 search: null,
                 isLoading: false,
-                currentTime: null
+                currentTime: null,
+                isMobile: false,
+                hideMobile: false,
             }
         },
         components: {
             'chat-conversation': Conversation,
             'chat-badge': ChatBadge,
         },
+        created() {
+            window.addEventListener('resize', this.updateScreenSize);
+        },
         mounted() {
             this.countTime();
+            this.isMobile = this.$vuetify.breakpoint.mobile;
+        },
+        beforeDestroy() {
+            window.removeEventListener('resize', this.updateScreenSize);
         },
         computed: {
             ...mapState({
@@ -93,17 +103,38 @@
                             this.$store.dispatch('getMessagesForConversation', newValue.id);
                         }                        
                     }
+
+                    this.$_console_log('SelectedConversation', newValue);
+                    if (newValue === null) {
+                        this.hideMobile = false;
+                    }
+                    else {
+                        this.hideMobile = true;
+                    }
                 },
                 deep: true
             }
         },
         methods: {
+            updateScreenSize() {
+                this.$nextTick(() => {
+                    if (this.$vuetify.breakpoint.mobile) {
+                        this.isMobile = true;
+                    }
+                    else {
+                        this.isMobile = false;
+                    }
+                });                
+            },
             countTime() {
                 this.currentTime = Math.trunc(new Date().getTime() / 1000);
 
                 setTimeout(() => {
                     this.countTime();
                 }, 1000);
+            },
+            closeConversation() {
+                this.selectedConversation = null;
             },
             async getAllConversations() {
                 this.$store.dispatch('getAllConversationsForUser').then(resp => {

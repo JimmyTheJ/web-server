@@ -34,6 +34,9 @@
 
         <div id="chat-container">
             <v-toolbar>
+                <v-btn text @click="goBack">
+                    <fa-icon icon="reply"></fa-icon>
+                </v-btn>
                 <v-btn text @click="editingTitle = !editingTitle">
                     <v-icon>mdi-account-edit</v-icon>
                 </v-btn>
@@ -43,7 +46,7 @@
                 <v-toolbar-title v-else style="width: 100%" class="ml-3 pl-2">
                     <div style="display: flex; flex-direction: row">
                         <v-text-field v-model="newTitle" @keyup.enter.prevent="updateTitle" autofocus></v-text-field>
-                        <v-btn @click="updateTitle">SAVE</v-btn>
+                        <v-btn v-if="!mobile" @click="updateTitle">SAVE</v-btn>
                     </div>
                 </v-toolbar-title>
                 <v-spacer></v-spacer>
@@ -110,6 +113,10 @@
                 required: true,
             },
             show: {
+                type: Boolean,
+                required: true,
+            },
+            mobile: {
                 type: Boolean,
                 required: true,
             },
@@ -193,6 +200,9 @@
                         this.scrollToBottom();
                     }
                 })
+            },
+            goBack() {
+                this.$emit('goBack', true);
             },
             async sendMessage() {
                 this.newMessage.id = 0;
