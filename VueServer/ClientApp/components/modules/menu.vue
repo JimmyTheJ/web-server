@@ -127,7 +127,6 @@
             this.getMenuItemCount();
 
             this.$chatHub.$on('message-received', this.onMessageReceived);
-            this.getAllConversations();
         },
         mounted() {
             this.getMaxMenuItems();
@@ -152,9 +151,6 @@
                 this.$store.dispatch('pushNotification', { text: `${message.userId} says: ${message.text}`, type: 1 }).then(() => {
 
                 });
-            },
-            async getAllConversations() {
-                this.$store.dispatch('getAllConversationsForUser');
             },
             getMaxMenuItems() {
                 const menuItems = document.getElementsByClassName("menu-toolbar-item");

@@ -23,12 +23,6 @@ export default {
                         .then(() => ConMsgs.methods.$_console_log("Got csrf token!"))
                         .catch(() => ConMsgs.methods.$_console_log("Did not get token :("))
 
-                    this.$store.dispatch('getNewConversationNotifications')
-                        .then(resp => {
-                            ConMsgs.methods.$_console_log('New message notifications:', resp.data);
-                            this.buildNotificationList(resp.data);
-                        }).catch(() => ConMsgs.methods.$_console_log("No new message notifications"))
-
                     // Get modules for this user
                     await this.$store.dispatch('getModules')
                         .then(() => ConMsgs.methods.$_console_log("Got user modules"))
@@ -81,23 +75,5 @@ export default {
 
             return role;
         },
-        buildNotificationList(data) {
-            if (!Array.isArray(data) || data.length === 0) {
-                return;
-            }
-
-            // TODO: Build notification list here
-            data.forEach(value => {
-                if (Array.isArray(value.messages) && value.messages.length > 0) {
-                    // There are new messages
-                    const obj = {
-                        text: `New messages from ${value.title}`,
-                        type: 1
-                    }
-
-                    this.$store.dispatch('pushNotification', obj);
-                }
-            })
-        },                            
     }
 }

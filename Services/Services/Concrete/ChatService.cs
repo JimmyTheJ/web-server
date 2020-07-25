@@ -526,6 +526,14 @@ namespace VueServer.Services.Concrete
                 return null;
             }
 
+            if (getMessages == GetMessageType.New)
+            {
+                conversationList.ForEach(conversation =>
+                {
+                    conversation.UnreadMessages = conversation.Messages?.Count() ?? 0;
+                });
+            }
+
             return conversationList;
         }
 

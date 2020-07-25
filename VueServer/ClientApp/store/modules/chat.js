@@ -17,10 +17,14 @@ const getters = {
 }
 
 const actions = {
-    async getNewConversationNotifications() {
+    async getNewConversationNotifications({ commit }) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Getting all new conversation notifications')
         try {
             const res = await chatAPI.getAllNewMessagesForConversations()
+            if (Array.isArray(res.data)) {
+                commit(types.CHAT_CONVERSATION_UPDATE_NEW_MESSAGE_COUNT, res.data)
+            }            
+
             return await Promise.resolve(res)
         }
         catch (e) {
@@ -32,6 +36,7 @@ const actions = {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Getting all conversations')
         try {
             const res = await chatAPI.getAllConversations()
+
             commit(types.CHAT_CONVERSATION_GET_ALL, { list: res.data, userId: rootState.auth.user.id })
             return await Promise.resolve(res)
         }
@@ -106,9 +111,10 @@ const actions = {
             return await Promise.reject(e.response);
         }
     },
-    async addChatMessage({ commit }, context) {
+    async addChatMessage({ commit, rootState }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Add chat message')
-        commit(types.CHAT_MESSAGE_ADD, context)
+
+        commit(types.CHAT_MESSAGE_ADD, { ...context, userId: rootState.user.id })
     },
     async deleteChatMessage({ commit }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Delete chat message')
@@ -178,6 +184,16 @@ const actions = {
 }
 
 const mutations = {
+    [types.CHAT_CONVERSATION_UPDATE_NEW_MESSAGE_COUNT](state, data) {
+        ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating update new message count for all conversations for user");
+
+        data.forEach(element => {
+            const conversationIndex = state.conversations.findIndex(x => x.id === element.id)
+            if (conversationIndex >= 0) {
+                state.conversations[conversationIndex].unreadMessages = element.unreadMessages
+            }
+        })
+    },
     [types.CHAT_CONVERSATION_GET_ALL](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating get chat conversations for user");
 
@@ -241,6 +257,10 @@ const mutations = {
         }
 
         state.conversations[conversationIndex].messages.push(Object.assign({}, data.message))
+
+        if (data.userId !== data.message.userId) {
+            state.conversations[conversationsIndex].unreadMessages++
+        }        
     },
     [types.CHAT_MESSAGE_DELETE](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating delete chat message")
@@ -284,6 +304,7 @@ const mutations = {
         }
 
         state.conversations[conversationIndex].messages[messageIndex].readReceipts.push(data.receipt)
+        state.conversations[conversationIndex].unreadMessages--
     },
     [types.CHAT_MESSAGE_HIGHLIGHT](state, data) {
         const conversationIndex = state.conversations.findIndex(x => x.id === data.conversationId)

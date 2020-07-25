@@ -89,7 +89,7 @@
         },
         created() {
             this.getAllUsers();
-            this.getAllConversations();
+            //this.getAllConversations();
         },
         mounted() {
             this.countTime();
@@ -133,7 +133,13 @@
                     .then(() => this.isLoading = false);
             },
             async getAllConversations() {
-                this.$store.dispatch('getAllConversationsForUser');
+                this.$store.dispatch('getAllConversationsForUser').then(resp => {
+                    const newMessages = this.conversation.messages.filter(x => (!Array.isArray(x.readReceipts) || x.readReceipts.length === 0) && x.userId !== this.user.id);
+                    if (!Array.isArray(newMessages) || newMessages.length === 0) {
+                        this.$_console_log('ReadAllMessages: NewMessages is null or empty');
+                        return;
+                    }
+                });
             },
             async startConversation() {
                 this.$store.dispatch('startNewConversation', this.newConversation)

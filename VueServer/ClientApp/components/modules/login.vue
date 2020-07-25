@@ -58,9 +58,9 @@
                         this.login();
                 }
             },
-            login() {
+            async login() {
                 this.btnClicked = true;
-                this.$_auth_login(this.form).then(() => {
+                await this.$_auth_login(this.form).then(() => {
                     this.error = false;
                 }).catch(() => {
                     this.error = true;
