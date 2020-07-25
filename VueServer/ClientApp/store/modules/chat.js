@@ -134,12 +134,32 @@ const actions = {
             const res = await chatAPI.readMessage(context.conversationId, context.messageId)
             commit(types.CHAT_MESSAGE_READ, {
                 conversationId: context.conversationId,
-                messageId: context.messageId,
-                resp: res
+                receipt: res.data,
+                status: res.status                
             })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from reading chat message', e.response)
+            return await Promise.reject(e.response);
+        }
+    },
+    async readChatMessageList({ commit }, context) {
+        ConMsgs.methods.$_console_log('[Vuex][Actions] Read chat message list')
+        try {
+            const res = await chatAPI.readMessageList(context.conversationId, context.messageIds)
+            ConMsgs.methods.$_console_log('[Vuex][Actions] Read message response: ', res)
+            if (Array.isArray(res.data)) {
+                res.data.forEach(element => {
+                    commit(types.CHAT_MESSAGE_READ, {
+                        conversationId: context.conversationId,
+                        receipt: element,
+                        status: res.status                        
+                    })
+                })                
+            }            
+        }
+        catch (e) {
+            ConMsgs.methods.$_console_group('[Vuex][Actions] Error from reading chat message list', e.response)
             return await Promise.reject(e.response);
         }
     },
@@ -242,7 +262,7 @@ const mutations = {
     [types.CHAT_MESSAGE_READ](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating read chat message")
 
-        if (data.resp.status === 204) {
+        if (data.status === 204) {
             ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Response was null')
             return
         }
@@ -252,8 +272,8 @@ const mutations = {
             ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Can\'t find conversation to read the message from')
             return
         }
-
-        const messageIndex = state.conversations[conversationIndex].messages.findIndex(x => x.id === data.messageId)
+            
+        const messageIndex = state.conversations[conversationIndex].messages.findIndex(x => x.id === data.receipt.messageId)
         if (messageIndex < 0) {
             ConMsgs.methods.$_console_log('[Vuex][Mutations] ChatMessageRead: Can\'t find message to read')
             return
@@ -263,7 +283,7 @@ const mutations = {
             state.conversations[conversationIndex].messages[messageIndex].readReceipts = []
         }
 
-        state.conversations[conversationIndex].messages[messageIndex].readReceipts.push(data.resp.data)
+        state.conversations[conversationIndex].messages[messageIndex].readReceipts.push(data.receipt)
     },
     [types.CHAT_MESSAGE_HIGHLIGHT](state, data) {
         const conversationIndex = state.conversations.findIndex(x => x.id === data.conversationId)

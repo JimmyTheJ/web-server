@@ -193,7 +193,13 @@
                     console.log(newValue);
                 },
                 deep: true
-            }
+            },
+            scrollHeight(newValue, oldValue) {
+                if (newValue === this.chatWindow.scrollTopMax && newValue !== oldValue) {
+                    this.$_console_log('Max scroll reached. You\'re at the bottom');
+                    this.readAllMessages();
+                }
+            },
         },
         methods: {
             windowScroll(event) {
@@ -318,11 +324,13 @@
                 }
 
                 const newMessages = this.conversation.messages.filter(x => (!Array.isArray(x.readReceipts) || x.readReceipts.length === 0) && x.userId !== this.user.id);
+                if (!Array.isArray(newMessages) || newMessages.length === 0) {
+                    this.$_console_log('ReadAllMessages: NewMessages is null or empty');
+                    return;
+                }
 
-                console.log(newMessages);
-                //if (mesasage.userId !== this.user.id) {
-                //    this.$store.dispatch('readChatMessage', { conversationId: this.conversation.id, messageId: this.message.id });
-                //} 
+                this.$_console_log(newMessages);
+                this.$store.dispatch('readChatMessageList', { conversationId: this.conversation.id, messageIds: newMessages.map(x => x.id) })
             },
             setMessageHover(message, on) {
                 if (on) {

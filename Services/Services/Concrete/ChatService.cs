@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using VueServer.Domain;
@@ -15,6 +16,7 @@ using VueServer.Domain.Interface;
 using VueServer.Models.Chat;
 using VueServer.Models.Context;
 using VueServer.Models.Request;
+using VueServer.Models.User;
 using VueServer.Services.Enums;
 using VueServer.Services.Hubs;
 using VueServer.Services.Interface;
@@ -403,58 +405,16 @@ namespace VueServer.Services.Concrete
                 return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
-            var message = await _context.Messages.Include(x => x.ReadReceipts).Where(x => x.Id == messageId).SingleOrDefaultAsync();
+            var message = await _context.Messages.Include(x => x.ReadReceipts)
+                .Where(x => x.UserId != user.Id && x.Id == messageId &&
+                    (x.ReadReceipts == null || (x.ReadReceipts != null && !x.ReadReceipts.Any(y => y.UserId == user.Id)))
+                ).SingleOrDefaultAsync();
             if (message == null)
             {
                 _logger.LogInformation($"ReadMessage: Message ({message.Id}) doesn't exist");
                 return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.NOT_FOUND);
             }
-
-            if (message.UserId == user.Id)
-            {
-                // Can't read your own messages
-                return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.NO_CONTENT);
-            }
-
-            if (message.ReadReceipts != null && message.ReadReceipts.Count() > 0)
-            {
-                var userReceipt = message.ReadReceipts.Where(x => x.UserId == user.Id).SingleOrDefault();
-                if (userReceipt != null)
-                {
-                    // Can't read an already read messages
-                    return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.NO_CONTENT);
-                }
-            }
-
-            ReadReceipt CreateReadReceipt() {
-                var readReceipt = new ReadReceipt()
-                {
-                    MessageId = message.Id,
-                    UserId = user.Id,
-                    Timestamp = DateTimeOffset.Now.ToUnixTimeSeconds()
-                };
-
-                _context.ReadReceipts.Add(readReceipt);
-                return readReceipt;
-            }
-
-            
-            if (message.ReadReceipts == null || message.ReadReceipts.Count() == 0)
-            {
-                receipt = CreateReadReceipt();
-            }
-            else
-            {
-                var oldReceipt = message.ReadReceipts.Where(x => x.Message.UserId == user.Id).SingleOrDefault();
-                if (oldReceipt != null)
-                {
-                    return new Result<ReadReceipt>(oldReceipt, Domain.Enums.StatusCode.NO_CONTENT);
-                }
-                else
-                {
-                    receipt = CreateReadReceipt();
-                }
-            }
+            receipt = CreateReadReceipts(user, new List<ChatMessage> { message }).FirstOrDefault();
 
             try
             {
@@ -467,6 +427,49 @@ namespace VueServer.Services.Concrete
             }
 
             return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.OK);
+        }
+
+        public async Task<IResult<IEnumerable<ReadReceipt>>> ReadMessageList(long conversationId, long[] messageIds)
+        {
+            var receipts = new List<ReadReceipt>();
+
+            var user = await _user.GetUserByNameAsync(_user.Name);
+            if (user == null)
+            {
+                _logger.LogWarning($"ReadMessage: Unable to get user by name with name ({_user.Name})");
+                return new Result<IEnumerable<ReadReceipt>> (receipts, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            var conversationUser = await _context.ConversationHasUser.Where(x => x.ConversationId == conversationId && x.UserId == user.Id).FirstOrDefaultAsync();
+            if (conversationUser == null)
+            {
+                _logger.LogInformation($"ReadMessage: User ({user.Id}) is not part of conversation ({conversationId})");
+                return new Result<IEnumerable<ReadReceipt>>(receipts, Domain.Enums.StatusCode.FORBIDDEN);
+            }
+
+            var messageList = await _context.Messages.Include(x => x.ReadReceipts)
+                .Where(x => x.UserId != user.Id && messageIds.Contains(x.Id) && 
+                    (x.ReadReceipts == null || (x.ReadReceipts != null && !x.ReadReceipts.Any(y => y.UserId == user.Id)))
+                ).ToListAsync();
+            if (messageList == null)
+            {
+                _logger.LogInformation($"ReadMessage: Message list with values: ({messageList}) doesn't exist");
+                return new Result<IEnumerable<ReadReceipt>>(receipts, Domain.Enums.StatusCode.NOT_FOUND);
+            }
+
+            receipts.AddRange(CreateReadReceipts(user, messageList));
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                _logger.LogError($"ReadMessage: Error saving database on updating the read status of the message list: ({messageList})");
+                return new Result<IEnumerable<ReadReceipt>>(receipts, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            return new Result<IEnumerable<ReadReceipt>>(receipts, Domain.Enums.StatusCode.OK);
         }
 
         #endregion
@@ -524,6 +527,23 @@ namespace VueServer.Services.Concrete
             }
 
             return conversationList;
+        }
+
+        private IEnumerable<ReadReceipt> CreateReadReceipts (WSUser user, IList<ChatMessage> messages)
+        {
+            var receipts = new List<ReadReceipt>();
+            foreach (var message in messages)
+            {
+                receipts.Add(new ReadReceipt()
+                {
+                    MessageId = message.Id,
+                    UserId = user.Id,
+                    Timestamp = DateTimeOffset.Now.ToUnixTimeSeconds()
+                });
+            }
+
+            _context.ReadReceipts.AddRange(receipts);
+            return receipts;
         }
 
         #endregion

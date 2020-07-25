@@ -55,4 +55,11 @@ export default {
             method: 'put'
         });
     },
+    readMessageList(conversationId, messageIds) {
+        return axios.request({
+            url: `${ReadMessageUrl}/${conversationId}/list`,
+            method: 'put',
+            data: messageIds
+        });
+    },
 }

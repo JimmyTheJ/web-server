@@ -33,5 +33,20 @@ namespace VueServer.Models.Chat
 
         [NotMapped]
         public string Color { get; set; }
+
+        public ChatMessage () { }
+
+        public ChatMessage (ChatMessage message)
+        {
+            if (message != null)
+            {
+                Color = message.Color;
+                ConversationId = message.ConversationId;
+                Highlighted = message.Highlighted;
+                Text = message.Text;
+                Timestamp = message.Timestamp;
+                UserId = message.UserId;
+            }
+        }
     }
 }

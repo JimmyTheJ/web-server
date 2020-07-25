@@ -21,5 +21,6 @@ namespace VueServer.Services.Interface
         Task<IResult<ChatMessage>> GetMessage(long id);
         Task<IResult<ChatMessage>> AddMessage(ChatMessage message);
         Task<IResult<ReadReceipt>> ReadMessage(long conversationId, long messageId);
+        Task<IResult<IEnumerable<ReadReceipt>>> ReadMessageList(long conversationId, long[] messageIds);
     }
 }
