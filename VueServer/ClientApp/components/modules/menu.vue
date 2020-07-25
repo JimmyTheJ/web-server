@@ -102,6 +102,7 @@
                 user: state => state.auth.user,
                 numMessages: state => state.notifications.numMessages,
                 numNewMessages: state => state.notifications.numNewMessages,
+                conversations: state => state.chat.conversations,
             }),
             getDrawerHeight() {
                 return 16 + (this.menuItems * 48);
@@ -124,6 +125,9 @@
             this.$_console_log(this.routes);
 
             this.getMenuItemCount();
+
+            this.$chatHub.$on('message-received', this.onMessageReceived);
+            this.getAllConversations();
         },
         mounted() {
             this.getMaxMenuItems();
@@ -131,8 +135,27 @@
         },
         beforeDestroy() {
             window.removeEventListener('resize', this.resizeScreen, false);
+            this.$chatHub.$off('message-received', this.onMessageReceived);
         },
         methods: {
+            onMessageReceived(message) {
+                if (typeof message !== 'object' || message === null) {
+                    return;
+                }
+
+                let conversation = this.conversations.find(x => x.id === message.conversationId);
+                if (message.userId === this.user.id || typeof conversation === 'undefined' || !Array.isArray(conversation.conversationUsers)
+                        || typeof conversation.conversationUsers.find(x => x.userId === this.user.id) === 'undefined') {
+                    return;
+                }
+
+                this.$store.dispatch('pushNotification', { text: `${message.userId} says: ${message.text}`, type: 1 }).then(() => {
+
+                });
+            },
+            async getAllConversations() {
+                this.$store.dispatch('getAllConversationsForUser');
+            },
             getMaxMenuItems() {
                 const menuItems = document.getElementsByClassName("menu-toolbar-item");
                 
