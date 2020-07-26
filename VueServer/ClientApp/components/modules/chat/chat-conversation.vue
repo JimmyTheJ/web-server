@@ -34,7 +34,7 @@
 
         <div id="chat-container">
             <v-toolbar>
-                <v-btn text @click="goBack">
+                <v-btn text @click="goBack" v-show="mobile">
                     <fa-icon icon="reply"></fa-icon>
                 </v-btn>
                 <v-btn text @click="editingTitle = !editingTitle">
@@ -54,29 +54,30 @@
             </v-toolbar>
 
             <div id="chat-body-container">
-                <v-layout row class="px-2">
-                    <v-flex xs12 v-for="(message, index) in conversation.messages" :key="index" @mouseover="setMessageHover(message, true)" @mouseleave="setMessageHover(message, false)" class="px-1">
+                <v-row class="px-0">
+                    <v-col cols="12" class="py-1" v-for="(message, index) in conversation.messages"
+                           :key="index" @mouseover="setMessageHover(message, true)"
+                           @mouseleave="setMessageHover(message, false)">
                         <chat-bubble :message="message"
                                      :currentTime="time"
                                      :owner="isOwner(message)"
                                      @moreInfo="openMoreInfo"
                                      @deleteMessage="deleteMessage"></chat-bubble>
-                    </v-flex>
-                </v-layout>
+                    </v-col>
+                </v-row>
             </div>
-            <v-layout row>
-                <v-flex xs12 class="px-2 mx-2">
-                    <v-text-field v-model="newMessage.text"
-                                  autofocus
-                                  label="Message"
-                                  ref="newMessage"
-                                  @keyup.enter.prevent="sendMessage">
-                        <template v-slot:append-outer>
-                            <v-btn icon text @click="sendMessage"><fa-icon size="lg" icon="paper-plane"></fa-icon></v-btn>
-                        </template>
-                    </v-text-field>
-                </v-flex>
-            </v-layout>
+            <div id="chat-message-textfield">
+                <v-text-field v-model="newMessage.text"
+                              autofocus
+                              label="Message"
+                              ref="newMessage"
+                              @keyup.enter.prevent="sendMessage"
+                              class="pa-0">
+                    <template v-slot:append-outer>
+                        <v-btn icon text @click="sendMessage"><fa-icon size="lg" icon="paper-plane"></fa-icon></v-btn>
+                    </template>
+                </v-text-field>
+            </div>
         </div>
     </div>
 </template>
@@ -124,6 +125,7 @@
         created() {
             this.newMessage = { text: '' };
             this.$chatHub.$on('message-received', this.onMessageReceived);
+            window.addEventListener('resize', this.resizeWindow);
         },
         mounted() {
             this.chatWindow = document.getElementById('chat-body-container');
@@ -132,6 +134,7 @@
         beforeDestroy() {
             this.$chatHub.$off('message-received', this.onMessageReceived);
             this.chatWindow.removeEventListener('scroll', this.windowScroll);
+            window.removeEventListener('resize', this.resizeWindow);
         },
         computed: {
             ...mapState({
@@ -164,6 +167,8 @@
             },
             show(newValue) {
                 if (newValue === true) {
+                    this.updateContainerHeight();
+
                     setTimeout(() => {
                         this.$_console_log('Show watcher: value is true');
                         if (Array.isArray(this.conversation.messages) && this.conversation.messages.length > 0) {
@@ -183,6 +188,26 @@
         methods: {
             windowScroll(event) {
                 this.scrollHeight = event.target.scrollTop;
+            },
+            resizeWindow(event) {
+                this.updateContainerHeight();
+            },
+            updateContainerHeight() {
+                this.$nextTick(() => {
+                    let bodyContainer = document.getElementById('chat-body-container');
+                    let chatMessageTextfield = document.getElementById('chat-message-textfield');
+                    let newHeight = window.innerHeight - bodyContainer.offsetTop - chatMessageTextfield.clientHeight - 4;
+
+                    //console.log('Containers');
+                    //console.log(bodyContainer);
+                    //console.log(chatMessageTextfield);
+                    //console.log('Window height');
+                    //console.log(window.innerHeight);
+                    //console.log(newHeight);
+                    
+
+                    bodyContainer.style.height = `${newHeight}px`;
+                });
             },
             onMessageReceived(message) {
                 if (typeof message !== 'object' || message === null) {
@@ -346,14 +371,7 @@
 </script>
 
 <style>
-    #chat-container {
-        max-height: 800px;
-        max-width: 1100px;
-    }
-
     #chat-body-container {
-        max-height: 780px;
-        max-width: 1100px;
         overflow-y: scroll;
         overflow-x: hidden;
     }

@@ -51,6 +51,7 @@ namespace VueServer.Controllers
         [Route("conversation/get-all")]
         [HttpGet]
         public async Task<IActionResult> GetAllConversations()
+        
         {
             return _codeFactory.GetStatusCode(await _chatService.GetAllConversations());
         }

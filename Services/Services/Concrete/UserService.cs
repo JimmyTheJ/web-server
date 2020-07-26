@@ -44,7 +44,8 @@ namespace VueServer.Services.Concrete
                 return _httpContext.HttpContext.User.Claims
                     .Where(a => a.Type == JwtRegisteredClaimNames.Sub 
                         || a.Type == @"http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
-                    .Select(a => a.Value).FirstOrDefault();
+                    ?.Select(a => a.Value)?.FirstOrDefault() 
+                    ?? throw new Exception("Can't get username from User Claims.");
             }
         }
 

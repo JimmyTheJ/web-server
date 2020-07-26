@@ -1,32 +1,29 @@
 <template>
-    <v-container>
-        <v-layout>
-            <v-flex xs12>
-                <div class="headline">Chat System</div>
-            </v-flex>
-            </v-layout>
+    <v-container class="py-0">
+        <div class="headline">Chat System</div>
 
-        <v-layout row v-show="(isMobile && !hideMobile) || !isMobile">
-            <v-flex xs12 sm10 md9>
-                <v-autocomplete v-model="newConversation.users"
-                                :items="userList"
-                                item-value="id"
-                                item-text="displayName"
-                                prepend-icon="mdi-database-search"
-                                label="Select user(s)"
-                                :loading="isLoading"
-                                :search-input.search="search"
-                                multiple>
-                </v-autocomplete>
-                
-            </v-flex>
-            <v-flex xs12 sm2 md3>
-                <v-btn @click="startConversation">Submit</v-btn>
-            </v-flex>
-        </v-layout>
+        <div v-show="(isMobile && !hideMobile) || !isMobile">
+            <v-row no-gutters align="center">
+                <v-col cols="12" sm="8" md="9">
+                    <v-autocomplete v-model="newConversation.users"
+                                    :items="userList"
+                                    item-value="id"
+                                    item-text="displayName"
+                                    prepend-icon="mdi-database-search"
+                                    label="Select user(s)"
+                                    :loading="isLoading"
+                                    :search-input.search="search"
+                                    multiple>
+                    </v-autocomplete>
+                </v-col>
+                <v-col cols="12" sm="4" md="3">
+                    <v-btn @click="startConversation" class="mb-2">Start Conversation</v-btn>
+                </v-col>
+            </v-row>
+        </div>
 
-        <v-layout row>
-            <v-flex xs12 md3 lg2 v-show="(isMobile && !hideMobile)|| !isMobile">
+        <v-row no-gutters>
+            <v-col cols="12" md="3" lg="2" class="px-0" v-show="(isMobile && !hideMobile)|| !isMobile">
                 <template v-if="Array.isArray(conversations) && conversations.length > 0">
                     <v-list shaped>
                         <v-list-item v-for="(convo, index) in conversations" :key="index" @click="selectedConversation = convo">
@@ -39,18 +36,18 @@
                         </v-list-item>
                     </v-list>
                 </template>
-            </v-flex>
-            <v-flex xs12 md9 lg10 class="chat-conversation-window" v-if="(isMobile && hideMobile)|| !isMobile">
+            </v-col>
+
+            <v-col cols="12" md="9" lg="10" class="chat-conversation-window pb-0 px-0 pr-2" v-show="(isMobile && hideMobile)|| !isMobile">
                 <template v-for="(conversation, index) in conversations">
                     <chat-conversation :conversation="conversation"
                                        :time="currentTime"
                                        :show="shouldShowConversation(conversation)"
                                        :mobile="isMobile"
                                        @goBack="closeConversation" />
-                </template>     
-            </v-flex>
-        </v-layout>
-        
+                </template>
+            </v-col>
+        </v-row>
     </v-container>
 </template>
 
@@ -69,8 +66,7 @@
                 },
                 search: null,
                 isLoading: false,
-                currentTime: null,
-                isMobile: false,
+                currentTime: 0,
                 hideMobile: false,
             }
         },
@@ -78,15 +74,8 @@
             'chat-conversation': Conversation,
             'chat-badge': ChatBadge,
         },
-        created() {
-            window.addEventListener('resize', this.updateScreenSize);
-        },
         mounted() {
             this.countTime();
-            this.isMobile = this.$vuetify.breakpoint.mobile;
-        },
-        beforeDestroy() {
-            window.removeEventListener('resize', this.updateScreenSize);
         },
         computed: {
             ...mapState({
@@ -94,6 +83,9 @@
                 userList: state => state.auth.otherUsers,
                 conversations: state => state.chat.conversations,
             }),
+            isMobile() {
+                return this.$vuetify.breakpoint.mobile;
+            },
         },
         watch: {
             selectedConversation: {
@@ -116,16 +108,6 @@
             }
         },
         methods: {
-            updateScreenSize() {
-                this.$nextTick(() => {
-                    if (this.$vuetify.breakpoint.mobile) {
-                        this.isMobile = true;
-                    }
-                    else {
-                        this.isMobile = false;
-                    }
-                });                
-            },
             countTime() {
                 this.currentTime = Math.trunc(new Date().getTime() / 1000);
 
@@ -163,9 +145,3 @@
         },
     }
 </script>
-
-<style scoped>
-    .chat-conversation-window {
-        max-height: 800px;
-    }
-</style>
