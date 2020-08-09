@@ -7,11 +7,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VueServer.Controllers.Filters;
 using VueServer.Domain.Factory.Interface;
 using VueServer.Models.Chat;
 using VueServer.Models.Request;
 using VueServer.Services.Interface;
 using static VueServer.Domain.Constants.Authentication;
+using AddOns = VueServer.Domain.Constants.Models.ModuleAddOns;
+using Features = VueServer.Domain.Constants.Models.ModuleFeatures;
 
 namespace VueServer.Controllers
 {
@@ -28,6 +31,7 @@ namespace VueServer.Controllers
         }
 
         [Route("conversation/start")]
+        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
         [HttpPost]
         public async Task<IActionResult> StartConversation([FromBody] StartConversationRequest request)
         {
@@ -35,6 +39,7 @@ namespace VueServer.Controllers
         }
 
         [Route("conversation/get/{id}")]
+        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
         [HttpGet]
         public async Task<IActionResult> GetConversation(long id)
         {
@@ -42,6 +47,7 @@ namespace VueServer.Controllers
         }
 
         [Route("conversation/notifications/get-all")]
+        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
         [HttpGet]
         public async Task<IActionResult> GetNewMessageNotifications()
         {
@@ -49,6 +55,7 @@ namespace VueServer.Controllers
         }        
 
         [Route("conversation/get-all")]
+        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
         [HttpGet]
         public async Task<IActionResult> GetAllConversations()
         
@@ -57,6 +64,7 @@ namespace VueServer.Controllers
         }
 
         [Route("conversation/update-title/{conversationId}")]
+        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
         [HttpPost]
         public async Task<IActionResult> UpdateConversationTitle(long conversationId, [FromBody] UpdateConversationTitleRequest request)
         {
@@ -64,6 +72,7 @@ namespace VueServer.Controllers
         }
 
         [Route("conversation/delete/{conversationId}")]
+        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id, Feature = Features.Chat.DELETE_CONVERSATION_ID)]
         [HttpDelete]
         public async Task<IActionResult> DeleteConversation(long conversationId)
         {
@@ -71,6 +80,7 @@ namespace VueServer.Controllers
         }
 
         [Route("conversation/get/messages/{id}")]
+        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
         [HttpGet]
         public async Task<IActionResult> GetMessagesForConversation(long id)
         {
@@ -78,6 +88,7 @@ namespace VueServer.Controllers
         }
 
         [Route("message/delete/{messageId}")]
+        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id, Feature = Features.Chat.DELETE_MESSAGE_ID)]
         [HttpDelete]
         public async Task<IActionResult> DeleteMessage(long messageId)
         {
@@ -85,6 +96,7 @@ namespace VueServer.Controllers
         }
 
         [Route("message/get/{id}")]
+        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
         [HttpGet]
         public async Task<IActionResult> GetMessage(long id)
         {
@@ -92,6 +104,7 @@ namespace VueServer.Controllers
         }
 
         [Route("message/send")]
+        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
         [HttpPost]
         public async Task<IActionResult> AddMessage([FromBody] ChatMessage message)
         {
@@ -99,6 +112,7 @@ namespace VueServer.Controllers
         }
 
         [Route("message/read/{conversationId}/{messageId}")]
+        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
         [HttpPut]
         public async Task<IActionResult> ReadMessage(long conversationId, long messageId)
         {
@@ -106,6 +120,7 @@ namespace VueServer.Controllers
         }
 
         [Route("message/read/{conversationId}/list")]
+        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
         [HttpPut]
         public async Task<IActionResult> ReadMessageList(long conversationId, [FromBody] long[] messageIds)
         {

@@ -3,11 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using static VueServer.Domain.Constants.Authentication;
+using AddOns = VueServer.Domain.Constants.Models.ModuleAddOns;
+using Features = VueServer.Domain.Constants.Models.ModuleFeatures;
 using VueServer.Domain.Enums;
 using VueServer.Domain.Factory.Interface;
 using VueServer.Models;
 using VueServer.Models.Request;
 using VueServer.Services.Interface;
+using VueServer.Controllers.Filters;
+using Microsoft.AspNetCore.Http;
 
 namespace VueServer.Controllers
 {
@@ -28,6 +32,7 @@ namespace VueServer.Controllers
 
         [HttpGet]
         [Authorize(AuthenticationSchemes = "Identity.Application", Roles = ROLES_ALL)]
+        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id)]
         [Route("download/file/{*filename}")]
         public async Task<IActionResult> DownloadProtectedFile(string filename)
         {
@@ -40,6 +45,7 @@ namespace VueServer.Controllers
         
         [HttpGet]
         [Authorize(AuthenticationSchemes = "Identity.Application", Roles = ROLES_ALL)]
+        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.VIEWER_ID)]
         [Route("/api/serve-file/{*filename}")]
         public async Task<IActionResult> ServeMedia(string filename)
         {
@@ -58,6 +64,7 @@ namespace VueServer.Controllers
 
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
+        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id)]
         [Route("folder/{directory}/{*dir}")]
         public IActionResult LoadDirectory(string directory, string dir = null)
         {
@@ -66,6 +73,7 @@ namespace VueServer.Controllers
 
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
+        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id)]
         [Route("list")]
         public IActionResult GetDirectoryList()
         {
@@ -74,6 +82,7 @@ namespace VueServer.Controllers
 
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
+        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.DELETE_ID)]
         [Route("delete")]
         //[Authorize(AuthenticationSchemes = "Identity.Application", Roles = "Administrator")]
         public async Task<IActionResult> Delete([FromBody] DeleteFileModel model)
@@ -83,6 +92,7 @@ namespace VueServer.Controllers
 
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
+        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.UPLOAD_ID)]
         [Route("upload")]
         public async Task<IActionResult> UploadAsync([FromForm] UploadDirectoryFileRequest model)
         {

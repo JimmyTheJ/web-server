@@ -40,7 +40,7 @@ namespace VueServer.Services.Concrete
         {
             var userModules = await _context.UserHasModule
                 .Include(x => x.ModuleAddOn)
-                .Where(x => x.UserId == _user.Name)
+                .Where(x => x.UserId == _user.Id)
                 .Select(x => new ModuleAddOn()
                 {
                     Id = x.ModuleAddOn.Id,
@@ -48,7 +48,7 @@ namespace VueServer.Services.Concrete
                     UserModuleFeatures = _context.UserHasFeature
                         .Include(y => y.ModuleFeature)
                         .Include(y => y.User)
-                        .Where(y => y.ModuleFeature.ModuleAddOnId == x.ModuleAddOnId && y.UserId == _user.Name)
+                        .Where(y => y.ModuleFeature.ModuleAddOnId == x.ModuleAddOnId && y.UserId == _user.Id)
                         .ToList()
                 }).ToListAsync();
 

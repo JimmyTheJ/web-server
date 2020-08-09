@@ -62,10 +62,10 @@ namespace VueServer.Services.Concrete
         { 
             if (media)
             {
-                var user = await _user.GetUserByNameAsync(_user.Name);
+                var user = await _user.GetUserByNameAsync(_user.Id);
                 if (user == null)
                 {
-                    _logger.LogWarning($"Download: Unable to get user by name with name ({_user.Name})");
+                    _logger.LogWarning($"Download: Unable to get user by name with name ({_user.Id})");
                     return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
                 }
 
@@ -176,7 +176,7 @@ namespace VueServer.Services.Concrete
                         return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
 
-                    _logger.LogInformation("Private zip archive download begun by " + _user.Name + " @ " + _user.IP + " - name=" + filename);
+                    _logger.LogInformation("Private zip archive download begun by " + _user.Id + " @ " + _user.IP + " - name=" + filename);
                     return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(zipPath, contentType, cleanFilename), StatusCode.OK);
                 }
                 //else
@@ -196,7 +196,7 @@ namespace VueServer.Services.Concrete
                 return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
             }
 
-            _logger.LogInformation("Private download begun by " + _user.Name + " @ " + _user.IP + " - name=" + filename);
+            _logger.LogInformation("Private download begun by " + _user.Id + " @ " + _user.IP + " - name=" + filename);
             //if (!media)
                 return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(Path.Combine(sourcePath, cleanFilename), contentType, cleanFilename), StatusCode.OK);
             //else
@@ -231,13 +231,13 @@ namespace VueServer.Services.Concrete
                     uri = new Uri(fullPath);
                     if (!uri.AbsolutePath.ToLower().StartsWith(basePath.ToLower()) && !uri.LocalPath.ToLower().StartsWith(basePath.ToLower()))
                     {
-                        _logger.LogWarning($"{_user.Name} @ {_user.IP} is trying to do a path escalation attack!");
+                        _logger.LogWarning($"{_user.Id} @ {_user.IP} is trying to do a path escalation attack!");
                         return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.FORBIDDEN);
                     }
                 }
                 catch
                 {
-                    _logger.LogInformation($"{_user.Name} @ {_user.IP} sent malformed URI path in sub directory.");
+                    _logger.LogInformation($"{_user.Id} @ {_user.IP} sent malformed URI path in sub directory.");
                     return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
                 }
             }
@@ -272,10 +272,10 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model)
         {
-            var user = await _user.GetUserByNameAsync(_user.Name);
+            var user = await _user.GetUserByNameAsync(_user.Id);
             if (user == null)
             {
-                _logger.LogWarning($"Download: Unable to get user by name with name ({_user.Name})");
+                _logger.LogWarning($"Download: Unable to get user by name with name ({_user.Id})");
                 return new Result<WebServerFile>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -292,11 +292,11 @@ namespace VueServer.Services.Concrete
                 saveDir += model.SubDirectory;
             }
 
-            _logger.LogInformation("Upload started from " + _user.Name + " @ " + _user.IP + " - Filename=" + model.File.FileName);
+            _logger.LogInformation("Upload started from " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
 
             if (!Directory.Exists(saveDir))
             {
-                _logger.LogInformation($"{_user.Name} @ {_user.IP} is attempting to create a folder while uploading a file");
+                _logger.LogInformation($"{_user.Id} @ {_user.IP} is attempting to create a folder while uploading a file");
                 return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
             }
 
@@ -305,13 +305,13 @@ namespace VueServer.Services.Concrete
                 var uri = new Uri(saveDir);
                 if (!uri.LocalPath.StartsWith(baseSaveDir))
                 {
-                    _logger.LogWarning($"{_user.Name} @ {_user.IP} is trying to do a path escalation attack!");
+                    _logger.LogWarning($"{_user.Id} @ {_user.IP} is trying to do a path escalation attack!");
                     return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
                 }
             }
             catch
             {
-                _logger.LogInformation($"{_user.Name} @ {_user.IP} sent malformed URI path.");
+                _logger.LogInformation($"{_user.Id} @ {_user.IP} sent malformed URI path.");
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -321,13 +321,13 @@ namespace VueServer.Services.Concrete
                 {
                     await model.File.CopyToAsync(fs);
                     fs.Flush();
-                    _logger.LogInformation("Upload SUCCESS from " + _user.Name + " @ " + _user.IP + " - Filename=" + model.File.FileName);
+                    _logger.LogInformation("Upload SUCCESS from " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("Failed to write file dir\n" + e.StackTrace);
-                _logger.LogInformation("Upload FAILED from " + _user.Name + " @ " + _user.IP + " - Filename=" + model.File.FileName);
+                _logger.LogInformation("Upload FAILED from " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
@@ -340,17 +340,17 @@ namespace VueServer.Services.Concrete
             catch (Exception e)
             {
                 Console.WriteLine("Failed to write file dir\n" + e.StackTrace);
-                _logger.LogInformation("Failed to validate file exists after successful upload. " + _user.Name + " @ " + _user.IP + " - Filename=" + model.File.FileName);
+                _logger.LogInformation("Failed to validate file exists after successful upload. " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
         }
 
         public async Task<IResult<bool>> Delete(DeleteFileModel model)
         {
-            var user = await _user.GetUserByNameAsync(_user.Name);
+            var user = await _user.GetUserByNameAsync(_user.Id);
             if (user == null)
             {
-                _logger.LogWarning($"Delete: Unable to get user by name with name ({_user.Name})");
+                _logger.LogWarning($"Delete: Unable to get user by name with name ({_user.Id})");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -365,7 +365,7 @@ namespace VueServer.Services.Concrete
             string dir = uploadDirs.Where(x => x.Name == model.Directory).Select(y => y.Path).FirstOrDefault();
             if (dir == null)
             {
-                _logger.LogInformation("Invalid folder name provided. Protected file deletion attempt by " + _user.Name + " @ " + _user.IP + " - Filename=" + model.Name);
+                _logger.LogInformation("Invalid folder name provided. Protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
             }
 
@@ -376,13 +376,13 @@ namespace VueServer.Services.Concrete
             }
             catch
             {
-                _logger.LogInformation("Invalid file provided. Protected file deletion attempt by " + _user.Name + " @ " + _user.IP + " - Filename=" + model.Name);
+                _logger.LogInformation("Invalid file provided. Protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                 return new Result<bool>(false, StatusCode.UNAUTHORIZED);
             }
 
             if (!fi.Directory.FullName.StartsWith(dir))
             {
-                _logger.LogWarning($"Path escalation attack attempted by {_user.Name} @ {_user.IP} - Filename={fi.Directory.FullName.ToString()}{Path.DirectorySeparatorChar}{model.Name}!");
+                _logger.LogWarning($"Path escalation attack attempted by {_user.Id} @ {_user.IP} - Filename={fi.Directory.FullName.ToString()}{Path.DirectorySeparatorChar}{model.Name}!");
                 return new Result<bool>(false, StatusCode.FORBIDDEN);
             }
 
@@ -394,17 +394,17 @@ namespace VueServer.Services.Concrete
                 }
                 catch (UnauthorizedAccessException)
                 {
-                    _logger.LogError("Unauthorized protected file deletion attempt by " + _user.Name + " @ " + _user.IP + " - Filename=" + model.Name);
+                    _logger.LogError("Unauthorized protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                     return new Result<bool>(false, StatusCode.UNAUTHORIZED);
                 }
                 catch (SecurityException)
                 {
-                    _logger.LogError("Security exception in protected file deletion attempt by " + _user.Name + " @ " + _user.IP + " - Filename=" + model.Name);
+                    _logger.LogError("Security exception in protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                     return new Result<bool>(false, StatusCode.UNAUTHORIZED);
                 }
                 catch (IOException)
                 {
-                    _logger.LogError("IO exception in protected file deletion attempt by " + _user.Name + " @ " + _user.IP + " - Filename=" + model.Name);
+                    _logger.LogError("IO exception in protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                     return new Result<bool>(false, StatusCode.BAD_REQUEST);
                 }
             }
@@ -511,7 +511,7 @@ namespace VueServer.Services.Concrete
                 Admin = GetServerDirectoryList("Directories:Group:Admin"),
                 Elevated = GetServerDirectoryList("Directories:Group:Elevated"),
                 General = GetServerDirectoryList("Directories:Group:General"),
-                User = GetServerDirectoryList($"Directories:User:{_user.Name}"),
+                User = GetServerDirectoryList($"Directories:User:{_user.Id}"),
             };
 
             return dirs;

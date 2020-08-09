@@ -86,7 +86,7 @@ namespace VueServer.Services.Concrete
             }
 
             // Get current user, this shouldn't be able to fail
-            var currentUser = await _user.GetUserByNameAsync(_user.Name);
+            var currentUser = await _user.GetUserByNameAsync(_user.Id);
 
             // Add current user to conversation
             var selfUser = new ConversationHasUser()
@@ -177,10 +177,10 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<bool>> UpdateConversationTitle(long conversationId, string title)
         {
-            var user = await _user.GetUserByNameAsync(_user.Name);
+            var user = await _user.GetUserByNameAsync(_user.Id);
             if (user == null)
             {
-                _logger.LogWarning($"UpdateConversationTitle: Unable to get user by name with name ({_user.Name})");
+                _logger.LogWarning($"UpdateConversationTitle: Unable to get user by name with name ({_user.Id})");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -221,10 +221,10 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<bool>> DeleteConversation(long conversationId)
         {
-            var user = await _user.GetUserByNameAsync(_user.Name);
+            var user = await _user.GetUserByNameAsync(_user.Id);
             if (user == null)
             {
-                _logger.LogWarning($"DeleteConversation: Unable to get user by name with name ({_user.Name})");
+                _logger.LogWarning($"DeleteConversation: Unable to get user by name with name ({_user.Id})");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -260,10 +260,10 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(long id)
         {
-            var user = await _user.GetUserByNameAsync(_user.Name);
+            var user = await _user.GetUserByNameAsync(_user.Id);
             if (user == null)
             {
-                _logger.LogWarning($"GetMessagesForConversation: Unable to get user by name with name ({_user.Name})");
+                _logger.LogWarning($"GetMessagesForConversation: Unable to get user by name with name ({_user.Id})");
                 return new Result<IEnumerable<ChatMessage>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -285,10 +285,10 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<bool>> DeleteMessage(long messageId)
         {
-            var user = await _user.GetUserByNameAsync(_user.Name);
+            var user = await _user.GetUserByNameAsync(_user.Id);
             if (user == null)
             {
-                _logger.LogWarning($"DeleteMessage: Unable to get user by name with name ({_user.Name})");
+                _logger.LogWarning($"DeleteMessage: Unable to get user by name with name ({_user.Id})");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -356,10 +356,10 @@ namespace VueServer.Services.Concrete
                 return new Result<ChatMessage>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
-            var user = await _user.GetUserByNameAsync(_user.Name);
+            var user = await _user.GetUserByNameAsync(_user.Id);
             if (user == null)
             {
-                _logger.LogWarning($"AddMessage: Unable to get user by name with name ({_user.Name})");
+                _logger.LogWarning($"AddMessage: Unable to get user by name with name ({_user.Id})");
                 return new Result<ChatMessage>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -391,10 +391,10 @@ namespace VueServer.Services.Concrete
         {
             ReadReceipt receipt = null;
 
-            var user = await _user.GetUserByNameAsync(_user.Name);
+            var user = await _user.GetUserByNameAsync(_user.Id);
             if (user == null)
             {
-                _logger.LogWarning($"ReadMessage: Unable to get user by name with name ({_user.Name})");
+                _logger.LogWarning($"ReadMessage: Unable to get user by name with name ({_user.Id})");
                 return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -433,10 +433,10 @@ namespace VueServer.Services.Concrete
         {
             var receipts = new List<ReadReceipt>();
 
-            var user = await _user.GetUserByNameAsync(_user.Name);
+            var user = await _user.GetUserByNameAsync(_user.Id);
             if (user == null)
             {
-                _logger.LogWarning($"ReadMessage: Unable to get user by name with name ({_user.Name})");
+                _logger.LogWarning($"ReadMessage: Unable to get user by name with name ({_user.Id})");
                 return new Result<IEnumerable<ReadReceipt>> (receipts, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -478,10 +478,10 @@ namespace VueServer.Services.Concrete
 
         private async Task<IEnumerable<Conversation>> GetAllConversationAsync (GetMessageType getMessages = GetMessageType.None)
         {
-            var user = await _user.GetUserByNameAsync(_user.Name);
+            var user = await _user.GetUserByNameAsync(_user.Id);
             if (user == null)
             {
-                _logger.LogWarning($"GetAllConversationAsync: Unable to get user by name with name ({_user.Name})");
+                _logger.LogWarning($"GetAllConversationAsync: Unable to get user by name with name ({_user.Id})");
                 return null;
             }
 
@@ -522,7 +522,7 @@ namespace VueServer.Services.Concrete
             var conversationList = await conversationQuery.ToListAsync();
             if (conversationList == null)
             {
-                _logger.LogInformation($"GetAllConversationAsync: Conversation list is empty for user ({_user.Name})");
+                _logger.LogInformation($"GetAllConversationAsync: Conversation list is empty for user ({_user.Id})");
                 return null;
             }
 

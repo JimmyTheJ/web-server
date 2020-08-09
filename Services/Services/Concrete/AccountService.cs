@@ -166,7 +166,7 @@ namespace VueServer.Services.Concrete
             // Claims to register the JWT
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, GenerateRefreshToken()),
                 new Claim(JwtRegisteredClaimNames.Iat, now.ToUniversalTime().ToString(), ClaimValueTypes.Integer64),
                 new Claim(ClaimTypes.Role, roles[0])
@@ -232,10 +232,10 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<IEnumerable<WSUserResponse>>> GetAllOtherUsers()
         {
-            var user = await _user.GetUserByNameAsync(_user.Name);
+            var user = await _user.GetUserByNameAsync(_user.Id);
             if (user == null)
             {
-                _logger.LogWarning($"GetAllOtherUsers: Unable to get user by name with name ({_user.Name})");
+                _logger.LogWarning($"GetAllOtherUsers: Unable to get user by name with name ({_user.Id})");
                 return new Result<IEnumerable<WSUserResponse>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -252,10 +252,10 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<string>> UpdateUserAvatar(IFormFile file)
         {
-            var user = await _user.GetUserByNameAsync(_user.Name);
+            var user = await _user.GetUserByNameAsync(_user.Id);
             if (user == null)
             {
-                _logger.LogWarning($"[AccountService] UpdateUserAvatar: Unable to get user by name with name ({_user.Name})");
+                _logger.LogWarning($"[AccountService] UpdateUserAvatar: Unable to get user by name with name ({_user.Id})");
                 return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -339,10 +339,10 @@ namespace VueServer.Services.Concrete
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
-            var user = await _user.GetUserByNameAsync(_user.Name);
+            var user = await _user.GetUserByNameAsync(_user.Id);
             if (user == null)
             {
-                _logger.LogWarning($"[AccountService] UpdateDisplayName: Unable to get user by name with name ({_user.Name})");
+                _logger.LogWarning($"[AccountService] UpdateDisplayName: Unable to get user by name with name ({_user.Id})");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 

@@ -9,7 +9,7 @@ namespace VueServer.Services.Interface
     {
         HttpContext Context { get; }
 
-        string Name { get; }
+        string Id { get; }
         string IP { get; }
 
         Task<WSUser> GetCurrentUserAsync();

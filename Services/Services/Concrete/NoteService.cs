@@ -45,7 +45,7 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<List<Notes>>> Get()
         {
-            var notes = await _wsContext.Notes.Where(a => a.UserId == _user.Name).ToListAsync();
+            var notes = await _wsContext.Notes.Where(a => a.UserId == _user.Id).ToListAsync();
             if (notes == null || notes.Count == 0) {
                 _logger.LogInformation("[NoteService] Get: No notes found for current user");
                 return new Result<List<Notes>>(new List<Notes>(), Domain.Enums.StatusCode.NO_CONTENT);
@@ -63,7 +63,7 @@ namespace VueServer.Services.Concrete
             }
 
             var now = DateTimeOffset.UtcNow;
-            note.UserId = _user.Name;
+            note.UserId = _user.Id;
             note.Created = now;
             note.Updated = now;
             note.Id = 0;
@@ -89,7 +89,7 @@ namespace VueServer.Services.Concrete
                 return new Result<Notes>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
-            var updated = await _wsContext.Notes.Where(a => a.Id == note.Id && a.UserId == _user.Name).FirstOrDefaultAsync();
+            var updated = await _wsContext.Notes.Where(a => a.Id == note.Id && a.UserId == _user.Id).FirstOrDefaultAsync();
             if (updated == null) {
                 _logger.LogWarning("[NoteService] Update: No note found to update");
                 return new Result<Notes>(null, Domain.Enums.StatusCode.BAD_REQUEST);

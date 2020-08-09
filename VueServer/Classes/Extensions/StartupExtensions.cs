@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +24,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VueServer.Classes.Scheduling;
+using VueServer.Controllers.Filters;
 using VueServer.Domain.Enums;
 using VueServer.Domain.Factory.Concrete;
 using VueServer.Domain.Factory.Interface;
@@ -90,7 +92,7 @@ namespace VueServer.Classes.Extensions
                         ValidAudience = config["Jwt:Audience"],
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:SigningKey"])),
                         ValidateLifetime = true,
-                        ClockSkew = TimeSpan.Zero
+                        ClockSkew = TimeSpan.Zero,
                     };
 
                     // For refresh tokens
@@ -194,6 +196,7 @@ namespace VueServer.Classes.Extensions
             services.AddScoped<ILibraryService, LibraryService>();
             services.AddScoped<IWeightService, WeightService>();
 
+            services.AddScoped<ModuleAuthFilter>();
             services.AddTransient<IUserService, UserService>();
 
             // Scheduled task for deleting the files from the temporary folder

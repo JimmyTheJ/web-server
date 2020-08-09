@@ -257,7 +257,7 @@ namespace VueServer.Test.Integration.Services
             HttpContext.User = claimsPrincipal;
             
             User.Setup(o => o.IP).Returns(IP);
-            User.Setup(o => o.Name).Returns(username);
+            User.Setup(o => o.Id).Returns(username);
             User.Setup(o => o.Context).Returns(HttpContext);
 
             var service = new DirectoryService(

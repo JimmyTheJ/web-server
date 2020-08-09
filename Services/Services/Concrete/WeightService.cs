@@ -54,7 +54,7 @@ namespace VueServer.Services.Concrete
             IEnumerable<Weight> weights;
             try
             {
-                weights = await _wsContext.Weight.Where(x => x.UserId == _user.Name).OrderByDescending(x => x.Created).ToListAsync();
+                weights = await _wsContext.Weight.Where(x => x.UserId == _user.Id).OrderByDescending(x => x.Created).ToListAsync();
             }
             catch
             {
@@ -74,7 +74,7 @@ namespace VueServer.Services.Concrete
             }
 
             weight.Id = 0;
-            weight.UserId = _user.Name;
+            weight.UserId = _user.Id;
             _wsContext.Weight.Add(weight);
 
             try
@@ -99,7 +99,7 @@ namespace VueServer.Services.Concrete
             }
 
             // Get old weight, only allow weights from current user
-            var oldWeight = await _wsContext.Weight.Where(x => x.Id == weight.Id && x.UserId == _user.Name).FirstOrDefaultAsync();
+            var oldWeight = await _wsContext.Weight.Where(x => x.Id == weight.Id && x.UserId == _user.Id).FirstOrDefaultAsync();
             if (oldWeight == null)
             {
                 _logger.LogInformation("WeightService.EditWeight: No weight exists with the passed in Id for this user");

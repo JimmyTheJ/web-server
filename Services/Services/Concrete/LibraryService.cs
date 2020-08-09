@@ -67,7 +67,7 @@ namespace VueServer.Services.Concrete
 
             // Create new book object to clean out anything we don't want from the request
             var newBook = new Book(request.Book);
-            newBook.UserId = _user.Name;
+            newBook.UserId = _user.Id;
 
             // One to many relationship changes
             var bookcase = await UpdateBookcaseConnectionAsync(request.Bookcase, newBook);

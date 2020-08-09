@@ -14,6 +14,9 @@ using VueServer.Models;
 using VueServer.Models.Account;
 using VueServer.Models.Context;
 using VueServer.Services.Interface;
+using AddOns = VueServer.Domain.Constants.Models.ModuleAddOns;
+using Features = VueServer.Domain.Constants.Models.ModuleFeatures;
+using VueServer.Controllers.Filters;
 
 namespace VueServer.Controllers
 {
@@ -35,6 +38,7 @@ namespace VueServer.Controllers
 
         [Authorize(Roles = ADMINISTRATOR_STRING)]
         [HttpGet]
+        [ModuleAuthFilterFactory(Module = AddOns.Notes.Id)]
         [Route("getall")]
         public async Task<IActionResult> GetAll()
         {
@@ -42,6 +46,7 @@ namespace VueServer.Controllers
         }
 
         [HttpGet]
+        [ModuleAuthFilterFactory(Module = AddOns.Notes.Id)]
         [Route("get")]
         public async Task<IActionResult> Get()
         {
@@ -50,6 +55,7 @@ namespace VueServer.Controllers
         }
 
         [HttpPost]
+        [ModuleAuthFilterFactory(Module = AddOns.Notes.Id)]
         [Route("create")]
         public async Task<IActionResult> Create([FromBody] Notes note)
         {
@@ -57,6 +63,7 @@ namespace VueServer.Controllers
         }
 
         [HttpPut]
+        [ModuleAuthFilterFactory(Module = AddOns.Notes.Id)]
         [Route("update")]
         public async Task<IActionResult> Update([FromBody] Notes note)
         {
@@ -64,6 +71,7 @@ namespace VueServer.Controllers
         }
 
         [HttpDelete]
+        [ModuleAuthFilterFactory(Module = AddOns.Notes.Id)]
         [Route("delete")]
         public async Task<IActionResult> Delete (int id)
         {
