@@ -232,14 +232,7 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<IEnumerable<WSUserResponse>>> GetAllOtherUsers()
         {
-            var user = await _user.GetUserByNameAsync(_user.Id);
-            if (user == null)
-            {
-                _logger.LogWarning($"GetAllOtherUsers: Unable to get user by name with name ({_user.Id})");
-                return new Result<IEnumerable<WSUserResponse>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-
-            var users = await _context.Users.Include(x => x.UserProfile).Where(x => x.Id != user.Id).ToListAsync();
+            var users = await _context.Users.Include(x => x.UserProfile).Where(x => x.Id != _user.Id).ToListAsync();
 
             var list = new List<WSUserResponse>();
             foreach (var usr in users)
@@ -252,13 +245,6 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<string>> UpdateUserAvatar(IFormFile file)
         {
-            var user = await _user.GetUserByNameAsync(_user.Id);
-            if (user == null)
-            {
-                _logger.LogWarning($"[AccountService] UpdateUserAvatar: Unable to get user by name with name ({_user.Id})");
-                return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-
             if (file == null)
             {
                 _logger.LogInformation($"[AccountService] UpdateUserAvatar: File is null");
@@ -272,21 +258,21 @@ namespace VueServer.Services.Concrete
                 return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
-            var userProfile = await _context.UserProfile.Where(x => x.UserId == user.Id).SingleOrDefaultAsync();
+            var userProfile = await _context.UserProfile.Where(x => x.UserId == _user.Id).SingleOrDefaultAsync();
             if (userProfile == null)
             {
-                if (await CreateUserProfile(user.Id))
+                if (await CreateUserProfile(_user.Id))
                 {
-                    userProfile = await _context.UserProfile.Where(x => x.UserId == user.Id).SingleOrDefaultAsync();
+                    userProfile = await _context.UserProfile.Where(x => x.UserId == _user.Id).SingleOrDefaultAsync();
                 }
                 else
                 {
-                    _logger.LogInformation($"[AccountService] UpdateUserAvatar: Can't create user profile for {user.Id}");
+                    _logger.LogInformation($"[AccountService] UpdateUserAvatar: Can't create user profile for {_user.Id}");
                     return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
                 }
             }
 
-            var filename = $"{user.Id}-{file.FileName}";
+            var filename = $"{_user.Id}-{file.FileName}";
             var path = Path.Combine(_env.WebRootPath, "public");
 
             if (!Directory.Exists(path))
@@ -324,7 +310,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[AccountService] CreateUserProfile: Error saving after updating profile user '{user.Id}' avatar");
+                _logger.LogWarning($"[AccountService] CreateUserProfile: Error saving after updating profile user '{_user.Id}' avatar");
                 return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -339,17 +325,10 @@ namespace VueServer.Services.Concrete
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
-            var user = await _user.GetUserByNameAsync(_user.Id);
-            if (user == null)
-            {
-                _logger.LogWarning($"[AccountService] UpdateDisplayName: Unable to get user by name with name ({_user.Id})");
-                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-
-            var wsUser = await _context.Users.Where(x => x.Id == user.Id).SingleOrDefaultAsync();
+            var wsUser = await _context.Users.Where(x => x.Id == _user.Id).SingleOrDefaultAsync();
             if (wsUser == null)
             {
-                _logger.LogWarning($"[AccountService] UpdateDisplayName: User with user id ({user.Id}) doesn't exist. This shouldn't be possible though.");
+                _logger.LogWarning($"[AccountService] UpdateDisplayName: User with user id ({_user.Id}) doesn't exist. This shouldn't be possible though.");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -361,7 +340,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[AccountService] CreateUserProfile: Error saving after updating profile user '{user.Id}' avatar");
+                _logger.LogWarning($"[AccountService] CreateUserProfile: Error saving after updating profile user '{_user.Id}' avatar");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 

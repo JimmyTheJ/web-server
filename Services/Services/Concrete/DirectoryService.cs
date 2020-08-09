@@ -60,20 +60,6 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<Tuple<string, string, string>>> Download (string filename, bool media = false)
         { 
-            if (media)
-            {
-                var user = await _user.GetUserByNameAsync(_user.Id);
-                if (user == null)
-                {
-                    _logger.LogWarning($"Download: Unable to get user by name with name ({_user.Id})");
-                    return new Result<Tuple<string, string, string>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
-                }
-
-                // Check if current user has access permissions to view
-                if (!_wSContext.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.Browser.VIEWER_ID && x.UserId == user.Id).Any())
-                    return new Result<Tuple<string, string, string>>(null, StatusCode.FORBIDDEN);
-            }
-
             if (string.IsNullOrWhiteSpace(filename))
             {
                 _logger.LogWarning("Directory.Download: Filename passed is null or empty");
@@ -272,17 +258,6 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model)
         {
-            var user = await _user.GetUserByNameAsync(_user.Id);
-            if (user == null)
-            {
-                _logger.LogWarning($"Download: Unable to get user by name with name ({_user.Id})");
-                return new Result<WebServerFile>(null, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-
-            // Check if current user has access permissions to upload
-            if (!_wSContext.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.Browser.UPLOAD_ID && x.UserId == user.Id).Any())
-                return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
-
             var uploadDirs = GetSingleDirectoryList();
             string baseSaveDir = uploadDirs.Where(x => x.Name == model.Directory).Select(y => y.Path).FirstOrDefault();
             string saveDir = baseSaveDir;
@@ -347,17 +322,6 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<bool>> Delete(DeleteFileModel model)
         {
-            var user = await _user.GetUserByNameAsync(_user.Id);
-            if (user == null)
-            {
-                _logger.LogWarning($"Delete: Unable to get user by name with name ({_user.Id})");
-                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-
-            // Check if current user has access permissions to delete
-            if (!_wSContext.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.Browser.DELETE_ID && x.UserId == user.Id).Any())
-                return new Result<bool>(false, StatusCode.FORBIDDEN);
-
             if (string.IsNullOrWhiteSpace(model.Name))
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
 

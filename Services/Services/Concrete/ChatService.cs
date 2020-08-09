@@ -85,21 +85,18 @@ namespace VueServer.Services.Concrete
                 }
             }
 
-            // Get current user, this shouldn't be able to fail
-            var currentUser = await _user.GetUserByNameAsync(_user.Id);
-
             // Add current user to conversation
             var selfUser = new ConversationHasUser()
             {
                 ConversationId = conversation.Id,
-                UserId = currentUser.Id,
+                UserId = _user.Id,
                 Owner = true
             };
             _context.ConversationHasUser.Add(selfUser);
             conversationUserList.Add(selfUser);           
 
             // Add all the other users to the conversation
-            foreach (var username in request.Users.Where(x => x != currentUser.Id))
+            foreach (var username in request.Users.Where(x => x != _user.Id))
             {
                 if (string.IsNullOrWhiteSpace(username)) {
                     continue;
@@ -160,7 +157,7 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<IEnumerable<Conversation>>> GetNewMessageNotifications()
         {
-            var conversationList = await GetAllConversationAsync(GetMessageType.New);
+            var conversationList = await GetAllConversationAsync(_user.Id, GetMessageType.New);
             if (conversationList == null)
             {
                 return new Result<IEnumerable<Conversation>>(null, Domain.Enums.StatusCode.NO_CONTENT);
@@ -171,19 +168,12 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<IEnumerable<Conversation>>> GetAllConversations()
         {
-            var conversationList = await GetAllConversationAsync();
+            var conversationList = await GetAllConversationAsync(_user.Id);
             return new Result<IEnumerable<Conversation>>(conversationList, Domain.Enums.StatusCode.OK);
         }
 
         public async Task<IResult<bool>> UpdateConversationTitle(long conversationId, string title)
         {
-            var user = await _user.GetUserByNameAsync(_user.Id);
-            if (user == null)
-            {
-                _logger.LogWarning($"UpdateConversationTitle: Unable to get user by name with name ({_user.Id})");
-                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-
             var conversation = (await GetConversation(conversationId))?.Obj;
             if (conversation == null)
             {
@@ -191,16 +181,16 @@ namespace VueServer.Services.Concrete
                 return new Result<bool>(false, Domain.Enums.StatusCode.NO_CONTENT);
             }
 
-            var selfUser = conversation.ConversationUsers.Where(x => x.UserId == user.Id).SingleOrDefault();
+            var selfUser = conversation.ConversationUsers.Where(x => x.UserId == _user.Id).SingleOrDefault();
             if (selfUser == null)
             {
-                _logger.LogWarning($"UpdateConversationTitle: Conversation with id ({conversationId}) does not include user ({user.Id}) as one of it's members. This is likely an escalation attack");
+                _logger.LogWarning($"UpdateConversationTitle: Conversation with id ({conversationId}) does not include user ({_user.Id}) as one of it's members. This is likely an escalation attack");
                 return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
             if (!selfUser.Owner)
             {
-                _logger.LogInformation($"UpdateConversationTitle: User ({user.Id}) is not the owner of this conversation ({conversationId}). They cannot change it's title.");
+                _logger.LogInformation($"UpdateConversationTitle: User ({_user.Id}) is not the owner of this conversation ({conversationId}). They cannot change it's title.");
                 return new Result<bool>(false, Domain.Enums.StatusCode.UNAUTHORIZED);
             }
 
@@ -221,16 +211,9 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<bool>> DeleteConversation(long conversationId)
         {
-            var user = await _user.GetUserByNameAsync(_user.Id);
-            if (user == null)
+            if (_context.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.Chat.DELETE_CONVERSATION_ID && x.UserId == _user.Id).SingleOrDefault() == null)
             {
-                _logger.LogWarning($"DeleteConversation: Unable to get user by name with name ({_user.Id})");
-                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-
-            if (_context.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.Chat.DELETE_CONVERSATION_ID && x.UserId == user.Id).SingleOrDefault() == null)
-            {
-                _logger.LogInformation($"DeleteConversation: User ({user.Id}) does not have permission to delete conversations");
+                _logger.LogInformation($"DeleteConversation: User ({_user.Id}) does not have permission to delete conversations");
                 return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
@@ -260,13 +243,6 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(long id)
         {
-            var user = await _user.GetUserByNameAsync(_user.Id);
-            if (user == null)
-            {
-                _logger.LogWarning($"GetMessagesForConversation: Unable to get user by name with name ({_user.Id})");
-                return new Result<IEnumerable<ChatMessage>>(null, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-
             var conversation = await _context.Conversations.Include(x => x.ConversationUsers).Include(x => x.Messages).ThenInclude(x => x.ReadReceipts).Where(x => x.Id == id).SingleOrDefaultAsync();
             if (conversation == null)
             {
@@ -274,9 +250,9 @@ namespace VueServer.Services.Concrete
                 return new Result<IEnumerable<ChatMessage>>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
-            if (!conversation.ConversationUsers.Any(x => x.UserId == user.Id))
+            if (!conversation.ConversationUsers.Any(x => x.UserId == _user.Id))
             {
-                _logger.LogInformation($"GetMessagesForConversation: User ({user.Id}) is not part of the conversation with id ({id}), cannot access this conversation");
+                _logger.LogInformation($"GetMessagesForConversation: User ({_user.Id}) is not part of the conversation with id ({id}), cannot access this conversation");
                 return new Result<IEnumerable<ChatMessage>>(null, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
@@ -285,7 +261,7 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<bool>> DeleteMessage(long messageId)
         {
-            var user = await _user.GetUserByNameAsync(_user.Id);
+            var user = await _user.GetUserByIdAsync(_user.Id);
             if (user == null)
             {
                 _logger.LogWarning($"DeleteMessage: Unable to get user by name with name ({_user.Id})");
@@ -356,18 +332,11 @@ namespace VueServer.Services.Concrete
                 return new Result<ChatMessage>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
-            var user = await _user.GetUserByNameAsync(_user.Id);
-            if (user == null)
-            {
-                _logger.LogWarning($"AddMessage: Unable to get user by name with name ({_user.Id})");
-                return new Result<ChatMessage>(null, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-
             var newMessage = new ChatMessage()
             {
                 ConversationId = message.ConversationId,
                 Text = message.Text,
-                UserId = user.Id,
+                UserId = _user.Id,
                 Timestamp = DateTimeOffset.Now.ToUnixTimeSeconds()
             };
 
@@ -391,30 +360,23 @@ namespace VueServer.Services.Concrete
         {
             ReadReceipt receipt = null;
 
-            var user = await _user.GetUserByNameAsync(_user.Id);
-            if (user == null)
-            {
-                _logger.LogWarning($"ReadMessage: Unable to get user by name with name ({_user.Id})");
-                return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-
-            var conversationUser = await _context.ConversationHasUser.Where(x => x.ConversationId == conversationId && x.UserId == user.Id).FirstOrDefaultAsync();
+            var conversationUser = await _context.ConversationHasUser.Where(x => x.ConversationId == conversationId && x.UserId == _user.Id).FirstOrDefaultAsync();
             if (conversationUser == null)
             {
-                _logger.LogInformation($"ReadMessage: User ({user.Id}) is not part of conversation ({conversationId})");
+                _logger.LogInformation($"ReadMessage: User ({_user.Id}) is not part of conversation ({conversationId})");
                 return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
             var message = await _context.Messages.Include(x => x.ReadReceipts)
-                .Where(x => x.UserId != user.Id && x.Id == messageId &&
-                    (x.ReadReceipts == null || (x.ReadReceipts != null && !x.ReadReceipts.Any(y => y.UserId == user.Id)))
+                .Where(x => x.UserId != _user.Id && x.Id == messageId &&
+                    (x.ReadReceipts == null || (x.ReadReceipts != null && !x.ReadReceipts.Any(y => y.UserId == _user.Id)))
                 ).SingleOrDefaultAsync();
             if (message == null)
             {
                 _logger.LogInformation($"ReadMessage: Message ({message.Id}) doesn't exist");
                 return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.NOT_FOUND);
             }
-            receipt = CreateReadReceipts(user, new List<ChatMessage> { message }).FirstOrDefault();
+            receipt = CreateReadReceipts(_user.Id, new List<ChatMessage> { message }).FirstOrDefault();
 
             try
             {
@@ -433,23 +395,16 @@ namespace VueServer.Services.Concrete
         {
             var receipts = new List<ReadReceipt>();
 
-            var user = await _user.GetUserByNameAsync(_user.Id);
-            if (user == null)
-            {
-                _logger.LogWarning($"ReadMessage: Unable to get user by name with name ({_user.Id})");
-                return new Result<IEnumerable<ReadReceipt>> (receipts, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-
-            var conversationUser = await _context.ConversationHasUser.Where(x => x.ConversationId == conversationId && x.UserId == user.Id).FirstOrDefaultAsync();
+            var conversationUser = await _context.ConversationHasUser.Where(x => x.ConversationId == conversationId && x.UserId == _user.Id).FirstOrDefaultAsync();
             if (conversationUser == null)
             {
-                _logger.LogInformation($"ReadMessage: User ({user.Id}) is not part of conversation ({conversationId})");
+                _logger.LogInformation($"ReadMessage: User ({_user.Id}) is not part of conversation ({conversationId})");
                 return new Result<IEnumerable<ReadReceipt>>(receipts, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
             var messageList = await _context.Messages.Include(x => x.ReadReceipts)
-                .Where(x => x.UserId != user.Id && messageIds.Contains(x.Id) && 
-                    (x.ReadReceipts == null || (x.ReadReceipts != null && !x.ReadReceipts.Any(y => y.UserId == user.Id)))
+                .Where(x => x.UserId != _user.Id && messageIds.Contains(x.Id) && 
+                    (x.ReadReceipts == null || (x.ReadReceipts != null && !x.ReadReceipts.Any(y => y.UserId == _user.Id)))
                 ).ToListAsync();
             if (messageList == null)
             {
@@ -457,7 +412,7 @@ namespace VueServer.Services.Concrete
                 return new Result<IEnumerable<ReadReceipt>>(receipts, Domain.Enums.StatusCode.NOT_FOUND);
             }
 
-            receipts.AddRange(CreateReadReceipts(user, messageList));
+            receipts.AddRange(CreateReadReceipts(_user.Id, messageList));
 
             try
             {
@@ -476,18 +431,11 @@ namespace VueServer.Services.Concrete
 
         #region -> Private Functions
 
-        private async Task<IEnumerable<Conversation>> GetAllConversationAsync (GetMessageType getMessages = GetMessageType.None)
+        private async Task<IEnumerable<Conversation>> GetAllConversationAsync (string userId, GetMessageType getMessages = GetMessageType.None)
         {
-            var user = await _user.GetUserByNameAsync(_user.Id);
-            if (user == null)
-            {
-                _logger.LogWarning($"GetAllConversationAsync: Unable to get user by name with name ({_user.Id})");
-                return null;
-            }
-
             IQueryable<Conversation> conversationQuery = _context.Set<Conversation>().AsQueryable();
             conversationQuery = conversationQuery.Include(x => x.ConversationUsers)
-                .Where(x => x.ConversationUsers.Any(y => y.ConversationId == x.Id && y.UserId == user.Id))
+                .Where(x => x.ConversationUsers.Any(y => y.ConversationId == x.Id && y.UserId == userId))
                 .Select(x => new Conversation()
                 {
                     ConversationUsers = x.ConversationUsers.Select(y => new ConversationHasUser()
@@ -513,8 +461,8 @@ namespace VueServer.Services.Concrete
                         ConversationUsers = x.ConversationUsers,
                         Id = x.Id,
                         Title = x.Title,
-                        Messages = _context.Messages.Include(y => y.ReadReceipts).Where(y => y.ConversationId == x.Id && y.UserId != user.Id &&
-                                (y.ReadReceipts == null || (y.ReadReceipts != null && !y.ReadReceipts.Any(z => z.UserId == user.Id))))
+                        Messages = _context.Messages.Include(y => y.ReadReceipts).Where(y => y.ConversationId == x.Id && y.UserId != userId &&
+                                (y.ReadReceipts == null || (y.ReadReceipts != null && !y.ReadReceipts.Any(z => z.UserId == userId))))
                                 .OrderByDescending(y => y.Timestamp)
                 });
             }
@@ -537,7 +485,7 @@ namespace VueServer.Services.Concrete
             return conversationList;
         }
 
-        private IEnumerable<ReadReceipt> CreateReadReceipts (WSUser user, IList<ChatMessage> messages)
+        private IEnumerable<ReadReceipt> CreateReadReceipts (string userId, IList<ChatMessage> messages)
         {
             var receipts = new List<ReadReceipt>();
             foreach (var message in messages)
@@ -545,7 +493,7 @@ namespace VueServer.Services.Concrete
                 receipts.Add(new ReadReceipt()
                 {
                     MessageId = message.Id,
-                    UserId = user.Id,
+                    UserId = userId,
                     Timestamp = DateTimeOffset.Now.ToUnixTimeSeconds()
                 });
             }

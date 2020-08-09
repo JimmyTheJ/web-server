@@ -59,6 +59,6 @@ namespace VueServer.Services.Concrete
         public Task<WSUser> GetUserByNameAsync(string name) => _userManager.FindByNameAsync(name);
         public Task<WSUser> GetUserByIdAsync(string id) => _userManager.FindByIdAsync(id);
         public Task<IList<string>> GetUserRolesAsync(WSUser user) => _userManager.GetRolesAsync(user);
-        public Task<WSRole> GetUserRoleByNameAsync(string name) => _roleManager.FindByNameAsync(name);
+        public Task<WSRole> GetUserRoleByNameAsync(string name) =>  _roleManager.FindByNameAsync(name);
     }
 }
