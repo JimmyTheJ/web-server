@@ -2,6 +2,7 @@ import * as types from '../mutation_types'
 import fileAPI from '../../services/file-explorer'
 import { getSubdirectoryString } from '../../helpers/browser'
 import ConMsgs from '../../mixins/console';
+import DispatchFactory from '../../factories/dispatchFactory'
 
 const state = {
     contents: [],
@@ -21,13 +22,14 @@ const actions = {
         commit(types.BROWSER_CLEAR)
     },
     async getFolders({ commit }) {
+        ConMsgs.methods.$_console_log('[Vuex][Actions] Getting folder list')
         try {
-            ConMsgs.methods.$_console_log('[Vuex][Actions] Getting folder list')
+            return await DispatchFactory.request(async () => {
+                const res = await fileAPI.getFolderList()
+                commit(types.BROWSER_GET_FOLDERS, res.data)
 
-            const res = await fileAPI.getFolderList()
-            commit(types.BROWSER_GET_FOLDERS, res.data)
-
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error getting folder list', e.response)
@@ -45,10 +47,12 @@ const actions = {
 
             let subDirString = getSubdirectoryString(state.subDirectories)
 
-            const res = await fileAPI.loadDirectory(state.directory, subDirString)
-            commit(types.BROWSER_LOAD_DIRECTORY, res.data)
+            return await DispatchFactory.request(async () => {
+                const res = await fileAPI.loadDirectory(state.directory, subDirString)
+                commit(types.BROWSER_LOAD_DIRECTORY, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error getting directory contents', e.response)

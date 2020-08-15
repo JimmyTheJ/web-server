@@ -22,7 +22,7 @@ namespace VueServer.Services.Interface
 
         IResult<string> GetCsrfToken (HttpContext context);
 
-        Task<IResult<RefreshTokenResponse>> RefreshJwtToken (RefreshTokenRequest model);
+        Task<IResult<string>> RefreshJwtToken (string token);
 
         Task<IResult<IEnumerable<WSUser>>> GetUsers();
 

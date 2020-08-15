@@ -2,6 +2,7 @@ import * as types from '../mutation_types'
 import authAPI from '../../services/auth'
 import moduleAPI from '../../services/modules'
 import ConMsgs from '../../mixins/console';
+import DispatchFactory from '../../factories/dispatchFactory'
 
 const state = {
     isAuthorize: Boolean(localStorage.getItem('isAuthorize')) || false,
@@ -9,8 +10,6 @@ const state = {
     role: localStorage.getItem('userRole') || '',
 
     accessToken: localStorage.getItem('accessToken') || '',
-    refreshToken: localStorage.getItem('refreshToken') || '',
-    csrfToken: localStorage.getItem('csrfToken') || '',
 
     activeModules: JSON.parse(localStorage.getItem('activeModules')) || [],
     otherUsers: JSON.parse(localStorage.getItem('otherUsers')) || [],
@@ -21,27 +20,14 @@ const getters = {
 }
 
 const actions = {
-    async refreshToken({ commit }) {
+    async refreshToken({ commit, state }) {
         try {
             ConMsgs.methods.$_console_log('Getting refresh token')
-            const res = await authAPI.refreshToken(state.accessToken, state.refreshToken)
-            commit(types.JWT_TOKEN_CREATE, res.data.token)
-            commit(types.REFRESH_TOKEN_CREATE, res.data.refreshToken)
+            const res = await authAPI.refreshToken(state.accessToken)
+            commit(types.JWT_TOKEN_CREATE, res.data)
             return await Promise.resolve(res.data)
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from refresh token', e.response)
-            return await Promise.reject(e.response)
-        }
-    },
-    async getCsrfToken({ commit } ) {
-        try {
-            ConMsgs.methods.$_console_log('Getting csrf token')
-            const res = await authAPI.getCsrfToken()
-            commit(types.CSRF_CREATE, res.data)
-            return await Promise.resolve(res.data)
-        } catch (e) {
-            ConMsgs.methods.$_console_group('[Vuex][Actions] Error from getCsrfToken', e.response)
-            commit(types.CSRF_DESTROY, e.response)
             return await Promise.reject(e.response)
         }
     },
@@ -49,7 +35,6 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('Signing in')
             const res = await authAPI.signin(context)
-            ConMsgs.methods.$_console_log(res);
             commit(types.LOGIN_SUCCESS, res.data)
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -58,10 +43,18 @@ const actions = {
             return await Promise.reject(e.response)
         }
     },
-    async signout({ commit } ) {
+    async signout({ commit, dispatch } ) {
         try {
             const res = await authAPI.signout()
             commit(types.LOGOUT)
+
+            // Clear all store values from other modules
+            ConMsgs.methods.$_console_log("[Vuex][Actions] Logout success. Clearing state.")
+            dispatch('clearChat')
+            dispatch('clearNotifications');
+            dispatch('clearLibrary');
+            dispatch('clearFileExplorer');
+
             return await Promise.resolve(res)
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from signout', e.response)
@@ -69,7 +62,7 @@ const actions = {
             return await Promise.reject(e.response);
         }
     },
-    async register({ commit }, context) {
+    async register(context) {
         ConMsgs.methods.$_console_log(context)
         try {
             const res = await authAPI.register(context)
@@ -82,10 +75,12 @@ const actions = {
     },
     async getModules({ commit }) {
         try {
-            const res = await moduleAPI.getModulesForUser()
-            ConMsgs.methods.$_console_log(res.data);
-            commit(types.GET_MODULES, res.data)
-            return await Promise.resolve(res)
+            return DispatchFactory.request(async () => {
+                const res = await moduleAPI.getModulesForUser()
+                ConMsgs.methods.$_console_log(res.data);
+                commit(types.GET_MODULES, res.data)
+                return await Promise.resolve(res)
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from get modules', e.response)
@@ -94,10 +89,12 @@ const actions = {
     },
     async updateAvatarImage({ commit }, context) {
         try {
-            const res = await authAPI.uploadAvatarImage(context)
-            ConMsgs.methods.$_console_log(res.data);
-            commit(types.USER_UPDATE_AVATAR, res.data)
-            return await Promise.resolve(res)
+            return DispatchFactory.request(async () => {
+                const res = await authAPI.uploadAvatarImage(context)
+                ConMsgs.methods.$_console_log(res.data);
+                commit(types.USER_UPDATE_AVATAR, res.data)
+                return await Promise.resolve(res)
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from update avatar image', e.response)
@@ -106,10 +103,12 @@ const actions = {
     },
     async updateDisplayName({ commit }, context) {
         try {
-            const res = await authAPI.updateDisplayName(context)
-            ConMsgs.methods.$_console_log(res.data);
-            commit(types.USER_UPDATE_DISPLAY_NAME, context)
-            return await Promise.resolve(res)
+            return DispatchFactory.request(async () => {
+                const res = await authAPI.updateDisplayName(context)
+                ConMsgs.methods.$_console_log(res.data);
+                commit(types.USER_UPDATE_DISPLAY_NAME, context)
+                return await Promise.resolve(res)
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from update display name', e.response)
@@ -118,10 +117,13 @@ const actions = {
     },
     async getAllOtherUsers({ commit }) {
         try {
-            const res = await authAPI.getAllOtherUsers();
-            ConMsgs.methods.$_console_log(res.data);
-            commit(types.USER_GET_OTHERS, res.data)
-            return await Promise.resolve(res)
+            return DispatchFactory.request(async () => {
+                let res = await authAPI.getAllOtherUsers();
+                ConMsgs.methods.$_console_log('Got all other user data:', res.data)
+                commit(types.USER_GET_OTHERS, res.data)
+
+                return res.data;
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from get all other users', e.response)
@@ -133,33 +135,15 @@ const actions = {
 const mutations = {
     [types.JWT_TOKEN_CREATE](state, data) {
         ConMsgs.methods.$_console_log("Mutating jwt token create")
+
         state.accessToken = data
+
         localStorage.setItem('accessToken', data)
     },
     [types.JWT_TOKEN_DESTROY](state) {
         ConMsgs.methods.$_console_log("Mutating jwt token destroy")
         state.accessToken = ''
         localStorage.removeItem('accessToken')
-    },
-    [types.REFRESH_TOKEN_CREATE](state, data) {
-        ConMsgs.methods.$_console_log("Mutating refresh token create")
-        state.refreshToken = data
-        localStorage.setItem('refreshToken', data)
-    },
-    [types.REFRESH_TOKEN_DESTROY](state) {
-        ConMsgs.methods.$_console_log("Mutating refresh token destroy")
-        state.refreshToken = ''
-        localStorage.removeItem('refreshToken')
-    },
-    [types.CSRF_CREATE](state, data) {
-        ConMsgs.methods.$_console_log("Mutating CSRF create")
-        state.csrfToken = data
-        localStorage.setItem('csrfToken', data)
-    },
-    [types.CSRF_DESTROY](state) {
-        ConMsgs.methods.$_console_log("Mutating CSRF destroy")
-        state.csrfToken = ''
-        localStorage.removeItem('csrfToken')
     },
     [types.LOGIN_SUCCESS](state, data) {
         ConMsgs.methods.$_console_log("Mutating login success")
@@ -168,15 +152,11 @@ const mutations = {
         state.user = data.user
         state.role = role
         state.accessToken = data.token
-        state.refreshToken = data.refreshToken
-        state.csrfToken = data.csrfToken
         state.isAuthorize = true
 
         localStorage.setItem('user', JSON.stringify(data.user))
         localStorage.setItem('userRole', role)
         localStorage.setItem('accessToken', data.token)
-        localStorage.setItem('refreshToken', data.refreshToken)
-        localStorage.setItem('csrfToken', data.csrfToken)
         localStorage.setItem('isAuthorize', true)
     },
     [types.LOGOUT](state) {
@@ -185,8 +165,6 @@ const mutations = {
         state.user = {}
         state.role = ''
         state.accessToken = ''
-        state.refreshToken = ''
-        state.csrfToken = ''
         state.isAuthorize = false
         state.activeModules = []
         state.otherUsers = []
@@ -194,8 +172,6 @@ const mutations = {
         localStorage.removeItem('user')
         localStorage.removeItem('userRole')
         localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
-        localStorage.removeItem('csrfToken')
         localStorage.removeItem('isAuthorize')
         localStorage.removeItem('activeModules')
         localStorage.removeItem('otherUsers')

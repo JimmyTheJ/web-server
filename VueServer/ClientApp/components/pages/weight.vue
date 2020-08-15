@@ -128,8 +128,7 @@
 <script>
     import { setTimeout } from 'core-js';
     import weightService from '../../services/weight'
-
-    import { padTwo } from '../../helpers'
+    import DispatchFactory from '../../factories/dispatchFactory'
 
     function getNewWeight() {
         return {
@@ -317,17 +316,18 @@
         methods: {
             async getData() {
                 this.$_console_log("[Weight] Get weights");
-                weightService.getWeightList().then(resp => {
-                    this.$_console_log('[Weight] Success getting weights');
-                    this.$_console_log(resp.data);
-                    if (Array.isArray(resp.data)) {
-                        this.weightList = resp.data;
-                    }
-                    else {
-                        this.weightList = [];
-                    }
-                        
-                }).catch(() => this.$_console_log('[Weight] Error getting weights') );
+                DispatchFactory.request(() => {
+                    weightService.getWeightList().then(resp => {
+                        this.$_console_log('[Weight] Success getting weights');
+                        this.$_console_log(resp.data);
+                        if (Array.isArray(resp.data)) {
+                            this.weightList = resp.data;
+                        }
+                        else {
+                            this.weightList = [];
+                        }
+                    }).catch(() => this.$_console_log('[Weight] Error getting weights'));
+                });
             },
             openAddOrEditWeight(item, evt) {
                 this.$_console_log("[Weight] Creating or editing a weight object");
@@ -383,12 +383,14 @@
                     this.$_console_log('[Weight] Weight is empty, not going to create it');
                 }
                 else {
-                    await weightService.addWeight(item).then(resp => {
-                        this.$_console_log('[Weight] Success creating weight');
-                        this.weight = getNewWeight();
-                        this.weightList.push(resp.data);
-                        this.dialogOpen = false;
-                    }).catch(() => this.$_console_log('[Weight] Error creating weight'));
+                    DispatchFactory.request(() => {
+                        weightService.addWeight(item).then(resp => {
+                            this.$_console_log('[Weight] Success creating weight');
+                            this.weight = getNewWeight();
+                            this.weightList.push(resp.data);
+                            this.dialogOpen = false;
+                        }).catch(() => this.$_console_log('[Weight] Error creating weight'));
+                    });
                 }
             },
             async editWeight(item) {
@@ -399,17 +401,19 @@
                     return;
                 }
 
-                await weightService.editWeight(item).then(resp => {
-                    this.$_console_log('[Weight] Success editing weight');
-                    const index = this.weightList.findIndex(x => x.id === item.id);
-                    if (index === -1) {
-                        this.$_console_log('[Weight] Index is -1. Weight doesn\t exist in list. Can\'t update local list.');
-                    }
-                    else {
-                        this.weightList.splice(index, 1, resp.data)
-                    }
-                }).catch(() => this.$_console_log('[Weight] Error editing weight'))
-                    .then(() => this.dialogOpen = false );
+                DispatchFactory.request(() => {
+                    weightService.editWeight(item).then(resp => {
+                        this.$_console_log('[Weight] Success editing weight');
+                        const index = this.weightList.findIndex(x => x.id === item.id);
+                        if (index === -1) {
+                            this.$_console_log('[Weight] Index is -1. Weight doesn\t exist in list. Can\'t update local list.');
+                        }
+                        else {
+                            this.weightList.splice(index, 1, resp.data)
+                        }
+                    }).catch(() => this.$_console_log('[Weight] Error editing weight'))
+                        .then(() => this.dialogOpen = false);
+                });
             },
             getDate(date) {
                 if (date == null || date.length < 11)
@@ -419,13 +423,15 @@
             },
             async deleteItem(id) {
                 this.$_console_log(`[Weight] Delete weight with id: ${id}`);
-                await weightService.deleteWeight(id).then(resp => {
-                    this.$_console_log('[Weight] Success deleting weight');
+                DispatchFactory.request(() => {
+                    weightService.deleteWeight(id).then(resp => {
+                        this.$_console_log('[Weight] Success deleting weight');
 
-                    let weightIndex = this.weightList.findIndex(x => x.id === id);
-                    if (weightIndex >= 0)
-                        this.weightList.splice(weightIndex, 1);
-                }).catch(() => this.$_console_log('[Weight] Error creating weight'));
+                        let weightIndex = this.weightList.findIndex(x => x.id === id);
+                        if (weightIndex >= 0)
+                            this.weightList.splice(weightIndex, 1);
+                    }).catch(() => this.$_console_log('[Weight] Error creating weight'));
+                });
             },
         },
     }

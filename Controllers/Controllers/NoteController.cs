@@ -20,8 +20,8 @@ using VueServer.Controllers.Filters;
 
 namespace VueServer.Controllers
 {
-    [Authorize]
     [Route("api/note")]
+    [Authorize]
     public class NoteController : Controller
     {
         private readonly INoteService  _service;
@@ -50,7 +50,6 @@ namespace VueServer.Controllers
         [Route("get")]
         public async Task<IActionResult> Get()
         {
-            var thing = HttpContext.User;
             return _codeFactory.GetStatusCode(await _service.Get());
         }
 

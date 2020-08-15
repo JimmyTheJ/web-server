@@ -29,7 +29,7 @@ router.beforeEach((to, from, next) => {
         next();
     }
     // Also allow access to index / login
-    else if (to.name === 'index' || to.name === 'login') {
+    else if (to.name === 'index' || to.name === 'login' || to.name == 'register') {
         next();
     }
     // Allow access to paths that have no access level requirement

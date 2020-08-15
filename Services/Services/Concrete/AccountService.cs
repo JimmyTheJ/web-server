@@ -30,6 +30,8 @@ namespace VueServer.Services.Concrete
 {
     public class AccountService : IAccountService
     {
+        const double REFRESH_TIME = 30;
+
         /// <summary>  Used to manage the user sign in process, which is all part of the Identity Framework </summary>
         private readonly SignInManager<WSUser> _signInManager;
         /// <summary> Used to manage the roles of the user, either create or check roles </summary>
@@ -175,15 +177,14 @@ namespace VueServer.Services.Concrete
             //claimsIdentity.AddClaims(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
             var token = GenerateJwtToken(claims);
-            var refreshToken = GenerateRefreshToken();
 
             await InvalidateAllRefreshTokensForUser(user.Id, _user.IP);
-            await SaveRefreshToken(user.Id, refreshToken);
+            await SaveRefreshToken(user.Id, _user.IP, GenerateRefreshToken());
 
             // Try to get user profile. If we don't find one, that is okay it won't have any real impact on the app
             user.UserProfile = await _context.UserProfile.Where(x => x.UserId == user.Id).SingleOrDefaultAsync();
 
-            var resp = new LoginResponse(token, refreshToken, new WSUserResponse(user), roles);
+            var resp = new LoginResponse(token, new WSUserResponse(user), roles);
             return new Result<LoginResponse>(resp, Domain.Enums.StatusCode.OK);
         }
 
@@ -202,25 +203,24 @@ namespace VueServer.Services.Concrete
             return new Result<string>(GenerateCsrfToken(context), Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<RefreshTokenResponse>> RefreshJwtToken (RefreshTokenRequest model)
+        public async Task<IResult<string>> RefreshJwtToken (string token)
         {
-            var principal = GetPrincipalFromExpiredToken(model.Token);
-            var username = principal.Claims.Where(x => x.Type == "sub").Select(x => x.Value).FirstOrDefault();
+            var principal = GetPrincipalFromExpiredToken(token);
 
-            var user = await _userManager.FindByNameAsync(username);
-            var validToken = await CheckRefreshToken(user.Id, model.RefreshToken);
+            var validToken = await CheckRefreshToken(principal.Claims.Where(x => x.Type == JwtRegisteredClaimNames.Sub).Select(x => x.Value).Single(), _user.IP);
             if (validToken == null)
             {
-                return new Result<RefreshTokenResponse>(null, Domain.Enums.StatusCode.UNAUTHORIZED);
+                return new Result<string>(null, Domain.Enums.StatusCode.UNAUTHORIZED);
             }
 
+            // Update unique value
+            var jti = principal.Claims.Where(x => x.Type == JwtRegisteredClaimNames.Jti).Single();
+            jti = new Claim(JwtRegisteredClaimNames.Jti, GenerateRefreshToken());
+
+            // Generate new token to return to client
             var newJwtToken = GenerateJwtToken(principal.Claims);
-            var newRefreshToken = GenerateRefreshToken();
 
-            await InvalidateRefreshToken(validToken);
-            await SaveRefreshToken(user.Id, newRefreshToken);  // Save token to some data store
-
-            return new Result<RefreshTokenResponse>(new RefreshTokenResponse(newJwtToken, newRefreshToken), Domain.Enums.StatusCode.OK);
+            return new Result<string>(newJwtToken, Domain.Enums.StatusCode.OK);
         }
 
         public async Task<IResult<IEnumerable<WSUser>>> GetUsers ()
@@ -358,14 +358,15 @@ namespace VueServer.Services.Concrete
         /// <param name="id"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async Task<WSUserTokens> CheckRefreshToken (string id, string token)
+        private async Task<WSUserTokens> CheckRefreshToken (string id, string ip)
         {
+            // TODO: Have this check device hostname, and NOT ip. If someone was on mobile this could cause all sorts of bad user experience
             var foundTok = await _context.UserTokens
-                .Where(x => x.UserId == id && x.Token == token && x.Valid && x.Source == _user.IP)
+                .Where(x => x.UserId == id && x.Valid && x.Source == ip)
                 .FirstOrDefaultAsync();
 
             if (foundTok == null)
-                _logger.LogWarning($"Token: '{token}' from user: '{id}' not found in data store or previously invalidated.");
+                _logger.LogWarning($"User: ({id}) does not have a valid refresh token for ip ({ip}) in data store");
 
             return foundTok;
         }
@@ -437,10 +438,9 @@ namespace VueServer.Services.Concrete
         /// <param name="id"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async Task<bool> SaveRefreshToken (string id, string token)
+        private async Task<bool> SaveRefreshToken (string id, string ip, string token)
         {
             var now = DateTime.UtcNow;
-            var ip = _user.IP;
             var tokenIP = await _context.UserTokens.Where(x => x.Source == ip && x.UserId == id).FirstOrDefaultAsync();
             if (tokenIP == null)
             {
@@ -449,7 +449,7 @@ namespace VueServer.Services.Concrete
                     Token = token,
                     UserId = id,
                     Valid = true,
-                    Source = _user.IP
+                    Source = ip
                 };
                 _context.UserTokens.Add(newTok);
             }
@@ -511,7 +511,7 @@ namespace VueServer.Services.Concrete
                 audience: _config["Jwt:Audience"],
                 claims: claims,
                 notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddMinutes(30),
+                expires: DateTime.UtcNow.AddMinutes(REFRESH_TIME),
                 signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:SigningKey"])), SecurityAlgorithms.HmacSha256)
             );
 

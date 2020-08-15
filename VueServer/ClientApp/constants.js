@@ -16,7 +16,7 @@ export const Roles = {
 }
 
 export const Admin = {
-    RefreshTokenTimer: 900 * 1000,
+    RefreshTokenTimer: 60 * 1000,
 }
 
 export const Delay = {
@@ -35,5 +35,17 @@ export const Delay = {
 }
 
 export const ApiEndpoints = {
-    Signout: 'api/account/logout'
+    Signout: 'api/account/logout',
+    RefreshToken: 'api/account/refresh-jwt',
+    Login: 'api/account/login',
+    Register: 'api/account/register',
+    Logout: 'api/account/logout' 
+}
+
+export const RouterEndpoints = {
+    Signout: '/account/logout',
+    RefreshToken: '/account/refresh-jwt',
+    Login: '/account/login',
+    Register: '/account/register',
+    Logout: '/account/logout'
 }

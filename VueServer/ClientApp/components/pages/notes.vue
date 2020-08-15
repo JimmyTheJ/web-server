@@ -26,6 +26,7 @@
 
 <script>
     import noteService from '../../services/note'
+    import DispatchFactory from '../../factories/dispatchFactory'
     import NoteEditor from '../modules/note-editor'
     import { setTimeout } from 'core-js';
 
@@ -71,22 +72,26 @@
         methods: {
             async getData() {
                 this.$_console_log("[Notes] Get notes");
-                noteService.getNotes().then(resp => {
-                    this.$_console_log('[Notes] Success getting notes');
-                    this.$_console_log(resp.data);
-                    if (resp.data !== '')
-                        this.noteList = resp.data;
-                }).catch(() => this.$_console_log('[Notes] Error getting notes') );
+
+                DispatchFactory.request(() => {
+                    noteService.getNotes().then(resp => {
+                        this.$_console_log('[notes] success getting notes', resp);
+                        if (resp.data !== '')
+                            this.noteList = resp.data;
+                    }).catch(() => this.$_console_log('[notes] error getting notes'));
+                });
             },
             create() {
                 this.newNotes.push(initializeNewNote(this.idCount--));
             },
             async deleteOld(item) {
-                await noteService.deleteNote(item.id).then(resp => {
-                    this.$_console_log('[Notes] Succesfully deleted note.');
-                    let index = this.noteList.findIndex(x => x.id === item.id);
-                    this.noteList.splice(index, 1);
-                }).catch(() => { this.$_console_log('[Notes] Failed to delete existing note') });
+                DispatchFactory.request(() => {
+                    noteService.deleteNote(item.id).then(resp => {
+                        this.$_console_log('[Notes] Succesfully deleted note.');
+                        let index = this.noteList.findIndex(x => x.id === item.id);
+                        this.noteList.splice(index, 1);
+                    }).catch(() => { this.$_console_log('[Notes] Failed to delete existing note') });
+                });
             },
             deleteNew(note) {
                 let index = this.newNotes.findIndex(x => x.id === note.id);
@@ -99,22 +104,24 @@
                     this.$_console_log('[Notes] Note is empty, not going to create it');
                 }
                 else {
-                    await noteService.createNote(item).then(resp => {
-                        this.$_console_log('[Notes] Success creating note');
-                        this.noteList.push(resp.data);
+                    DispatchFactory.request(() => {
+                        noteService.createNote(item).then(resp => {
+                            this.$_console_log('[Notes] Success creating note');
+                            this.noteList.push(resp.data);
 
-                        // Remove the new note and make a new one
-                        if (this.newNotes.length === 1)
-                            this.newNotes = [];
-                        else {
-                            this.newNotes.splice(index, 1);
-                        }
-                        setTimeout(() => {
-                            if (this.newNotes.length === 0)
-                                this.newNotes.push(initializeNewNote(this.idCount--));
-                        }, 10);
+                            // Remove the new note and make a new one
+                            if (this.newNotes.length === 1)
+                                this.newNotes = [];
+                            else {
+                                this.newNotes.splice(index, 1);
+                            }
+                            setTimeout(() => {
+                                if (this.newNotes.length === 0)
+                                    this.newNotes.push(initializeNewNote(this.idCount--));
+                            }, 10);
 
-                    }).catch(() => this.$_console_log('[Notes] Error creating note'));
+                        }).catch(() => this.$_console_log('[Notes] Error creating note'));
+                    });
                 }
             },
             modifyNew(note) {
@@ -130,12 +137,14 @@
             async updateNote(note) {
                 this.$_console_log("[Notes] Update note");
                 this.$_console_log(note);
-                await noteService.updateNote(note).then(resp => {
-                    this.$_console_log('[Notes] Success updating note');
-                    let index = this.noteList.findIndex(x => x.id === note.id);
-                    //this.noteList[index] = Object.assign({}, resp.data)
-                    this.noteList[index].updated = resp.data.updated;
-                }).catch(() => this.$_console_log('[Notes] Error creating note'));
+                DispatchFactory.request(() => {
+                    noteService.updateNote(note).then(resp => {
+                        this.$_console_log('[Notes] Success updating note');
+                        let index = this.noteList.findIndex(x => x.id === note.id);
+                        //this.noteList[index] = Object.assign({}, resp.data)
+                        this.noteList[index].updated = resp.data.updated;
+                    }).catch(() => this.$_console_log('[Notes] Error creating note'));
+                });
             },
         },
     }

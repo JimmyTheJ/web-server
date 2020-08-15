@@ -2,6 +2,7 @@ import * as types from '../mutation_types'
 import libraryAPI from '../../services/library'
 import ConMsgs from '../../mixins/console';
 
+import DispatchFactory from '../../factories/dispatchFactory'
 
 const state = {
     authors: [],
@@ -27,10 +28,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Getting author list')
 
-            const res = await libraryAPI.author.getList()
-            commit(types.LIBRARY_AUTHOR_GET_ALL, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.author.getList()
+                commit(types.LIBRARY_AUTHOR_GET_ALL, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from getting author list', e.response)
             return await Promise.reject(e.response)
@@ -40,10 +43,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Adding author')
 
-            const res = await libraryAPI.author.add(context)
-            commit(types.LIBRARY_AUTHOR_ADD, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.author.add(context)
+                commit(types.LIBRARY_AUTHOR_ADD, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from adding author', e.response)
@@ -54,10 +59,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Editing author')
 
-            const res = await libraryAPI.author.update(context)
-            commit(types.LIBRARY_AUTHOR_EDIT, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.author.update(context)
+                commit(types.LIBRARY_AUTHOR_EDIT, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from editing author', e.response)
@@ -68,10 +75,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting author')
 
-            const res = await libraryAPI.author.delete(context)
-            commit(types.LIBRARY_AUTHOR_DELETE, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.author.delete(context)
+                commit(types.LIBRARY_AUTHOR_DELETE, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from deleting author', e.response)
@@ -84,10 +93,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Getting book list')
 
-            const res = await libraryAPI.book.getList()
-            commit(types.LIBRARY_BOOK_GET_ALL, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.book.getList()
+                commit(types.LIBRARY_BOOK_GET_ALL, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from getting book list', e.response)
             return await Promise.reject(e.response)
@@ -97,23 +108,25 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Adding book')
 
-            const res = await libraryAPI.book.add(context)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.book.add(context)
 
-            // Add book
-            commit(types.LIBRARY_BOOK_ADD, res.data)
+                // Add book
+                commit(types.LIBRARY_BOOK_ADD, res.data)
 
-            // Add objects
-            commit(types.LIBRARY_BOOKCASE_ADD, res.data.bookcase)
-            commit(types.LIBRARY_SERIES_ADD, res.data.series)
-            commit(types.LIBRARY_SHELF_ADD, res.data.shelf)
+                // Add objects
+                commit(types.LIBRARY_BOOKCASE_ADD, res.data.bookcase)
+                commit(types.LIBRARY_SERIES_ADD, res.data.series)
+                commit(types.LIBRARY_SHELF_ADD, res.data.shelf)
 
-            if (Array.isArray(res.data.bookAuthors)) {
-                res.data.bookAuthors.forEach(element => {
-                    commit(types.LIBRARY_AUTHOR_ADD, element.author)
-                })
-            }
+                if (Array.isArray(res.data.bookAuthors)) {
+                    res.data.bookAuthors.forEach(element => {
+                        commit(types.LIBRARY_AUTHOR_ADD, element.author)
+                    })
+                }
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from adding book', e.response)
@@ -124,21 +137,23 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Editing book')
 
-            const res = await libraryAPI.book.update(context)
-            commit(types.LIBRARY_BOOK_EDIT, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.book.update(context)
+                commit(types.LIBRARY_BOOK_EDIT, res.data)
 
-            // Add objects
-            commit(types.LIBRARY_BOOKCASE_ADD, res.data.bookcase)
-            commit(types.LIBRARY_SERIES_ADD, res.data.series)
-            commit(types.LIBRARY_SHELF_ADD, res.data.shelf)
+                // Add objects
+                commit(types.LIBRARY_BOOKCASE_ADD, res.data.bookcase)
+                commit(types.LIBRARY_SERIES_ADD, res.data.series)
+                commit(types.LIBRARY_SHELF_ADD, res.data.shelf)
 
-            if (Array.isArray(res.data.bookAuthors)) {
-                res.data.bookAuthors.forEach(element => {
-                    commit(types.LIBRARY_AUTHOR_ADD, element.author)
-                })
-            }
+                if (Array.isArray(res.data.bookAuthors)) {
+                    res.data.bookAuthors.forEach(element => {
+                        commit(types.LIBRARY_AUTHOR_ADD, element.author)
+                    })
+                }
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from editing book', e.response)
@@ -149,10 +164,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting book')
 
-            const res = await libraryAPI.book.delete(context)
-            commit(types.LIBRARY_BOOK_DELETE, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.book.delete(context)
+                commit(types.LIBRARY_BOOK_DELETE, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from deleting book', e.response)
@@ -165,10 +182,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Getting bookcase list')
 
-            const res = await libraryAPI.bookcase.getList()
-            commit(types.LIBRARY_BOOKCASE_GET_ALL, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.bookcase.getList()
+                commit(types.LIBRARY_BOOKCASE_GET_ALL, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from getting bookcase list', e.response)
             return await Promise.reject(e.response)
@@ -178,10 +197,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Adding bookcase')
 
-            const res = await libraryAPI.bookcase.add(context)
-            commit(types.LIBRARY_BOOKCASE_ADD, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.bookcase.add(context)
+                commit(types.LIBRARY_BOOKCASE_ADD, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from adding bookcase', e.response)
             return await Promise.reject(e.response)
@@ -191,10 +212,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Editing bookcase')
 
-            const res = await libraryAPI.bookcase.update(context)
-            commit(types.LIBRARY_BOOKCASE_EDIT, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.bookcase.update(context)
+                commit(types.LIBRARY_BOOKCASE_EDIT, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from editing bookcase', e.response)
             return await Promise.reject(e.response)
@@ -204,10 +227,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting bookcase')
 
-            const res = await libraryAPI.bookcase.delete(context)
-            commit(types.LIBRARY_BOOKCASE_DELETE, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.bookcase.delete(context)
+                commit(types.LIBRARY_BOOKCASE_DELETE, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from deleting bookcase', e.response)
             return await Promise.reject(e.response)
@@ -219,10 +244,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Getting genre list')
 
-            const res = await libraryAPI.genre.getList()
-            commit(types.LIBRARY_GENRE_GET_ALL, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.genre.getList()
+                commit(types.LIBRARY_GENRE_GET_ALL, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from getting genre list', e.response)
             return await Promise.reject(e.response)
@@ -234,10 +261,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Getting series list')
 
-            const res = await libraryAPI.series.getList()
-            commit(types.LIBRARY_SERIES_GET_ALL, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.series.getList()
+                commit(types.LIBRARY_SERIES_GET_ALL, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from getting series list', e.response)
             return await Promise.reject(e.response)
@@ -247,10 +276,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Adding series')
 
-            const res = await libraryAPI.series.add(context)
-            commit(types.LIBRARY_SERIES_ADD, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.series.add(context)
+                commit(types.LIBRARY_SERIES_ADD, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from adding series', e.response)
             return await Promise.reject(e.response)
@@ -260,10 +291,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Editing series')
 
-            const res = await libraryAPI.series.update(context)
-            commit(types.LIBRARY_SERIES_EDIT, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.series.update(context)
+                commit(types.LIBRARY_SERIES_EDIT, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from editing series', e.response)
             return await Promise.reject(e.response)
@@ -273,10 +306,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting series')
 
-            const res = await libraryAPI.series.delete(context)
-            commit(types.LIBRARY_SERIES_DELETE, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.series.delete(context)
+                commit(types.LIBRARY_SERIES_DELETE, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from deleting bookcase', e.response)
             return await Promise.reject(e.response)
@@ -288,10 +323,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('Getting shelf list')
 
-            const res = await libraryAPI.shelf.getList()
-            commit(types.LIBRARY_SHELF_GET_ALL, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.shelf.getList()
+                commit(types.LIBRARY_SHELF_GET_ALL, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from getting shelf list', e.response)
             return await Promise.reject(e.response)
@@ -301,10 +338,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Adding shelf')
 
-            const res = await libraryAPI.shelf.add(context)
-            commit(types.LIBRARY_SHELF_ADD, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.shelf.add(context)
+                commit(types.LIBRARY_SHELF_ADD, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from adding shelf', e.response)
             return await Promise.reject(e.response)
@@ -314,10 +353,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Updating shelf')
 
-            const res = await libraryAPI.shelf.update(context)
-            commit(types.LIBRARY_SHELF_EDIT, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.shelf.update(context)
+                commit(types.LIBRARY_SHELF_EDIT, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from adding shelf', e.response)
             return await Promise.reject(e.response)
@@ -327,10 +368,12 @@ const actions = {
         try {
             ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting shelf')
 
-            const res = await libraryAPI.shelf.delete(context)
-            commit(types.LIBRARY_SHELF_DELETE, res.data)
+            return DispatchFactory.request(async () => {
+                const res = await libraryAPI.shelf.delete(context)
+                commit(types.LIBRARY_SHELF_DELETE, res.data)
 
-            return await Promise.resolve(res.data)
+                return await Promise.resolve(res.data)
+            })
         } catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from deleting shelf', e.response)
             return await Promise.reject(e.response)

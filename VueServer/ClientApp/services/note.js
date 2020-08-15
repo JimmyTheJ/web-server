@@ -7,13 +7,13 @@ const UpdateNotesUrl = `api/note/update`;
 const DeleteNotesUrl = `api/note/delete`;
 
 export default {
-    getAllNotes() {
+    async getAllNotes() {
         return axios.get(GetAllNotesUrl)
     },
     getNotes() {
-        return axios.get(GetNotesUrl);
+        return axios.get(GetNotesUrl)
     },
-    deleteNote(id) {
+    async deleteNote(id) {
         return axios.request({
             url: DeleteNotesUrl,
             method: 'delete',
@@ -22,10 +22,10 @@ export default {
             }
         })
     },
-    createNote(data) {
-        return axios.post(CreateNotesUrl, data);
+    async createNote(data) {
+        return axios.post(CreateNotesUrl, data)
     },
-    updateNote(data) {
+    async updateNote(data) {
         return axios.request({
             url: UpdateNotesUrl,
             method: 'put',
@@ -33,6 +33,6 @@ export default {
             headers: {
                 "Content-Type": "application/json"
             }
-        });
+        })
     }
 }

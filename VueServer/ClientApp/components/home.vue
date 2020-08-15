@@ -67,7 +67,7 @@
                         .then(resp2 => {
                             this.$_console_log('New message notifications:', resp2.data);
                             this.buildNotificationList(resp2.data);
-                        }).catch(() => ConMsgs.methods.$_console_log("No new message notifications"))
+                        }).catch(() => this.$_console_log("No new message notifications"))
                 })
             },
             buildNotificationList(data) {

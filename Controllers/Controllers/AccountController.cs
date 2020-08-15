@@ -46,7 +46,6 @@ namespace VueServer.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost]
-        [IgnoreAntiforgeryToken]
         [Route("register")]
         public async Task<IActionResult> SignUp([FromBody] RegisterRequest model)
         {
@@ -55,7 +54,6 @@ namespace VueServer.Controllers
 
         // Login to a existing user account using the Identity Framework
         [HttpPost]
-        [IgnoreAntiforgeryToken]
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest model)
         {
@@ -80,8 +78,9 @@ namespace VueServer.Controllers
         /// Get a new CSRF token on a page refresh most likely
         /// </summary>
         /// <returns></returns>
+        [Obsolete("CSRF Tokens are not necessary in Bearer auth configuration")]
         [HttpGet]
-        [IgnoreAntiforgeryToken]
+        
         [Route("get-csrf-token")]
         public IActionResult GetCSRFToken ()
         {
@@ -94,11 +93,10 @@ namespace VueServer.Controllers
         /// <param name="accessToken">Old token to be refreshed</param>
         /// <returns></returns>
         [HttpPost]
-        [IgnoreAntiforgeryToken]
         [Route("refresh-jwt")]
-        public async Task<IActionResult> RefreshToken ([FromBody] RefreshTokenRequest model)
+        public async Task<IActionResult> RefreshToken ([FromBody] string token)
         {
-            return _codeFactory.GetStatusCode(await _service.RefreshJwtToken(model));
+            return _codeFactory.GetStatusCode(await _service.RefreshJwtToken(token));
         }
 
         /// <summary>

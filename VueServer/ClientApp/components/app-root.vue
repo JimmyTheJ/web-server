@@ -17,13 +17,7 @@
             }
         },
         created() {
-            if (this.$store.state.auth.isAuthorize) {
-                this.$store.dispatch('getCsrfToken').then(resp => {
-                    this.$_console_log("Got csrf token!")
-                }).catch(() => this.$_console_log("Did not get token :("))
-            }
-
-            this.refreshTokenJob();
+            //this.refreshTokenJob();
         },
         methods: {
             refreshTokenJob() {
@@ -31,11 +25,7 @@
                 setTimeout(() => {
                     this.$_console_log('Token timeout reached. Getting new tokens');
                     if (this.$store.state.auth.isAuthorize) {
-                        this.$store.dispatch('refreshToken').then(resp => {
-                            this.$store.dispatch('getCsrfToken').then(resp => {
-                                this.$_console_log("Got csrf token!");
-                            }).catch(() => this.$_console_log("Did not get token :("))
-                        }).catch(() => this.$_console_log('Failed to get time released refresh token'));
+                        this.$store.dispatch('refreshToken').then(() => {}).catch(() => this.$_console_log('Failed to get time released refresh token'));
                     }
                     this.refreshTokenJob();
                 }, CONST.Admin.RefreshTokenTimer);

@@ -1,6 +1,7 @@
 import * as types from '../mutation_types'
 import chatAPI from '../../services/chat'
 import ConMsgs from '../../mixins/console';
+import DispatchFactory from '../../factories/dispatchFactory'
 
 const state = {
     conversations: [],
@@ -17,15 +18,22 @@ const getters = {
 }
 
 const actions = {
+    clearChat({ commit }) {
+        ConMsgs.methods.$_console_log('[Vuex][Actions] Clearing chat')
+
+        commit(types.CHAT_CLEAR)
+    },
     async getNewConversationNotifications({ commit }) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Getting all new conversation notifications')
         try {
-            const res = await chatAPI.getAllNewMessagesForConversations()
-            if (Array.isArray(res.data)) {
-                commit(types.CHAT_CONVERSATION_UPDATE_NEW_MESSAGE_COUNT, res.data)
-            }            
+            return DispatchFactory.request(async () => {
+                const res = await chatAPI.getAllNewMessagesForConversations()
+                if (Array.isArray(res.data)) {
+                    commit(types.CHAT_CONVERSATION_UPDATE_NEW_MESSAGE_COUNT, res.data)
+                }            
 
-            return await Promise.resolve(res)
+                return await Promise.resolve(res)
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from get all new conversation notifications', e.response)
@@ -34,11 +42,13 @@ const actions = {
     },
     async getAllConversationsForUser({ commit, rootState }) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Getting all conversations')
-        try {
-            const res = await chatAPI.getAllConversations()
 
-            commit(types.CHAT_CONVERSATION_GET_ALL, { list: res.data, userId: rootState.auth.user.id })
-            return await Promise.resolve(res)
+        try {
+            return await DispatchFactory.request(async () => {
+                let res = await chatAPI.getAllConversations();
+                ConMsgs.methods.$_console_log(res.data)
+                commit(types.CHAT_CONVERSATION_GET_ALL, { list: res.data, userId: rootState.auth.user.id })
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from get all conversations', e.response)
@@ -48,15 +58,17 @@ const actions = {
     async startNewConversation({ commit, rootState }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Starting new conversation')
         try {
-            const res = await chatAPI.startConversation(context)
-            if (typeof res.data === 'object' && res.data !== null) {
-                commit(types.CHAT_CONVERSATION_START_NEW, { obj: res.data, userId: rootState.auth.user.id })
-                return await Promise.resolve(res)
-            }
-            else {
-                ConMsgs.methods.$_console_group('[Vuex][Actions] Error from starting new conversation. API call succeeded but returned false.')
-                return await Promise.reject();
-            }
+            return DispatchFactory.request(async () => {
+                const res = await chatAPI.startConversation(context)
+                if (typeof res.data === 'object' && res.data !== null) {
+                    commit(types.CHAT_CONVERSATION_START_NEW, { obj: res.data, userId: rootState.auth.user.id })
+                    return await Promise.resolve(res)
+                }
+                else {
+                    ConMsgs.methods.$_console_group('[Vuex][Actions] Error from starting new conversation. API call succeeded but returned false.')
+                    return await Promise.reject();
+                }
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from start new conversation', e.response)
@@ -66,15 +78,17 @@ const actions = {
     async deleteConversation({ commit }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting conversation')
         try {
-            const res = await chatAPI.deleteConversation(context)
-            if (typeof res.data === 'boolean' && res.data === true) {
-                commit(types.CHAT_CONVERSATION_DELETE, context)
-                return await Promise.resolve(res)
-            }
-            else {
-                ConMsgs.methods.$_console_group('[Vuex][Actions] Error from deleting conversation. API call succeeded but returned false.')
-                return await Promise.reject();
-            }            
+            return DispatchFactory.request(async () => {
+                const res = await chatAPI.deleteConversation(context)
+                if (typeof res.data === 'boolean' && res.data === true) {
+                    commit(types.CHAT_CONVERSATION_DELETE, context)
+                    return await Promise.resolve(res)
+                }
+                else {
+                    ConMsgs.methods.$_console_group('[Vuex][Actions] Error from deleting conversation. API call succeeded but returned false.')
+                    return await Promise.reject();
+                }
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from deleting conversation', e.response)
@@ -84,15 +98,17 @@ const actions = {
     async updateConversationTitle({ commit }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Update conversation title')
         try {
-            const res = await chatAPI.updateConversationTitle(context.conversationId, context.title)
-            if (typeof res.data === 'boolean' && res.data === true) {
-                commit(types.CHAT_CONVERSATION_UPDATE_TITLE, context)
-                return await Promise.resolve(res)
-            }
-            else {
-                ConMsgs.methods.$_console_group('[Vuex][Actions] Error from updating conversation title. API call succeeded but returned false.')
-                return await Promise.reject();
-            }
+            return DispatchFactory.request(async () => {
+                const res = await chatAPI.updateConversationTitle(context.conversationId, context.title)
+                if (typeof res.data === 'boolean' && res.data === true) {
+                    commit(types.CHAT_CONVERSATION_UPDATE_TITLE, context)
+                    return await Promise.resolve(res)
+                }
+                else {
+                    ConMsgs.methods.$_console_group('[Vuex][Actions] Error from updating conversation title. API call succeeded but returned false.')
+                    return await Promise.reject();
+                }
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from updating conversation title', e.response)
@@ -102,9 +118,11 @@ const actions = {
     async getMessagesForConversation({ commit }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Get messages for conversation')
         try {
-            const res = await chatAPI.getMessagesForConversation(context)
-            commit(types.CHAT_CONVERSATION_GET_MESSAGES, { messages: res.data, conversationId: context })
-            return await Promise.resolve(res)
+            return DispatchFactory.request(async () => {
+                const res = await chatAPI.getMessagesForConversation(context)
+                commit(types.CHAT_CONVERSATION_GET_MESSAGES, { messages: res.data, conversationId: context })
+                return await Promise.resolve(res)
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from getting messages for conversation', e.response)
@@ -124,15 +142,17 @@ const actions = {
     async deleteChatMessage({ commit }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Delete chat message')
         try {
-            const res = await chatAPI.deleteMessage(context.messageId)
-            if (typeof res.data === 'boolean' && res.data === true) {
-                commit(types.CHAT_MESSAGE_DELETE, context)
-                return await Promise.resolve(res)
-            }
-            else {
-                ConMsgs.methods.$_console_group('[Vuex][Actions] Error from deleting message. API call succeeded but returned false.')
-                return await Promise.reject();
-            }
+            return DispatchFactory.request(async () => {
+                const res = await chatAPI.deleteMessage(context.messageId)
+                if (typeof res.data === 'boolean' && res.data === true) {
+                    commit(types.CHAT_MESSAGE_DELETE, context)
+                    return await Promise.resolve(res)
+                }
+                else {
+                    ConMsgs.methods.$_console_group('[Vuex][Actions] Error from deleting message. API call succeeded but returned false.')
+                    return await Promise.reject();
+                }
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from deleting chat message', e.response)
@@ -142,11 +162,13 @@ const actions = {
     async readChatMessage({ commit }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Read chat message')
         try {
-            const res = await chatAPI.readMessage(context.conversationId, context.messageId)
-            commit(types.CHAT_MESSAGE_READ, {
-                conversationId: context.conversationId,
-                receipt: res.data,
-                status: res.status                
+            return DispatchFactory.request(async () => {
+                const res = await chatAPI.readMessage(context.conversationId, context.messageId)
+                commit(types.CHAT_MESSAGE_READ, {
+                    conversationId: context.conversationId,
+                    receipt: res.data,
+                    status: res.status
+                })
             })
         }
         catch (e) {
@@ -157,17 +179,19 @@ const actions = {
     async readChatMessageList({ commit }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Read chat message list')
         try {
-            const res = await chatAPI.readMessageList(context.conversationId, context.messageIds)
-            ConMsgs.methods.$_console_log('[Vuex][Actions] Read message response: ', res)
-            if (Array.isArray(res.data)) {
-                res.data.forEach(element => {
-                    commit(types.CHAT_MESSAGE_READ, {
-                        conversationId: context.conversationId,
-                        receipt: element,
-                        status: res.status                        
+            return DispatchFactory.request(async () => {
+                const res = await chatAPI.readMessageList(context.conversationId, context.messageIds)
+                ConMsgs.methods.$_console_log('[Vuex][Actions] Read message response: ', res)
+                if (Array.isArray(res.data)) {
+                    res.data.forEach(element => {
+                        commit(types.CHAT_MESSAGE_READ, {
+                            conversationId: context.conversationId,
+                            receipt: element,
+                            status: res.status
+                        })
                     })
-                })                
-            }            
+                }
+            })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from reading chat message list', e.response)
@@ -189,6 +213,11 @@ const actions = {
 }
 
 const mutations = {
+    [types.CHAT_CLEAR](state) {
+        ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating clearing chat");
+
+        state.conversations = []
+    },
     [types.CHAT_CONVERSATION_UPDATE_NEW_MESSAGE_COUNT](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating update new message count for all conversations for user");
 

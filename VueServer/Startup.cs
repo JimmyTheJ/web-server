@@ -69,7 +69,7 @@ namespace VueServer
 
             services
                 .AddMvc(options => {
-                    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+                    options.Filters.Add(new IgnoreAntiforgeryTokenAttribute());
                 })
                 .AddNewtonsoftJson(options =>
                 {

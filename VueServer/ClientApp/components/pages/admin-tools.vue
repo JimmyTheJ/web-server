@@ -54,7 +54,7 @@
 <script>
     import authService from '../../services/auth'
     import moduleService from '../../services/modules'
-import modules from '../../services/modules';
+    import DispatchFactory from '../../factories/dispatchFactory';
 
     export default {
         data() {
@@ -89,20 +89,26 @@ import modules from '../../services/modules';
         },
         methods: {
             getData() {
-                authService.getUsers().then(resp => {
-                    this.$_console_log('[admin-tools] getData: Successfully got user list');
-                    this.userList = resp.data;
-                }).catch(() => this.$_console_log('[admin-tools] getData: Failed to get user list'));
+                DispatchFactory.request(() => {
+                    authService.getUsers().then(resp => {
+                        this.$_console_log('[admin-tools] getData: Successfully got user list');
+                        this.userList = resp.data;
+                    }).catch(() => this.$_console_log('[admin-tools] getData: Failed to get user list'));
+                });
 
-                moduleService.getAllModules().then(resp => {
-                    this.$_console_log('[admin-tools] getData: Successfully got module list');
-                    this.moduleList = resp.data;
-                }).catch(() => this.$_console_log('[admin-tools] getData: Failed to get module list'));
+                DispatchFactory.request(() => {
+                    moduleService.getAllModules().then(resp => {
+                        this.$_console_log('[admin-tools] getData: Successfully got module list');
+                        this.moduleList = resp.data;
+                    }).catch(() => this.$_console_log('[admin-tools] getData: Failed to get module list'));
+                });
 
-                moduleService.getAllModulesForAllUser().then(resp => {
-                    this.$_console_log('[admin-tools] getData: Successfully got user has module list');
-                    this.usersHaveModuleList = resp.data;
-                }).catch(() => this.$_console_log('[admin-tools] getData: Failed to get module lists for users'));
+                DispatchFactory.request(() => {
+                    moduleService.getAllModulesForAllUser().then(resp => {
+                        this.$_console_log('[admin-tools] getData: Successfully got user has module list');
+                        this.usersHaveModuleList = resp.data;
+                    }).catch(() => this.$_console_log('[admin-tools] getData: Failed to get module lists for users'));
+                });
             },
             deleteModuleFromUser(module) {
                 if (typeof this.selectedUser === 'undefined' || this.selectedUser === null) {
@@ -120,17 +126,19 @@ import modules from '../../services/modules';
                     moduleAddOnId: module.id
                 }
 
-                moduleService.deleteModuleFromUser(obj).then(() => {
-                    this.$_console_log('[admin-tools] deleteModuleFromUser: Successfully deleted module from user');
-                    const index = this.usersHaveModuleList.findIndex(x => x.userId === obj.userId && x.moduleAddOnId === obj.moduleAddOnId);
-                    if (index < 0) {
-                        // Failed somehow...
-                    }
-                    else {
-                        this.usersHaveModuleList.splice(index, 1);
-                        this.updateSelectedUserList(this.selectedUser);
-                    }                    
-                }).catch(() => this.$_console_log('[admin-tools] deleteModuleFromUser: Failed to delete module from user'));
+                DispatchFactory.request(() => {
+                    moduleService.deleteModuleFromUser(obj).then(() => {
+                        this.$_console_log('[admin-tools] deleteModuleFromUser: Successfully deleted module from user');
+                        const index = this.usersHaveModuleList.findIndex(x => x.userId === obj.userId && x.moduleAddOnId === obj.moduleAddOnId);
+                        if (index < 0) {
+                            // Failed somehow...
+                        }
+                        else {
+                            this.usersHaveModuleList.splice(index, 1);
+                            this.updateSelectedUserList(this.selectedUser);
+                        }
+                    }).catch(() => this.$_console_log('[admin-tools] deleteModuleFromUser: Failed to delete module from user'));
+                });
             },
             deleteFeatureFromUser(feature) {
                 if (typeof this.selectedModule === 'undefined' || this.selectedModule === null) {
@@ -150,25 +158,27 @@ import modules from '../../services/modules';
 
                 let currentlySelectedModule = Object.assign({}, this.selectedModule);
 
-                moduleService.deleteFeatureFromUser(obj).then(() => {
-                    this.$_console_log('[admin-tools] deleteFeatureFromUser: Successfully deleted feature from user');
-                    
-                    const userModuleIndex = this.usersHaveModuleList.findIndex(x => x.userId === obj.userId && x.moduleAddOnId === currentlySelectedModule.id);
-                    this.$_console_log(currentlySelectedModule, userModuleIndex);
+                DispatchFactory.request(() => {
+                    moduleService.deleteFeatureFromUser(obj).then(() => {
+                        this.$_console_log('[admin-tools] deleteFeatureFromUser: Successfully deleted feature from user');
 
-                    if (userModuleIndex > 0) {
-                        if (Array.isArray(this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures)) {
-                            const featureIndex = this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures.findIndex(x => x.moduleFeatureId === feature.id);
-                            if (featureIndex >= 0) {
-                                this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures.splice(featureIndex, 1);
+                        const userModuleIndex = this.usersHaveModuleList.findIndex(x => x.userId === obj.userId && x.moduleAddOnId === currentlySelectedModule.id);
+                        this.$_console_log(currentlySelectedModule, userModuleIndex);
+
+                        if (userModuleIndex > 0) {
+                            if (Array.isArray(this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures)) {
+                                const featureIndex = this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures.findIndex(x => x.moduleFeatureId === feature.id);
+                                if (featureIndex >= 0) {
+                                    this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures.splice(featureIndex, 1);
+                                }
+
                             }
-                            
                         }
-                    }
-                    else {
-                        // It failed somehow
-                    }
-                }).catch(() => this.$_console_log('[admin-tools] deleteFeatureFromUser: Failed to delete feature from user'));
+                        else {
+                            // It failed somehow
+                        }
+                    }).catch(() => this.$_console_log('[admin-tools] deleteFeatureFromUser: Failed to delete feature from user'));
+                });
             },
             addModuleToUser(module) {
                 if (this.userHasModule(module)) {
@@ -181,11 +191,13 @@ import modules from '../../services/modules';
                     moduleAddOnId: module.id
                 }
 
-                moduleService.addModuleToUser(obj).then(resp => {
-                    this.$_console_log('[admin-tools] addModuleToUser: Successfully added module to user');
-                    this.usersHaveModuleList.push(obj);
-                    this.updateSelectedUserList(this.selectedUser);
-                }).catch(() => this.$_console_log('[admin-tools] addModuleToUser: Failed to get add module to user'));
+                DispatchFactory.request(() => {
+                    moduleService.addModuleToUser(obj).then(resp => {
+                        this.$_console_log('[admin-tools] addModuleToUser: Successfully added module to user');
+                        this.usersHaveModuleList.push(obj);
+                        this.updateSelectedUserList(this.selectedUser);
+                    }).catch(() => this.$_console_log('[admin-tools] addModuleToUser: Failed to get add module to user'));
+                });
             },
             addFeatureToUser(feature) {
                 if (this.userHasFeature(feature)) {
@@ -199,22 +211,24 @@ import modules from '../../services/modules';
                 }
 
                 let currentlySelectedModule = Object.assign({}, this.selectedModule);
-                moduleService.addFeatureToUser(obj).then(resp => {
-                    this.$_console_log('[admin-tools] addFeatureToUser: Successfully added feature to user');
+                DispatchFactory.request(() => {
+                    moduleService.addFeatureToUser(obj).then(resp => {
+                        this.$_console_log('[admin-tools] addFeatureToUser: Successfully added feature to user');
 
-                    const userModuleIndex = this.usersHaveModuleList.findIndex(x => x.userId === obj.userId && x.moduleAddOnId === currentlySelectedModule.id);
-                    this.$_console_log(currentlySelectedModule, userModuleIndex);
+                        const userModuleIndex = this.usersHaveModuleList.findIndex(x => x.userId === obj.userId && x.moduleAddOnId === currentlySelectedModule.id);
+                        this.$_console_log(currentlySelectedModule, userModuleIndex);
 
-                    if (userModuleIndex >= 0) {
-                        if (!Array.isArray(this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures))
-                            this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures = [];
+                        if (userModuleIndex >= 0) {
+                            if (!Array.isArray(this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures))
+                                this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures = [];
 
-                        this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures.push(obj);
-                    }
-                    else {
-                        // It failed somehow
-                    }
-                }).catch(() => this.$_console_log('[admin-tools] addFeatureToUser: Failed to get add feature to user')); 
+                            this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures.push(obj);
+                        }
+                        else {
+                            // It failed somehow
+                        }
+                    }).catch(() => this.$_console_log('[admin-tools] addFeatureToUser: Failed to get add feature to user'));
+                });
             },
             userHasModule(module) {
                 if (typeof this.selectedUser === 'undefined' || this.selectedUser === null) {

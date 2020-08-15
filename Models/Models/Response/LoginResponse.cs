@@ -17,10 +17,9 @@ namespace VueServer.Models.Response
 
         public LoginResponse () { }
 
-        public LoginResponse (string token, string refreshToken, WSUserResponse user, IList<string> roles)
+        public LoginResponse (string token, WSUserResponse user, IList<string> roles)
         {
             Token = token;
-            RefreshToken = refreshToken;
             User = user;
             Roles = roles;
         }

@@ -8,7 +8,6 @@ import axios from '../axios'
  */
 const signinUrl = `api/account/login`
 const signoutUrl = `api/account/logout`
-const getCsrfTokenUrl = `api/account/get-csrf-token`
 const refreshTokenUrl = `api/account/refresh-jwt`
 const registerUrl = `api/account/register`
 const getUsersUrl = `api/account/user/get-all`
@@ -20,9 +19,6 @@ const updateDisplayNameUrl = `api/account/user/update-display-name`
  * Export
  */
 export default {
-    getCsrfToken(data) {
-        return axios.get(getCsrfTokenUrl)
-    },
     signin(data) {
         return axios.post(signinUrl, {
             'username': data.username,
@@ -32,11 +28,8 @@ export default {
     signout() {
         return axios.post(signoutUrl)
     },
-    refreshToken(token, refreshToken) {
-        return axios.post(`${refreshTokenUrl}`, {
-            'token': token,
-            'refreshToken': refreshToken,
-        })
+    refreshToken(token) {
+        return axios.post(`${refreshTokenUrl}`, `"${token}"`)
     },
     register(data) {
         return axios.post(registerUrl, {
