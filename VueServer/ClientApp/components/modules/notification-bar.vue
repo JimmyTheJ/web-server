@@ -71,23 +71,24 @@
             },
             getTextColor(type) {
                 if (typeof type !== 'number') {
-                    return 'white--text';
+                    return 'white--text font-weight-bold';
                 }
 
                 switch (type) {
                     case 0:
-                        return 'green--text';
+                        return 'green--text darken-1 font-weight-bold';
                     case 1:
-                        return 'blue--text';
+                        return 'deep-purple--text darken-2 font-weight-bold';
                     case 2:
-                        return 'red--text';
+                        return 'red--text darken-2 font-weight-bold';
                     default:
-                        return 'white--text';
+                        return 'grey--text lighten-3 font-weight-bold';
                 }
             },
             getMessageBorder(isRead) {
                 if (typeof isRead !== 'boolean' || isRead === false) {
-                    return 'message-unread';
+                    //return 'message-unread';
+                    return 'info accent-3'
                 }
                 else {
                     return '';
@@ -95,7 +96,8 @@
             },
             getMessageBackground(isRead) {
                 if (typeof isRead !== 'boolean' || isRead === false) {
-                    return 'message-border-unread';
+                    return 'info darken-4';
+                    //return 'message-border-unread';
                 }
                 else {
                     return 'message-border-read';

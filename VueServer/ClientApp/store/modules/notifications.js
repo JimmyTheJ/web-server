@@ -124,13 +124,13 @@ const mutations = {
 
         let oldMsgId = state.messages.findIndex(x => x.id === data.oldMsg.id)
         if (oldMsgId > -1) {
-            state.messages[oldMsgId].text = data.newMsg.text
-            state.messages[oldMsgId].read = false
-
             if (state.messages[oldMsgId].read === true) {
                 state.numMessages++
                 state.numNewMessages++
             }
+
+            state.messages[oldMsgId].text = data.newMsg.text
+            state.messages[oldMsgId].read = false
         }        
     },
     [types.MESSAGE_POP](state, data) {
