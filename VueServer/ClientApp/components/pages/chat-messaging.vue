@@ -90,11 +90,11 @@
         watch: {
             selectedConversation: {
                 handler(newValue, oldValue) {
-                    if (typeof newValue === 'object' && newValue !== null) {
-                        if ((typeof oldValue === 'object' && oldValue !== null && newValue.id !== oldValue.id) || typeof oldValue !== 'object' || oldValue === null) {
-                            this.$store.dispatch('getMessagesForConversation', newValue.id);
-                        }                        
-                    }
+                    //if (typeof newValue === 'object' && newValue !== null) {
+                    //    if ((typeof oldValue === 'object' && oldValue !== null && newValue.id !== oldValue.id) || typeof oldValue !== 'object' || oldValue === null) {
+                    //        this.$store.dispatch('getMessagesForConversation', newValue.id);
+                    //    }                        
+                    //}
 
                     this.$_console_log('SelectedConversation', newValue);
                     if (newValue === null) {

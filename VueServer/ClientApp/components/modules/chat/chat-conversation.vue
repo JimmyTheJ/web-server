@@ -53,7 +53,7 @@
                 <v-btn text v-if="isConversationDeletable" @click="deleteConversationDialog = true"><v-icon>mdi-delete</v-icon></v-btn>
             </v-toolbar>
 
-            <div id="chat-body-container">
+            <div class="chat-body-container" :style="{height: bodyContainerHeight + 'px'}" ref="chatBodyContainer">
                 <v-row class="px-0">
                     <v-col cols="12" class="py-1" v-for="(message, index) in conversation.messages"
                            :key="index" @mouseover="setMessageHover(message, true)"
@@ -66,7 +66,7 @@
                     </v-col>
                 </v-row>
             </div>
-            <div id="chat-message-textfield">
+            <div class="chat-message-textfield" ref="chatTextfield">
                 <v-text-field v-model="newMessage.text"
                               autofocus
                               label="Message"
@@ -99,6 +99,7 @@
                 moreInfo: {},
                 chatWindow: null,
                 scrollHeight: 0,
+                bodyContainerHeight: 0,
             }
         },
         components: {
@@ -128,7 +129,7 @@
             window.addEventListener('resize', this.resizeWindow);
         },
         mounted() {
-            this.chatWindow = document.getElementById('chat-body-container');
+            this.chatWindow = this.$refs.chatBodyContainer;
             this.chatWindow.addEventListener('scroll', this.windowScroll);
         },
         beforeDestroy() {
@@ -152,9 +153,6 @@
 
                 return false;
             },
-            scrollWindowHeight() {
-                return this.chatWindow.scrollTop;
-            },
         },
         watch: {
             editingTitle(newValue) {
@@ -167,46 +165,54 @@
             },
             show(newValue) {
                 if (newValue === true) {
-                    this.updateContainerHeight();
-
-                    setTimeout(() => {
-                        this.$_console_log('Show watcher: value is true');
-                        if (Array.isArray(this.conversation.messages) && this.conversation.messages.length > 0) {
-                            this.$_console_log('Show watcher: Message length is greater than 0. Scrolling to last read message');
-                            this.scrollToLastReadMessage();
-                        }
-                    }, 10);                    
+                    this.$store.dispatch('getMessagesForConversation', this.conversation.id).then(resp => {
+                        this.updateContainerHeight(true);
+                    })                
                 }
             },
-            scrollHeight(newValue, oldValue) {
-                if (newValue === this.chatWindow.scrollTopMax && newValue !== oldValue) {
-                    this.$_console_log('Max scroll reached. You\'re at the bottom');
-                    this.readAllMessages();
-                }
+            scrollHeight(newValue) {
+                if (this.show) {
+                    // This here is a way to make sure we trigger a read of all messages when we get to the bottom of the scrollbar
+                    // The plus one at the end is a way to make it compatible with most browsers. For some reason Edge as an example
+                    // has the scroll height over by about 0.4 pixels when you add the scroll value to the client height of the chat window.
+                    // It seems like the scroll value can't necessarily get to the maximum value it's supposed to. Look into a safer way to
+                    // handle this in the future
+                    if (this.chatWindow.scrollHeight <= newValue + this.chatWindow.clientHeight + 1) {
+                        this.$_console_log('Max scroll reached. You\'re at the bottom, reading all messages.');
+                        this.readAllMessages();
+                    }
+                }                
             },
         },
         methods: {
             windowScroll(event) {
+                this.$_console_log('Scroll event', event);
                 this.scrollHeight = event.target.scrollTop;
             },
             resizeWindow(event) {
                 this.updateContainerHeight();
             },
-            updateContainerHeight() {
+            async updateContainerHeight(attemptScroll) {
                 this.$nextTick(() => {
-                    let bodyContainer = document.getElementById('chat-body-container');
-                    let chatMessageTextfield = document.getElementById('chat-message-textfield');
-                    let newHeight = window.innerHeight - bodyContainer.offsetTop - chatMessageTextfield.clientHeight - 4;
+                    let bodyContainer = this.$refs.chatBodyContainer;
+                    let chatMessageTextfield = this.$refs.chatTextfield;
+                    this.bodyContainerHeight = window.innerHeight - bodyContainer.offsetTop - chatMessageTextfield.clientHeight - 4;
 
-                    //console.log('Containers');
-                    //console.log(bodyContainer);
-                    //console.log(chatMessageTextfield);
-                    //console.log('Window height');
-                    //console.log(window.innerHeight);
-                    //console.log(newHeight);
-                    
+                    this.$_console_log('Containers', bodyContainer, chatMessageTextfield, 'Window Height', window.innerHeight, this.bodyContainerHeight);
 
-                    bodyContainer.style.height = `${newHeight}px`;
+                    if (attemptScroll === true) {
+                        if (Array.isArray(this.conversation.messages) && this.conversation.messages.length > 0) {
+                            this.$_console_log('Heights: ', this.bodyContainerHeight, this.chatWindow.scrollHeight)
+                            if (this.bodyContainerHeight >= this.chatWindow.scrollHeight) {
+                                this.$_console_log('Show watcher: No scrollbar exists. Reading all messages');
+                                this.scrollToBottom();
+                            }
+                            else {
+                                this.$_console_log('Show watcher: Message length is greater than 0. Scrolling to last read message');
+                                this.scrollToLastReadMessage();
+                            }
+                        }
+                    }
                 });
             },
             onMessageReceived(message) {
@@ -220,8 +226,9 @@
                 }
 
                 this.$store.dispatch('addChatMessage', { conversationId: this.conversation.id, message: message }).then(() => {
-                    // Scroll to bottom when active user sends a message. This will ultimately cause all messages to be read
-                    if (message.userId === this.user.id) {
+                    // Scroll to bottom when active user sends a message. This will ultimately cause all messages to be read,
+                    // Also scroll to the bottom when there is no scrollbar yet.
+                    if (message.userId === this.user.id || this.chatWindow.clientHeight === this.chatWindow.scrollHeight) {
                         this.scrollToBottom();
                     }
                 })
@@ -292,6 +299,7 @@
             scrollToBottom() {
                 this.$nextTick(() => {
                     this.chatWindow.scrollTo(0, this.chatWindow.scrollHeight);
+                    this.readAllMessages();
                 });
             },
             scrollToLastReadMessage() {
@@ -371,7 +379,7 @@
 </script>
 
 <style>
-    #chat-body-container {
+    .chat-body-container {
         overflow-y: scroll;
         overflow-x: hidden;
     }

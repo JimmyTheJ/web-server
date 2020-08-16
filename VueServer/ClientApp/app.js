@@ -19,7 +19,6 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 // User stuff
 import ChatHub from './plugins/chat-hub'
-import axios from './axios'
 import router from './router'
 import store from './store'
 import App from 'components/app-root'
