@@ -9,6 +9,7 @@
 <script>
     import * as CONST from '../constants'
     import { setTimeout } from 'core-js';
+    import { parse as parseJwt } from '../helpers/jwt'
 
     export default {
         data() {
@@ -17,16 +18,22 @@
             }
         },
         created() {
-            //this.refreshTokenJob();
+            this.refreshTokenJob();
         },
         methods: {
             refreshTokenJob() {
-                this.$_console_log('Refresh token job started');
                 setTimeout(() => {
-                    this.$_console_log('Token timeout reached. Getting new tokens');
+                    //getRefreshToken
                     if (this.$store.state.auth.isAuthorize) {
-                        this.$store.dispatch('refreshToken').then(() => {}).catch(() => this.$_console_log('Failed to get time released refresh token'));
+                        const token = parseJwt(this.$store.state.auth.accessToken)
+                        let time = new Date().getTime() / 1000;
+                        // If the refresh token is going to expire before the next loop happens we should refresh it
+                        if (time + (CONST.Admin.RefreshTokenTimer / 1000) >= token.exp) {
+                            this.$_console_log('Token timeout is about to be reached. Getting new token');
+                            this.$store.dispatch('refreshToken').then(() => { }).catch(() => this.$_console_log('Failed to get time released refresh token'));
+                        }
                     }
+
                     this.refreshTokenJob();
                 }, CONST.Admin.RefreshTokenTimer);
             },
