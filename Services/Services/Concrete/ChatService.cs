@@ -47,20 +47,6 @@ namespace VueServer.Services.Concrete
                 return new Result<Conversation>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
-            var conversation = new Conversation();
-            _context.Conversations.Add(conversation);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("StartConversation: Error saving database on starting a conversation", e.StackTrace);
-                return new Result<Conversation>(null, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-
-            var conversationUserList = new List<ConversationHasUser>();
-
             // Get all this users conversations to see if they are trying to make a conversation that already exists
             var allUsersConversations = (await GetAllConversations())?.Obj;
             if (allUsersConversations != null && allUsersConversations.Count() > 0)
@@ -85,6 +71,19 @@ namespace VueServer.Services.Concrete
                 }
             }
 
+            var conversationUserList = new List<ConversationHasUser>();
+            var conversation = new Conversation();
+            _context.Conversations.Add(conversation);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("StartConversation: Error saving database on starting a conversation", e.StackTrace);
+                return new Result<Conversation>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
             // Add current user to conversation
             var selfUser = new ConversationHasUser()
             {
@@ -92,8 +91,7 @@ namespace VueServer.Services.Concrete
                 UserId = _user.Id,
                 Owner = true
             };
-            _context.ConversationHasUser.Add(selfUser);
-            conversationUserList.Add(selfUser);           
+            conversationUserList.Add(selfUser);
 
             // Add all the other users to the conversation
             foreach (var username in request.Users.Where(x => x != _user.Id))
@@ -115,9 +113,11 @@ namespace VueServer.Services.Concrete
                     UserId = user.Id,
                     UserDisplayName = user.DisplayName
                 };
-                _context.ConversationHasUser.Add(conversationUser);
+                
                 conversationUserList.Add(conversationUser);
             }
+
+            _context.ConversationHasUser.AddRange(conversationUserList);            
 
             try
             {
@@ -142,6 +142,11 @@ namespace VueServer.Services.Concrete
                 .Where(x => x.Id == id)
                 .SingleOrDefaultAsync();
 
+            if (conversation == null)
+            {
+                return new Result<Conversation>(null, Domain.Enums.StatusCode.NOT_FOUND);
+            }
+
             // Sort messages
             conversation.Messages.OrderByDescending(x => x.Timestamp);
 
@@ -150,6 +155,11 @@ namespace VueServer.Services.Concrete
             {
                 var usr = await _user.GetUserByIdAsync(userConversation.UserId);
                 userConversation.UserDisplayName = usr.DisplayName;
+            }
+
+            if (conversation.ConversationUsers.Count == 2)
+            {
+                conversation.Title = conversation.ConversationUsers.Where(x => x.UserId != _user.Id).Select(x => x.UserDisplayName).SingleOrDefault();
             }
 
             return new Result<Conversation>(conversation, Domain.Enums.StatusCode.OK);
@@ -468,7 +478,7 @@ namespace VueServer.Services.Concrete
             }
 
             var conversationList = await conversationQuery.ToListAsync();
-            if (conversationList == null)
+            if (conversationList == null || conversationList.Count == 0)
             {
                 _logger.LogInformation($"GetAllConversationAsync: Conversation list is empty for user ({_user.Id})");
                 return null;
@@ -480,6 +490,14 @@ namespace VueServer.Services.Concrete
                 {
                     conversation.UnreadMessages = conversation.Messages?.Count() ?? 0;
                 });
+            }
+
+            foreach (var conversation in conversationList)
+            {
+                if (conversation.ConversationUsers.Count == 2)
+                {
+                    conversation.Title = conversation.ConversationUsers.Where(x => x.UserId != userId).Select(x => x.UserDisplayName).SingleOrDefault();
+                }
             }
 
             return conversationList;

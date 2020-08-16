@@ -61,7 +61,7 @@ const actions = {
     async pushNotification({ commit, state }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Pushing notification to message list')
         const msg = state.messages.find(x => x.groupType === context.groupType && x.groupValue === context.groupValue)
-        if (typeof msg !== 'undefined')
+        if (typeof msg !== 'undefined' && msg.groupType !== null && msg.groupValue !== null)
             commit(types.MESSAGE_UPDATE, { newMsg: context, oldMsg: msg })
         else
             commit(types.MESSAGE_PUSH, context)
