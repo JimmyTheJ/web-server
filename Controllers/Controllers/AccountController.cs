@@ -142,7 +142,7 @@ namespace VueServer.Controllers
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
         [Route("user/update-display-name")]
-        public async Task<IActionResult> UpdateDisplayName(string name)
+        public async Task<IActionResult> UpdateDisplayName([FromBody] string name)
         {
             return _codeFactory.GetStatusCode(await _service.UpdateDisplayName(name));
         }

@@ -49,6 +49,6 @@ export default {
         return axios.post(updateAvatarImageUrl, file)
     },
     updateDisplayName(name) {
-        return axios.post(updateDisplayNameUrl, name)
+        return axios.post(updateDisplayNameUrl, `"${name}"`)
     }
 }
