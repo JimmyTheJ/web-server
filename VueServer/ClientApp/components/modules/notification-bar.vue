@@ -25,6 +25,7 @@
             return {
                 sheet: false,
                 isLoading: false,
+                reversedMessages: [],
             }
         },
         computed: {
@@ -32,9 +33,6 @@
                 messages: state => state.notifications.messages,
                 opened: state => state.notifications.opened,
             }),
-            reversedMessages() {
-                return this.messages.slice(0).reverse();
-            }
         },
         watch: {
             opened(newValue) {
@@ -48,7 +46,17 @@
             sheet(newValue) {
                 if (!this.isLoading)
                     this.$store.dispatch('openNotifications', newValue)
-            }
+            },
+            messages: {
+                handler(newValue) {
+                    this.$_console_log('Messages watcher:', newValue);
+                    this.reversedMessages = newValue.slice(0).reverse();
+                },
+                deep: true
+            },
+        },
+        created() {
+            this.reversedMessages = this.messages.slice(0).reverse();
         },
         methods: {
             deleteMessage(item) {

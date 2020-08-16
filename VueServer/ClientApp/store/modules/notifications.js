@@ -4,10 +4,12 @@ import ConMsgs from '../../mixins/console';
 let staticId = 1;
 
 function createMessage(obj) {
-    const message = {
+    let message = {
         id: staticId++,
         text: '',
         type: 1,
+        groupType: null,
+        groupValue: null,
         read: false
     }
 
@@ -19,6 +21,12 @@ function createMessage(obj) {
 
     if (typeof obj.read !== 'undefined')
         message.read = obj.read
+
+    if (typeof obj.groupType !== 'undefined')
+        message.groupType = obj.groupType
+
+    if (typeof obj.groupValue !== 'undefined')
+        message.groupValue = obj.groupValue
 
     return message
 }
@@ -50,10 +58,14 @@ const actions = {
 
         commit(types.MESSAGE_READ, context)
     },
-    async pushNotification({ commit }, context) {
+    async pushNotification({ commit, state }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Pushing notification to message list')
-
-        commit(types.MESSAGE_PUSH, context)
+        const msg = state.messages.find(x => x.groupType === context.groupType && x.groupValue === context.groupValue)
+        if (typeof msg !== 'undefined')
+            commit(types.MESSAGE_UPDATE, { newMsg: context, oldMsg: msg })
+        else
+            commit(types.MESSAGE_PUSH, context)
+        
     },
     async popNotification({ commit }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Popping notification from message list')
@@ -74,7 +86,7 @@ const mutations = {
         state.numNewMessages = 0
         state.opened = false
     },
-    [types.MESSAGE_OPEN_DRAWER](state, data) {
+    [types.MESSAGE_OPEN_DRAWER](state) {
         ConMsgs.methods.$_console_log('[Vuex][Mutations] Open / Close message list')
 
         state.opened = !state.opened
@@ -102,10 +114,24 @@ const mutations = {
     [types.MESSAGE_PUSH](state, data) {
         ConMsgs.methods.$_console_log('[Vuex][Mutations] Pushing notification to message list')
 
-        state.messages.push(createMessage({ text: data.text, type: data.type }))
+        state.messages.push(createMessage({ text: data.text, type: data.type, groupType: data.groupType, groupValue: data.groupValue }))
 
         state.numMessages++
         state.numNewMessages++
+    },
+    [types.MESSAGE_UPDATE](state, data) {
+        ConMsgs.methods.$_console_log('[Vuex][Mutations] Updating notification in message list')
+
+        let oldMsgId = state.messages.findIndex(x => x.id === data.oldMsg.id)
+        if (oldMsgId > -1) {
+            state.messages[oldMsgId].text = data.newMsg.text
+            state.messages[oldMsgId].read = false
+
+            if (state.messages[oldMsgId].read === true) {
+                state.numMessages++
+                state.numNewMessages++
+            }
+        }        
     },
     [types.MESSAGE_POP](state, data) {
         ConMsgs.methods.$_console_log('[Vuex][Mutations] Popping notification from message list')

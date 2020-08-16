@@ -55,7 +55,8 @@
 
                 // Increment unread messages for this conversation as the message came from another user that was a member of your conversation
                 this.$store.dispatch('incrementConversationUnreadMessageCount', conversation.id);
-                this.$store.dispatch('pushNotification', { text: `${message.userId} says: ${message.text}`, type: 1 }).then(() => {
+                this.$store.dispatch('pushNotification', { text: `You have ${conversation.unreadMessages} ${conversation.unreadMessages < 2 ? 'message' : 'messages'} from ${conversation.title}`, type: 1, groupType: 'chat', groupValue: conversation.title })
+                    .then(() => {
 
                 });
             },
@@ -79,8 +80,10 @@
                     if (Array.isArray(value.messages) && value.messages.length > 0) {
                         // There are new messages
                         const obj = {
-                            text: `New messages from ${value.title}`,
-                            type: 1
+                            text: `${value.messages.length} new messages from ${value.title}`,
+                            type: 1,
+                            groupType: 'chat',
+                            groupValue: value.title
                         }
 
                         this.$store.dispatch('pushNotification', obj);
