@@ -218,13 +218,13 @@
                 if (typeof browserObj === 'undefined' || !Array.isArray(browserObj.userModuleFeatures))
                     return;
 
-                if (browserObj.userModuleFeatures.some(x => x.moduleFeatureId === 'upload'))
+                if (browserObj.userModuleFeatures.some(x => x.moduleFeatureId === 'browser-upload'))
                     this.features.upload = true;
 
-                if (browserObj.userModuleFeatures.some(x => x.moduleFeatureId === 'delete'))
+                if (browserObj.userModuleFeatures.some(x => x.moduleFeatureId === 'browser-delete'))
                     this.features.delete = true;
 
-                if (browserObj.userModuleFeatures.some(x => x.moduleFeatureId === 'viewer'))
+                if (browserObj.userModuleFeatures.some(x => x.moduleFeatureId === 'browser-viewer'))
                     this.features.viewing = true;
             },
             readRoute() {
@@ -289,7 +289,7 @@
 
 
             getDownloadPath(item) {
-                return `${path}/api/directory/download/file/${encodeURI(this.fullPath)}/${encodeURIComponent(item.title)}`;
+                return `${path}/api/directory/download/file/${encodeURI(this.fullPath)}/${encodeURIComponent(item.title)}?token=${this.$store.state.auth.accessToken}`;
                 //return `${path}/api/directory/download?fileName=${encodeURI(item.title)}&folder=${encodeURI(fullFolderPath)}`;
             },
             getFilePath(item) {

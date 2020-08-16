@@ -12,7 +12,7 @@
 </template>
 
 <script>
-    const basepath = process.env.API_URL;
+    import { mapState } from 'vuex'
 
     export default {
         name: "video-player",
@@ -36,6 +36,9 @@
             this.player = document.getElementById('video-player');
         },
         computed: {
+            ...mapState({
+                accessToken: state => state.auth.accessToken
+            }),
             type: function () {
                 if (typeof this.url === 'undefined' || this.url === '') {
                     this.$_console_log('[VIDEO PLAYER] type: Undefined or empty');
@@ -90,7 +93,7 @@
         },
         methods: {
             loadPlayer() {
-                this.path = `${basepath}/api/serve-file/${this.url}`
+                this.path = `${process.env.API_URL}/api/serve-file/${this.url}?token=${this.accessToken}`
 
                 const self = this;
                 setTimeout(() => {

@@ -54,11 +54,11 @@ namespace VueServer.Services.Concrete
 
         public IResult<IEnumerable<ServerDirectory>> GetDirectories ()
         {
-            var dirs = GetSingleDirectoryList(true);
+            var dirs = GetSingleDirectoryList(_user.Id, true);
             return new Result<IEnumerable<ServerDirectory>>(dirs, StatusCode.OK);
         }
 
-        public async Task<IResult<Tuple<string, string, string>>> Download (string filename, bool media = false)
+        public async Task<IResult<Tuple<string, string, string>>> Download (string filename, string user, bool media = false)
         { 
             if (string.IsNullOrWhiteSpace(filename))
             {
@@ -91,7 +91,7 @@ namespace VueServer.Services.Concrete
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
-            var list = GetSingleDirectoryList().ToList();
+            var list = GetSingleDirectoryList(user).ToList();
             var folders = tuple.Item1.ToList();
 
             var baseDir = list.Where(a => a.Name == folders[0]).Select(a => a.Path).FirstOrDefault();
@@ -197,7 +197,7 @@ namespace VueServer.Services.Concrete
                 return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
             }
 
-            var list = GetSingleDirectoryList().ToList();
+            var list = GetSingleDirectoryList(_user.Id).ToList();
             var basePath = list.Where(a => a.Name == directory).Select(a => a.Path).FirstOrDefault();
             if (basePath == null)
             {
@@ -258,7 +258,7 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model)
         {
-            var uploadDirs = GetSingleDirectoryList();
+            var uploadDirs = GetSingleDirectoryList(_user.Id);
             string baseSaveDir = uploadDirs.Where(x => x.Name == model.Directory).Select(y => y.Path).FirstOrDefault();
             string saveDir = baseSaveDir;
 
@@ -325,7 +325,7 @@ namespace VueServer.Services.Concrete
             if (string.IsNullOrWhiteSpace(model.Name))
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
 
-            var uploadDirs = GetSingleDirectoryList();
+            var uploadDirs = GetSingleDirectoryList(_user.Id);
             string dir = uploadDirs.Where(x => x.Name == model.Directory).Select(y => y.Path).FirstOrDefault();
             if (dir == null)
             {
@@ -468,14 +468,14 @@ namespace VueServer.Services.Concrete
             return Path.Combine(dir, filename);
         }
 
-        private ServerDirectoryLists GetServerGroupDirectoryLists()
+        private ServerDirectoryLists GetServerGroupDirectoryLists(string user)
         {
             ServerDirectoryLists dirs = new ServerDirectoryLists
             {
                 Admin = GetServerDirectoryList("Directories:Group:Admin"),
                 Elevated = GetServerDirectoryList("Directories:Group:Elevated"),
                 General = GetServerDirectoryList("Directories:Group:General"),
-                User = GetServerDirectoryList($"Directories:User:{_user.Id}"),
+                User = GetServerDirectoryList($"Directories:User:{user}"),
             };
 
             return dirs;
@@ -507,9 +507,9 @@ namespace VueServer.Services.Concrete
             return list;
         }
 
-        private IList<ServerDirectory> GetSingleDirectoryList(bool stripPath = false)
+        private IList<ServerDirectory> GetSingleDirectoryList(string user, bool stripPath = false)
         {
-            var dirs = GetServerGroupDirectoryLists();
+            var dirs = GetServerGroupDirectoryLists(user);
             switch (GetMaxLevel())
             {
                 case ACCESS_LEVELS.ADMIN:

@@ -1,8 +1,10 @@
 <template>
-    <v-img :src="basepath + '/api/serve-file/' + url" :max-width="getMaxWidth" :max-height="getMaxHeight" contain />
+    <v-img :src="getPath" :max-width="getMaxWidth" :max-height="getMaxHeight" contain />
 </template>
 
 <script>
+    import { mapState } from 'vuex'
+
     export default {
         name: "text-viewer",
         data() {
@@ -20,12 +22,18 @@
             },
         },
         computed: {
+            ...mapState({
+                accessToken: state => state.auth.accessToken
+            }),
             getMaxWidth() {
                 return this.windowWidth * 0.8;
             },
             getMaxHeight() {
                 return this.windowHeight * 0.66
-            }
+            },
+            getPath() {
+                return `${this.basepath}/api/serve-file/${this.url}?token=${this.accessToken}`
+            },
         },
         watch: {
             url(newValue) {

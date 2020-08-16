@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -21,6 +21,8 @@ namespace VueServer.Services.Interface
         Task<IResult> Logout (HttpContext context);
 
         IResult<string> GetCsrfToken (HttpContext context);
+
+        IResult<string> ValidateTokenAndGetName(string token);
 
         Task<IResult<string>> RefreshJwtToken (string token);
 

@@ -16,7 +16,7 @@ namespace VueServer.Services.Interface
     {
         IResult<IEnumerable<ServerDirectory>> GetDirectories ();
 
-        Task<IResult<Tuple<string, string, string>>> Download (string filename, bool media = false);
+        Task<IResult<Tuple<string, string, string>>> Download (string filename, string user, bool media = false);
 
         IResult<IOrderedEnumerable<WebServerFile>> Load (string directory, string subDir);
 

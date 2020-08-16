@@ -203,6 +203,31 @@ namespace VueServer.Services.Concrete
             return new Result<string>(GenerateCsrfToken(context), Domain.Enums.StatusCode.OK);
         }
 
+        public IResult<string> ValidateTokenAndGetName(string token)
+        {
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = false, // Might want to validate the audience and issuer
+                ValidateIssuer = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:SigningKey"])),
+                ValidateLifetime = true //here we are saying that we don't care about the token's expiration date
+            };
+
+            try
+            {
+                var principal = new JwtSecurityTokenHandler().ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+                if (!(securityToken is JwtSecurityToken jwtSecurityToken) || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                    throw new SecurityTokenException("Invalid token");
+
+                return new Result<string>(principal.Claims.Where(x => x.Type == JwtRegisteredClaimNames.Sub).Select(x => x.Value).SingleOrDefault(), Domain.Enums.StatusCode.OK);
+            }
+            catch (Exception)
+            {
+                return new Result<string>(null, Domain.Enums.StatusCode.UNAUTHORIZED);
+            }
+        }
+
         public async Task<IResult<string>> RefreshJwtToken (string token)
         {
             var principal = GetPrincipalFromExpiredToken(token);
@@ -489,8 +514,7 @@ namespace VueServer.Services.Concrete
                 ValidateLifetime = false //here we are saying that we don't care about the token's expiration date
             };
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+            var principal = new JwtSecurityTokenHandler().ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
             if (!(securityToken is JwtSecurityToken jwtSecurityToken) || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
                 throw new SecurityTokenException("Invalid token");
 
