@@ -238,5 +238,42 @@ namespace VueServer.Services.Concrete
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
+        public async Task<IResult<bool>> DoesUserHaveModule(string user, string module)
+        {
+            if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(module))
+            {
+                _logger.LogInformation($"[ModuleService] DoesUserHaveModule: user or module value is null (user: {user} / module: {module})");
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            var hasModule = await _context.UserHasModule.Where(x => x.UserId == user && x.ModuleAddOnId == module).SingleOrDefaultAsync();
+            if (hasModule != null)
+            {
+                return new Result<bool>(true, Domain.Enums.StatusCode.OK);
+            }
+            else
+            {
+                return new Result<bool>(false, Domain.Enums.StatusCode.UNAUTHORIZED);
+            }
+        }
+
+        public async Task<IResult<bool>> DoesUserHaveFeature(string user, string feature)
+        {
+            if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(feature))
+            {
+                _logger.LogInformation($"[ModuleService] DoesUserHaveModule: user or feature value is null (user: {user} / feature: {feature})");
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            var hasModule = await _context.UserHasFeature.Where(x => x.UserId == user && x.ModuleFeatureId == feature).SingleOrDefaultAsync();
+            if (hasModule != null)
+            {
+                return new Result<bool>(true, Domain.Enums.StatusCode.OK);
+            }
+            else
+            {
+                return new Result<bool>(false, Domain.Enums.StatusCode.UNAUTHORIZED);
+            }
+        }
     }
 }

@@ -32,7 +32,7 @@
                 return this.windowHeight * 0.66
             },
             getPath() {
-                return `${this.basepath}/api/serve-file/${this.url}?token=${this.accessToken}`
+                return `${this.basepath}/api/directory/download/file/${this.url}?token=${this.accessToken}`
             },
         },
         watch: {

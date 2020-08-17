@@ -13,6 +13,7 @@ using VueServer.Services.Interface;
 using VueServer.Controllers.Filters;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
+using VueServer.Domain;
 
 namespace VueServer.Controllers
 {
@@ -22,24 +23,32 @@ namespace VueServer.Controllers
         private readonly IStatusCodeFactory<IActionResult> _codeFactory;        
         private readonly IDirectoryService _service;
         private readonly IAccountService _accountService;
+        private readonly IModuleService _moduleService;
 
         public DirectoryController (
             IStatusCodeFactory<IActionResult> codeFactory,
             IDirectoryService service,
-            IAccountService accountService)
+            IAccountService accountService,
+            IModuleService moduleService)
         {
             _codeFactory = codeFactory ?? throw new ArgumentNullException("Code factory is null");
             _service = service ?? throw new ArgumentNullException("Directory service is null");
             _accountService = accountService ?? throw new ArgumentNullException("Account service is null");
+            _moduleService = moduleService ?? throw new ArgumentNullException("Module service is null");
         }
 
         [HttpGet]
-        [Authorize(AuthenticationSchemes = "Identity.Application", Roles = ROLES_ALL)]
         [Route("download/file/{*filename}")]
         public async Task<IActionResult> DownloadProtectedFile(string filename, string token)
         {
             var validated = _accountService.ValidateTokenAndGetName(token);
             if (validated.Code != Domain.Enums.StatusCode.OK)
+            {
+                return Unauthorized();
+            }
+
+            var userHasModule = await _moduleService.DoesUserHaveModule(validated.Obj, Constants.Models.ModuleAddOns.Browser.Id);
+            if (userHasModule.Obj == false)
             {
                 return Unauthorized();
             }
@@ -52,8 +61,6 @@ namespace VueServer.Controllers
         }
         
         [HttpGet]
-        [Authorize(AuthenticationSchemes = "Identity.Application", Roles = ROLES_ALL)]
-        //[ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.VIEWER_ID)]
         [Route("/api/serve-file/{*filename}")]
         public async Task<IActionResult> ServeMedia(string filename, string token)
         {
@@ -63,7 +70,17 @@ namespace VueServer.Controllers
                 return Unauthorized();
             }
 
-            // TODO: Add check to see if user has access to this module
+            var userHasModule = await _moduleService.DoesUserHaveModule(validated.Obj, Constants.Models.ModuleAddOns.Browser.Id);
+            if (userHasModule.Obj == false)
+            {
+                return Unauthorized();
+            }
+
+            var userHasFeature = await _moduleService.DoesUserHaveFeature(validated.Obj, Constants.Models.ModuleFeatures.Browser.VIEWER_ID);
+            if (userHasFeature.Obj == false)
+            {
+                return Unauthorized();
+            }
 
             var file = await _service.Download(filename, validated.Obj, true);
             if (file.Code != Domain.Enums.StatusCode.OK && file.Code != Domain.Enums.StatusCode.NO_CONTENT)
@@ -82,18 +99,18 @@ namespace VueServer.Controllers
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Browser.Id)]
         [Route("folder/{directory}/{*dir}")]
-        public IActionResult LoadDirectory(string directory, string dir = null)
+        public async Task<IActionResult> LoadDirectory(string directory, string dir = null)
         {
-            return _codeFactory.GetStatusCode(_service.Load(directory, dir));
+            return _codeFactory.GetStatusCode(await _service.Load(directory, dir));
         }
 
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Browser.Id)]
         [Route("list")]
-        public IActionResult GetDirectoryList()
+        public async Task<IActionResult> GetDirectoryList()
         {
-            return _codeFactory.GetStatusCode(_service.GetDirectories());
+            return _codeFactory.GetStatusCode(await _service.GetDirectories());
         }
 
         [HttpPost]

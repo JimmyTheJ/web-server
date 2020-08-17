@@ -1,17 +1,14 @@
 <template>
     <v-dialog v-model="dialog" :max-width="getMaxWidth" :fullscreen="isMobile">
         <v-toolbar>
-            <v-toolbar-item>
-                <fa-icon icon="window-close"></fa-icon>
-            </v-toolbar-item>
-            
-        </v-toolbar>
-        <v-card>
-            <v-card-title class="headline">
+            <v-btn icon @click="dialog = false"><fa-icon icon="window-close"></fa-icon></v-btn>
+            <v-toolbar-title class="headline pl-2">
                 <slot name="header">
                     File Viewer
                 </slot>
-            </v-card-title>
+            </v-toolbar-title>
+        </v-toolbar>
+        <v-card>
             <v-card-text>
                 <v-layout row>
                     <v-flex xs1>
@@ -33,11 +30,9 @@
                     </v-flex>
                 </v-layout>
             </v-card-text>
-            <v-card-actions>
-                <v-btn @click="dialog = false">
-                    Close
-                </v-btn>
-            </v-card-actions>
+            <!--<v-card-actions>
+
+            </v-card-actions>-->
         </v-card>
     </v-dialog>
 </template>

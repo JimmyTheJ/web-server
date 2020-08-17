@@ -14,11 +14,11 @@ namespace VueServer.Services.Interface
 {
     public interface IDirectoryService
     {
-        IResult<IEnumerable<ServerDirectory>> GetDirectories ();
+        Task<IResult<IEnumerable<ServerDirectory>>> GetDirectories ();
 
         Task<IResult<Tuple<string, string, string>>> Download (string filename, string user, bool media = false);
 
-        IResult<IOrderedEnumerable<WebServerFile>> Load (string directory, string subDir);
+        Task<IResult<IOrderedEnumerable<WebServerFile>>> Load (string directory, string subDir);
 
         Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model);
 

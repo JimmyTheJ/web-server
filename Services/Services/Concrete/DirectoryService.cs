@@ -52,9 +52,9 @@ namespace VueServer.Services.Concrete
 
         # region -> Public Functions
 
-        public IResult<IEnumerable<ServerDirectory>> GetDirectories ()
+        public async Task<IResult<IEnumerable<ServerDirectory>>> GetDirectories ()
         {
-            var dirs = GetSingleDirectoryList(_user.Id, true);
+            var dirs = await GetSingleDirectoryList(_user.Id, true);
             return new Result<IEnumerable<ServerDirectory>>(dirs, StatusCode.OK);
         }
 
@@ -91,7 +91,7 @@ namespace VueServer.Services.Concrete
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
-            var list = GetSingleDirectoryList(user).ToList();
+            var list = (await GetSingleDirectoryList(user)).ToList();
             var folders = tuple.Item1.ToList();
 
             var baseDir = list.Where(a => a.Name == folders[0]).Select(a => a.Path).FirstOrDefault();
@@ -162,7 +162,7 @@ namespace VueServer.Services.Concrete
                         return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
 
-                    _logger.LogInformation("Private zip archive download begun by " + _user.Id + " @ " + _user.IP + " - name=" + filename);
+                    _logger.LogInformation("Private zip archive download begun by " + user + " @ " + _user.IP + " - name=" + filename);
                     return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(zipPath, contentType, cleanFilename), StatusCode.OK);
                 }
                 //else
@@ -182,14 +182,14 @@ namespace VueServer.Services.Concrete
                 return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
             }
 
-            _logger.LogInformation("Private download begun by " + _user.Id + " @ " + _user.IP + " - name=" + filename);
+            _logger.LogInformation("Private download begun by " + user + " @ " + _user.IP + " - name=" + filename);
             //if (!media)
                 return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(Path.Combine(sourcePath, cleanFilename), contentType, cleanFilename), StatusCode.OK);
             //else
             //    return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(mediaFilename.Item1, mediaFilename.Item2, cleanFilename), StatusCode.OK);
         }
 
-        public IResult<IOrderedEnumerable<WebServerFile>> Load (string directory, string subDir)
+        public async Task<IResult<IOrderedEnumerable<WebServerFile>>> Load (string directory, string subDir)
         {
             if (string.IsNullOrWhiteSpace(directory))
             {
@@ -197,7 +197,7 @@ namespace VueServer.Services.Concrete
                 return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
             }
 
-            var list = GetSingleDirectoryList(_user.Id).ToList();
+            var list = (await GetSingleDirectoryList(_user.Id)).ToList();
             var basePath = list.Where(a => a.Name == directory).Select(a => a.Path).FirstOrDefault();
             if (basePath == null)
             {
@@ -258,7 +258,7 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model)
         {
-            var uploadDirs = GetSingleDirectoryList(_user.Id);
+            var uploadDirs = await GetSingleDirectoryList(_user.Id);
             string baseSaveDir = uploadDirs.Where(x => x.Name == model.Directory).Select(y => y.Path).FirstOrDefault();
             string saveDir = baseSaveDir;
 
@@ -325,7 +325,7 @@ namespace VueServer.Services.Concrete
             if (string.IsNullOrWhiteSpace(model.Name))
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
 
-            var uploadDirs = GetSingleDirectoryList(_user.Id);
+            var uploadDirs = await GetSingleDirectoryList(_user.Id);
             string dir = uploadDirs.Where(x => x.Name == model.Directory).Select(y => y.Path).FirstOrDefault();
             if (dir == null)
             {
@@ -381,13 +381,16 @@ namespace VueServer.Services.Concrete
 
         #region -> Private Functions
 
-        private ACCESS_LEVELS GetMaxLevel ()
+        private async Task<ACCESS_LEVELS> GetMaxLevel (string user)
         {
-            if (_user.Context.User.IsInRole(ADMINISTRATOR_STRING) )
+            var wsUser = await _user.GetUserByIdAsync(user);
+            var roles = await _user.GetUserRolesAsync(wsUser);
+
+            if (roles.Contains(ADMINISTRATOR_STRING) )
                 return ACCESS_LEVELS.ADMIN;
-            else if (_user.Context.User.IsInRole(ELEVATED_STRING) )
+            else if (roles.Contains(ELEVATED_STRING) )
                 return ACCESS_LEVELS.ELEVATED;
-            else if (_user.Context.User.IsInRole(USER_STRING) )
+            else if (roles.Contains(USER_STRING) )
                 return ACCESS_LEVELS.GENERAL;
             else
                 return 0;
@@ -507,10 +510,10 @@ namespace VueServer.Services.Concrete
             return list;
         }
 
-        private IList<ServerDirectory> GetSingleDirectoryList(string user, bool stripPath = false)
+        private async Task<IList<ServerDirectory>> GetSingleDirectoryList(string user, bool stripPath = false)
         {
             var dirs = GetServerGroupDirectoryLists(user);
-            switch (GetMaxLevel())
+            switch (await GetMaxLevel(user))
             {
                 case ACCESS_LEVELS.ADMIN:
                     return GetFullUserFolderList(dirs.Admin, dirs.User, stripPath);

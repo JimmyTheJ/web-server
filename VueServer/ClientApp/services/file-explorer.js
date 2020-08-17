@@ -1,4 +1,5 @@
 import axios from '../axios'
+import store from '../store/index'
 
 const LoadDirectoryUrl = `api/directory/folder`;
 const FileListUrl = `api/directory/list`;
@@ -14,7 +15,7 @@ export default {
             return axios.get(`${LoadDirectoryUrl}/${dir}/${subDir}`);
     },
     getFile(file) {
-        return axios.get(`${GetFileUrl}/${file}`)
+        return axios.get(`${GetFileUrl}/${file}`, { params: { token: store.state.auth.accessToken } })
     },
     getFolderList() {
         return axios.get(FileListUrl);
