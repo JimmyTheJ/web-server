@@ -79,7 +79,8 @@ namespace VueServer.Classes.Extensions
                     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 })
-                .AddJwtBearer(options => {
+                .AddJwtBearer(options =>
+                {
                     // First autorization takes priority unless explicitly targetted
                     options.RequireHttpsMetadata = true;       // TODO - Change for production
                     options.SaveToken = true;
@@ -107,40 +108,6 @@ namespace VueServer.Classes.Extensions
                             return Task.CompletedTask;
                         }
                     };
-                })
-                // TODO: See if a cookie is actually necessary - Might be for file downloads
-                .AddCookie(options =>
-                {
-                    options.SlidingExpiration = true;
-                    options.Cookie.HttpOnly = true;
-                    options.Cookie.Expiration = TimeSpan.FromDays(365);
-                    options.Cookie.Name = "WebServer.user";
-                    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
-                    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-                    options.Events.OnRedirectToReturnUrl = context =>
-                    {
-                        Console.WriteLine("Authentication Cookie: redirect to return url");
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        return Task.CompletedTask;
-                    };
-                    options.Events.OnRedirectToAccessDenied = context =>
-                    {
-                        Console.WriteLine("Authentication Cookie: redirect on accest denied");
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        return Task.CompletedTask;
-                    };
-                    options.Events.OnRedirectToLogin = context =>
-                    {
-                        Console.WriteLine("Authentication Cookie: redirect to login");
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        return Task.CompletedTask;
-                    };
-                    options.Events.OnRedirectToLogout = context =>
-                    {
-                        Console.WriteLine("Authentication Cookie: redirect to logout");
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        return Task.CompletedTask;
-                    };
                 });
         }
 
@@ -157,25 +124,6 @@ namespace VueServer.Classes.Extensions
                 options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                 options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
                 options.IdleTimeout = TimeSpan.FromDays(365);
-            });
-        }
-
-        /// <summary>
-        /// Anti-forgery settings for the application
-        /// </summary>
-        /// <param name="services"></param>
-        public static void AddCustomAntiforgery(this IServiceCollection services)
-        {
-            services.AddAntiforgery(options =>
-            {
-                options.Cookie.Name = "WebServer.anti-forgery";
-                options.Cookie.HttpOnly = false;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
-                options.Cookie.Expiration = TimeSpan.FromDays(1);
-                options.FormFieldName = "AntiForgery";
-                options.HeaderName = "X-CSRF-TOKEN";
-                options.SuppressXFrameOptionsHeader = true;
             });
         }
 

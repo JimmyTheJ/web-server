@@ -654,23 +654,15 @@ namespace VueServer.Services.Concrete
 
         #region -> Author
 
-        private async Task<IEnumerable<Author>> AddAuthorListAsync(IList<Author> authors)
+        private async Task<bool> AddAuthorListAsync(IEnumerable<Author> authors)
         {
-            if (authors == null || authors.Count == 0)
+            if (authors == null || authors.Count() == 0)
             {
-                _logger.LogDebug("AddAuthorListAsync: Author list is null");
-                return null;
+                _logger.LogDebug("AddAuthorListAsync: Author list is null or contains only authors that are already present in the database.");
+                return true;
             }
 
-            var authorsToAdd = authors.Where(x => x.Id != 0);
-            if (authorsToAdd.Count() == 0)
-            {
-                _logger.LogDebug("AddAuthorListAsync: Author list contains only authors with Id not equal to 0");
-                return null;
-            }
-
-            _wsContext.Authors.AddRange(authorsToAdd);
-
+            _wsContext.Authors.AddRange(authors);
             try
             {
                 await _wsContext.SaveChangesAsync();
@@ -679,78 +671,23 @@ namespace VueServer.Services.Concrete
             catch
             {
                 _logger.LogError("AddAuthorListAsync: Error saving database on adding authors");
-                return null;
+                return false;
             }
 
-            return authorsToAdd;
+            return true;
         }
 
-        private async Task<IList<BookAuthor>> AddBookAuthorListAsync(IList<Author> authors, Book book)
+        private async Task<IList<BookAuthor>> UpdateBookAuthorListConnectionsAsync(IList<Author> newAuthors, IList<BookAuthor> bookAuthorsToDelete, Book book)
         {
-            if (authors == null || authors.Count == 0)
+            var bookAuthors = newAuthors.Select(x => new BookAuthor()
             {
-                _logger.LogDebug("AddBookAuthorListAsync: Author list is null");
-                return null;
-            }
-            var authorsToAdd = new List<Author>();
+                AuthorId = x.Id,
+                BookId = book.Id
+            }).ToList();
 
-            var newAuthors = await AddAuthorListAsync(authors);
-            if (newAuthors != null)
-            {
-                foreach (var author in newAuthors)
-                {
-                    authorsToAdd.Add(author);
-                }
-            }
+            _wsContext.BookHasAuthors.AddRange(bookAuthors);
+            _wsContext.BookHasAuthors.RemoveRange(bookAuthorsToDelete);
 
-            // Existing authors
-            foreach (var author in authors)
-            {
-                if (author.Id > 0)
-                {
-                    authorsToAdd.Add(author);
-                }
-            }
-
-            var newBookAuthors = await UpdateBookAuthorListConnectionsAsync(authorsToAdd, null, null, book);
-            return newBookAuthors;
-        }
-
-        private async Task<IList<BookAuthor>> UpdateBookAuthorListConnectionsAsync(IList<Author> newAuthors, IList<BookAuthor> existingBookAuthors, IList<BookAuthor> bookAuthorsToDelete, Book book)
-        {
-            var bookAuthors = new List<BookAuthor>();
-
-            // Add / Update all the Book Author connections
-            if (newAuthors != null)
-            {
-                foreach (var author in newAuthors)
-                {
-                    bookAuthors.Add(new BookAuthor() { AuthorId = author.Id, BookId = book.Id });
-                }
-            }
-
-            foreach (var bA in bookAuthors)
-            {
-                _wsContext.BookHasAuthors.Add(bA);
-            }
-
-            if (existingBookAuthors != null)
-            {
-                foreach (var bA in existingBookAuthors)
-                {
-                    bookAuthors.Add(bA);
-                }
-            }            
-
-            if (bookAuthorsToDelete != null)
-            {
-                foreach (var author in bookAuthorsToDelete)
-                {
-                    _wsContext.BookHasAuthors.Remove(author);
-                }
-            }
-
-            // TODO: Check if all the parameters are null maybe ?
             try
             {
                 await _wsContext.SaveChangesAsync();
@@ -760,6 +697,11 @@ namespace VueServer.Services.Concrete
             {
                 _logger.LogError("UpdateBookAuthorListConnectionsAsync: Error saving database on book author connections");
                 return null;
+            }
+
+            foreach (var bookAuthor in bookAuthors)
+            {
+                bookAuthor.Author = newAuthors.Where(x => x.Id == bookAuthor.AuthorId).Single();
             }
 
             return bookAuthors;
@@ -779,14 +721,20 @@ namespace VueServer.Services.Concrete
                 return null;
             }
 
-            var existingBookAuthors = await _wsContext.BookHasAuthors.Include(x => x.Author).Where(x => x.BookId == book.Id && authors.Select(y => y.Id).Any(y => y == x.AuthorId)).ToListAsync();
-            var addAuthors = authors.Where(x => !existingBookAuthors.Any(y => y.AuthorId == x.Id)).ToList();
-            var bookAuthorsToDelete = book.BookAuthors?.Where(x => !existingBookAuthors.Any(y => y.AuthorId == x.AuthorId) && !addAuthors.Any(y => y.Id == x.AuthorId)).ToList();
+            // Get the list of authors that need to be added and deleted from the BookAuthor list
+            var addAuthors = authors.Where(x => !book.BookAuthors?.Any(y => y.AuthorId == x.Id) == true).ToList();
+            var bookAuthorsToDelete = book.BookAuthors?.Where(x => !authors.Any(y => y.Id == x.AuthorId)).ToList();
 
-            var newAuthors = await AddAuthorListAsync(addAuthors);
-            var newBookAuthors = await UpdateBookAuthorListConnectionsAsync(newAuthors?.ToList() ?? addAuthors, existingBookAuthors, bookAuthorsToDelete, book);
+            // Clone the book passed in and start building a new list of which books are going to be returned to the Client
+            var currentBookAuthors = book.Clone().BookAuthors.Where(x => !bookAuthorsToDelete.Any(y => y.BookId == x.BookId && y.AuthorId == x.AuthorId)).ToList();
 
-            return newBookAuthors;
+            var authorsToCreate = addAuthors.Where(x => x.Id <= 0);
+            await AddAuthorListAsync(authorsToCreate);
+
+            var newBookAuthors = await UpdateBookAuthorListConnectionsAsync(addAuthors, bookAuthorsToDelete, book);
+            currentBookAuthors.AddRange(newBookAuthors);
+
+            return currentBookAuthors;
         }
 
         #endregion
@@ -898,62 +846,31 @@ namespace VueServer.Services.Concrete
 
         #region -> Genre
 
-        private async Task<IList<BookGenre>> AddBookGenreListAsync(IList<Genre> genres, Book book)
+        private async Task<IList<BookGenre>> UpdateBookGenreListConnectionsAsync(IList<Genre> newGenres, IList<BookGenre> bookGenresToDelete, Book book)
         {
-            if (genres == null || genres.Count == 0)
+            var bookGenres = newGenres.Select(x => new BookGenre()
             {
-                _logger.LogDebug("AddBookGenreListAsync: Genre list is null");
-                return null;
-            }
+                BookId = book.Id,
+                GenreId = x.Id
+            }).ToList();
 
-            var newBookGenres = await UpdateBookGenreListConnectionsAsync(genres, null, null, book);
-            return newBookGenres;
-        }
+            _wsContext.BookHasGenres.AddRange(bookGenres);
+            _wsContext.BookHasGenres.RemoveRange(bookGenresToDelete);
 
-        private async Task<IList<BookGenre>> UpdateBookGenreListConnectionsAsync(IList<Genre> newGenres, IList<BookGenre> existingBookGenres, IList<BookGenre> bookGenresToDelete, Book book)
-        {
-            var bookGenres = new List<BookGenre>();
-
-            // Add / Update all the Book Genre connections
-            if (newGenres != null)
-            {
-                foreach (var genre in newGenres)
-                {
-                    bookGenres.Add(new BookGenre() { GenreId = genre.Id, BookId = book.Id });
-                }
-            }
-
-            foreach (var bG in bookGenres)
-            {
-                _wsContext.BookHasGenres.Add(bG);
-            }
-
-            if (existingBookGenres != null)
-            {
-                foreach (var bG in existingBookGenres)
-                {
-                    bookGenres.Add(bG);
-                }
-            }
-
-            if (bookGenresToDelete != null)
-            {
-                foreach (var genre in bookGenresToDelete)
-                {
-                    _wsContext.BookHasGenres.Remove(genre);
-                }
-            }
-
-            // TODO: Check if all the parameters are null maybe ?
             try
             {
                 await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("UpdateBookGenreListConnectionsAsync: Successfully made book genre connections in the database");
+                _logger.LogDebug("UpdateBookGenreListConnectionsAsync: Successfully made book author connections in the database");
             }
             catch
             {
-                _logger.LogError("UpdateBookGenreListConnectionsAsync: Error saving database on book genre connections");
+                _logger.LogError("UpdateBookGenreListConnectionsAsync: Error saving database on book author connections");
                 return null;
+            }
+
+            foreach (var bookGenre in bookGenres)
+            {
+                bookGenre.Genre = newGenres.Where(x => x.Id == bookGenre.GenreId).Single();
             }
 
             return bookGenres;
@@ -973,13 +890,17 @@ namespace VueServer.Services.Concrete
                 return null;
             }
 
-            var existingBookGenres = await _wsContext.BookHasGenres.Include(x => x.Genre).Where(x => x.BookId == book.Id && genres.Select(y => y.Id).Any(y => y == x.GenreId)).ToListAsync();
-            var addGenres = genres.Where(x => !existingBookGenres.Any(y => y.GenreId == x.Id)).ToList();
-            var bookGenresToDelete = book.BookGenres?.Where(x => !existingBookGenres.Any(y => y.GenreId == x.GenreId) && !addGenres.Any(y => y.Id == x.GenreId)).ToList();
+            // Get the list of genres that need to be added and deleted from the BookGenre list
+            var addGenres = genres.Where(x => !book.BookGenres?.Any(y => y.GenreId == x.Id) == true).ToList();
+            var bookGenresToDelete = book.BookGenres?.Where(x => !genres.Any(y => y.Id == x.GenreId)).ToList();
 
-            var newBookGenres = await UpdateBookGenreListConnectionsAsync(addGenres, existingBookGenres, bookGenresToDelete, book);
+            // Clone the book passed in and start building a new list of which books are going to be returned to the Client
+            var currentBookGenres = book.Clone().BookGenres.Where(x => !bookGenresToDelete.Any(y => y.BookId == x.BookId && y.GenreId == x.GenreId)).ToList();
 
-            return newBookGenres;
+            var newBookGenres = await UpdateBookGenreListConnectionsAsync(addGenres, bookGenresToDelete, book);
+            currentBookGenres.AddRange(newBookGenres);
+
+            return currentBookGenres;
         }
 
         #endregion

@@ -511,7 +511,7 @@
                     this.activeBook.authors = [];
 
                 if (typeof this.authorToAdd !== 'object')
-                    this.authorToAdd = getNewAuthor();
+                    this.authorToAdd = Helper.getNewAuthor();
 
                 // Manual Add
                 if (this.authorToAdd.id <= 0 && typeof this.authorSearch !== 'undefined' && this.authorSearch !== null && this.authorSearch.trim() !== '') {
@@ -547,7 +547,7 @@
                 }
 
                 this.activeBook.authors.push(this.authorToAdd);
-                this.authorToAdd = getNewAuthor();
+                this.authorToAdd = Helper.getNewAuthor();
 
                 this.updateFilteredAuthorList();
             },

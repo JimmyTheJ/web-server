@@ -31,20 +31,20 @@
                         <tr v-for="item in items" :key="item.id" @click="openAddOrEditBookDialog(item, $event)">
                             <td>{{ getTitle(item) }}</td>
                             <td v-if="item.bookAuthors !== null">
-                                <template v-for="bookAuthor in item.bookAuthors">
+                                <div v-for="(bookAuthor, index) in item.bookAuthors" :key="index">
                                     <template v-if="bookAuthor.author !== null">
                                         <p>{{ bookAuthor.author.fullName }}</p>
                                     </template>
-                                </template>
+                                </div>
                             </td>
                             <td v-else></td>
                             <td class="hidden-sm-and-down">{{ item.edition }}</td>
                             <td class="hidden-xs-only">
-                                <template v-for="bookGenre in item.bookGenres">
+                                <div v-for="(bookGenre, index) in item.bookGenres" :key="index">
                                     <template v-if="bookGenre.genre !== null">
                                         <p>{{ bookGenre.genre.name }}</p>
                                     </template>
-                                </template>
+                                </div>
                             </td>
                             <td class="hidden-sm-and-down">{{ getPublicationDate(item.publicationDate) }}</td>
                             <td class="hidden-xs-only" v-if="item.hardcover"><fa-icon icon="check"></fa-icon></td>

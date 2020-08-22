@@ -26,6 +26,7 @@ using System.IO;
 using VueServer.Domain.Helper;
 using Microsoft.Extensions.Hosting;
 using VueServer.Services.Hubs;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
 
 namespace VueServer
 {
@@ -56,7 +57,6 @@ namespace VueServer
 
             services.AddSignalR();
             services.AddCustomSession();
-            services.AddCustomAntiforgery();
 
             //services.AddDataProtection(options => options.ApplicationDiscriminator = "VueServer")
             //    .PersistKeysToFileSystem(new DirectoryInfo(@"C:\keys"))
@@ -71,6 +71,7 @@ namespace VueServer
                 .AddMvc(options => {
                     options.Filters.Add(new IgnoreAntiforgeryTokenAttribute());
                 })
+                .InitializeTagHelper<FormTagHelper>((helper, context) => helper.Antiforgery = false)
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.ContractResolver = new LowercaseContractResolver();
