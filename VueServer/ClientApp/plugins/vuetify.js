@@ -7,7 +7,16 @@ Vue.use(Vuetify)
 
 const opts = {
     theme: {
-        dark: true
+        dark: true,
+        // If you wanted to override the theming 
+        //themes: {
+        //    light: {
+
+        //    },
+        //    dark: {
+
+        //    }
+        //}
     }    
 }
 

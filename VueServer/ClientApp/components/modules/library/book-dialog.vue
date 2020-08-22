@@ -631,10 +631,10 @@
                 if (this.activeBook.id > 0) {
                     const request = getRequest(this.activeBook);
                     this.$store.dispatch('editBook', request).then(resp => {
-                        this.$store.dispatch('pushNotification', { text: 'Successfully updated the book in the list', type: 1, groupType: 'library-book', groupValue: 'update' });
+                        this.$store.dispatch('pushNotification', { text: 'Successfully updated the book in the list', type: 0, group: { type: 'library-book', value: 'update' } });
                         this.activeBook = getNewBook();
                     }).catch(() => {
-                        this.$store.dispatch('pushNotification', { text: 'Failed to update the book in the list', type: 3, groupType: 'library-book', groupValue: 'update' });
+                        this.$store.dispatch('pushNotification', { text: 'Failed to update the book in the list', type: 2, group: { type: 'library-book', value: 'update' } });
                     }).then(() => {
                         this.updateFilteredShelfList();
                         this.$emit('closeDialog', true);
@@ -644,10 +644,10 @@
                 else {
                     const request = getRequest(this.activeBook);
                     this.$store.dispatch('addBook', request).then(resp => {
-                        this.$store.dispatch('pushNotification', { text: 'Successfully added a new book to the list', type: 1, groupType: 'library-book', groupValue: 'add' });
+                        this.$store.dispatch('pushNotification', { text: 'Successfully added a new book to the list', type: 0, group: { type: 'library-book', value: 'add' } });
                         this.activeBook = getNewBook();
                     }).catch(() => {
-                        this.$store.dispatch('pushNotification', { text: 'Failed to add a new book to the list', type: 3, groupType: 'library-book', groupValue: 'add' });
+                        this.$store.dispatch('pushNotification', { text: 'Failed to add a new book to the list', type: 2, group: { type: 'library-book', value: 'add' } });
                     }).then(() => {
                         this.updateFilteredShelfList();
                         this.$emit('closeDialog', true);

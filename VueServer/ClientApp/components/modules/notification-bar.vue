@@ -5,8 +5,12 @@
 
             <div v-for="message in reversedMessages" :key="message.id" class="scroll-y">
                 <div :class="[getMessageBackground(message.read), 'my-1']">
-                    <v-banner :class="getMessageBorder(message.read)">
-                        <span @click="readMessage(message)" :class="getTextColor(message.type)">{{ message.text }}</span>
+                    <!--<v-banner :class="getMessageBorder(message.read)">-->
+                    <v-banner>
+                        <v-avatar v-if="messageHasGroupNum(message.group)" color="orange" size="40">
+                            <span class="white--text headline">{{ message.group.num }}</span>
+                        </v-avatar>
+                        <span @click="readMessage(message)" :class="getTextColor(message.read)">{{ message.text }}</span>
                         <template v-slot:actions>
                             <fa-icon color="#555555" icon="times" @click="deleteMessage(message)" class="mr-2 mb-2"></fa-icon>
                         </template>
@@ -69,40 +73,50 @@
                 
                 this.$store.dispatch('readNotification', item.id);
             },
-            getTextColor(type) {
-                if (typeof type !== 'number') {
-                    return 'white--text font-weight-bold';
+            getTextColor(isRead) {
+                if (this.$vuetify.theme.dark === true) {
+                    if (isRead)
+                        return 'white--text';
+                    else
+                        return 'white--text font-weight-bold';
+                }
+                else {
+                    if (isRead)
+                        return 'black--text';
+                    else
+                        return 'black--text font-weight-bold'
+                }
+            },
+            //getMessageBorder(isRead) {
+            //    if (typeof isRead !== 'boolean' || isRead === false) {
+            //        //return 'message-unread';
+            //        return 'info accent-3'
+            //    }
+            //    else {
+            //        return 'grey lighten-2';
+            //    }                
+            //},
+            getMessageBackground(isRead) {
+                if (this.$vuetify.theme.dark === true) {
+                    if (isRead)
+                        return 'grey darken-3';
+                    else
+                        return 'grey';
+                }
+                else {
+                    if (isRead)
+                        return 'grey lighten-3';
+                    else
+                        return 'grey'
+                }
+            },
+            messageHasGroupNum(group) {
+                if (group === null || group.num < 2) {
+                    return false;
                 }
 
-                switch (type) {
-                    case 0:
-                        return 'green--text darken-1 font-weight-bold';
-                    case 1:
-                        return 'deep-purple--text darken-2 font-weight-bold';
-                    case 2:
-                        return 'red--text darken-2 font-weight-bold';
-                    default:
-                        return 'grey--text lighten-3 font-weight-bold';
-                }
+                return true;
             },
-            getMessageBorder(isRead) {
-                if (typeof isRead !== 'boolean' || isRead === false) {
-                    //return 'message-unread';
-                    return 'info accent-3'
-                }
-                else {
-                    return '';
-                }                
-            },
-            getMessageBackground(isRead) {
-                if (typeof isRead !== 'boolean' || isRead === false) {
-                    return 'info darken-4';
-                    //return 'message-border-unread';
-                }
-                else {
-                    return 'message-border-read';
-                }
-            }
         }
     }
 </script>

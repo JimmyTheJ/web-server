@@ -227,7 +227,11 @@
                 if (typeof item === 'undefined' || item === null)
                     return;
 
-                this.$store.dispatch('deleteBook', item.id);
+                this.$store.dispatch('deleteBook', item.id).then(resp => {
+                    this.$store.dispatch('pushNotification', { text: 'Successfully deleted the book from the list', type: 0, group: { type: 'library-book', value: 'delete' } });
+                }).catch(() => {
+                    this.$store.dispatch('pushNotification', { text: 'Failed to delete the book from the list', type: 2, group: { type: 'library-book', value: 'delete' } });
+                });
             },
             getBookcaseName(item) {
                 if (typeof item === 'undefined' || item === null || item.bookcase === 'undefined' || item.bookcase === null)
