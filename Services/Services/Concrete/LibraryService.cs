@@ -679,14 +679,14 @@ namespace VueServer.Services.Concrete
 
         private async Task<IList<BookAuthor>> UpdateBookAuthorListConnectionsAsync(IList<Author> newAuthors, IList<BookAuthor> bookAuthorsToDelete, Book book)
         {
-            var bookAuthors = newAuthors.Select(x => new BookAuthor()
+            var bookAuthors = newAuthors?.Select(x => new BookAuthor()
             {
                 AuthorId = x.Id,
                 BookId = book.Id
             }).ToList();
 
-            _wsContext.BookHasAuthors.AddRange(bookAuthors);
-            _wsContext.BookHasAuthors.RemoveRange(bookAuthorsToDelete);
+            if (bookAuthors != null) _wsContext.BookHasAuthors.AddRange(bookAuthors);
+            if (bookAuthorsToDelete != null) _wsContext.BookHasAuthors.RemoveRange(bookAuthorsToDelete);
 
             try
             {
@@ -722,7 +722,7 @@ namespace VueServer.Services.Concrete
             }
 
             // Get the list of authors that need to be added and deleted from the BookAuthor list
-            var addAuthors = authors.Where(x => !book.BookAuthors?.Any(y => y.AuthorId == x.Id) == true).ToList();
+            var addAuthors = authors.Where(x => book.BookAuthors == null || !book.BookAuthors.Any(y => y.AuthorId == x.Id) == true).ToList();
             var bookAuthorsToDelete = book.BookAuthors?.Where(x => !authors.Any(y => y.Id == x.AuthorId)).ToList();
 
             // Clone the book passed in and start building a new list of which books are going to be returned to the Client
@@ -848,14 +848,14 @@ namespace VueServer.Services.Concrete
 
         private async Task<IList<BookGenre>> UpdateBookGenreListConnectionsAsync(IList<Genre> newGenres, IList<BookGenre> bookGenresToDelete, Book book)
         {
-            var bookGenres = newGenres.Select(x => new BookGenre()
+            var bookGenres = newGenres?.Select(x => new BookGenre()
             {
                 BookId = book.Id,
                 GenreId = x.Id
             }).ToList();
 
-            _wsContext.BookHasGenres.AddRange(bookGenres);
-            _wsContext.BookHasGenres.RemoveRange(bookGenresToDelete);
+            if (newGenres != null) _wsContext.BookHasGenres.AddRange(bookGenres);
+            if (bookGenresToDelete != null) _wsContext.BookHasGenres.RemoveRange(bookGenresToDelete);
 
             try
             {
@@ -891,7 +891,7 @@ namespace VueServer.Services.Concrete
             }
 
             // Get the list of genres that need to be added and deleted from the BookGenre list
-            var addGenres = genres.Where(x => !book.BookGenres?.Any(y => y.GenreId == x.Id) == true).ToList();
+            var addGenres = genres.Where(x => book.BookGenres == null || !book.BookGenres.Any(y => y.GenreId == x.Id) == true).ToList();
             var bookGenresToDelete = book.BookGenres?.Where(x => !genres.Any(y => y.Id == x.GenreId)).ToList();
 
             // Clone the book passed in and start building a new list of which books are going to be returned to the Client

@@ -100,28 +100,34 @@ namespace VueServer.Models.Library
         public Book Clone ()
         {
             var newBookAuthors = new List<BookAuthor>();
-            foreach (var bookAuthor in this.BookAuthors)
+            if (this.BookAuthors != null)
             {
-                newBookAuthors.Add(new BookAuthor()
+                foreach (var bookAuthor in this.BookAuthors)
                 {
-                    Author = bookAuthor.Author,
-                    AuthorId = bookAuthor.AuthorId,
-                    Book = bookAuthor.Book,
-                    BookId = bookAuthor.BookId
-                });
-            };
+                    newBookAuthors.Add(new BookAuthor()
+                    {
+                        Author = bookAuthor.Author,
+                        AuthorId = bookAuthor.AuthorId,
+                        Book = bookAuthor.Book,
+                        BookId = bookAuthor.BookId
+                    });
+                };
+            }
 
             var newBookGenres = new List<BookGenre>();
-            foreach (var bookGenre in this.BookGenres)
+            if (this.BookGenres != null)
             {
-                newBookGenres.Add(new BookGenre()
+                foreach (var bookGenre in this?.BookGenres)
                 {
-                    Genre = bookGenre.Genre,
-                    GenreId = bookGenre.GenreId,
-                    Book = bookGenre.Book,
-                    BookId = bookGenre.BookId
-                });
-            };
+                    newBookGenres.Add(new BookGenre()
+                    {
+                        Genre = bookGenre.Genre,
+                        GenreId = bookGenre.GenreId,
+                        Book = bookGenre.Book,
+                        BookId = bookGenre.BookId
+                    });
+                };
+            }
 
             Bookcase newBookcase = null;
             if (this.Bookcase != null)

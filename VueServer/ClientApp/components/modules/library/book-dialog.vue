@@ -2,7 +2,8 @@
     <v-dialog v-model="dialogOpen" :max-width="maxModalWidth">
         <v-card>
             <v-card-title>
-                <span class="headline">{{ addEditDialogTitle }}</span>
+                <v-btn icon @click="dialogOpen = false"><fa-icon icon="times"></fa-icon></v-btn>
+                <span class="headline center">{{ addEditDialogTitle }}</span>
             </v-card-title>
 
             <v-card-text>
@@ -624,26 +625,33 @@
                 this.updateFilteredShelfList();
             },
             async addOrUpdateBook() {
-                this.$_console_log("[Library] Add or update book");
-                this.$_console_log(this.activeBook);
+                this.$_console_log("[Library] Add or update book", this.activeBook);
 
                 // Update
                 if (this.activeBook.id > 0) {
                     const request = getRequest(this.activeBook);
-                    await this.$store.dispatch('editBook', request);
-
-                    this.updateFilteredShelfList();
-                    // TODO: Consider putting this in the success of the call above
-                    this.$emit('closeDialog', true);
+                    this.$store.dispatch('editBook', request).then(resp => {
+                        this.$store.dispatch('pushNotification', { text: 'Successfully updated the book in the list', type: 1, groupType: 'library-book', groupValue: 'update' });
+                        this.activeBook = getNewBook();
+                    }).catch(() => {
+                        this.$store.dispatch('pushNotification', { text: 'Failed to update the book in the list', type: 3, groupType: 'library-book', groupValue: 'update' });
+                    }).then(() => {
+                        this.updateFilteredShelfList();
+                        this.$emit('closeDialog', true);
+                    });
                 }
                 // Add
                 else {
                     const request = getRequest(this.activeBook);
-                    await this.$store.dispatch('addBook', request);
-
-                    this.updateFilteredShelfList();
-                    // TODO: Consider putting this in the success of the call above
-                    this.$emit('closeDialog', true);
+                    this.$store.dispatch('addBook', request).then(resp => {
+                        this.$store.dispatch('pushNotification', { text: 'Successfully added a new book to the list', type: 1, groupType: 'library-book', groupValue: 'add' });
+                        this.activeBook = getNewBook();
+                    }).catch(() => {
+                        this.$store.dispatch('pushNotification', { text: 'Failed to add a new book to the list', type: 3, groupType: 'library-book', groupValue: 'add' });
+                    }).then(() => {
+                        this.updateFilteredShelfList();
+                        this.$emit('closeDialog', true);
+                    });
                 }
             },
         }

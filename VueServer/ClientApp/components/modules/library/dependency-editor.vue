@@ -2,23 +2,24 @@
     <v-dialog v-model="dialogOpen" :max-width="maxModalWidth">
         <v-card>
             <v-card-title>
+                <v-btn icon @click="dialogOpen = false"><fa-icon icon="times"></fa-icon></v-btn>
                 <span class="headline center">Book dependency editor</span>
             </v-card-title>
 
             <v-card-text>
                 <v-layout row>
-                    <v-flex xs12 class="align-center">
-                        <v-btn class="center" @click="addObject()">
-                            <fa-icon icon="plus" />Add new Object<fa-icon icon="plus" />
-                        </v-btn>
-                    </v-flex>
-
                     <v-flex xs12>
                         <v-tabs v-model="activeType" fixed-tabs hide-slider>
                             <v-tab v-for="(item, index) in typeList" :key="index">
                                 {{ item }}
                             </v-tab>
                         </v-tabs>
+                    </v-flex>
+
+                    <v-flex xs12 class="py-1" style="text-align: center">
+                        <v-btn class="primary center" @click="addObject()">
+                            Add new {{ typeList[activeType] }}
+                        </v-btn>
                     </v-flex>
 
                     <v-flex xs12 sm6>
