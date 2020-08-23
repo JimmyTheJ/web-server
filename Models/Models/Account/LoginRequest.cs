@@ -17,10 +17,13 @@ namespace VueServer.Models.Account
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
-        public LoginRequest (string username, string password)
+        public string CodeChallenge { get; set; }
+
+        public LoginRequest (string username, string password, string codeChallenge = null)
         {
             Username = username;
             Password = password;
+            CodeChallenge = codeChallenge;
         }
     }
 }

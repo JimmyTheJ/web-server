@@ -18,13 +18,13 @@ namespace VueServer.Services.Interface
 
         Task<IResult<LoginResponse>> Login (LoginRequest model);
 
-        Task<IResult> Logout (HttpContext context);
+        Task<IResult> Logout (HttpContext context, string username);
 
         IResult<string> GetCsrfToken (HttpContext context);
 
         IResult<string> ValidateTokenAndGetName(string token);
 
-        Task<IResult<string>> RefreshJwtToken (string token);
+        Task<IResult<string>> RefreshJwtToken (RefreshTokenRequest token);
 
         Task<IResult<IEnumerable<WSUser>>> GetUsers();
 

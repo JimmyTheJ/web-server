@@ -66,12 +66,12 @@ namespace VueServer.Controllers
         /// All of the null checks and other stuff is done already for you using this attribute
         /// </summary>
         /// <returns></returns>
-        [HttpPost, HttpGet]
+        [HttpPost]
         [Authorize]
         [Route("logout")]
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> Logout([FromBody] string username)
         {
-            return _codeFactory.GetStatusCode(await _service.Logout(HttpContext));
+            return _codeFactory.GetStatusCode(await _service.Logout(HttpContext, username));
         }
 
         /// <summary>
@@ -94,9 +94,9 @@ namespace VueServer.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("refresh-jwt")]
-        public async Task<IActionResult> RefreshToken ([FromBody] string token)
+        public async Task<IActionResult> RefreshToken ([FromBody] RefreshTokenRequest model)
         {
-            return _codeFactory.GetStatusCode(await _service.RefreshJwtToken(token));
+            return _codeFactory.GetStatusCode(await _service.RefreshJwtToken(model));
         }
 
         /// <summary>

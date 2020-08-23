@@ -12,6 +12,6 @@ namespace VueServer.Models.Account
         public string Token { get; set; }
 
         [Required]
-        public string RefreshToken { get; set; }
+        public string CodeChallenge { get; set; }
     }
 }

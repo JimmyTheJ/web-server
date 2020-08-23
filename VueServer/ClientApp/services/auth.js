@@ -26,11 +26,14 @@ export default {
             'codeChallenge': data.codeChallenge
         })
     },
-    signout() {
-        return axios.post(signoutUrl)
+    signout(username) {
+        return axios.post(signoutUrl, `"${username}"`)
     },
-    refreshToken(token) {
-        return axios.post(`${refreshTokenUrl}`, `"${token}"`)
+    refreshToken(token, codeChallenge) {
+        return axios.post(`${refreshTokenUrl}`, {
+            token: token,
+            codeChallenge: codeChallenge
+        })
     },
     register(data) {
         return axios.post(registerUrl, {

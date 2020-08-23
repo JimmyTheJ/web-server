@@ -177,22 +177,39 @@ namespace VueServer.Services.Concrete
             //claimsIdentity.AddClaims(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
             var token = GenerateJwtToken(claims);
-
-            await InvalidateAllRefreshTokensForUser(user.Id, _user.IP);
-            await SaveRefreshToken(user.Id, _user.IP, GenerateRefreshToken());
+            if (!await SaveRefreshToken(user.Id, model.CodeChallenge, _user.IP))
+            {
+                new Result<LoginResponse>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
 
             // Try to get user profile. If we don't find one, that is okay it won't have any real impact on the app
-            user.UserProfile = await _context.UserProfile.Where(x => x.UserId == user.Id).SingleOrDefaultAsync();
+            var userProfile = await _context.UserProfile.Where(x => x.UserId == user.Id).SingleOrDefaultAsync();
+            if (userProfile == null)
+            {
+                if (await CreateUserProfile(user.Id))
+                {
+                    user.UserProfile = await _context.UserProfile.Where(x => x.UserId == user.Id).SingleOrDefaultAsync();
+                }                
+            }
+            else
+            {
+                user.UserProfile = userProfile;
+            }
 
             var resp = new LoginResponse(token, new WSUserResponse(user), roles);
             return new Result<LoginResponse>(resp, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult> Logout (HttpContext context)
+        public async Task<IResult> Logout (HttpContext context, string username)
         {
+            var token = await GetRefreshTokenForUser(username, _user.IP);
+            if (token != null)
+            {
+                await InvalidateRefreshToken(token);
+            }
+
             // Sign me out
             await _signInManager.SignOutAsync();
-
             context.Session.Clear();
 
             return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
@@ -228,14 +245,25 @@ namespace VueServer.Services.Concrete
             }
         }
 
-        public async Task<IResult<string>> RefreshJwtToken (string token)
+        public async Task<IResult<string>> RefreshJwtToken(RefreshTokenRequest model)
         {
-            var principal = GetPrincipalFromExpiredToken(token);
+            if (model == null)
+            {
+                return new Result<string>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
 
-            var validToken = await CheckRefreshToken(principal.Claims.Where(x => x.Type == JwtRegisteredClaimNames.Sub).Select(x => x.Value).Single(), _user.IP);
+            var principal = GetPrincipalFromExpiredToken(model.Token);
+            var username = principal.Claims.Where(x => x.Type == JwtRegisteredClaimNames.Sub).Select(x => x.Value).Single();
+
+            var validToken = await CheckRefreshToken(username, model.CodeChallenge);
             if (validToken == null)
             {
                 return new Result<string>(null, Domain.Enums.StatusCode.UNAUTHORIZED);
+            }
+
+            if (!await SaveRefreshToken(username, model.CodeChallenge, _user.IP))
+            {
+                return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
             // Update unique value
@@ -377,23 +405,61 @@ namespace VueServer.Services.Concrete
 
         #region -> Private Functions
 
+        private async Task<WSUserTokens> GetRefreshTokenForUser (string id, string ip)
+        {
+            return await _context.UserTokens.Where(x => x.UserId == id && x.Source == ip && x.Valid).SingleOrDefaultAsync();
+        }
+
         /// <summary>
         /// Check the validity of the passed in token based on the user
         /// </summary>
         /// <param name="id"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async Task<WSUserTokens> CheckRefreshToken (string id, string ip)
+        private async Task<WSUserTokens> CheckRefreshToken (string id, string token, string ip = null)
         {
-            // TODO: Have this check device hostname, and NOT ip. If someone was on mobile this could cause all sorts of bad user experience
-            var foundTok = await _context.UserTokens
-                .Where(x => x.UserId == id && x.Valid && x.Source == ip)
-                .FirstOrDefaultAsync();
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                _logger.LogDebug($"CheckRefreshToken: No user id present");
+                return null;
+            }
 
-            if (foundTok == null)
-                _logger.LogWarning($"User: ({id}) does not have a valid refresh token for ip ({ip}) in data store");
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                _logger.LogInformation($"CheckRefreshToken: User ({id}) passed a null token. This is probably a client code bug of some sort.");
+                return null;
+            }
 
-            return foundTok;
+            var tokenQuery = _context.UserTokens.AsQueryable();
+            tokenQuery = tokenQuery.Where(x => x.UserId == id);
+            if (ip != null)
+            {
+                tokenQuery = tokenQuery.Where(x => x.Source == ip);
+            }
+
+            var tokens = await tokenQuery.ToListAsync();
+            if (tokens == null)
+            {
+                _logger.LogInformation($"CheckRefreshToken: User ({id}) does not have any refresh tokens in the data store");
+                return null;
+            }
+
+            var matchedToken  = tokens.Where(x => x.Token == token).SingleOrDefault();
+            if (matchedToken == null)
+            {
+                _logger.LogWarning($"CheckRefreshToken: User ({id}) does not have a refresh token that matches the passed in token value in the data store. This could potentially mean someone is trying to impersonate the user. Invalidating all refresh tokens for user.");
+                await InvalidateAllRefreshTokensForUser(id);
+                return null;
+            }
+
+            if (!matchedToken.Valid)
+            {
+                _logger.LogWarning($"CheckRefreshToken: User ({id}) does have a refresh token that matches the passed in token value in the data store, but it has been previously invalidated. This could potentially mean someone has gained access to a user's device and is trying to pass iligitimate information to the server. Invalidating all refresh tokens for user.");
+                await InvalidateAllRefreshTokensForUser(id);
+                return null;
+            }
+
+            return matchedToken;
         }
 
         /// <summary>
@@ -463,10 +529,16 @@ namespace VueServer.Services.Concrete
         /// <param name="id"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async Task<bool> SaveRefreshToken (string id, string ip, string token)
+        private async Task<bool> SaveRefreshToken (string id, string token, string ip)
         {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                _logger.LogInformation($"SaveRefreshToken: Token is null or empty");
+                return false;
+            }
+
             var now = DateTime.UtcNow;
-            var tokenIP = await _context.UserTokens.Where(x => x.Source == ip && x.UserId == id).FirstOrDefaultAsync();
+            var tokenIP = await _context.UserTokens.Where(x => x.Source == ip && x.UserId == id).SingleOrDefaultAsync();
             if (tokenIP == null)
             {
                 var newTok = new WSUserTokens

@@ -11,6 +11,7 @@ const state = {
     role: localStorage.getItem('userRole') || '',
 
     accessToken: localStorage.getItem('accessToken') || '',
+    codeChallenge: localStorage.getItem('codeChallenge') || '',
 
     activeModules: JSON.parse(localStorage.getItem('activeModules')) || [],
     otherUsers: JSON.parse(localStorage.getItem('otherUsers')) || [],
@@ -24,7 +25,8 @@ const actions = {
     async refreshToken({ commit, state }) {
         try {
             ConMsgs.methods.$_console_log('Getting refresh token')
-            const res = await authAPI.refreshToken(state.accessToken)
+
+            const res = await authAPI.refreshToken(state.accessToken, state.codeChallenge)
             commit(types.JWT_TOKEN_CREATE, res.data)
             return await Promise.resolve(res.data)
         } catch (e) {
@@ -35,6 +37,12 @@ const actions = {
     async signin({ commit }, context) {
         try {
             ConMsgs.methods.$_console_log('Signing in')
+
+            // Get code challenge to send to server
+            let challenge = getCodeChallenge()
+            commit(types.CODE_CHALLENGE_CREATE, challenge)
+            context.codeChallenge = challenge
+
             const res = await authAPI.signin(context)
             commit(types.LOGIN_SUCCESS, res.data)
             return await Promise.resolve(res.data)
@@ -46,7 +54,7 @@ const actions = {
     },
     async signout({ commit, dispatch } ) {
         try {
-            const res = await authAPI.signout()
+            const res = await authAPI.signout(state.user.id)
             commit(types.LOGOUT)
 
             // Clear all store values from other modules
@@ -136,15 +144,23 @@ const actions = {
 const mutations = {
     [types.JWT_TOKEN_CREATE](state, data) {
         ConMsgs.methods.$_console_log("Mutating jwt token create")
-
         state.accessToken = data
-
         localStorage.setItem('accessToken', data)
     },
     [types.JWT_TOKEN_DESTROY](state) {
         ConMsgs.methods.$_console_log("Mutating jwt token destroy")
         state.accessToken = ''
         localStorage.removeItem('accessToken')
+    },
+    [types.CODE_CHALLENGE_CREATE](state, data) {
+        ConMsgs.methods.$_console_log("Mutating code challenge create")
+        state.codeChallenge = data
+        localStorage.setItem('codeChallenge', data)
+    },
+    [types.CODE_CHALLENGE_DESTROY](state) {
+        ConMsgs.methods.$_console_log("Mutating code challenge destroy")
+        state.codeChallenge = ''
+        localStorage.removeItem('codeChallenge')
     },
     [types.LOGIN_SUCCESS](state, data) {
         ConMsgs.methods.$_console_log("Mutating login success")
@@ -166,6 +182,7 @@ const mutations = {
         state.user = {}
         state.role = ''
         state.accessToken = ''
+        state.codeChallenge = ''
         state.isAuthorize = false
         state.activeModules = []
         state.otherUsers = []
@@ -173,6 +190,7 @@ const mutations = {
         localStorage.removeItem('user')
         localStorage.removeItem('userRole')
         localStorage.removeItem('accessToken')
+        localStorage.removeItem('codeChallenge')
         localStorage.removeItem('isAuthorize')
         localStorage.removeItem('activeModules')
         localStorage.removeItem('otherUsers')
