@@ -1,22 +1,16 @@
 <template>
     <div>
-        Dawg
-    </div>
-</template>
-
-<template>
-    <div>
         <template v-if="conversation.conversationUsers.length > 2">
             <fa-icon icon="users" size="2x"></fa-icon>
         </template>
         <template v-else-if="friendHasAvatar(conversation) !== false">
-            <v-avatar>
+            <v-avatar :size="maxSize">
                 <v-img :src="friendHasAvatar(conversation)"></v-img>
             </v-avatar>
         </template>
         <template v-else>
-            <v-avatar :color="getFriendColor(conversation)">
-                <span class="white--text headline">{{ getFriendAvatarText(conversation) }}</span>
+            <v-avatar :color="getFriendColor(conversation)" :size="maxSize">
+                <span :class="['white--text', getTextSize()]">{{ getFriendAvatarText(conversation) }}</span>
             </v-avatar>
         </template>
     </div>
@@ -28,13 +22,17 @@
     export default {
         data() {
             return {
-
+                maxSize: 0,
             }
         },
         props: {
             conversation: {
                 type: Object,
                 required: true,
+            },
+            size: {
+                type: String,
+                required: false
             }
         },
         computed: {
@@ -42,6 +40,13 @@
                 user: state => state.auth.user,
                 userList: state => state.auth.otherUsers,
             }),
+        },
+        mounted() {
+            if (typeof this.size !== 'undefined')
+                this.maxSize = this.size;
+            else {
+                this.maxSize = "48";
+            }
         },
         methods: {
             friendHasAvatar(conversation) {
@@ -107,6 +112,14 @@
 
                 return user.displayName.charAt(0);
             },
+            getTextSize() {
+                if (this.maxSize >= 40) {
+                    return 'headline';
+                }
+                else if (this.maxSize < 40) {
+                    return 'caption';
+                }
+            }
         },
     }
 </script>

@@ -18,3 +18,7 @@ export const requiresRefresh = function (token) {
 export const parse = function (token) {
     return JSON.parse(atob(token.split('.')[1]));
 };
+
+export const getCodeChallenge = function () {
+
+}

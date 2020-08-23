@@ -1,29 +1,35 @@
 <template>
-    <div :class="['chat-container', getFlexDirection]">
-        <v-menu absolute offset-y>
-            <template v-slot:activator="{ on, attr }">
-                <div v-on="on" class="order-2">
-                    <span v-show="message.hover" class="pa-1" style="height: 100%; margin: 0 auto">...</span>
-                </div>
-            </template>
-            <v-list>
-                <v-list-item @click="moreInfo">
-                    <v-list-item-title>
-                        More info
-                    </v-list-item-title>
-                </v-list-item>
-                <v-list-item v-if="isMessageDeletable" @click="deleteMessage">
-                    <v-list-item-title>
-                        Delete Message
-                    </v-list-item-title>
-                </v-list-item>
-            </v-list>
-        </v-menu>
+    <div class="chat-container">
+        <div :class="['bubble-container', getFlexDirection]">
+            <v-menu absolute offset-y>
+                <template v-slot:activator="{ on, attr }">
+                    <div v-on="on" class="order-2">
+                        <span v-show="message.hover" class="pa-1" style="height: 100%; margin: 0 auto">...</span>
+                    </div>
+                </template>
+                <v-list>
+                    <v-list-item @click="moreInfo">
+                        <v-list-item-title>
+                            More info
+                        </v-list-item-title>
+                    </v-list-item>
+                    <v-list-item v-if="isMessageDeletable" @click="deleteMessage">
+                        <v-list-item-title>
+                            Delete Message
+                        </v-list-item-title>
+                    </v-list-item>
+                </v-list>
+            </v-menu>
 
-        <div :class="['bubble-container', getColor, 'pa-2', 'order-1']" @click="readMessage()">
-            <div class="text-body-1">{{ message.text }}</div>
-            <div class="text-caption text-right">{{ timeSince }}</div>
-            <div class="bubble-id" style="display: none">{{ message.id }}</div>
+            <div :class="['bubble-body-container', getColor, 'pa-2', 'order-1']" @click="readMessage()">
+                <div class="text-body-1">{{ message.text }}</div>
+                <div class="text-caption text-right">{{ timeSince }}</div>
+                <div class="bubble-id" style="display: none">{{ message.id }}</div>
+            </div>
+        </div>
+
+        <div :class="['bubble-last-read', getFlexDirection, 'pr-2']">
+            <slot name="lastReadIcon"></slot>
         </div>
     </div>
 </template>
@@ -47,6 +53,10 @@
                 required: false,
             },
             owner: {
+                type: Boolean,
+                default: false,
+            },
+            lastMessage: {
                 type: Boolean,
                 default: false,
             }
@@ -174,14 +184,26 @@
 <style scoped>
     .chat-container {
         display: flex;
+        flex-direction: column;
     }
 
     .bubble-container {
+        display: flex;
+        flex-direction: row;
+        max-width: 100%;
+    }
+
+    .bubble-body-container {
         border: 1px solid gray;
         border-radius: 15px;
         display: flex;
         flex-direction: column;
         max-width: 70%;
+    }
+
+    .bubble-last-read {
+        display: flex;
+        flex-direction: row;
     }
 
     .flex-left {

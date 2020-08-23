@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,18 @@ namespace VueServer.Services.Hubs
     {
         public async Task SendMessage(ChatMessage message)
         {
-            await Clients.All.SendMessage(message);
+            if (Clients != null)
+            {
+                await Clients.All.SendMessage(message);
+            }                
+        }
+
+        public async Task ReadMessage(ReadReceipt receipt)
+        {
+            if (Clients != null)
+            {
+                await Clients.All.ReadMessage(receipt);
+            }            
         }
     }
 }

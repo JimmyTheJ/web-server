@@ -62,7 +62,11 @@
                                      :currentTime="time"
                                      :owner="isOwner(message)"
                                      @moreInfo="openMoreInfo"
-                                     @deleteMessage="deleteMessage"></chat-bubble>
+                                     @deleteMessage="deleteMessage">
+                            <template v-slot:lastReadIcon v-if="isLastReadMessage(message)">
+                                <chat-avatar :conversation="conversation" size="16"></chat-avatar>
+                            </template>
+                        </chat-bubble>
                     </v-col>
                 </v-row>
             </div>
@@ -84,6 +88,7 @@
 
 <script>
     import ChatBubble from './chat-bubble'
+    import ChatAvatar from './chat-avatar'
     import service from '../../../services/chat'
 
     import { mapState } from 'vuex'
@@ -100,10 +105,12 @@
                 chatWindow: null,
                 scrollHeight: 0,
                 bodyContainerHeight: 0,
+                othersLastReadMessage: -1,
             }
         },
         components: {
             'chat-bubble': ChatBubble,
+            'chat-avatar': ChatAvatar,
         },
         props: {
             conversation: {
@@ -126,6 +133,7 @@
         created() {
             this.newMessage = { text: '' };
             this.$chatHub.$on('message-received', this.onMessageReceived);
+            this.$chatHub.$on('read-receipt-received', this.onReadReceiptReceived);
             window.addEventListener('resize', this.resizeWindow);
         },
         mounted() {
@@ -134,6 +142,7 @@
         },
         beforeDestroy() {
             this.$chatHub.$off('message-received', this.onMessageReceived);
+            this.$chatHub.$off('read-receipt-received', this.onReadReceiptReceived);
             this.chatWindow.removeEventListener('scroll', this.windowScroll);
             window.removeEventListener('resize', this.resizeWindow);
         },
@@ -167,7 +176,8 @@
                 if (newValue === true) {
                     this.$store.dispatch('getMessagesForConversation', this.conversation.id).then(resp => {
                         this.updateContainerHeight(true);
-                    })                
+                        this.updateReadReceiptMarker();
+                    })
                 }
             },
             scrollHeight(newValue) {
@@ -226,12 +236,33 @@
                 }
 
                 this.$store.dispatch('addChatMessage', { conversationId: this.conversation.id, message: message }).then(() => {
-                    // Scroll to bottom when active user sends a message. This will ultimately cause all messages to be read,
-                    // Also scroll to the bottom when there is no scrollbar yet.
-                    if (message.userId === this.user.id || this.chatWindow.clientHeight === this.chatWindow.scrollHeight) {
-                        this.scrollToBottom();
+                    if (this.show) {
+                        // Scroll to bottom when active user sends a message. This will ultimately cause all messages to be read,
+                        // Also scroll to the bottom when there is no scrollbar yet.
+                        if (message.userId === this.user.id || this.chatWindow.clientHeight === this.chatWindow.scrollHeight) {
+                            this.scrollToBottom();
+                        }
                     }
                 })
+            },
+            onReadReceiptReceived(receipt) {
+                this.$_console_log('Read receipt received: ', receipt);
+
+                if (typeof receipt !== 'object' || receipt === null) {
+                    this.$_console_log('OnReadReceiptReceived: Null object returned');
+                    return;
+                }
+
+                if (this.conversation.id !== receipt.message.conversationId) {
+                    return;
+                }
+
+                this.$store.dispatch('addReadReceipt', { conversationId: this.conversation.id, receipt: receipt }).then(() => {
+                    this.$_console_log('Receipt successfully added to message. Show', this.show)
+                    if (this.show) {
+                        this.updateReadReceiptMarker();
+                    }
+                });
             },
             goBack() {
                 this.$emit('goBack', true);
@@ -359,6 +390,50 @@
                 }
                 else {
                     this.$store.dispatch('setMessageHover', { messageId: message.id, conversationId: message.conversationId, on: false });
+                }
+            },
+            isLastReadMessage(message) {
+                if (this.othersLastReadMessage > -1 && message.id === this.conversation.messages[this.othersLastReadMessage].id)
+                    return true;
+
+                return false;
+            },
+            updateReadReceiptMarker() {
+                // If 2 person converation, show where the usre last read to
+                if (this.conversation.conversationUsers.length === 2) {
+                    let i;
+                    let foundMessage = false;
+
+                    if (this.othersLastReadMessage > -1)
+                        i = this.othersLastReadMessage;
+                    else
+                        i = 0;
+
+                    for (i; i < this.conversation.messages.length; i++) {
+                        if (this.conversation.messages[i].userId !== this.user.id)
+                            continue;
+
+                        if (this.conversation.messages[i].readReceipts !== null && this.conversation.messages[i].readReceipts.length === 0) {
+                            break;
+                        }
+                        else {
+                            foundMessage = true;
+                        }
+                    }
+                    //let lastMessage = this.conversation.messages.find(x => this.user.id === x.userId &&
+                    //    (x.readReceipts.length === 0 || typeof x.readReceipts.find(y => y.userId !== this.user.id) === 'undefined'));
+
+                    if (foundMessage === true) {
+                        while (i > 1) {
+                            if (this.conversation.messages[--i].userId === this.user.id) {
+                                break;
+                            }
+                        }
+                        this.othersLastReadMessage = i;
+                    }
+                }
+                else {
+                    // If user count is > 2 than we need to find a solution on how to show the read receipt icon of the user
                 }
             }
         }

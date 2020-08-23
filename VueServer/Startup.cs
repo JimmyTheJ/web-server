@@ -55,7 +55,16 @@ namespace VueServer
                 options.SizeLimit = 256 * 1024 * 1024;
             });
 
-            services.AddSignalR();
+            services.AddSignalR(hubOptions =>
+            {
+                hubOptions.EnableDetailedErrors = true;
+                hubOptions.ClientTimeoutInterval = TimeSpan.FromMinutes(1);
+            }).AddNewtonsoftJsonProtocol(options =>
+            {
+                options.PayloadSerializerSettings.ContractResolver = new LowercaseContractResolver();
+                options.PayloadSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            });
+
             services.AddCustomSession();
 
             //services.AddDataProtection(options => options.ApplicationDiscriminator = "VueServer")

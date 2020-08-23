@@ -17,6 +17,9 @@ export default {
         connection.on('SendMessage', message => {
             chatHub.$emit('message-received', message)
         })
+        connection.on('ReadMessage', receipt => {
+            chatHub.$emit('read-receipt-received', receipt)
+        })
 
         let startedPromise = null
         function start() {

@@ -139,6 +139,11 @@ const actions = {
 
         commit(types.CHAT_MESSAGE_ADD, { ...context, userId: rootState.auth.user.id })
     },
+    async addReadReceipt({ commit, rootState }, context) {
+        ConMsgs.methods.$_console_log('[Vuex][Actions] Add read receipt')
+
+        commit(types.CHAT_MESSAGE_READ_RECEIPT_ADD, { ...context, userId: rootState.auth.user.id })
+    },    
     async deleteChatMessage({ commit }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Delete chat message')
         try {
@@ -306,6 +311,32 @@ const mutations = {
         }
 
         state.conversations[conversationIndex].messages.push(Object.assign({}, data.message))       
+    },
+    [types.CHAT_MESSAGE_READ_RECEIPT_ADD](state, data) {
+        ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating add read receipt")
+
+        const conversationIndex = state.conversations.findIndex(x => x.id === data.conversationId)
+        if (conversationIndex < 0) {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ReadReceiptAdd: Can\'t find conversation to add the message to')
+            return
+        }
+
+        if (!Array.isArray(state.conversations[conversationIndex].messages)) {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ReadReceiptAdd: Messages isn\'t an array')
+            return
+        }
+
+        let messageIndex = state.conversations[conversationIndex].messages.findIndex(x => x.id === data.receipt.messageId)
+        if (messageIndex < 0) {
+            ConMsgs.methods.$_console_log('[Vuex][Mutations] ReadReceiptAdd: Messages not found in list')
+            return
+        }
+
+        if (!Array.isArray(state.conversations[conversationIndex].messages[messageIndex].readReceipts)) {
+            state.conversations[conversationIndex].messages[messageIndex].readReceipts = []
+        }
+
+        state.conversations[conversationIndex].messages[messageIndex].readReceipts.push(data.receipt)
     },
     [types.CHAT_MESSAGE_DELETE](state, data) {
         ConMsgs.methods.$_console_log("[Vuex][Mutations] Mutating delete chat message")

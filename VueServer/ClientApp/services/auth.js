@@ -22,7 +22,8 @@ export default {
     signin(data) {
         return axios.post(signinUrl, {
             'username': data.username,
-            'password': data.password
+            'password': data.password,
+            'codeChallenge': data.codeChallenge
         })
     },
     signout() {

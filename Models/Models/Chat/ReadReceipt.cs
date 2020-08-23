@@ -22,5 +22,17 @@ namespace VueServer.Models.Chat
         public virtual WSUser User { get; set; }
 
         public virtual ChatMessage Message { get; set; }
+
+        public ReadReceipt() { }
+
+        public ReadReceipt(ReadReceipt receipt)
+        {
+            if (receipt != null)
+            {
+                MessageId = receipt.MessageId;
+                Timestamp = receipt.Timestamp;
+                UserId = receipt.UserId;
+            }
+        }
     }
 }

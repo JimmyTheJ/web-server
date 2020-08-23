@@ -3,6 +3,7 @@ import authAPI from '../../services/auth'
 import moduleAPI from '../../services/modules'
 import ConMsgs from '../../mixins/console';
 import DispatchFactory from '../../factories/dispatchFactory'
+import { getCodeChallenge } from '../../helpers/jwt'
 
 const state = {
     isAuthorize: Boolean(localStorage.getItem('isAuthorize')) || false,

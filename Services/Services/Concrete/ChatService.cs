@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
@@ -383,7 +384,7 @@ namespace VueServer.Services.Concrete
                 ).SingleOrDefaultAsync();
             if (message == null)
             {
-                _logger.LogInformation($"ReadMessage: Message ({message.Id}) doesn't exist");
+                _logger.LogInformation($"ReadMessage: Message ({messageId}) doesn't exist");
                 return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.NOT_FOUND);
             }
             receipt = CreateReadReceipts(_user.Id, new List<ChatMessage> { message }).FirstOrDefault();
@@ -397,6 +398,8 @@ namespace VueServer.Services.Concrete
                 _logger.LogError($"ReadMessage: Error saving database on updating the read status of the message {messageId}");
                 return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.SERVER_ERROR);
             }
+
+            await _chatHubContext.Clients.All.ReadMessage(receipt);
 
             return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.OK);
         }
@@ -433,6 +436,8 @@ namespace VueServer.Services.Concrete
                 _logger.LogError($"ReadMessage: Error saving database on updating the read status of the message list: ({messageList})");
                 return new Result<IEnumerable<ReadReceipt>>(receipts, Domain.Enums.StatusCode.SERVER_ERROR);
             }
+
+            await _chatHubContext.Clients.All.ReadMessage(receipts.OrderByDescending(x => x.Id).FirstOrDefault());
 
             return new Result<IEnumerable<ReadReceipt>>(receipts, Domain.Enums.StatusCode.OK);
         }
