@@ -16,9 +16,9 @@
                         </v-list-item-group>
                     </v-flex>
                     <v-flex xs12 sm6 md4>
-                        <v-list>
+                        <v-list-item-group v-model="selectedModulePosition">
                             <template v-for="(item, index) in moduleList">
-                                <v-list-item :key="index" @click="selectedModule = item">
+                                <v-list-item :key="index">
                                     <v-list-item-icon @click="addModuleToUser(item)">
                                         <fa-icon icon="check" v-if="userHasModule(item)"></fa-icon>
                                         <fa-icon icon="times" v-else></fa-icon>
@@ -28,7 +28,7 @@
                                     </v-list-item-content>
                                 </v-list-item>
                             </template>
-                        </v-list>
+                        </v-list-item-group>
                     </v-flex>
                     <v-flex xs12 sm6 md4>
                         <v-list v-if="typeof selectedModule === 'object' && selectedModule !== null">
@@ -62,6 +62,7 @@
                 selectedModule: null,
                 selectedUser: null,
                 selectedUserPosition: null,
+                selectedModulePosition: null,
                 moduleList: [],
                 userList: [],
                 usersHaveModuleList: [],
@@ -85,6 +86,15 @@
 
                 this.selectedUser = this.userList[newValue];
                 this.selectedModule = null;
+                this.selectedModulePosition = null;
+            },
+            selectedModulePosition(newValue) {
+                if (typeof newValue === 'undefined' || newValue === null) {
+                    this.selectedModule = null;
+                    return;
+                }
+
+                this.selectedModule = this.moduleList[newValue];
             },
         },
         methods: {
@@ -186,6 +196,7 @@
                     return;
                 }
 
+                let tempUser = Object.assign({}, this.selectedUser);
                 let obj = {
                     userId: this.selectedUser.id,
                     moduleAddOnId: module.id
@@ -193,9 +204,15 @@
 
                 DispatchFactory.request(() => {
                     moduleService.addModuleToUser(obj).then(resp => {
-                        this.$_console_log('[admin-tools] addModuleToUser: Successfully added module to user');
-                        this.usersHaveModuleList.push(obj);
-                        this.updateSelectedUserList(this.selectedUser);
+                        if (resp.data === true) {
+                            this.$_console_log('[admin-tools] addModuleToUser: Successfully added module to user');
+
+                            obj.moduleAddOn = module;
+                            obj.user = tempUser;
+
+                            this.usersHaveModuleList.push(obj);
+                            this.updateSelectedUserList(this.selectedUser);
+                        }                        
                     }).catch(() => this.$_console_log('[admin-tools] addModuleToUser: Failed to get add module to user'));
                 });
             },
@@ -284,7 +301,7 @@
                 }
 
                 this.selectedUserModuleList = this.usersHaveModuleList.filter(x => x.userId == value.id);
-                this.selectedModule = null;
+                //this.selectedModule = null;
             }
         }
     }

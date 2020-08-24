@@ -87,24 +87,24 @@ namespace VueServer.Services.Concrete
             return new Result<IEnumerable<UserHasModuleAddOn>>(userModules, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<UserHasModuleAddOn>> AddModuleToUser(UserHasModuleAddOn userModule)
+        public async Task<IResult<bool>> AddModuleToUser(UserHasModuleAddOn userModule)
         {
             if (userModule == null)
             {
                 _logger.LogInformation("[ModuleService] AddModuleToUser: User Module is null");
-                return new Result<UserHasModuleAddOn>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (string.IsNullOrWhiteSpace(userModule.ModuleAddOnId))
             {
                 _logger.LogInformation("[ModuleService] AddModuleToUser: Module to add is null");
-                return new Result<UserHasModuleAddOn>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (string.IsNullOrWhiteSpace(userModule.UserId))
             {
                 _logger.LogInformation("[ModuleService] AddModuleToUser: User to add is null");
-                return new Result<UserHasModuleAddOn>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var newUserModule = new UserHasModuleAddOn() { UserId = userModule.UserId, ModuleAddOnId = userModule.ModuleAddOnId };
@@ -117,9 +117,10 @@ namespace VueServer.Services.Concrete
             catch
             {
                 _logger.LogWarning("[ModuleService] AddModuleToUser: Error saving database");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
-            return new Result<UserHasModuleAddOn>(newUserModule, Domain.Enums.StatusCode.OK);
+            return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
         public async Task<IResult<bool>> DeleteModuleFromUser(UserHasModuleAddOn userModule)
@@ -163,24 +164,24 @@ namespace VueServer.Services.Concrete
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<UserHasModuleFeature>> AddFeatureToUser(UserHasModuleFeature userFeature)
+        public async Task<IResult<bool>> AddFeatureToUser(UserHasModuleFeature userFeature)
         {
             if (userFeature == null)
             {
                 _logger.LogInformation("[ModuleService] AddFeatureToUser: User Feature is null");
-                return new Result<UserHasModuleFeature>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (string.IsNullOrWhiteSpace(userFeature.ModuleFeatureId))
             {
                 _logger.LogInformation("[ModuleService] AddFeatureToUser: Feature to add is null");
-                return new Result<UserHasModuleFeature>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (string.IsNullOrWhiteSpace(userFeature.UserId))
             {
                 _logger.LogInformation("[ModuleService] AddFeatureToUser: User to add is null");
-                return new Result<UserHasModuleFeature>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var newUserFeature = new UserHasModuleFeature() { UserId = userFeature.UserId, ModuleFeatureId = userFeature.ModuleFeatureId };
@@ -193,9 +194,10 @@ namespace VueServer.Services.Concrete
             catch
             {
                 _logger.LogWarning("[ModuleService] AddFeatureToUser: Error saving database");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
-            return new Result<UserHasModuleFeature>(newUserFeature, Domain.Enums.StatusCode.OK);
+            return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
         public async Task<IResult<bool>> DeleteFeatureFromUser(UserHasModuleFeature userFeature)
         {

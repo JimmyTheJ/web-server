@@ -459,6 +459,12 @@ namespace VueServer.Services.Concrete
                 return null;
             }
 
+            if (DateTime.UtcNow > matchedToken.Issued.AddYears(1))
+            {
+                _logger.LogWarning($"CheckRefreshToken: User ({id}) does have a refresh token that matches the passed in token value in the data store, but it has expired.");
+                return null;
+            }
+
             return matchedToken;
         }
 
@@ -537,12 +543,19 @@ namespace VueServer.Services.Concrete
                 return false;
             }
 
+            // For some reason sometimes localhost comes through as ::1 and sometimes its 127.0.0.1, this normalizes it
+            if (ip == "::1")
+            {
+                ip = "127.0.0.1";
+            }
+
             var now = DateTime.UtcNow;
             var tokenIP = await _context.UserTokens.Where(x => x.Source == ip && x.UserId == id).SingleOrDefaultAsync();
             if (tokenIP == null)
             {
                 var newTok = new WSUserTokens
                 {
+                    Issued = now,
                     Token = token,
                     UserId = id,
                     Valid = true,
