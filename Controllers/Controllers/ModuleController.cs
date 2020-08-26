@@ -38,6 +38,14 @@ namespace VueServer.Controllers.Controllers
 
         [HttpGet]
         [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route("get-user-modules-and-features")]
+        public async Task<IActionResult> GetAllModulesAndFeatures(string user)
+        {
+            return _codeFactory.GetStatusCode(await _service.GetModulesAndFeaturesForOtherUser(user));
+        }
+
+        [HttpGet]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
         [Route("get-all-modules")]
         public async Task<IActionResult> GetAllModules()
         {

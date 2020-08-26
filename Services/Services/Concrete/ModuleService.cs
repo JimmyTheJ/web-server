@@ -62,7 +62,7 @@ namespace VueServer.Services.Concrete
             return new Result<IEnumerable<ModuleAddOn>>(userModules, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<UserHasModuleAddOn>>> GetActiveModulesForAllUsers()
+        public async Task<IResult<IDictionary<string, IList<ModuleAddOn>>>> GetActiveModulesForAllUsers()
         {
             var userModules = await _context.UserHasModule
                 .Include(x => x.ModuleAddOn)
@@ -70,7 +70,61 @@ namespace VueServer.Services.Concrete
                 .OrderBy(x => x.UserId)
                 .Select(x => new UserHasModuleAddOn()
                 {
-                    ModuleAddOn = new ModuleAddOn() {
+                    ModuleAddOn = new ModuleAddOn()
+                    {
+                        Id = x.ModuleAddOn.Id,
+                        Name = x.ModuleAddOn.Name,
+                        UserModuleFeatures = _context.UserHasFeature
+                            .Include(y => y.ModuleFeature)
+                            .Include(y => y.User)
+                            .Where(y => y.ModuleFeature.ModuleAddOnId == x.ModuleAddOnId && y.UserId == x.UserId)
+                            .ToList()
+                    },
+                    ModuleAddOnId = x.ModuleAddOnId,
+                    User = x.User,
+                    UserId = x.UserId
+                }).ToListAsync();
+
+            var userModuleGroups = new Dictionary<string, IList<ModuleAddOn>>();
+            foreach (var module in userModules) 
+            {
+                if (!userModuleGroups.ContainsKey(module.UserId))
+                {
+                    userModuleGroups[module.UserId] = new List<ModuleAddOn>();
+                }
+
+                if (module.ModuleAddOn.UserModuleFeatures != null)
+                {
+                    if (module.ModuleAddOn.Features == null)
+                    {
+                        module.ModuleAddOn.Features = new List<ModuleFeature>();
+                    }
+
+                    foreach (var feature in module.ModuleAddOn.UserModuleFeatures)
+                    {
+                        feature.ModuleFeature.UserModuleFeatures = null;
+                        module.ModuleAddOn.Features.Add(feature.ModuleFeature);
+                    }
+                }
+
+                module.ModuleAddOn.UserModuleFeatures = null;
+                userModuleGroups[module.UserId].Add(module.ModuleAddOn);
+            }
+
+            return new Result<IDictionary<string, IList<ModuleAddOn>>>(userModuleGroups, Domain.Enums.StatusCode.OK);
+        }
+
+        public async Task<IResult<IEnumerable<UserHasModuleAddOn>>> GetModulesAndFeaturesForOtherUser(string user)
+        {
+            var userModules = await _context.UserHasModule
+                .Include(x => x.ModuleAddOn)
+                .Include(x => x.User)
+                .OrderBy(x => x.UserId)
+                .Where(x => x.UserId == user)
+                .Select(x => new UserHasModuleAddOn()
+                {
+                    ModuleAddOn = new ModuleAddOn()
+                    {
                         Id = x.ModuleAddOn.Id,
                         Name = x.ModuleAddOn.Name,
                         UserModuleFeatures = _context.UserHasFeature

@@ -16,6 +16,6 @@ namespace VueServer.Models.Modules
         public virtual IEnumerable<UserHasModuleAddOn> UserModuleAddOns { get; set; }
         public virtual IEnumerable<UserHasModuleFeature> UserModuleFeatures { get; set; }
 
-        public virtual IEnumerable<ModuleFeature> Features { get; set; }
+        public virtual IList<ModuleFeature> Features { get; set; }
     }
 }

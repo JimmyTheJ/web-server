@@ -230,19 +230,21 @@
                 let currentlySelectedModule = Object.assign({}, this.selectedModule);
                 DispatchFactory.request(() => {
                     moduleService.addFeatureToUser(obj).then(resp => {
-                        this.$_console_log('[admin-tools] addFeatureToUser: Successfully added feature to user');
+                        if (resp.data === true) {
+                            this.$_console_log('[admin-tools] addFeatureToUser: Successfully added feature to user');
 
-                        const userModuleIndex = this.usersHaveModuleList.findIndex(x => x.userId === obj.userId && x.moduleAddOnId === currentlySelectedModule.id);
-                        this.$_console_log(currentlySelectedModule, userModuleIndex);
+                            const userModuleIndex = this.usersHaveModuleList.findIndex(x => x.userId === obj.userId && x.moduleAddOnId === currentlySelectedModule.id);
+                            this.$_console_log(currentlySelectedModule, userModuleIndex);
 
-                        if (userModuleIndex >= 0) {
-                            if (!Array.isArray(this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures))
-                                this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures = [];
+                            if (userModuleIndex >= 0) {
+                                if (!Array.isArray(this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures))
+                                    this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures = [];
 
-                            this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures.push(obj);
-                        }
-                        else {
-                            // It failed somehow
+                                this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures.push(obj);
+                            }
+                            else {
+                                // It failed somehow
+                            }
                         }
                     }).catch(() => this.$_console_log('[admin-tools] addFeatureToUser: Failed to get add feature to user'));
                 });
@@ -258,12 +260,7 @@
                     return false;
                 }
 
-                let index = this.selectedUserModuleList.findIndex(x => x.userId === this.selectedUser.id && x.moduleAddOnId === module.id);
-                if (index < 0) {
-                    return false;
-                }
-
-                return true;
+                return this.selectedUserModuleList.findIndex(x => x.id === module.id) >= 0;
             },
             userHasFeature(feature) {
                 if (typeof this.selectedUser === 'undefined' || this.selectedUser === null) {
@@ -279,13 +276,13 @@
                     return false;
                 }
 
-                let moduleIndex = this.selectedUserModuleList.findIndex(x => x.userId === this.selectedUser.id && x.moduleAddOnId === this.selectedModule.id);
+                let moduleIndex = this.selectedUserModuleList.findIndex(x => x.id === this.selectedModule.id);
                 if (moduleIndex < 0) {
                     return false;
                 }
 
-                if (Array.isArray(this.selectedUserModuleList[moduleIndex].moduleAddOn.userModuleFeatures)) {
-                    let featureIndex = this.selectedUserModuleList[moduleIndex].moduleAddOn.userModuleFeatures.findIndex(x => x.userId == this.selectedUser.id && x.moduleFeatureId === feature.id);
+                if (Array.isArray(this.selectedUserModuleList[moduleIndex].features)) {
+                    let featureIndex = this.selectedUserModuleList[moduleIndex].features.findIndex(x => x.id === feature.id);
                     if (featureIndex >= 0) {
                         return true;
                     }
@@ -300,8 +297,7 @@
                     return;
                 }
 
-                this.selectedUserModuleList = this.usersHaveModuleList.filter(x => x.userId == value.id);
-                //this.selectedModule = null;
+                this.selectedUserModuleList = this.usersHaveModuleList[value.id];
             }
         }
     }
