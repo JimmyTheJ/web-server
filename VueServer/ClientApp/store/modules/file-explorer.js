@@ -1,6 +1,6 @@
 import * as types from '../mutation_types'
 import fileAPI from '../../services/file-explorer'
-import { getSubdirectoryString } from '../../helpers/browser'
+import { getSubdirectoryString, getSubdirectoryArray } from '../../helpers/browser'
 import ConMsgs from '../../mixins/console';
 import DispatchFactory from '../../factories/dispatchFactory'
 
@@ -76,6 +76,13 @@ const actions = {
 
         commit(types.BROWSER_POP_DIRECTORY)
     },
+    async goDirectory({ commit }, context) {
+        ConMsgs.methods.$_console_log('[Vuex][Actions] Going to a specific directory')
+
+        const subDirArray = getSubdirectoryArray(context.subDirs)
+
+        commit(types.BROWSER_GO_DIRECTORY, { directory: context.directory, subDirs: subDirArray })
+    },
     async addFile({ commit }, context) {
         ConMsgs.methods.$_console_log('[Vuex][Actions] Adding a file')
 
@@ -117,6 +124,12 @@ const mutations = {
         ConMsgs.methods.$_console_log('[Vuex][Mutations] Going forward a directory')
 
         state.subDirectories.push(data)
+    },
+    [types.BROWSER_GO_DIRECTORY](state, data) {
+        ConMsgs.methods.$_console_log('[Vuex][Mutations] Going forward a directory')
+
+        state.directory = data.directory
+        state.subDirectories = data.subDirs
     },
     [types.BROWSER_POP_DIRECTORY](state) {
         ConMsgs.methods.$_console_log('[Vuex][Mutations] Going backward a directory')

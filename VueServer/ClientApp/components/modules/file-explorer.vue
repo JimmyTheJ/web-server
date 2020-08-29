@@ -14,7 +14,7 @@
                 <v-container>
                     <v-layout row wrap>
                         <v-flex xs1>
-                            <v-btn icon @click="goBack"><fa-icon icon="arrow-left" ma-2 pa-2></fa-icon></v-btn>
+                            <v-btn v-if="canGoBack" icon @click="goBack"><fa-icon icon="arrow-left" ma-2 pa-2></fa-icon></v-btn>
                         </v-flex>
                         <v-flex xs11>
                             {{ fullPath }}
@@ -59,7 +59,7 @@
     import Auth from '../../mixins/authentication'
 
 
-    import { getSubdirectoryString, getSubdirectoryArray, splitPathFromRoute } from '../../helpers/browser'
+    import { getSubdirectoryString } from '../../helpers/browser'
 
     let path = process.env.API_URL;
 
@@ -106,7 +106,6 @@
             this.setActiveFeatures();
 
             this.readRoute();
-            this.loadFromPath();
 
             this.role = this.$_auth_convertRole(this.$store.state.auth.role);
         },
@@ -132,6 +131,10 @@
                     return '';
                 }
             },
+            canGoBack() {
+                if (typeof this.$route.params.folder === 'undefined') return false;
+                return this.$route.params.folder !== this.selectedDirectory;
+            }
         },
         watch: {
             // Local prop
@@ -139,35 +142,8 @@
                 if (!this.changing) {
                     this.$_console_log('[FileExplorer] Watcher - Selected directory: ', newValue);
 
-                    this.$store.dispatch('changeDirectory', newValue);
+                    this.$router.push({ name: 'browser-folder', params: { folder: newValue } });
                 }
-            },
-            // Vuex prop
-            directory: function (newValue) {
-                if (!this.changing) {
-                    this.$_console_log('[FileExplorer] Watcher - Vuex Directory:', newValue);
-
-                    this.$router.push({ name: 'browser-folder', params: { folder: newValue } })
-                }
-            },
-            // Vuex prop
-            subDirectories: {
-                handler(newValue) {
-                    if (!this.changing) {
-                        this.$_console_log('[FileExplorer] Watcher - Vuex SubDirectories:', newValue);
-
-                        let baseDir = this.directory;
-                        let theCharIs = baseDir.charAt(baseDir.length - 1);
-
-                        this.$_console_log('BaseDir and CharAt:', baseDir, theCharIs);
-
-                        if (theCharIs === '/')
-                            baseDir = baseDir.substr(0, baseDir.length - 1);
-
-                        this.$router.push({ name: 'browser-folder', params: { folder: `${baseDir}/${getSubdirectoryString(newValue)}` } })
-                    }
-                },
-                deep: true
             },
             goFile: {
                 handler(newValue) {
@@ -210,7 +186,7 @@
                     }
                 },
                 deep: true
-            }
+            },
         },
         methods: {
             setActiveFeatures() {
@@ -229,49 +205,42 @@
             },
             readRoute() {
                 this.changing = true;
-                if (typeof this.directory === 'undefined' || this.directory === null || this.directory === '') {
-                    const route = this.$route;
-                    this.$_console_log('Route: ', route);
-                    if (typeof route.params.folder !== 'undefined') {
-                        const splitPath = splitPathFromRoute(route.params.folder);
-                        this.selectedDirectory = splitPath.base;
-                        this.$store.dispatch('changeDirectory', this.selectedDirectory);
 
-                        const subDirArray = getSubdirectoryArray(splitPath.subDirs);
-                        this.$_console_log('Folder and subdir array:', splitPath, subDirArray);
-                        if (subDirArray.length > 0) {
-                            for (let i = 0; i < subDirArray.length; i++) {
-                                this.$store.dispatch('goForwardDirectory', subDirArray[i]);
-                            }
-                        }
+                setTimeout(() => {
+                    if (typeof this.$route.params.folder !== 'undefined') {
+                        this.$_console_log('[file-explorer] readRoute: Params.folder is not null, getting base path from url', this.$route.params.folder);
+                        if (this.$route.params.folder.includes('/'))
+                            this.selectedDirectory = this.$route.params.folder.substring(0, this.$route.params.folder.indexOf('/'));
+                        else
+                            this.selectedDirectory = this.$route.params.folder;
                     }
                     else {
                         // Load default folder
                         const defaultFolder = this.folders.find(x => x.default === true);
                         if (typeof defaultFolder !== 'undefined') {
                             this.selectedDirectory = defaultFolder.name;
-                            this.$store.dispatch('changeDirectory', this.selectedDirectory);
+                            this.$router.push({ name: 'browser-folder', params: { folder: this.selectedDirectory } });
                         }
                     }
-                }
-                else {
-                    this.selectedDirectory = this.directory;
-                }
 
-                setTimeout(() => {
-                    this.changing = false;
-                }, 5);
-            },
-            async loadFromPath() {
-                setTimeout(() => {
-                    this.$store.dispatch('loadDirectory');
-                    this.changing = false;                    
-                }, 150);
+                    setTimeout(() => {
+                        this.changing = false;
+                    }, 5);
+                }, 25);
             },
 
             open(item) {
                 if (item.isFolder) {
-                    this.$store.dispatch('goForwardDirectory', item.title);
+                    let path = '';
+                    if (this.$route.params.folder === 'undefined') {
+                        this.$_console_log('[file-explorer] open: Params.folder is null');
+                        return;
+                    }
+                    else {
+                        path = this.$route.params.folder + '/' + item.title;
+                    }
+
+                    this.$router.push({ name: 'browser-folder', params: { folder: path } });
                 }
                 else {
                     if (this.features.viewing) {
@@ -283,14 +252,26 @@
                 }
             },
             goBack() {
-                this.$store.dispatch('goBackDirectory');
+                let path = '';
+                if (this.$route.params.folder === 'undefined') {
+                    this.$_console_log('[file-explorer] goBack: Params.folder is null');
+                    return;
+                }
+                else {
+                    let lastIndex = this.$route.params.folder.lastIndexOf('/');
+                    if (lastIndex === -1) {
+                        this.$_console_log('[file-explorer] goBack: Params.folder has no / in it. Can\'t go back from base path');
+                        return;
+                    }
+
+                    path = this.$route.params.folder.substring(0, lastIndex);
+                }
+
+                this.$router.push({ name: 'browser-folder', params: { folder: path } });
             },
-
-
 
             getDownloadPath(item) {
                 return `${path}/api/directory/download/file/${encodeURI(this.fullPath)}/${encodeURIComponent(item.title)}?token=${this.$store.state.auth.accessToken}`;
-                //return `${path}/api/directory/download?fileName=${encodeURI(item.title)}&folder=${encodeURI(fullFolderPath)}`;
             },
             getFilePath(item) {
                 return `${encodeURI(this.fullPath)}/${encodeURIComponent(item.title)}`;
@@ -328,7 +309,7 @@
 
             async deleteItem(file) {
                 if (this.deleteEnabled === false) {
-                    return this.$_console_log("Non Admins are not allowed to delete files");
+                    return this.$_console_log("You must have the appropriate permission to delete");
                 }
 
                 if (typeof file === 'undefined' || file === null || file === '')

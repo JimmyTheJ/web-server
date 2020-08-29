@@ -32,6 +32,9 @@
 
     import { Roles } from '../../constants'
 
+    import store from '../../store/index'
+    import ConMsgs from '../../mixins/console'
+
     export default {
         data() {
             return {
@@ -61,6 +64,22 @@
             'video-player': VideoPlayer,
             'text-viewer': TextViewer,
             'image-viewer': ImageViewer,
+        },
+        beforeRouteEnter(to, from, next) {
+            handleRouteChange(to, from);
+            next();
+        },
+        beforeRouteUpdate(to, from, next) {
+            handleRouteChange(to, from);
+            next();
+        },
+        beforeRouteLeave(to, from, next) {
+            // When leaving the browser page we should clear out the data stored in the vuex store
+            // to create a better experience when /if we come back to the browser screen
+            if (to.name !== 'browser-folder')
+                store.dispatch('clearFileExplorer');
+
+            next();
         },
         created() {
             let role = this.$store.state.auth.role;
@@ -185,5 +204,56 @@
                 }
             }
         }
+    }
+
+    function handleRouteChange(to, from) {
+        ConMsgs.methods.$_console_log('Route changed. To, from:', to, from);
+
+        let toHasSubDir = false;
+        let fromHasSubDir = false;
+        let toBasePath = null;
+        let fromBasePath = null;
+        let toSubDirs = null;
+        let fromSubDirs = null;
+
+        if (typeof to.params.folder !== 'undefined') {
+            if (to.params.folder.includes('/')) {
+                toHasSubDir = true;
+                const firstIndex = to.params.folder.indexOf('/');
+                toBasePath = to.params.folder.substring(0, firstIndex);
+                toSubDirs = to.params.folder.substring(firstIndex + 1);
+            }
+            else {
+                toBasePath = to.params.folder;
+            }
+        }
+
+        if (typeof from.params.folder !== 'undefined') {
+            if (from.params.folder.includes('/')) {
+                fromHasSubDir = true;
+                const firstIndex = to.params.folder.indexOf('/')
+                fromBasePath = from.params.folder.substring(0, firstIndex);
+                fromSubDirs = from.params.folder.substring(firstIndex + 1);
+            }
+            else {
+                fromBasePath = from.params.folder;
+            }
+        }
+
+        ConMsgs.methods.$_console_log('Route change info: ', toHasSubDir, toBasePath, toSubDirs, fromHasSubDir, fromBasePath, fromSubDirs);
+
+        if (to.params.folder === from.params.folder) {
+            // noop
+            ConMsgs.methods.$_console_log('Staying in the same folder');
+        }
+        else if (fromBasePath !== toBasePath && toHasSubDir === false) {
+            // Going from no selected folder to some selected folder
+            store.dispatch('changeDirectory', toBasePath);
+        }
+        else if (toBasePath !== null && toHasSubDir) {
+            store.dispatch('goDirectory', { directory: toBasePath, subDirs: toSubDirs})
+        }
+
+        store.dispatch('loadDirectory');
     }
 </script>
