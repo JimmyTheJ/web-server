@@ -197,11 +197,19 @@ namespace VueServer.Services.Concrete
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
-            var dbUserModule = _context.UserHasModule.Where(x => x.UserId == userModule.UserId && x.ModuleAddOnId == userModule.ModuleAddOnId).FirstOrDefault();
+            var dbUserModule = await _context.UserHasModule.Include(x => x.ModuleAddOn).ThenInclude(x => x.Features)
+                .Where(x => x.UserId == userModule.UserId && x.ModuleAddOnId == userModule.ModuleAddOnId).FirstOrDefaultAsync();
             if (dbUserModule == null)
             {
                 _logger.LogInformation("[ModuleService] DeleteModuleFromUser: UserModule doesn't exist in database");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            var dbUserModuleFeatures = _context.UserHasFeature.Include(x => x.ModuleFeature).AsEnumerable()
+                .Where(x => x.UserId == userModule.UserId && dbUserModule.ModuleAddOn.Features.Contains(x.ModuleFeature));
+            if (dbUserModuleFeatures.Count() > 0)
+            {
+                _context.UserHasFeature.RemoveRange(dbUserModuleFeatures);
             }
 
             _context.UserHasModule.Remove(dbUserModule);

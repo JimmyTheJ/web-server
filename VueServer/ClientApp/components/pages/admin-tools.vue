@@ -74,9 +74,6 @@
             this.getData();
         },
         watch: {
-            selectedUser(newValue) {
-                this.updateSelectedUserList(newValue);
-            },
             selectedUserPosition(newValue) {
                 if (typeof newValue === 'undefined' || newValue === null) {
                     this.selectedUser = null;
@@ -84,9 +81,11 @@
                     return;
                 }
 
-                this.selectedUser = this.userList[newValue];
                 this.selectedModule = null;
                 this.selectedModulePosition = null;
+
+                this.selectedUser = this.userList[newValue];
+                this.updateSelectedUserList(this.userList[newValue]);
             },
             selectedModulePosition(newValue) {
                 if (typeof newValue === 'undefined' || newValue === null) {
@@ -131,6 +130,7 @@
                     return false;
                 }
 
+                let tempUser = Object.assign({}, this.selectedUser);
                 let obj = {
                     userId: this.selectedUser.id,
                     moduleAddOnId: module.id
@@ -139,13 +139,14 @@
                 DispatchFactory.request(() => {
                     moduleService.deleteModuleFromUser(obj).then(() => {
                         this.$_console_log('[admin-tools] deleteModuleFromUser: Successfully deleted module from user');
-                        const index = this.usersHaveModuleList.findIndex(x => x.userId === obj.userId && x.moduleAddOnId === obj.moduleAddOnId);
+                        const index = this.usersHaveModuleList[obj.userId].findIndex(x => x.id === module.id);
                         if (index < 0) {
                             // Failed somehow...
+                            this.$_console_log('[admmin-tools] deleteModuleFromuser: Index doesn\'t exist')
                         }
                         else {
-                            this.usersHaveModuleList.splice(index, 1);
-                            this.updateSelectedUserList(this.selectedUser);
+                            this.usersHaveModuleList[obj.userId].splice(index, 1);
+                            this.updateSelectedUserList(tempUser);
                         }
                     }).catch(() => this.$_console_log('[admin-tools] deleteModuleFromUser: Failed to delete module from user'));
                 });
@@ -161,8 +162,9 @@
                     return false;
                 }
 
+                let tempUser = Object.assign({}, this.selectedUser);
                 let obj = {
-                    userId: this.selectedUser.id,
+                    userId: tempUser.id,
                     moduleFeatureId: feature.id
                 }
 
@@ -172,22 +174,29 @@
                     moduleService.deleteFeatureFromUser(obj).then(() => {
                         this.$_console_log('[admin-tools] deleteFeatureFromUser: Successfully deleted feature from user');
 
-                        const userModuleIndex = this.usersHaveModuleList.findIndex(x => x.userId === obj.userId && x.moduleAddOnId === currentlySelectedModule.id);
-                        this.$_console_log(currentlySelectedModule, userModuleIndex);
-
-                        if (userModuleIndex > 0) {
-                            if (Array.isArray(this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures)) {
-                                const featureIndex = this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures.findIndex(x => x.moduleFeatureId === feature.id);
-                                if (featureIndex >= 0) {
-                                    this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures.splice(featureIndex, 1);
+                        const moduleIndex = this.usersHaveModuleList[obj.userId].findIndex(x => x.id === currentlySelectedModule.id);
+                        if (moduleIndex < 0) {
+                            // It failed somehow
+                            this.$_console_log('[admmin-tools] deleteFeatureFromUser: Module index doesn\'t exist')
+                        }
+                        else {                            
+                            if (!Array.isArray(this.usersHaveModuleList[obj.userId][moduleIndex].features)) {
+                                // It failed somehow
+                                this.$_console_log('[admmin-tools] deleteFeatureFromUser: Selected user doesn\'t have any features for this module')
+                            }
+                            else {
+                                const featureIndex = this.usersHaveModuleList[obj.userId][moduleIndex].features.findIndex(x => x.id === feature.id);
+                                this.$_console_log('[admin-tools] deleteFeatureFromUser: Got feature id, ', featureIndex);
+                                if (featureIndex < 0) {
+                                    // It failed somehow
+                                    this.$_console_log('[admmin-tools] deleteFeatureFromUser: Feature index doesn\'t exist')
                                 }
-
+                                else {
+                                    this.usersHaveModuleList[obj.userId][moduleIndex].features.splice(featureIndex, 1);
+                                }
                             }
                         }
-                        else {
-                            // It failed somehow
-                        }
-                    }).catch(() => this.$_console_log('[admin-tools] deleteFeatureFromUser: Failed to delete feature from user'));
+                    }).catch((ex) => this.$_console_log('[admin-tools] deleteFeatureFromUser: Failed to delete feature from user', ex));
                 });
             },
             addModuleToUser(module) {
@@ -198,20 +207,22 @@
 
                 let tempUser = Object.assign({}, this.selectedUser);
                 let obj = {
-                    userId: this.selectedUser.id,
+                    userId: tempUser.id,
                     moduleAddOnId: module.id
                 }
 
+                const tempModule = Object.assign({}, module);
                 DispatchFactory.request(() => {
                     moduleService.addModuleToUser(obj).then(resp => {
                         if (resp.data === true) {
                             this.$_console_log('[admin-tools] addModuleToUser: Successfully added module to user');
 
-                            obj.moduleAddOn = module;
-                            obj.user = tempUser;
+                            if (!Array.isArray(this.usersHaveModuleList[obj.userId]))
+                                this.usersHaveModuleList[obj.userId] = [];
 
-                            this.usersHaveModuleList.push(obj);
-                            this.updateSelectedUserList(this.selectedUser);
+                            tempModule.features = [];
+                            this.usersHaveModuleList[obj.userId].push(tempModule);
+                            this.updateSelectedUserList(tempUser);
                         }                        
                     }).catch(() => this.$_console_log('[admin-tools] addModuleToUser: Failed to get add module to user'));
                 });
@@ -222,29 +233,34 @@
                     return;
                 }
 
+                let tempUser = Object.assign({}, this.selectedUser);
                 let obj = {
                     userId: this.selectedUser.id,
                     moduleFeatureId: feature.id
                 }
 
+                if (!Array.isArray(this.usersHaveModuleList[obj.userId])) {
+                    this.$_console_log('[admin-tools] addFeatureToUser: Can\'t add a feature to a user that doesn\'t have any modules');
+                    return;
+                }
+
                 let currentlySelectedModule = Object.assign({}, this.selectedModule);
+                let moduleIndex = this.usersHaveModuleList[obj.userId].findIndex(x => x.id === currentlySelectedModule.id);
+                if (moduleIndex < 0) {
+                    this.$_console_log('[admin-tools] addFeatureToUser: Can\'t add a feature to a user that doesn\'t have the corresponding module');
+                    return;
+                }
+                
                 DispatchFactory.request(() => {
                     moduleService.addFeatureToUser(obj).then(resp => {
                         if (resp.data === true) {
                             this.$_console_log('[admin-tools] addFeatureToUser: Successfully added feature to user');
 
-                            const userModuleIndex = this.usersHaveModuleList.findIndex(x => x.userId === obj.userId && x.moduleAddOnId === currentlySelectedModule.id);
-                            this.$_console_log(currentlySelectedModule, userModuleIndex);
+                            if (!Array.isArray(this.usersHaveModuleList[obj.userId][moduleIndex].features))
+                                this.usersHaveModuleList[obj.userId][moduleIndex].features = [];
 
-                            if (userModuleIndex >= 0) {
-                                if (!Array.isArray(this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures))
-                                    this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures = [];
-
-                                this.usersHaveModuleList[userModuleIndex].moduleAddOn.userModuleFeatures.push(obj);
-                            }
-                            else {
-                                // It failed somehow
-                            }
+                            this.usersHaveModuleList[obj.userId][moduleIndex].features.push(feature);
+                            this.updateSelectedUserList(tempUser);
                         }
                     }).catch(() => this.$_console_log('[admin-tools] addFeatureToUser: Failed to get add feature to user'));
                 });
@@ -257,6 +273,11 @@
 
                 if (typeof module === 'undefined' || module === null) {
                     this.$_console_log('[admin-tools] userHasModule: module is null');
+                    return false;
+                }
+
+                if (!Array.isArray(this.selectedUserModuleList)) {
+                    this.$_console_log('[admin-tools] userHasModule: selected user module list is not an array');
                     return false;
                 }
 
@@ -273,6 +294,11 @@
                 }
                 if (typeof feature === 'undefined' || feature === null) {
                     this.$_console_log('[admin-tools] userHasFeature: feature is null');
+                    return false;
+                }
+
+                if (!Array.isArray(this.selectedUserModuleList)) {
+                    this.$_console_log('[admin-tools] userHasModule: selected user module list is not an array');
                     return false;
                 }
 
