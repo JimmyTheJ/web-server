@@ -89,6 +89,11 @@
                     noteService.deleteNote(item.id).then(resp => {
                         this.$_console_log('[Notes] Succesfully deleted note.');
                         let index = this.noteList.findIndex(x => x.id === item.id);
+                        if (index < 0) {
+                            this.$_console_log('[Notes] Note doesn\'t exist in the list');
+                            return;
+                        }
+
                         this.noteList.splice(index, 1);
                     }).catch(() => { this.$_console_log('[Notes] Failed to delete existing note') });
                 });

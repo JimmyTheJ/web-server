@@ -26,58 +26,6 @@
             </div>
         </div>
     </div>
-
-    <!--<v-toolbar dense>
-        <v-overflow-btn :items="menu.text_size"
-                        editable
-                        label="Size"
-                        hide-details
-                        overflow></v-overflow-btn>
-
-        <v-divider class="mr-2"
-                   vertical></v-divider>
-
-        <v-btn-toggle v-model="menu.text_styling"
-                      class="transparent"
-                      multiple>
-            <v-btn :value="1" text>
-                <v-icon>format_bold</v-icon>
-            </v-btn>
-
-            <v-btn :value="2" text>
-                <v-icon>format_italic</v-icon>
-            </v-btn>
-
-            <v-btn :value="3" text>
-                <v-icon>format_underlined</v-icon>
-            </v-btn>
-        </v-btn-toggle>
-
-        <v-divider class="mx-2" vertical></v-divider>
-
-        <v-btn-toggle v-model="menu.alignment" class="transparent">
-            <v-btn :value="1" text>
-                <v-icon>format_align_left</v-icon>
-            </v-btn>
-
-            <v-btn :value="2" text>
-                <v-icon>format_align_center</v-icon>
-            </v-btn>
-
-            <v-btn :value="3" text>
-                <v-icon>format_align_right</v-icon>
-            </v-btn>
-
-            <v-btn :value="4" text>
-                <v-icon>format_align_justify</v-icon>
-            </v-btn>
-        </v-btn-toggle>
-    </v-toolbar>
-    <v-card>
-        <div id="note-editor-textarea" contenteditable="true" @keyup="setNotes">
-            {{ note.text }}
-        </div>
-    </v-card>-->
 </template>
 
 <script>

@@ -126,16 +126,21 @@
 </template>
 
 <script>
+    import { mapState } from 'vuex'
     import { setTimeout } from 'core-js';
     import weightService from '../../services/weight'
     import DispatchFactory from '../../factories/dispatchFactory'
 
-    function getNewWeight() {
+    function getNewWeight(user) {
+        let usr = null;
+        if (typeof user !== 'undefined')
+            usr = user;
+
         return {
             id: -1,
             created: new Date().toISOString().substr(0, 10),
             value: '',
-            userId: '',
+            userId: usr,
             notes: null
         }
     }
@@ -167,6 +172,9 @@
             this.getData();
         },
         computed: {
+            ...mapState({
+               user: state => state.auth.user
+            }),
             headerText() {
                 if (typeof this.weight === 'undefined' || this.weight === null) {
                     return '';
@@ -269,6 +277,8 @@
                     this.endDate = new Date(Math.max.apply(null, dates));
                     this.startDate = new Date(Math.min.apply(null, dates));
 
+                    this.$_console_log('End Date: ', this.endDate);
+
                     // TODO: Fix this.. This currently won't necessary give correct values if we have multiple weights on the same day,
                     // there is no guarantee it picks the right value
                     this.endWeight = newValue.find(x => new Date(x.created).getTime() == this.endDate.getTime()).value;
@@ -277,39 +287,47 @@
                 deep: true
             },
             filterStartDate(newValue) {
-                if (this.filterEndDate === null || newValue === null) {
+                //if (this.filterEndDate === null || newValue === null) {
+                if (newValue === null) {
                     this.filteredWeightList = this.weightList.slice(0);
                     return;
                 }
 
                 const startDate = new Date(newValue).getTime();
-                const endDate = new Date(this.filterEndDate).getTime();
+                let endDate = null;
+                if (this.filterEndDate !== null) {
+                    endDate = new Date(this.filterEndDate).getTime() + 86000000;  // End date + 1 day
+                }
+                
                 this.filteredWeightList = this.weightList.slice(0).filter(x => {
                     var date = new Date(x.created).getTime();
 
-                    if (date >= startDate && date <= endDate)
-                        return true;
+                    if (endDate === null)
+                        return date >= startDate ? true : false;
                     else
-                        return false;
+                        return date >= startDate && date <= endDate ? true : false;
                 });
-
-                //this.filteredWeightList = this.weightList.slice(0).filter(x => new Date(x.created) >= newValue && new Date(x.created) <= this.filterEndDate);
             },
             filterEndDate(newValue) {
-                if (this.filterStartDate === null || newValue === null) {
+                //if (this.filterStartDate === null || newValue === null) {
+                if (newValue === null) {
                     this.filteredWeightList = this.weightList.slice(0);
                     return;
                 }
 
-                const startDate = new Date(this.filterStartDate).getTime();
-                const endDate = new Date(newValue).getTime();
+                const endDate = new Date(newValue).getTime() + 86000000;  // End date + 1 day
+                let startDate = null;
+                if (this.filterStartDate !== null) {
+                    startDate = new Date(this.filterStartDate).getTime();
+                }
+                
                 this.filteredWeightList = this.weightList.slice(0).filter(x => {
                     var date = new Date(x.created).getTime();
 
-                    if (date >= startDate && date <= endDate)
-                        return true;
+                    if (startDate === null)
+                        return date <= endDate ? true : false;
                     else
-                        return false;
+                        return date >= startDate && date <= endDate ? true : false;
                 });
             }
         },
@@ -346,10 +364,10 @@
                 }
 
                 if (item === null) {
-                    this.weight = getNewWeight();
+                    this.weight = getNewWeight(this.user.id);
                 }
                 else {
-                    let newObj = getNewWeight();
+                    let newObj = getNewWeight(this.user.id);
                     
                     newObj.id = item.id;
                     newObj.value = item.value;
@@ -386,7 +404,7 @@
                     DispatchFactory.request(() => {
                         weightService.addWeight(item).then(resp => {
                             this.$_console_log('[Weight] Success creating weight');
-                            this.weight = getNewWeight();
+                            this.weight = getNewWeight(this.user.id);
                             this.weightList.push(resp.data);
                             this.dialogOpen = false;
                         }).catch(() => this.$_console_log('[Weight] Error creating weight'));
