@@ -287,48 +287,10 @@
                 deep: true
             },
             filterStartDate(newValue) {
-                //if (this.filterEndDate === null || newValue === null) {
-                if (newValue === null) {
-                    this.filteredWeightList = this.weightList.slice(0);
-                    return;
-                }
-
-                const startDate = new Date(newValue).getTime();
-                let endDate = null;
-                if (this.filterEndDate !== null) {
-                    endDate = new Date(this.filterEndDate).getTime() + 86000000;  // End date + 1 day
-                }
-                
-                this.filteredWeightList = this.weightList.slice(0).filter(x => {
-                    var date = new Date(x.created).getTime();
-
-                    if (endDate === null)
-                        return date >= startDate ? true : false;
-                    else
-                        return date >= startDate && date <= endDate ? true : false;
-                });
+                this.filteredWeightList = this.filterWeight(newValue, this.filterEndDate);
             },
             filterEndDate(newValue) {
-                //if (this.filterStartDate === null || newValue === null) {
-                if (newValue === null) {
-                    this.filteredWeightList = this.weightList.slice(0);
-                    return;
-                }
-
-                const endDate = new Date(newValue).getTime() + 86000000;  // End date + 1 day
-                let startDate = null;
-                if (this.filterStartDate !== null) {
-                    startDate = new Date(this.filterStartDate).getTime();
-                }
-                
-                this.filteredWeightList = this.weightList.slice(0).filter(x => {
-                    var date = new Date(x.created).getTime();
-
-                    if (startDate === null)
-                        return date <= endDate ? true : false;
-                    else
-                        return date >= startDate && date <= endDate ? true : false;
-                });
+                this.filteredWeightList = this.filterWeight(this.filterStartDate, newValue);
             }
         },
         methods: {
@@ -346,6 +308,34 @@
                         }
                     }).catch(() => this.$_console_log('[Weight] Error getting weights'));
                 });
+            },
+            filterWeight(start, end) {
+                let startDate = null;
+                let endDate = null;
+
+                if (start !== null) {
+                    startDate = new Date(start).getTime();
+                }
+                if (end !== null) {
+                    endDate = new Date(end).getTime() + 86000000;  // End date + 1 day
+                }
+
+                if (startDate === null && endDate === null) {
+                    return this.weightList.slice(0);
+                }
+
+                const filteredWeightList = this.weightList.slice(0).filter(x => {
+                    var date = new Date(x.created).getTime();
+
+                    if (startDate === null)
+                        return date <= endDate ? true : false;
+                    else if (endDate === null)
+                        return date >= startDate ? true : false;
+                    else
+                        return date >= startDate && date <= endDate ? true : false;
+                });
+
+                return filteredWeightList;
             },
             openAddOrEditWeight(item, evt) {
                 this.$_console_log("[Weight] Creating or editing a weight object");
