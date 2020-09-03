@@ -239,6 +239,12 @@ namespace VueServer.Services.Concrete
                 if (uri == null)
                     uri = new Uri(fullPath);
                 dir = new DirectoryInfo(uri.LocalPath);
+                if (!dir.Exists)
+                {
+                    _logger.LogWarning($"Directory.Load: Directory ({basePath}) does not exist. User: {_user.Id} @ IP: {_user.IP}");
+                    return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
+                }
+
                 files = dir.GetFileSystemInfos();
             }
             catch (Exception)

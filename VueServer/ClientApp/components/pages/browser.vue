@@ -33,6 +33,7 @@
     import { Roles } from '../../constants'
 
     import store from '../../store/index'
+    import router from '../../router'
     import ConMsgs from '../../mixins/console'
 
     export default {
@@ -65,13 +66,25 @@
             'text-viewer': TextViewer,
             'image-viewer': ImageViewer,
         },
-        beforeRouteEnter(to, from, next) {
-            handleRouteChange(to, from);
-            next();
+        async beforeRouteEnter(to, from, next) {
+            let success = await handleRouteChange(to, from, next);
+            if (!success) {                
+                store.dispatch('pushNotification', { text: `Failed to change route to this location (${to.fullPath}). It must not exist.`, type: 2, group: { type: 'browser', value: 'pathFail' } });
+                router.push({ name: 'browser' });
+            }
+            else {
+                next();
+            }
         },
-        beforeRouteUpdate(to, from, next) {
-            handleRouteChange(to, from);
-            next();
+        async beforeRouteUpdate(to, from, next) {
+            const success = await handleRouteChange(to, from, next);
+            if (!success) {
+                store.dispatch('pushNotification', { text: `Failed to change route to this location (${to.fullPath}). It must not exist.`, type: 2, group: { type: 'browser', value: 'pathFail' } });
+                router.push({ name: 'browser' });
+            }
+            else {
+                next();
+            }
         },
         beforeRouteLeave(to, from, next) {
             // When leaving the browser page we should clear out the data stored in the vuex store
@@ -206,7 +219,7 @@
         }
     }
 
-    function handleRouteChange(to, from) {
+    async function handleRouteChange(to, from, next) {
         ConMsgs.methods.$_console_log('Route changed. To, from:', to, from);
 
         let toHasSubDir = false;
@@ -254,6 +267,28 @@
             store.dispatch('goDirectory', { directory: toBasePath, subDirs: toSubDirs})
         }
 
-        store.dispatch('loadDirectory');
+        try {
+            await store.dispatch('loadDirectory');
+        }
+        catch (ex) {
+            // Failed request. Go back to where we came from
+            if (ex.status >= 400) {
+                if (fromSubDirs !== null) {
+                    await store.dispatch('goDirectory', { directory: fromBasePath, subDirs: fromSubDirs });
+                    await store.dispatch('loadDirectory');
+                }
+                else if (fromBasePath !== null) {
+                    await store.dispatch('goDirectory', { directory: fromBasePath, subDirs: null });
+                    await store.dispatch('loadDirectory');
+                }
+                else {
+                    await store.dispatch('clearFileExplorer');
+                    await store.dispatch('loadDirectory');
+                    return false;
+                }                    
+            }
+        }
+
+        return true;
     }
 </script>

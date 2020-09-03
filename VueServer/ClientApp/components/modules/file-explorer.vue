@@ -1,5 +1,13 @@
 <template>
     <div>
+        <v-overlay v-show="loadingContents" absolute opacity="0.50" z-index="9999">
+            <v-progress-circular :size="200"
+                                 :width="16"
+                                 color="primary"
+                                 indeterminate
+                                 class="browser-loading-circle"></v-progress-circular>
+        </v-overlay>
+
         <file-upload v-if="features.upload === true"></file-upload>
 
         <v-container>
@@ -99,15 +107,14 @@
                 }
             },
         },
+        created() {
+            this.setActiveFeatures();
+        },
         async mounted() {
             if (!Array.isArray(this.folders) || (Array.isArray(this.folders) && this.folders.length === 0))
                 await this.$store.dispatch('getFolders');
 
-            this.setActiveFeatures();
-
-            this.readRoute();
-
-            this.role = this.$_auth_convertRole(this.$store.state.auth.role);
+            this.getDirectoryFromRoute();
         },
         computed: {
             ...mapState({
@@ -115,6 +122,7 @@
                 folders: state => state.fileExplorer.folders,
                 directory: state => state.fileExplorer.directory,
                 subDirectories: state => state.fileExplorer.subDirectories,
+                loadingContents: state => state.fileExplorer.loadingContents,
                 activeModules: state => state.auth.activeModules,
             }),
             fullPath() {
@@ -203,12 +211,12 @@
                 if (browserObj.userModuleFeatures.some(x => x.moduleFeatureId === 'browser-viewer'))
                     this.features.viewing = true;
             },
-            readRoute() {
+            getDirectoryFromRoute() {
                 this.changing = true;
 
                 setTimeout(() => {
                     if (typeof this.$route.params.folder !== 'undefined') {
-                        this.$_console_log('[file-explorer] readRoute: Params.folder is not null, getting base path from url', this.$route.params.folder);
+                        this.$_console_log('[file-explorer] getDirectoryFromRoute: Params.folder is not null, getting base path from url', this.$route.params.folder);
                         if (this.$route.params.folder.includes('/'))
                             this.selectedDirectory = this.$route.params.folder.substring(0, this.$route.params.folder.indexOf('/'));
                         else

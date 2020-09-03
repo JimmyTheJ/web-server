@@ -9,6 +9,7 @@ const state = {
     folders: [],
     directory: '',
     subDirectories: [],
+    loadingContents: false,
 }
 
 const getters = {
@@ -47,17 +48,18 @@ const actions = {
 
             let subDirString = getSubdirectoryString(state.subDirectories)
 
+            commit(types.BROWSER_LOADING_CONTENTS, true)
             return await DispatchFactory.request(async () => {
                 const res = await fileAPI.loadDirectory(state.directory, subDirString)
                 commit(types.BROWSER_LOAD_DIRECTORY, res.data)
 
+                commit(types.BROWSER_LOADING_CONTENTS, false)
                 return await Promise.resolve(res.data)
             })
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error getting directory contents', e.response)
-            // On failure, go back one level
-            commit(types.BROWSER_POP_DIRECTORY)
+            commit(types.BROWSER_LOADING_CONTENTS, false)
             return await Promise.reject(e.response)
         }
     },
@@ -150,6 +152,11 @@ const mutations = {
         if (index > -1) {
             state.contents.splice(index, 1)
         }
+    },
+    [types.BROWSER_LOADING_CONTENTS](state, data) {
+        ConMsgs.methods.$_console_log(`[Vuex][Mutations] Loading contents spinner: ${data}`)
+
+        state.loadingContents = data
     }
 }
 
