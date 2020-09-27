@@ -37,10 +37,10 @@ export default {
     },
     register(data) {
         return axios.post(registerUrl, {
-            'Username': data.username,
-            'Password': data.password,
-            'ConfirmPassword': data.confirmPassword,
-            'Role': data.role
+            'username': data.username,
+            'password': data.password,
+            'confirmPassword': data.confirmPassword,
+            'role': data.role
         })
     },
     getUsers() {

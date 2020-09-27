@@ -35,7 +35,7 @@ export default {
                 });
         },
         async $_auth_register(data) {
-            ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_register: Called');
+            ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_register: Called', data);
             await this.$store.dispatch('register', data)
                 .then(resp => {
                     // Uncomment to auto login after registering (Make it a setting ?)

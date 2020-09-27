@@ -71,11 +71,11 @@ const actions = {
             return await Promise.reject(e.response);
         }
     },
-    async register(context) {
-        ConMsgs.methods.$_console_log(context)
+    async register({ commit }, context) {
+        ConMsgs.methods.$_console_log('[Vuex][Actions] Calling register: ', context)
         try {
             const res = await authAPI.register(context)
-            return await Promise.resolve(res)
+            return Promise.resolve(res)
         }
         catch (e) {
             ConMsgs.methods.$_console_group('[Vuex][Actions] Error from register', e.response)
