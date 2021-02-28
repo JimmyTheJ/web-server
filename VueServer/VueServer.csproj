@@ -25,16 +25,10 @@
     <None Remove="yarn.lock" />
 
     <!-- Files not to publish (note that the 'dist' subfolders are re-added below) -->
-    <Content Remove="ClientApp\**" />
     <EmbeddedResource Remove="Migrations\WS\**" />
     <EmbeddedResource Remove="Models\**" />
     <None Remove="Migrations\WS\**" />
     <None Remove="Models\**" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Content Include="ClientApp\documentation.json" />
-    <Content Include="ClientApp\index.html" />
   </ItemGroup>
   
   <ItemGroup>

@@ -32,6 +32,8 @@ namespace VueServer
 {
     public class Startup
     {
+        private const string CORS_POLICY_NAME = "front-end-server";
+
         public Startup(IWebHostEnvironment env)
         {
             var builder = new ConfigurationBuilder()
@@ -91,6 +93,18 @@ namespace VueServer
             services.AddRouting();
             services.AddControllers();
 
+            if (Environment.IsDevelopment())
+            {
+                services.AddCors(options =>
+                {
+                    options.AddPolicy(name: CORS_POLICY_NAME,
+                                      builder =>
+                                      {
+                                          builder.WithOrigins("http://localhost:8080", "https://localhost:8080").AllowAnyHeader().AllowCredentials();
+                                      });
+                });
+            }
+
             if (Configuration.GetSection("Options").GetValue<bool>("Https"))
                 services.AddCustomHttpsRedirection(Environment, Configuration);
             services.AddCustomCompression();
@@ -137,6 +151,11 @@ namespace VueServer
 
             // Exposes everything in the /public folder
             app.UsePublicFiles(env, logger);
+
+            if (Environment.IsDevelopment())
+            {
+                app.UseCors(CORS_POLICY_NAME);
+            }
 
             // Necessary for CertifyTheWeb to automatically re-authorize the webserver's TLS cert
             if (Configuration.GetSection("Options").GetValue<bool>("Well-Known"))

@@ -258,6 +258,7 @@ namespace VueServer.Services.Concrete
             var validToken = await CheckRefreshToken(username, model.CodeChallenge);
             if (validToken == null)
             {
+                _logger.LogInformation("AccountService.RefreshJwtToken: No valid token");
                 return new Result<string>(null, Domain.Enums.StatusCode.UNAUTHORIZED);
             }
 
