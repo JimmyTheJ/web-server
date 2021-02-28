@@ -40,7 +40,7 @@ if (Test-Path vue-server-ui\dist) {
 
 # Build Back-End
 cd VueServer
-dotnet publish -c Release -f netcoreapp3.1 -r win10-x64
+dotnet publish -c Release -f net5.0 -r win10-x64
 
 # Return to base dir
 cd ..

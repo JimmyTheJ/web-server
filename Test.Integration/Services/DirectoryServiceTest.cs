@@ -63,11 +63,11 @@ namespace VueServer.Test.Integration.Services
         public void GetAdminDirectoriesNoLevel ()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ADMINISTRATOR_STRING);
-            var result = service.GetDirectories();          
+            var dirs = service.GetDirectories();          
 
-            Assert.True(result.Code == Domain.Enums.StatusCode.OK);
-            Assert.NotNull(result.Obj);
-            Assert.Collection(result.Obj,
+            Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
+            Assert.NotNull(dirs.Result.Obj);
+            Assert.Collection(dirs.Result.Obj,
                 o => Assert.Equal("C", o.Name),
                 o => Assert.Equal("D", o.Name)
             );
@@ -77,11 +77,11 @@ namespace VueServer.Test.Integration.Services
         public void GetAdminDirectoriesAdminLevel ()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ADMINISTRATOR_STRING);
-            var result = service.GetDirectories();          
+            var dirs = service.GetDirectories();          
 
-            Assert.True(result.Code == Domain.Enums.StatusCode.OK);
-            Assert.NotNull(result.Obj);
-            Assert.Collection(result.Obj,
+            Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
+            Assert.NotNull(dirs.Result.Obj);
+            Assert.Collection(dirs.Result.Obj,
                 o => Assert.Equal("C", o.Name),
                 o => Assert.Equal("D", o.Name)
             );
@@ -91,11 +91,11 @@ namespace VueServer.Test.Integration.Services
         public void GetAdminDirectoriesElevatedLevel ()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ADMINISTRATOR_STRING);
-            var result = service.GetDirectories();          
+            var dirs = service.GetDirectories();          
 
-            Assert.True(result.Code == Domain.Enums.StatusCode.OK);
-            Assert.NotNull(result.Obj);
-            Assert.Collection(result.Obj,
+            Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
+            Assert.NotNull(dirs.Result.Obj);
+            Assert.Collection(dirs.Result.Obj,
                 o => Assert.Equal("Downloads", o.Name),
                 o => Assert.Equal("Music", o.Name),
                 o => Assert.Equal("Movies", o.Name)
@@ -106,11 +106,11 @@ namespace VueServer.Test.Integration.Services
         public void GetAdminDirectoriesGeneralLevel ()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ADMINISTRATOR_STRING);
-            var result = service.GetDirectories();          
+            var dirs = service.GetDirectories();          
 
-            Assert.True(result.Code == Domain.Enums.StatusCode.OK);
-            Assert.NotNull(result.Obj);
-            Assert.Collection(result.Obj,
+            Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
+            Assert.NotNull(dirs.Result.Obj);
+            Assert.Collection(dirs.Result.Obj,
                 o => Assert.Equal("Shared Files", o.Name),
                 o => Assert.Equal("Test", o.Name)
             );
@@ -123,11 +123,11 @@ namespace VueServer.Test.Integration.Services
         public void GetElevatedDirectoriesNoLevel ()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ELEVATED_STRING);
-            var result = service.GetDirectories();
+            var dirs = service.GetDirectories();
 
-            Assert.True(result.Code == Domain.Enums.StatusCode.OK);
-            Assert.NotNull(result.Obj);
-            Assert.Collection(result.Obj,
+            Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
+            Assert.NotNull(dirs.Result.Obj);
+            Assert.Collection(dirs.Result.Obj,
                 o => Assert.Equal("Downloads", o.Name),
                 o => Assert.Equal("Music", o.Name),
                 o => Assert.Equal("Movies", o.Name)
@@ -138,12 +138,12 @@ namespace VueServer.Test.Integration.Services
         public void GetElevatedDirectoriesAdminLevel ()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ELEVATED_STRING);
-            var result = service.GetDirectories();
+            var dirs = service.GetDirectories();
 
             Logger.VerifyLog(LogLevel.Warning, "Directory.GetDirectories: Permission escalation attack attempted. Setting level to the lowest setting.");
-            Assert.True(result.Code == Domain.Enums.StatusCode.OK);
-            Assert.NotNull(result.Obj);
-            Assert.Collection(result.Obj,
+            Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
+            Assert.NotNull(dirs.Result.Obj);
+            Assert.Collection(dirs.Result.Obj,
                 o => Assert.Equal("Shared Files", o.Name),
                 o => Assert.Equal("Test", o.Name)
             );
@@ -153,11 +153,11 @@ namespace VueServer.Test.Integration.Services
         public void GetElevatedDirectoriesElevatedLevel ()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ELEVATED_STRING);
-            var result = service.GetDirectories();
+            var dirs = service.GetDirectories();
 
-            Assert.True(result.Code == Domain.Enums.StatusCode.OK);
-            Assert.NotNull(result.Obj);
-            Assert.Collection(result.Obj,
+            Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
+            Assert.NotNull(dirs.Result.Obj);
+            Assert.Collection(dirs.Result.Obj,
                 o => Assert.Equal("Downloads", o.Name),
                 o => Assert.Equal("Music", o.Name),
                 o => Assert.Equal("Movies", o.Name)
@@ -168,11 +168,11 @@ namespace VueServer.Test.Integration.Services
         public void GetElevatedDirectoriesUserLevel ()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ELEVATED_STRING);
-            var result = service.GetDirectories();
+            var dirs = service.GetDirectories();
 
-            Assert.True(result.Code == Domain.Enums.StatusCode.OK);
-            Assert.NotNull(result.Obj);
-            Assert.Collection(result.Obj,
+            Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
+            Assert.NotNull(dirs.Result.Obj);
+            Assert.Collection(dirs.Result.Obj,
                 o => Assert.Equal("Shared Files", o.Name),
                 o => Assert.Equal("Test", o.Name)
             );
@@ -186,11 +186,11 @@ namespace VueServer.Test.Integration.Services
         public void GetUserDirectoriesNoLevel ()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, USER_STRING);
-            var result = service.GetDirectories();
+            var dirs = service.GetDirectories();
 
-            Assert.True(result.Code == Domain.Enums.StatusCode.OK);
-            Assert.NotNull(result.Obj);
-            Assert.Collection(result.Obj,
+            Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
+            Assert.NotNull(dirs.Result.Obj);
+            Assert.Collection(dirs.Result.Obj,
                 o => Assert.Equal("Shared Files", o.Name),
                 o => Assert.Equal("Test", o.Name)
             );
@@ -200,12 +200,12 @@ namespace VueServer.Test.Integration.Services
         public void GetUserDirectoriesAdminLevel ()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, USER_STRING);
-            var result = service.GetDirectories();
+            var dirs = service.GetDirectories();
 
             Logger.VerifyLog(LogLevel.Warning, "Directory.GetDirectories: Permission escalation attack attempted. Setting level to the lowest setting.");
-            Assert.True(result.Code == Domain.Enums.StatusCode.OK);
-            Assert.NotNull(result.Obj);
-            Assert.Collection(result.Obj,
+            Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
+            Assert.NotNull(dirs.Result.Obj);
+            Assert.Collection(dirs.Result.Obj,
                 o => Assert.Equal("Shared Files", o.Name),
                 o => Assert.Equal("Test", o.Name)
             );
@@ -215,12 +215,12 @@ namespace VueServer.Test.Integration.Services
         public void GetUserDirectoriesElevatedLevel ()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, USER_STRING);
-            var result = service.GetDirectories();
+            var dirs = service.GetDirectories();
 
             Logger.VerifyLog(LogLevel.Warning, "Directory.GetDirectories: Permission escalation attack attempted. Setting level to the lowest setting.");
-            Assert.True(result.Code == Domain.Enums.StatusCode.OK);
-            Assert.NotNull(result.Obj);
-            Assert.Collection(result.Obj,
+            Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
+            Assert.NotNull(dirs.Result.Obj);
+            Assert.Collection(dirs.Result.Obj,
                 o => Assert.Equal("Shared Files", o.Name),
                 o => Assert.Equal("Test", o.Name)
             );
@@ -230,11 +230,11 @@ namespace VueServer.Test.Integration.Services
         public void GetUserDirectoriesGeneralLevel ()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, USER_STRING);
-            var result = service.GetDirectories();
+            var dirs = service.GetDirectories();
 
-            Assert.True(result.Code == Domain.Enums.StatusCode.OK);
-            Assert.NotNull(result.Obj);
-            Assert.Collection(result.Obj,
+            Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
+            Assert.NotNull(dirs.Result.Obj);
+            Assert.Collection(dirs.Result.Obj,
                 o => Assert.Equal("Shared Files", o.Name),
                 o => Assert.Equal("Test", o.Name)
             );
