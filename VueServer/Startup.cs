@@ -145,7 +145,16 @@ namespace VueServer
 
             app.UseAuthentication();
             app.UseSession();
-             
+
+            if (string.IsNullOrWhiteSpace(env.WebRootPath))
+            {
+                env.WebRootPath = Path.Combine(env.ContentRootPath, "wwwroot");
+            }
+
+            // Ensure wwwroot and tmp folder exist
+            FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath));
+            FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, "tmp"));
+
             // Exposes everything in the /dist folder where all our front-end files have been placed through webpack
             app.UseWebpackFiles(env, logger);
 
