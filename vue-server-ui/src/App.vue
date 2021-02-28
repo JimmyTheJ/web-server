@@ -7,9 +7,9 @@
 </template>
 
 <script>
-    import * as CONST from '../constants'
+    import * as CONST from './constants'
     import { setTimeout } from 'core-js';
-    import { parse as parseJwt } from '../helpers/jwt'
+    import { parse as parseJwt } from './helpers/jwt'
 
     export default {
         data() {

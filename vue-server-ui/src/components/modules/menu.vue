@@ -46,7 +46,7 @@
                     v-model="menu"
                     offset-x>
                 <template v-slot:activator="{ on }">
-                    <v-btn v-on="on" icon><v-icon small>fas fa-ellipsis-v</v-icon></v-btn>
+                    <v-btn v-on="on" icon><fa-icon icon="ellipsis-v" size="2x"></fa-icon></v-btn>
                 </template>
                 <v-card>
                     <v-list>

@@ -6,12 +6,21 @@ import ConMsgs from './mixins/console'
 
 const API_URL = process.env.API_URL
 
+let additionalHeaders
+
 const ax = axios.create({
     baseURL: API_URL,
-    headers: {
-        'Content-Type': 'application/json; charset=utf-8'
-    }
+    headers: getHeaders()
 })
+
+function getHeaders() {
+  var headers = { 'Content-Type': 'application/json; charset=utf-8', }
+  if (process.env.NODE_ENV === 'development') {
+    headers['Access-Control-Allow-Origin'] = '*'
+  }
+  
+  return headers;
+} 
 
 // 10s timeout in production - 1 minute timeout in development
 ax.defaults.timeout = process.env.NODE_ENV === 'production' ? 10000 : 60000

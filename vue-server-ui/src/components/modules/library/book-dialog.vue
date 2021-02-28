@@ -31,10 +31,11 @@
                                         item-value="id"
                                         label="Author Search"
                                         placeholder="Start typing to Search"
-                                        prepend-icon="fas fa-book-reader"
                                         return-object
                                         @keyup.enter="addAuthorToBook()">
-
+                                <template v-slot:prepend>
+                                    <fa-icon icon="book-reader" size="2x" />
+                                </template>
                             </v-combobox>
                         </v-flex>
                         <v-flex xs2>
@@ -123,8 +124,11 @@
                                             item-value="id"
                                             label="Series Search"
                                             placeholder="Start typing to Search"
-                                            prepend-icon="fas fa-book"
-                                            return-object></v-combobox>
+                                            return-object>
+                                    <template v-slot:prepend>
+                                        <fa-icon icon="book" size="2x" />
+                                    </template>
+                                </v-combobox>
                             </v-flex>
                             <v-flex xs7 sm3 px-1>
                                 <v-text-field v-model="activeBook.series.number" label="Total Number in Series"></v-text-field>
@@ -164,8 +168,11 @@
                                             item-value="id"
                                             label="Bookcase Search"
                                             placeholder="Start typing to Search"
-                                            prepend-icon="mdi-bookcase"
-                                            return-object></v-combobox>
+                                            return-object>
+                                    <template v-slot:prepend>
+                                        <v-icon large>mdi-bookshelf</v-icon>
+                                    </template>
+                                </v-combobox>
                             </v-flex>
                             <v-flex xs1 class="text-right">
                                 <v-btn icon @click="deleteBookcase()">
@@ -190,8 +197,11 @@
                                                 item-value="id"
                                                 label="Shelf Search"
                                                 placeholder="Start typing to Search"
-                                                prepend-icon="mdi-bookcase"
-                                                return-object></v-combobox>
+                                                return-object>
+                                        <template v-slot:prepend>
+                                            <v-icon large>mdi-bookshelf</v-icon>
+                                        </template>
+                                    </v-combobox>
                                 </v-flex>
                                 <v-flex xs1 class="text-right">
                                     <v-btn icon @click="deleteShelf()">

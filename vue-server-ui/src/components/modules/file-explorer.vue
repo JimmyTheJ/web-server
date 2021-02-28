@@ -102,8 +102,8 @@
             goFile: {
                 type: Object,
                 default: () => {
-                    file: null;
-                    num: 0;
+                    null;
+                    0;
                 }
             },
         },

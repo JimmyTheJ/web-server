@@ -250,12 +250,42 @@ namespace VueServer.Classes.Extensions
         /// <param name="logger"></param>
         public static void UseWebpackFiles(this IApplicationBuilder app, IWebHostEnvironment env, ILogger logger)
         {
-            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"dist"), "StartupExtensions: Error creating dist folder")) return;
+            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"js"), "StartupExtensions: Error creating js folder")) return;
+            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"css"), "StartupExtensions: Error creating css folder")) return;
+            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"fonts"), "StartupExtensions: Error creating fonts folder")) return;
 
             app.UseStaticFiles(new StaticFileOptions()
             {
-                FileProvider = new PhysicalFileProvider(Path.Combine(env.WebRootPath, @"dist")),
-                RequestPath = new PathString("/dist"),
+                FileProvider = new PhysicalFileProvider(Path.Combine(env.WebRootPath, @"css")),
+                RequestPath = new PathString("/css"),
+                OnPrepareResponse = s =>
+                {
+                    s.Context.Response.GetTypedHeaders().CacheControl = new CacheControlHeaderValue()
+                    {
+                        Public = true,
+                        MaxAge = TimeSpan.FromDays(30)
+                    };
+                }
+            });
+
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(env.WebRootPath, @"js")),
+                RequestPath = new PathString("/js"),
+                OnPrepareResponse = s =>
+                {
+                    s.Context.Response.GetTypedHeaders().CacheControl = new CacheControlHeaderValue()
+                    {
+                        Public = true,
+                        MaxAge = TimeSpan.FromDays(30)
+                    };
+                }
+            });
+
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(env.WebRootPath, @"fonts")),
+                RequestPath = new PathString("/fonts"),
                 OnPrepareResponse = s =>
                 {
                     s.Context.Response.GetTypedHeaders().CacheControl = new CacheControlHeaderValue()

@@ -41,15 +41,7 @@ bld/
 */ffprobe.exe
 
 # Webserver fileserver folders
-*/wwwroot/.well-known/**
-*/wwwroot/tmp/**
-*/wwwroot/public/**
-
-# Webpack build results
-*/wwwroot/dist/**
-
-# Workaround for https://github.com/aspnet/JavaScriptServices/issues/235
-*/wwwroot/dist/_placeholder.txt
+*/wwwroot/**
 
 yarn.lock
 

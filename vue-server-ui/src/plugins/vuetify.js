@@ -6,6 +6,9 @@ import Vuetify from 'vuetify/lib'
 Vue.use(Vuetify)
 
 const opts = {
+    icons: {
+        iconfont: 'mdi'
+    },
     theme: {
         dark: true,
         // If you wanted to override the theming 
@@ -17,7 +20,7 @@ const opts = {
 
         //    }
         //}
-    }    
+    } 
 }
 
 export default new Vuetify(opts)

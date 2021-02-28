@@ -15,7 +15,7 @@ namespace VueServer.Controllers
 
         public IActionResult Index()
         {
-            return PhysicalFile(Path.Combine(_env.WebRootPath, "dist", "index.html"), MimeMapping.KnownMimeTypes.Html);
+            return PhysicalFile(Path.Combine(_env.WebRootPath, "index.html"), MimeMapping.KnownMimeTypes.Html);
         }
     }
 }
