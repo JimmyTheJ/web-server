@@ -1,4 +1,3 @@
-import * as MUTATIONS from '../store/mutation_types'
 import store from '../store/index'
 import { Roles } from '../constants'
 import ConMsgs from './console'
@@ -17,7 +16,7 @@ export default {
             ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_login: Called');
             let error = false;
             await this.$store.dispatch('signin', data)
-                .then(async resp => {
+                .then(async () => {
                     // Get the list of all other users for the chat system
                     this.$store.dispatch('getAllOtherUsers')
                         .then(() => ConMsgs.methods.$_console_log("Got user list"))
@@ -37,7 +36,7 @@ export default {
         async $_auth_register(data) {
             ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_register: Called', data);
             await this.$store.dispatch('register', data)
-                .then(resp => {
+                .then(() => {
                     // Uncomment to auto login after registering (Make it a setting ?)
                     //this.$_auth_login(data)
                     //    .then(resp2 => ConMsgs.methods.$_console_log("success in login"))

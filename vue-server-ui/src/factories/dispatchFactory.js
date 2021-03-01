@@ -37,7 +37,7 @@ class DispatchFactory {
             promiseList.push(this.request(this.queue[i]));
         }
 
-        Promise.all(promiseList).then(resp => { }).catch(() => { }).then(() => {
+        Promise.all(promiseList).then((resp) => { }).catch(() => { }).then(() => {
             // Once all promises are handled clear the promises out of the list
             ConMsgs.methods.$_console_log('[DispatchFactory] Emptying out promise queue.');
             for (let i = 0; i < promiseList.length; i++) {

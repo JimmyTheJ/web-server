@@ -1,6 +1,6 @@
 // vue.config.js
 const webpack = require('webpack');
-const HtmlPlugin = require('html-webpack-plugin');
+// const HtmlPlugin = require('html-webpack-plugin');
 
 let devConfig;
 let prodConfig;
@@ -59,6 +59,20 @@ module.exports = (env) => {
     
     chainWebpack: config => {
       config.module.rules.delete('eslint');
+
+      // config.module
+      // .rule("fonts")
+      // .test(/\.(ttf|otf|eot|woff|woff2)$/)
+      // .use("file-loader")
+      //   .loader("file-loader")
+      //   .tap(options => {
+      //     options = {
+      //       // limit: 10000,
+      //       name: '/assets/fonts/[name].[ext]',
+      //     }
+      //     return options
+      //   })
+      //   .end()
     },
 
     transpileDependencies: [

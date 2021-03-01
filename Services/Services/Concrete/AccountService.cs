@@ -449,24 +449,27 @@ namespace VueServer.Services.Concrete
             if (matchedToken == null)
             {
                 _logger.LogWarning($"CheckRefreshToken: User ({id}) does not have a refresh token that matches the passed in token value in the data store. This could potentially mean someone is trying to impersonate the user. Invalidating all refresh tokens for user.");
-                await InvalidateAllRefreshTokensForUser(id);
                 return null;
             }
 
             if (!matchedToken.Valid)
             {
-                _logger.LogWarning($"CheckRefreshToken: User ({id}) does have a refresh token that matches the passed in token value in the data store, but it has been previously invalidated. This could potentially mean someone has gained access to a user's device and is trying to pass iligitimate information to the server. Invalidating all refresh tokens for user.");
-                await InvalidateAllRefreshTokensForUser(id);
+                _logger.LogWarning($"CheckRefreshToken: User ({id}) does have a refresh token that matches the passed in token value in the data store, but it has been previously invalidated. This could potentially mean someone has gained access to a user's device and is trying to pass iligitimate information to the server.");
                 return null;
             }
 
-            if (DateTime.UtcNow > matchedToken.Issued.AddYears(1))
+            if (IsRefreshTokenExpired(matchedToken.Issued))
             {
                 _logger.LogWarning($"CheckRefreshToken: User ({id}) does have a refresh token that matches the passed in token value in the data store, but it has expired.");
                 return null;
             }
 
             return matchedToken;
+        }
+
+        private bool IsRefreshTokenExpired(DateTime value)
+        {
+            return DateTime.UtcNow > value.AddMonths(1);
         }
 
         /// <summary>
