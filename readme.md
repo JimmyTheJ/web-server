@@ -27,10 +27,10 @@ Additional modules include:
 	- `appsettings.development.json`
 	- `appsettings.production.json`
 
-3. Create the following files in `./src/Client/vue-server-ui/src/config` based on config.env.js with the appropriate information. Production uses 'production' from the NODE_ENV.
+3. Create the following files in `./src/Client/vue-server-ui` based on `.env.*` with the appropriate information.
 
-	- `config.dev.env.js`
-	- `config.prod.env.js`
+	- `.env.development.local`
+	- `.env.production.local`
 
 ### Building Instructions:
 
