@@ -1,6 +1,6 @@
 # Hide user secrets
 appsettings.*.json
-config.*.env.js
+*.local
 
 # WebServer Logs
 [Ll]ogs/

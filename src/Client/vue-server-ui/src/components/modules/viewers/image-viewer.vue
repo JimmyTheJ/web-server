@@ -12,7 +12,7 @@
                 windowHeight: window.innerHeight,
                 windowWidth: window.innerWidth,
 
-                basepath: process.env.API_URL,
+                basepath: process.env.VUE_APP_API_URL,
             }
         },
         props: {

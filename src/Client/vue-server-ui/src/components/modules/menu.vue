@@ -115,7 +115,7 @@
                 return true;
             },
             avatarPath() {
-                return `${process.env.API_URL}/public/${this.user.avatar}`;
+                return `${process.env.VUE_APP_API_URL}/public/${this.user.avatar}`;
             },
         },
         created() {

@@ -72,7 +72,7 @@
                     return false;
                 }
 
-                return `${process.env.API_URL}/public/${user.avatar}`;
+                return `${process.env.VUE_APP_API_URL}/public/${user.avatar}`;
             },
             getFriendColor(conversation) {
                 const defaultColor = 'blue';

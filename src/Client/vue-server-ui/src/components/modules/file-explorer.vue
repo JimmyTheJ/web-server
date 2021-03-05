@@ -69,7 +69,7 @@
 
     import { getSubdirectoryString } from '../../helpers/browser'
 
-    let path = process.env.API_URL;
+    let path = process.env.VUE_APP_API_URL;
 
     export default {
         data() {

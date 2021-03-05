@@ -5,7 +5,7 @@ import { HubConnectionBuilder, LogLevel } from '@aspnet/signalr'
 export default {
     install(Vue) {
         const connection = new HubConnectionBuilder()
-            .withUrl(`${process.env.API_URL}/chat-hub`)
+            .withUrl(`${process.env.VUE_APP_API_URL}/chat-hub`)
             .configureLogging(LogLevel.Information)
             .build()
 

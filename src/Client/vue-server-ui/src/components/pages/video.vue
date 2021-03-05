@@ -33,7 +33,7 @@
     import VideoPlayer from '../modules/video-player'
     import axios from '../../axios'
 
-    let path = process.env.API_URL;
+    let path = process.env.VUE_APP_API_URL;
 
     export default {
         data() {

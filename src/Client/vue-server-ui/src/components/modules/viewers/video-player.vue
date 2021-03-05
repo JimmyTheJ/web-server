@@ -93,7 +93,7 @@
         },
         methods: {
             loadPlayer() {
-                this.path = `${process.env.API_URL}/api/serve-file/${this.url}?token=${this.accessToken}`
+                this.path = `${process.env.VUE_APP_API_URL}/api/serve-file/${this.url}?token=${this.accessToken}`
 
                 const self = this;
                 setTimeout(() => {
