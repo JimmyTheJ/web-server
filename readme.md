@@ -54,8 +54,8 @@ This will place the output in the `.\build` folder.
 #### Required Software:
 
 - Dotnet 5
-- MS SQL Server / MySQL (if using type of provider, you can use SQLite if you want instead without installer anything)
 - Node.js 10.x+
+- MS SQL Server / MySQL (optional)
 
 ##### Notes:
 
