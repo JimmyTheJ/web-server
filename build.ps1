@@ -1,13 +1,15 @@
-# Build Front-End
-cd vue-server-ui
-npm run build
-
-# Clean up old folders / files
-cd ..
-
 # Setup path variables
 $path = pwd
-$wwwroot = "$path\VueServer\wwwroot"
+$build = "$path\build"
+$server = "$path\src\Server\VueServer"
+$client = "$path\src\Client\vue-server-ui"
+$wwwroot = "$server\wwwroot"
+$dist = "$client\dist"
+$serverBuildOutput = "$server\bin\Release\net5.0\win10-x64\publish\"
+
+# Build Front-End
+pushd $client
+npm run build
 
 # Check if the wwwroot directory or it's subdirectories exist, and delete them
 if (Test-Path $wwwroot) {
@@ -34,13 +36,26 @@ if (-not (Test-Path $wwwroot -PathType Container)) {
 Start-Sleep -Seconds 1.5
 
 # Copy files over from Front-End to Back-End wwwroot folder
-if (Test-Path vue-server-ui\dist) {
-	Copy-Item -Path $path\vue-server-ui\dist\* -Destination $wwwroot -Recurse
+if (Test-Path $dist) {
+	Copy-Item -Path "$dist\*" -Destination $wwwroot -Recurse
 }
 
 # Build Back-End
-cd VueServer
+pushd $server
 dotnet publish -c Release -f net5.0 -r win10-x64
 
+if (Test-Path $build) {
+	Remove-Item $build -Recurse
+	New-Item -ItemType Directory -Path $build
+}
+
+# Coffee Break
+Start-Sleep -Seconds 1.5
+
+# Copy files over from Front-End to Back-End wwwroot folder
+if (Test-Path $serverBuildOutput) {
+	Copy-Item -Path $serverBuildOutput -Destination $build -Recurse
+}
+
 # Return to base dir
-cd ..
+pushd $path
