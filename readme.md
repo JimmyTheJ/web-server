@@ -34,7 +34,7 @@ Additional modules include:
 
 ### Building Instructions:
 
-1. Client code is in `./src/Client/vue-server-ui` folder
+1. Client code is in `./src/Client/vue-server-ui` folder. Run `npm install` in this folder to start.
 	
 	a) To run front-end server with hot-module replacement:
 
