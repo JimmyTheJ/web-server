@@ -100,7 +100,10 @@ namespace VueServer
                     options.AddPolicy(name: CORS_POLICY_NAME,
                                       builder =>
                                       {
-                                          builder.WithOrigins("http://localhost:8080", "https://localhost:8080").AllowAnyHeader().AllowCredentials();
+                                          builder.WithOrigins("http://localhost:8080", "https://localhost:8080")
+                                            .AllowAnyMethod()
+                                            .AllowAnyHeader()
+                                            .AllowCredentials();
                                       });
                 });
             }

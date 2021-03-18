@@ -1,14 +1,14 @@
 // vue.config.js
-const Dotenv = require("dotenv-webpack");
+const Dotenv = require('dotenv-webpack')
 
 module.exports = {
   configureWebpack: {
     plugins: [new Dotenv()],
   },
 
-  chainWebpack: (config) => {
-    config.module.rules.delete("eslint");
+  chainWebpack: config => {
+    config.module.rules.delete('eslint')
   },
 
-  transpileDependencies: ["vuetify"],
-};
+  transpileDependencies: ['vuetify'],
+}
