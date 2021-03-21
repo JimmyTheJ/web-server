@@ -71,6 +71,14 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _chatService.UpdateConversationTitle(conversationId, request?.Title));
         }
 
+        [Route("conversation/update-conversation-color/{conversationId}/{userId}")]
+        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
+        [HttpPost]
+        public async Task<IActionResult> UpdateUserColor(long conversationId, string userId, [FromBody] UpdateConversationUserColorRequest request)
+        {
+            return _codeFactory.GetStatusCode(await _chatService.UpdateUserColor(conversationId, userId, request.ColorId));
+        }
+
         [Route("conversation/delete/{conversationId}")]
         [ModuleAuthFilterFactory(Module = AddOns.Chat.Id, Feature = Features.Chat.DELETE_CONVERSATION_ID)]
         [HttpDelete]

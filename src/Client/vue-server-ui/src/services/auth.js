@@ -19,40 +19,40 @@ const updateDisplayNameUrl = `api/account/user/update-display-name`
  * Export
  */
 export default {
-    signin(data) {
-        return axios.post(signinUrl, {
-            'username': data.username,
-            'password': data.password,
-            'codeChallenge': data.codeChallenge
-        })
-    },
-    signout(username) {
-        return axios.post(signoutUrl, `"${username}"`)
-    },
-    refreshToken(token, codeChallenge) {
-        return axios.post(`${refreshTokenUrl}`, {
-            token: token,
-            codeChallenge: codeChallenge
-        })
-    },
-    register(data) {
-        return axios.post(registerUrl, {
-            'username': data.username,
-            'password': data.password,
-            'confirmPassword': data.confirmPassword,
-            'role': data.role
-        })
-    },
-    getUsers() {
-        return axios.get(getUsersUrl)
-    },
-    getAllOtherUsers() {
-        return axios.get(getAllOtherUsersUrl)
-    },
-    uploadAvatarImage(file) {
-        return axios.post(updateAvatarImageUrl, file)
-    },
-    updateDisplayName(name) {
-        return axios.post(updateDisplayNameUrl, `"${name}"`)
-    }
+  signin(data) {
+    return axios.post(signinUrl, {
+      username: data.username,
+      password: data.password,
+      codeChallenge: data.codeChallenge,
+    })
+  },
+  signout(username) {
+    return axios.post(signoutUrl, `"${username}"`)
+  },
+  refreshToken(token, codeChallenge) {
+    return axios.post(`${refreshTokenUrl}`, {
+      token: token,
+      codeChallenge: codeChallenge,
+    })
+  },
+  register(data) {
+    return axios.post(registerUrl, {
+      username: data.username,
+      password: data.password,
+      confirmPassword: data.confirmPassword,
+      role: data.role,
+    })
+  },
+  getUsers() {
+    return axios.get(getUsersUrl)
+  },
+  getAllOtherUsers() {
+    return axios.get(getAllOtherUsersUrl)
+  },
+  uploadAvatarImage(file) {
+    return axios.post(updateAvatarImageUrl, file)
+  },
+  updateDisplayName(name) {
+    return axios.post(updateDisplayNameUrl, `"${name}"`)
+  },
 }

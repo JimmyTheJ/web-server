@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 export default {
   name: 'chat-bubble',
@@ -47,6 +47,10 @@ export default {
     return {}
   },
   props: {
+    colorMap: {
+      type: Object,
+      required: true,
+    },
     message: {
       type: Object,
       required: true,
@@ -124,14 +128,21 @@ export default {
       if (this.message.highlighted === true) {
         return 'highlight'
       } else {
-        if (this.message.color === null) {
-          if (this.message.userId === this.user.id) {
-            return 'blue'
-          } else {
-            return 'green'
-          }
+        if (this.message.userId === this.user.id) {
+          return 'grey'
         } else {
-          return this.message.color
+          // const color = this.$store.getters.getConversationUserColor(
+          //   this.message.conversation.id,
+          //   this.message.userId
+          // )
+
+          let color = this.colorMap[this.message.userId]
+
+          if (typeof color === 'undefined' || color === null || color === '') {
+            return 'indigo'
+          }
+
+          return color
         }
       }
     },

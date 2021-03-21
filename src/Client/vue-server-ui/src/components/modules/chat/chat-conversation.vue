@@ -19,6 +19,27 @@
     </generic-dialog>
 
     <generic-dialog
+      :open="changeUserColorDialog"
+      title="Change User Color"
+      :maxWidth="260"
+      :hideClose="true"
+      @dialog-close="deleteConversationDialog = false"
+    >
+      <v-card>
+        <v-card-text class="text-center">
+          <v-avatar
+            v-for="(color, i) in colorList"
+            :key="i"
+            :color="color"
+            size="48"
+            class="ma-2"
+            @click="changeUserColor(i)"
+          ></v-avatar>
+        </v-card-text>
+      </v-card>
+    </generic-dialog>
+
+    <generic-dialog
       :open="moreInfoDialog"
       title="Message Info"
       :maxWidth="640"
@@ -60,12 +81,39 @@
           </div>
         </v-toolbar-title>
         <v-spacer></v-spacer>
-        <v-btn
-          text
-          v-if="isConversationDeletable"
-          @click="deleteConversationDialog = true"
-          ><v-icon>mdi-delete</v-icon></v-btn
+        <v-menu
+          :close-on-content-click="true"
+          :nudge-width="200"
+          v-model="menu"
+          offset-x
         >
+          <template v-slot:activator="{ on }">
+            <v-btn v-on="on" icon
+              ><fa-icon icon="ellipsis-v" size="2x"></fa-icon
+            ></v-btn>
+          </template>
+          <v-card>
+            <v-list>
+              <v-list-item
+                v-if="canChangeUserColor"
+                @click="changeUserColorDialog = true"
+              >
+                <v-list-item-title class="ml-2">
+                  Change user color
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item
+                v-if="isConversationDeletable"
+                @click="deleteConversationDialog = true"
+              >
+                <v-icon>mdi-delete</v-icon>
+                <v-list-item-title class="ml-2"
+                  >Delete Conversation</v-list-item-title
+                >
+              </v-list-item>
+            </v-list>
+          </v-card>
+        </v-menu>
       </v-toolbar>
 
       <div
@@ -83,6 +131,7 @@
             @mouseleave="setMessageHover(message, false)"
           >
             <chat-bubble
+              :colorMap="colorMap"
               :message="message"
               :currentTime="time"
               :owner="isOwner(message)"
@@ -133,15 +182,28 @@ export default {
   data() {
     return {
       newMessage: null,
+      changeUserColorDialog: false,
       deleteConversationDialog: false,
       moreInfoDialog: false,
       editingTitle: false,
+      menu: false,
       newTitle: null,
       moreInfo: {},
       chatWindow: null,
       scrollHeight: 0,
       bodyContainerHeight: 0,
       othersLastReadMessage: -1,
+      colorList: [
+        'indigo',
+        'purple',
+        'teal',
+        'cyan',
+        'pink',
+        'green',
+        'orange',
+        'blue-grey',
+        'brown',
+      ],
     }
   },
   components: {
@@ -200,6 +262,17 @@ export default {
       }
 
       return false
+    },
+    canChangeUserColor() {
+      return this.conversation.conversationUsers.length == 2
+    },
+    colorMap() {
+      let map = {}
+      this.conversation.conversationUsers.forEach((element, index) => {
+        map[element.userId] = element.color
+      })
+
+      return map
     },
   },
   watch: {
@@ -554,6 +627,27 @@ export default {
       } else {
         // If user count is > 2 than we need to find a solution on how to show the read receipt icon of the user
       }
+    },
+    changeUserColor(color) {
+      this.$_console_log(`Selected color is: ${color}`)
+      const otherUserIndex = this.conversation.conversationUsers.findIndex(
+        (x) => x.userId !== this.user.id
+      )
+      if (otherUserIndex < 0) {
+        return this.$_console_log("Couldn't find other user")
+      }
+
+      this.$store
+        .dispatch('changeConversationUserColor', {
+          conversationId: this.conversation.id,
+          userId: this.conversation.conversationUsers[otherUserIndex].userId,
+          colorId: color,
+        })
+        .then(() => {})
+        .catch(() => {})
+        .then(() => {
+          this.changeUserColorDialog = false
+        })
     },
   },
 }

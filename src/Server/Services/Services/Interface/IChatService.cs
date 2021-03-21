@@ -15,6 +15,7 @@ namespace VueServer.Services.Interface
         Task<IResult<IEnumerable<Conversation>>> GetNewMessageNotifications();
         Task<IResult<IEnumerable<Conversation>>> GetAllConversations();
         Task<IResult<bool>> UpdateConversationTitle(long conversationId, string title);
+        Task<IResult<string>> UpdateUserColor(long conversationId, string userId, int colorId);
         Task<IResult<bool>> DeleteConversation(long conversationId);
         Task<IResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(long id);
         Task<IResult<bool>> DeleteMessage(long messageId);

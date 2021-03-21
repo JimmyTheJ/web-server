@@ -16,31 +16,31 @@ const deleteFeatureFromUserUrl = `api/modules/delete-feature-from-user`
  * Export
  */
 export default {
-    getModulesForUser() {
-        return axios.get(getModulesForUserUrl)
-    },
-    getAllModules() {
-        return axios.get(getAllModulesUrl)
-    },
-    getAllModulesForAllUser() {
-        return axios.get(getAllModulesForAllUserUrl)
-    },
-    getModulesAndFeaturesForUser(user) {
-        return axios.get(getUserModulesAndFeaturesUrl, { user: user} )
-    },
-    getAllFeaturesForAllUser() {
-        return axios.get(getAllFeaturesForAllUserUrl)
-    },
-    addModuleToUser(obj) {
-        return axios.post(addModuleToUserUrl, obj)
-    },
-    deleteModuleFromUser(obj) {
-        return axios.post(deleteModuleFromUserUrl, obj)
-    },
-    addFeatureToUser(obj) {
-        return axios.post(addFeatureToUserUrl, obj)
-    },
-    deleteFeatureFromUser(obj) {
-        return axios.post(deleteFeatureFromUserUrl, obj)
-    }
+  getModulesForUser() {
+    return axios.get(getModulesForUserUrl)
+  },
+  getAllModules() {
+    return axios.get(getAllModulesUrl)
+  },
+  getAllModulesForAllUser() {
+    return axios.get(getAllModulesForAllUserUrl)
+  },
+  getModulesAndFeaturesForUser(user) {
+    return axios.get(getUserModulesAndFeaturesUrl, { user: user })
+  },
+  getAllFeaturesForAllUser() {
+    return axios.get(getAllFeaturesForAllUserUrl)
+  },
+  addModuleToUser(obj) {
+    return axios.post(addModuleToUserUrl, obj)
+  },
+  deleteModuleFromUser(obj) {
+    return axios.post(deleteModuleFromUserUrl, obj)
+  },
+  addFeatureToUser(obj) {
+    return axios.post(addFeatureToUserUrl, obj)
+  },
+  deleteFeatureFromUser(obj) {
+    return axios.post(deleteFeatureFromUserUrl, obj)
+  },
 }

@@ -84,16 +84,19 @@ namespace VueServer.Services.Concrete
                 _logger.LogError("StartConversation: Error saving database on starting a conversation", e.StackTrace);
                 return new Result<Conversation>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
+            var colorId = 0;
 
             // Add current user to conversation
             var selfUser = new ConversationHasUser()
             {
                 ConversationId = conversation.Id,
                 UserId = _user.Id,
-                Owner = true
+                Owner = true,
+                Color = GetUserColor(colorId++)
+
             };
             conversationUserList.Add(selfUser);
-
+            
             // Add all the other users to the conversation
             foreach (var username in request.Users.Where(x => x != _user.Id))
             {
@@ -112,7 +115,8 @@ namespace VueServer.Services.Concrete
                 {
                     ConversationId = conversation.Id,
                     UserId = user.Id,
-                    UserDisplayName = user.DisplayName
+                    UserDisplayName = user.DisplayName,
+                    Color = GetUserColor(colorId++)
                 };
                 
                 conversationUserList.Add(conversationUser);
@@ -218,6 +222,30 @@ namespace VueServer.Services.Concrete
             }
 
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
+        }
+
+        public async Task<IResult<string>> UpdateUserColor (long conversationId, string userId, int colorId)
+        {
+            var conversationHasUser = _context.ConversationHasUser.Where(x => x.ConversationId == conversationId && x.UserId == userId).FirstOrDefault();
+            if (conversationHasUser == null)
+            {
+                _logger.LogInformation($"UpdateUserColor: ConversationHasUser with id ({conversationId}) and ({userId}) does not exist. Cannot update the color for it");
+                return new Result<string>(null, Domain.Enums.StatusCode.NO_CONTENT);
+            }
+
+            conversationHasUser.Color = GetUserColor(colorId);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                _logger.LogError("DeleteConversation: Error saving database on deleting conversation");
+                return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            return new Result<string>(conversationHasUser.Color, Domain.Enums.StatusCode.OK);
         }
 
         public async Task<IResult<bool>> DeleteConversation(long conversationId)
@@ -523,6 +551,24 @@ namespace VueServer.Services.Concrete
 
             _context.ReadReceipts.AddRange(receipts);
             return receipts;
+        }
+
+        // TODO: Update to include more colors, and probably make this a lookup table
+        private static string GetUserColor (int id)
+        {
+            return id switch
+            {
+                0 => "indigo",// #3F51B
+                1 => "purple",// #9C27B
+                2 => "teal",// #00968
+                3 => "cyan",// #00BCD
+                4 => "pink",// #E91E6
+                5 => "green",// #4CAF5
+                6 => "orange",// #FF980
+                7 => "blue-grey",// #607D8
+                8 => "brown",// #79554
+                _ => "indigo",// #3F51B
+            };
         }
 
         #endregion
