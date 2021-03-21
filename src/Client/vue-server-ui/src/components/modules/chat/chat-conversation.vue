@@ -129,6 +129,7 @@ import service from '../../../services/chat'
 import { mapState } from 'vuex'
 
 export default {
+  name: 'chat-conversation',
   data() {
     return {
       newMessage: null,
