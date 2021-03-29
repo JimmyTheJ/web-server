@@ -22,8 +22,11 @@
         </v-list>
       </v-menu>
 
-      <div v-if="isGroup && user.id !== message.userId && userMap[message.userId].avatar !== 'undefined'">
-        <chat-avatar :conversation="message.conversation" size="24" :usePersonal="true" :message="message" />
+      <div v-if="isGroup && user.id !== message.userId" style="align-self: end;">
+        <chat-avatar :avatar="userMap[message.userId].avatar" 
+                     :text="userMap[message.userId].displayName.charAt(0)" 
+                     :color="colorMap[message.userId]" 
+                     size="32" />
       </div>
 
       <div

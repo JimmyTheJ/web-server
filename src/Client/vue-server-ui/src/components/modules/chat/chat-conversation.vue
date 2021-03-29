@@ -141,7 +141,9 @@
             >
               <template v-slot:lastReadIcon v-if="isLastReadMessage(message)">
                 <chat-avatar
-                  :conversation="conversation"
+                  :avatar="null"
+                  :text="null"
+                  :color="null"
                   size="16"
                 ></chat-avatar>
               </template>

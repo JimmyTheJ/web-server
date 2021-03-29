@@ -86,7 +86,7 @@ const actions = {
       return await Promise.reject(e.response)
     }
   },
-  async register(context) {
+  async register({}, context) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Calling register: ', context)
     try {
       const res = await authAPI.register(context)

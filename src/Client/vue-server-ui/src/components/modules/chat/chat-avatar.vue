@@ -1,18 +1,15 @@
 <template>
   <div>
-    <template v-if="usePersonal === false && conversation.conversationUsers.length > 2">
-      <fa-icon icon="users" size="2x"></fa-icon>
-    </template>
-    <template v-else-if="friendHasAvatar(conversation) !== false">
+    <template v-if="avatar !== null">
       <v-avatar :size="maxSize">
-        <v-img :src="friendHasAvatar(conversation)"></v-img>
+        <v-img :src="avatarPath"></v-img>
       </v-avatar>
     </template>
     <template v-else>
-      <v-avatar :color="getFriendColor(conversation)" :size="maxSize">
-        <span :class="['white--text', getTextSize()]">{{
-          getFriendAvatarText(conversation)
-        }}</span>
+      <v-avatar :color="color" :size="maxSize">
+        <span :class="['white--text', getTextSize()]">
+          {{ text }}
+        </span>
       </v-avatar>
     </template>
   </div>
@@ -25,25 +22,28 @@ export default {
   name: 'chat-avatar',
   data() {
     return {
-      maxSize: 0,
-    }
+
+     }
   },
   props: {
-    conversation: {
-      type: Object,
-      required: true,
-    },
     size: {
       type: String,
       required: false,
     },
-    usePersonal: {
-      type: Boolean,
+    avatar: {
+      type: String,
       required: false,
+      default: null,
     },
-    message: {
-      type: Object,
+    text: {
+      type: String,
       required: false,
+      default: null,
+    },
+    color: {
+      type: String,
+      required: false,
+      default: null,
     },
   },
   computed: {
@@ -51,12 +51,13 @@ export default {
       user: (state) => state.auth.user,
       userMap: (state) => state.auth.userMap,
     }),
-  },
-  mounted() {
-    if (typeof this.size !== 'undefined') this.maxSize = this.size
-    else {
-      this.maxSize = '48'
-    }
+    maxSize() {
+      if (typeof this.size !== 'undefined' && this.size !== null) return this.size
+      else return '48'
+    },
+    avatarPath() {
+      return `${process.env.VUE_APP_API_URL}/public/${this.avatar}`
+    },
   },
   methods: {
     friendHasAvatar(conversation) {
