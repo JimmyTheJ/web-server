@@ -109,7 +109,7 @@ export default {
   computed: {
     ...mapState({
       user: (state) => state.auth.user,
-      userList: (state) => state.auth.otherUsers,
+      userList: (state) => state.auth.otherUsersList,
       conversations: (state) => state.chat.conversations,
     }),
     isMobile() {

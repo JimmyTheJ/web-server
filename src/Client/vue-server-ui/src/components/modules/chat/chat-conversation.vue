@@ -135,6 +135,7 @@
               :message="message"
               :currentTime="time"
               :owner="isOwner(message)"
+              :isGroup="isGroupConversation"
               @moreInfo="openMoreInfo"
               @deleteMessage="deleteMessage"
             >
@@ -274,6 +275,9 @@ export default {
 
       return map
     },
+    isGroupConversation() {
+      return this.conversation.conversationUsers.length > 2
+    }
   },
   watch: {
     editingTitle(newValue) {

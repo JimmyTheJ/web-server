@@ -1,6 +1,6 @@
 <template>
   <div>
-    <template v-if="conversation.conversationUsers.length > 2">
+    <template v-if="usePersonal === false && conversation.conversationUsers.length > 2">
       <fa-icon icon="users" size="2x"></fa-icon>
     </template>
     <template v-else-if="friendHasAvatar(conversation) !== false">
@@ -37,11 +37,19 @@ export default {
       type: String,
       required: false,
     },
+    usePersonal: {
+      type: Boolean,
+      required: false,
+    },
+    message: {
+      type: Object,
+      required: false,
+    },
   },
   computed: {
     ...mapState({
       user: (state) => state.auth.user,
-      userList: (state) => state.auth.otherUsers,
+      userMap: (state) => state.auth.userMap,
     }),
   },
   mounted() {
@@ -53,6 +61,7 @@ export default {
   methods: {
     friendHasAvatar(conversation) {
       if (
+        typeof this.userMap !== 'object' ||
         typeof conversation !== 'object' ||
         conversation === null ||
         !Array.isArray(conversation.conversationUsers)
@@ -60,10 +69,7 @@ export default {
         return false
       }
 
-      if (!Array.isArray(this.userList)) {
-        return false
-      }
-
+      // For one on one conversation use the non-active users image
       var friend = conversation.conversationUsers.find(
         (x) => x.userId !== this.user.id
       )
@@ -71,12 +77,8 @@ export default {
         return false
       }
 
-      var user = this.userList.find((x) => x.id === friend.userId)
-      if (typeof user === 'undefined') {
-        return false
-      }
-
-      if (typeof user.avatar === 'undefined') {
+      var user = this.userMap[friend.userId]
+      if (typeof user === 'undefined' || typeof user.avatar === 'undefined') {
         return false
       }
 
@@ -92,11 +94,20 @@ export default {
         return defaultColor
       }
 
-      var friend = conversation.conversationUsers.find(
-        (x) => x.userId !== this.user.id
-      )
-      if (typeof friend === 'undefined') {
-        return defaultColor
+      let friend = {}
+      if (conversation.conversationUsers.length <= 2) {
+        friend = conversation.conversationUsers.find(
+          (x) => x.userId !== this.user.id)
+
+        if (typeof friend === 'undefined') {
+          return defaultColor
+        }
+      }
+      else {
+        if (typeof message !== 'undefined') {
+          friend = conversation.conversationUsers.find(
+            (x) => x.userId === message.userId)
+        }
       }
 
       if (friend.color === null) {
@@ -106,18 +117,6 @@ export default {
       return friend.color
     },
     getFriendAvatarText(conversation) {
-      if (
-        typeof conversation !== 'object' ||
-        conversation === null ||
-        !Array.isArray(conversation.conversationUsers)
-      ) {
-        return false
-      }
-
-      if (!Array.isArray(this.userList)) {
-        return false
-      }
-
       var friend = conversation.conversationUsers.find(
         (x) => x.userId !== this.user.id
       )
@@ -125,7 +124,7 @@ export default {
         return false
       }
 
-      var user = this.userList.find((x) => x.id === friend.userId)
+      var user = this.userMap[friend.userId]
       if (typeof user === 'undefined') {
         return false
       }

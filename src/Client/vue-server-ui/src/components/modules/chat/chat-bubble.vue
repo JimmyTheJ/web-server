@@ -22,10 +22,20 @@
         </v-list>
       </v-menu>
 
+      <div v-if="isGroup && user.id !== message.userId && userMap[message.userId].avatar !== 'undefined'">
+        <chat-avatar :conversation="message.conversation" size="24" :usePersonal="true" :message="message" />
+      </div>
+
       <div
         :class="['bubble-body-container', getColor, 'pa-2', 'order-1']"
         @click="readMessage()"
       >
+        <div
+          class="text-header-1 font-weight-bold"
+          v-if="isGroup && user.id !== message.userId"
+        >
+          {{ userMap[message.userId].displayName }}
+        </div>
         <div class="text-body-1">{{ message.text }}</div>
         <div class="text-caption text-right">{{ timeSince }}</div>
         <div class="bubble-id" style="display: none">{{ message.id }}</div>
@@ -40,9 +50,13 @@
 
 <script>
 import { mapGetters, mapState } from 'vuex'
+import ChatAvatar from './chat-avatar.vue'
 
 export default {
   name: 'chat-bubble',
+  components: {
+    'chat-avatar': ChatAvatar
+  },
   data() {
     return {}
   },
@@ -67,10 +81,15 @@ export default {
       type: Boolean,
       default: false,
     },
+    isGroup: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     ...mapState({
       user: (state) => state.auth.user,
+      userMap: (state) => state.auth.userMap,
       activeModules: (state) => state.auth.activeModules,
     }),
     timeSince() {
