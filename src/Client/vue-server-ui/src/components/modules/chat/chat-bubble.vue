@@ -22,11 +22,16 @@
         </v-list>
       </v-menu>
 
-      <div v-if="isGroup && user.id !== message.userId" style="align-self: end;">
-        <chat-avatar :avatar="userMap[message.userId].avatar" 
-                     :text="userMap[message.userId].displayName.charAt(0)" 
-                     :color="colorMap[message.userId]" 
-                     size="32" />
+      <div
+        v-if="isGroup && user.id !== message.userId"
+        style="align-self: end;"
+      >
+        <chat-avatar
+          :avatar="userMap[message.userId].avatar"
+          :text="userMap[message.userId].displayName.charAt(0)"
+          :color="colorMap[message.userId]"
+          size="32"
+        />
       </div>
 
       <div
@@ -58,7 +63,7 @@ import ChatAvatar from './chat-avatar.vue'
 export default {
   name: 'chat-bubble',
   components: {
-    'chat-avatar': ChatAvatar
+    'chat-avatar': ChatAvatar,
   },
   data() {
     return {}
@@ -91,9 +96,9 @@ export default {
   },
   computed: {
     ...mapState({
-      user: (state) => state.auth.user,
-      userMap: (state) => state.auth.userMap,
-      activeModules: (state) => state.auth.activeModules,
+      user: state => state.auth.user,
+      userMap: state => state.auth.userMap,
+      activeModules: state => state.auth.activeModules,
     }),
     timeSince() {
       if (
@@ -126,10 +131,10 @@ export default {
     },
     isMessageDeletable() {
       if (this.owner === true) {
-        const chatModule = this.activeModules.find((x) => x.id === 'chat')
+        const chatModule = this.activeModules.find(x => x.id === 'chat')
         if (typeof chatModule !== 'undefined') {
           const feature = chatModule.userModuleFeatures.find(
-            (x) => x.moduleFeatureId === 'chat-delete-message'
+            x => x.moduleFeatureId === 'chat-delete-message'
           )
           if (typeof feature !== 'undefined') {
             return true
@@ -209,7 +214,7 @@ export default {
         // No read receipts from self
         else if (
           typeof this.message.readReceipts.find(
-            (x) => x.userId === this.user.id
+            x => x.userId === this.user.id
           ) === 'undefined'
         ) {
           return true

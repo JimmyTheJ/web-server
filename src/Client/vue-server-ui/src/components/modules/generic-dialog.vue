@@ -48,10 +48,10 @@ export default {
     },
   },
   watch: {
-    dialog: function (newValue) {
+    dialog: function(newValue) {
       if (newValue === false) this.$emit('dialog-close', true)
     },
-    open: function (newValue) {
+    open: function(newValue) {
       this.dialog = newValue
     },
   },

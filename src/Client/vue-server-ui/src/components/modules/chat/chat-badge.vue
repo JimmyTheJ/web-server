@@ -43,8 +43,8 @@ export default {
   },
   computed: {
     ...mapState({
-      user: (state) => state.auth.user,
-      userMap: (state) => state.auth.userMap,
+      user: state => state.auth.user,
+      userMap: state => state.auth.userMap,
     }),
     avatar() {
       if (!Array.isArray(this.conversation.conversationUsers)) {
@@ -53,14 +53,17 @@ export default {
 
       if (this.conversation.conversationUsers.length > 2) {
         return null
-      }
-      else {
+      } else {
         // For one on one conversation use the non-active users image
         var friend = this.conversation.conversationUsers.find(
-          (x) => x.userId !== this.user.id)
+          x => x.userId !== this.user.id
+        )
 
-        if (typeof friend === 'undefined' || typeof friend.userId == 'undefined'
-            || typeof this.userMap[friend.userId].avatar === 'undefined') {
+        if (
+          typeof friend === 'undefined' ||
+          typeof friend.userId == 'undefined' ||
+          typeof this.userMap[friend.userId].avatar === 'undefined'
+        ) {
           return null
         }
 
@@ -71,17 +74,20 @@ export default {
       if (!Array.isArray(this.conversation.conversationUsers)) {
         return null
       }
-      
+
       if (this.conversation.conversationUsers.length > 2) {
         return null
-      }
-      else {
+      } else {
         // For one on one conversation use the non-active users image
         var friend = this.conversation.conversationUsers.find(
-          (x) => x.userId !== this.user.id)
+          x => x.userId !== this.user.id
+        )
 
-        if (typeof friend === 'undefined' || typeof friend.userId == 'undefined'
-            || typeof this.userMap[friend.userId].displayName === 'undefined') {
+        if (
+          typeof friend === 'undefined' ||
+          typeof friend.userId == 'undefined' ||
+          typeof this.userMap[friend.userId].displayName === 'undefined'
+        ) {
           return null
         }
 
@@ -95,13 +101,16 @@ export default {
 
       if (this.conversation.conversationUsers.length > 2) {
         return null
-      }
-      else {
+      } else {
         // For one on one conversation use the non-active users image
         var friend = this.conversation.conversationUsers.find(
-          (x) => x.userId !== this.user.id)
+          x => x.userId !== this.user.id
+        )
 
-        if (typeof friend === 'undefined' || typeof friend.color == 'undefined') {
+        if (
+          typeof friend === 'undefined' ||
+          typeof friend.color == 'undefined'
+        ) {
           return null
         }
 

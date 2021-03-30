@@ -172,12 +172,12 @@ export default {
   },
   computed: {
     ...mapState({
-      contents: (state) => state.fileExplorer.contents,
-      folders: (state) => state.fileExplorer.folders,
-      directory: (state) => state.fileExplorer.directory,
-      subDirectories: (state) => state.fileExplorer.subDirectories,
-      loadingContents: (state) => state.fileExplorer.loadingContents,
-      activeModules: (state) => state.auth.activeModules,
+      contents: state => state.fileExplorer.contents,
+      folders: state => state.fileExplorer.folders,
+      directory: state => state.fileExplorer.directory,
+      subDirectories: state => state.fileExplorer.subDirectories,
+      loadingContents: state => state.fileExplorer.loadingContents,
+      activeModules: state => state.auth.activeModules,
     }),
     fullPath() {
       if (typeof this.directory !== 'undefined' && this.directory !== null) {
@@ -210,7 +210,7 @@ export default {
   },
   watch: {
     // Local prop
-    selectedDirectory: function (newValue) {
+    selectedDirectory: function(newValue) {
       if (!this.changing) {
         this.$_console_log(
           '[FileExplorer] Watcher - Selected directory: ',
@@ -241,7 +241,7 @@ export default {
         }
 
         const folderlessList = this.contents
-          .filter((x) => x.isFolder === false)
+          .filter(x => x.isFolder === false)
           .slice(0)
         this.$_console_log('Folderless List:', folderlessList)
         if (folderlessList.length === 0) {
@@ -252,7 +252,7 @@ export default {
         }
 
         const fileIndex = folderlessList.findIndex(
-          (x) => encodeURI(x.title) === newValue.file
+          x => encodeURI(x.title) === newValue.file
         )
         if (fileIndex === -1) {
           this.$_console_log(
@@ -282,7 +282,7 @@ export default {
   },
   methods: {
     setActiveFeatures() {
-      const browserObj = this.activeModules.find((x) => x.id === 'browser')
+      const browserObj = this.activeModules.find(x => x.id === 'browser')
       if (
         typeof browserObj === 'undefined' ||
         !Array.isArray(browserObj.userModuleFeatures)
@@ -291,21 +291,21 @@ export default {
 
       if (
         browserObj.userModuleFeatures.some(
-          (x) => x.moduleFeatureId === 'browser-upload'
+          x => x.moduleFeatureId === 'browser-upload'
         )
       )
         this.features.upload = true
 
       if (
         browserObj.userModuleFeatures.some(
-          (x) => x.moduleFeatureId === 'browser-delete'
+          x => x.moduleFeatureId === 'browser-delete'
         )
       )
         this.features.delete = true
 
       if (
         browserObj.userModuleFeatures.some(
-          (x) => x.moduleFeatureId === 'browser-viewer'
+          x => x.moduleFeatureId === 'browser-viewer'
         )
       )
         this.features.viewing = true
@@ -327,7 +327,7 @@ export default {
           else this.selectedDirectory = this.$route.params.folder
         } else {
           // Load default folder
-          const defaultFolder = this.folders.find((x) => x.default === true)
+          const defaultFolder = this.folders.find(x => x.default === true)
           if (typeof defaultFolder !== 'undefined') {
             this.selectedDirectory = defaultFolder.name
             this.$router.push({
@@ -464,7 +464,7 @@ export default {
           this.directory,
           getSubdirectoryString(this.subDirectories)
         )
-        .then((resp) => {
+        .then(resp => {
           this.$_console_log('Successfully deleted the file')
           this.$store.dispatch('deleteFile', file.title)
         })

@@ -141,9 +141,9 @@
             >
               <template v-slot:lastReadIcon v-if="isLastReadMessage(message)">
                 <chat-avatar
-                  :avatar="null"
-                  :text="null"
-                  :color="null"
+                  :avatar="getUserAvatarFromMessage(message)"
+                  :text="getUserAvatarTextFromMessage(message)"
+                  :color="getUserColor(message)"
                   size="16"
                 ></chat-avatar>
               </template>
@@ -250,14 +250,15 @@ export default {
   },
   computed: {
     ...mapState({
-      user: (state) => state.auth.user,
-      activeModules: (state) => state.auth.activeModules,
+      user: state => state.auth.user,
+      userMap: state => state.auth.userMap,
+      activeModules: state => state.auth.activeModules,
     }),
     isConversationDeletable() {
-      const chatModule = this.activeModules.find((x) => x.id === 'chat')
+      const chatModule = this.activeModules.find(x => x.id === 'chat')
       if (typeof chatModule !== 'undefined') {
         const feature = chatModule.userModuleFeatures.find(
-          (x) => x.moduleFeatureId === 'chat-delete-conversation'
+          x => x.moduleFeatureId === 'chat-delete-conversation'
         )
         if (typeof feature !== 'undefined') {
           return true
@@ -279,7 +280,19 @@ export default {
     },
     isGroupConversation() {
       return this.conversation.conversationUsers.length > 2
-    }
+    },
+    friend() {
+      if (this.conversation.conversationUsers.length > 2) {
+        return null
+      } else {
+        let f = this.conversation.conversationUsers.find(
+          x => x.userId !== this.user.id
+        )
+
+        if (typeof f === 'undefined') return null
+        else return f
+      }
+    },
   },
   watch: {
     editingTitle(newValue) {
@@ -293,7 +306,7 @@ export default {
       if (newValue === true) {
         this.$store
           .dispatch('getMessagesForConversation', this.conversation.id)
-          .then((resp) => {
+          .then(resp => {
             this.updateContainerHeight(true)
             this.updateReadReceiptMarker()
           })
@@ -510,10 +523,10 @@ export default {
       }
 
       let lastMessage = this.conversation.messages.find(
-        (x) =>
+        x =>
           this.user.id !== x.userId &&
           (x.readReceipts.length === 0 ||
-            typeof x.readReceipts.find((y) => y.userId !== this.user.id) !==
+            typeof x.readReceipts.find(y => y.userId !== this.user.id) !==
               'undefined')
       )
 
@@ -559,7 +572,7 @@ export default {
       }
 
       const newMessages = this.conversation.messages.filter(
-        (x) =>
+        x =>
           (!Array.isArray(x.readReceipts) || x.readReceipts.length === 0) &&
           x.userId !== this.user.id
       )
@@ -571,7 +584,7 @@ export default {
       this.$_console_log(newMessages)
       this.$store.dispatch('readChatMessageList', {
         conversationId: this.conversation.id,
-        messageIds: newMessages.map((x) => x.id),
+        messageIds: newMessages.map(x => x.id),
       })
     },
     setMessageHover(message, on) {
@@ -637,7 +650,7 @@ export default {
     changeUserColor(color) {
       this.$_console_log(`Selected color is: ${color}`)
       const otherUserIndex = this.conversation.conversationUsers.findIndex(
-        (x) => x.userId !== this.user.id
+        x => x.userId !== this.user.id
       )
       if (otherUserIndex < 0) {
         return this.$_console_log("Couldn't find other user")
@@ -654,6 +667,35 @@ export default {
         .then(() => {
           this.changeUserColorDialog = false
         })
+    },
+    getUserAvatarFromMessage(message) {
+      if (this.isGroupConversation) {
+        // TODO: Handle how to show icons at bottom of messages for group chats
+      } else if (this.friend !== null) {
+        if (
+          typeof this.userMap[this.friend.userId] !== 'undefined' &&
+          typeof this.userMap[this.friend.userId].avatar !== 'undefined'
+        )
+          return this.userMap[this.friend.userId].avatar
+      }
+
+      return null
+    },
+    getUserAvatarTextFromMessage(message) {
+      if (this.isGroupConversation) {
+        // TODO: Handle how to show icons at bottom of messages for group chats
+      } else if (this.friend !== null) {
+        if (
+          typeof this.userMap[this.friend.userId] !== 'undefined' &&
+          typeof this.userMap[this.friend.userId].avatar === 'undefined'
+        )
+          return this.userMap[this.friend.userId].displayName.charAt(0)
+      }
+
+      return null
+    },
+    getUserColor(message) {
+      return this.colorMap[this.friend.userId]
     },
   },
 }

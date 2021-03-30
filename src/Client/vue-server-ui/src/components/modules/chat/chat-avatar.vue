@@ -21,9 +21,7 @@ import { mapState } from 'vuex'
 export default {
   name: 'chat-avatar',
   data() {
-    return {
-
-     }
+    return {}
   },
   props: {
     size: {
@@ -48,11 +46,12 @@ export default {
   },
   computed: {
     ...mapState({
-      user: (state) => state.auth.user,
-      userMap: (state) => state.auth.userMap,
+      user: state => state.auth.user,
+      userMap: state => state.auth.userMap,
     }),
     maxSize() {
-      if (typeof this.size !== 'undefined' && this.size !== null) return this.size
+      if (typeof this.size !== 'undefined' && this.size !== null)
+        return this.size
       else return '48'
     },
     avatarPath() {
@@ -72,7 +71,7 @@ export default {
 
       // For one on one conversation use the non-active users image
       var friend = conversation.conversationUsers.find(
-        (x) => x.userId !== this.user.id
+        x => x.userId !== this.user.id
       )
       if (typeof friend === 'undefined') {
         return false
@@ -98,16 +97,17 @@ export default {
       let friend = {}
       if (conversation.conversationUsers.length <= 2) {
         friend = conversation.conversationUsers.find(
-          (x) => x.userId !== this.user.id)
+          x => x.userId !== this.user.id
+        )
 
         if (typeof friend === 'undefined') {
           return defaultColor
         }
-      }
-      else {
+      } else {
         if (typeof message !== 'undefined') {
           friend = conversation.conversationUsers.find(
-            (x) => x.userId === message.userId)
+            x => x.userId === message.userId
+          )
         }
       }
 
@@ -119,7 +119,7 @@ export default {
     },
     getFriendAvatarText(conversation) {
       var friend = conversation.conversationUsers.find(
-        (x) => x.userId !== this.user.id
+        x => x.userId !== this.user.id
       )
       if (typeof friend === 'undefined') {
         return false

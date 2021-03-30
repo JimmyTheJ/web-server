@@ -256,9 +256,9 @@ const mutations = {
   },
   [types.USER_GET_OTHERS](state, data) {
     ConMsgs.methods.$_console_log('Mutating get all other users')
-    
+
     let dictionary = {}
-    
+
     if (Array.isArray(data) && data !== null) {
       data.forEach(ele => {
         dictionary[ele.id] = Object.assign({}, ele)
@@ -271,7 +271,7 @@ const mutations = {
 
     state.otherUsers = data
     state.userMap = dictionary
-  
+
     localStorage.removeItem('otherUsers')
     localStorage.removeItem('userMap')
     localStorage.setItem('otherUsers', JSON.stringify(data))
