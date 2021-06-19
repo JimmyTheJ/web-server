@@ -10,7 +10,7 @@
 
   <ItemGroup>
 	  <PackageReference Include="MimeMapping" Version="1.0.1.26" />
-    <PackageReference Include="Microsoft.AspNetCore.App" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
 

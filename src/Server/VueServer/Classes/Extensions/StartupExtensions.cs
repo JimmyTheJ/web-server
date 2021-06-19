@@ -25,6 +25,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VueServer.Classes.Scheduling;
 using VueServer.Controllers.Filters;
+using VueServer.Core.Cache;
 using VueServer.Domain.Enums;
 using VueServer.Domain.Factory.Concrete;
 using VueServer.Domain.Factory.Interface;
@@ -51,11 +52,11 @@ namespace VueServer.Classes.Extensions
         {
             DatabaseTypes dbType = (DatabaseTypes)config.GetSection("Options").GetValue<int>("DatabaseType");
             if (dbType == DatabaseTypes.MSSQLSERVER)
-                services.AddScoped<IWSContext, SqlServerWSContext>();
+                services.AddTransient<IWSContext, SqlServerWSContext>();
             else if (dbType == DatabaseTypes.SQLITE)
-                services.AddScoped<IWSContext, SqliteWSContext>();
+                services.AddTransient<IWSContext, SqliteWSContext>();
             else if (dbType == DatabaseTypes.MYSQL)
-                services.AddScoped<IWSContext, MySqlWSContext>();
+                services.AddTransient<IWSContext, MySqlWSContext>();
 
             // Setup the custom identity framework dependencies.
             services.AddTransient<IUserStore<WSUser>, ServerUserStore>();
@@ -135,6 +136,7 @@ namespace VueServer.Classes.Extensions
         {
             services.AddSingleton(a => config);
             services.AddSingleton<IStatusCodeFactory<IActionResult>, StatusCodeFactory>();
+            services.AddSingleton<IVueServerCache, VueServerCache>();
 
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IChatService, ChatService>();
@@ -146,6 +148,7 @@ namespace VueServer.Classes.Extensions
 
             services.AddScoped<ModuleAuthFilter>();
             services.AddTransient<IUserService, UserService>();
+            
 
             // Scheduled task for deleting the files from the temporary folder
             services.AddSingleton<IScheduledTask, TempFileDeletionTask>();

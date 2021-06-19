@@ -1,25 +1,29 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
+using VueServer.Core.Cache;
 using VueServer.Models.Context;
+using VueServer.Models.Modules;
 
 namespace VueServer.Controllers.Filters
 {
     public class ModuleAuthFilter : IActionFilter
     {
-        private readonly IWSContext _wsContext;
+        private readonly IVueServerCache _cache;
 
         public string UserId { get; set; }
         public string Module { get; set; }
         public string Feature { get; set; }
 
-        public ModuleAuthFilter(IWSContext wsContext)
+        public ModuleAuthFilter(IVueServerCache cache)
         {
-            _wsContext = wsContext;
+            _cache = cache;
         }
 
         public void OnActionExecuted(ActionExecutedContext context)
@@ -31,22 +35,36 @@ namespace VueServer.Controllers.Filters
         {
             UserId = context.HttpContext.User.Claims.Where(x => x.Type == JwtRegisteredClaimNames.Sub).Select(x => x.Value).Single();
 
-            var userHasModule = _wsContext.UserHasModule.Where(x => x.ModuleAddOnId == Module && x.UserId == UserId).SingleOrDefault();
-            if (userHasModule == null)
+            if (_cache.TryGetValue<IEnumerable<UserHasModuleAddOn>>(CacheMap.UserModuleAddOn, out var usersHaveModules))
             {
-                context.Result = new UnauthorizedResult();
-            }
-            else
-            {
-                if (!string.IsNullOrWhiteSpace(Feature))
+                var userHasModule = usersHaveModules.Where(x => x.ModuleAddOnId == Module && x.UserId == UserId).SingleOrDefault();
+                if (userHasModule == null)
                 {
-                    var userHasModuleFeature = _wsContext.UserHasFeature.Where(x => x.ModuleFeatureId == Feature && x.UserId == UserId).SingleOrDefault();
-                    if (userHasModuleFeature == null)
+                    context.Result = new UnauthorizedResult();
+                }
+                else
+                {
+                    if (!string.IsNullOrWhiteSpace(Feature))
                     {
-                        context.Result = new UnauthorizedResult();
+                        if (_cache.TryGetValue<IEnumerable<UserHasModuleFeature>>(CacheMap.UserModuleFeature, out var usersHaveFeatures))
+                        {
+                            var userHasModuleFeature = usersHaveFeatures.Where(x => x.ModuleFeatureId == Feature && x.UserId == UserId).SingleOrDefault();
+                            if (userHasModuleFeature == null)
+                            {
+                                context.Result = new UnauthorizedResult();
+                            }
+                        }
+                        else
+                        {
+                            context.Result = new StatusCodeResult(500);
+                        }
                     }
                 }
             }
+            else
+            {
+                context.Result = new StatusCodeResult(500);
+            }   
         }
     }
 }

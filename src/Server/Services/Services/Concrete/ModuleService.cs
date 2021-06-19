@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VueServer.Core.Cache;
 using VueServer.Domain.Concrete;
 using VueServer.Domain.Interface;
 using VueServer.Models.Context;
@@ -24,16 +25,20 @@ namespace VueServer.Services.Concrete
         private readonly IWSContext _context;
         /// <summary>User service to manipulate the context using the user manager</summary>
         private readonly IUserService _user;
+        /// <summary>Memory caching system for VueServer</summary>
+        private readonly IVueServerCache _cache;
 
         public ModuleService(
             IWSContext context,
             ILoggerFactory logger,
-            IUserService user
+            IUserService user,
+            IVueServerCache cache
         )
         {
             _user = user ?? throw new ArgumentNullException("User service is null");
             _context = context ?? throw new ArgumentNullException("User context is null");
             _logger = logger?.CreateLogger<ModuleService>() ?? throw new ArgumentNullException("Logger factory is null");
+            _cache = cache ?? throw new ArgumentNullException("Cache is null");
         }
 
         public async Task<IResult<IEnumerable<ModuleAddOn>>> GetActiveModulesForUser()
@@ -174,6 +179,8 @@ namespace VueServer.Services.Concrete
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
+            _ = Task.Run(() => _cache.Update(CacheMap.UserModuleAddOn));
+
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
@@ -223,6 +230,12 @@ namespace VueServer.Services.Concrete
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
+            _ = Task.Run(() => _cache.Update(CacheMap.UserModuleAddOn));
+            if (dbUserModuleFeatures.Count() > 0)
+            {
+                _ = Task.Run(() => _cache.Update(CacheMap.UserModuleFeature));
+            }
+
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
@@ -258,6 +271,8 @@ namespace VueServer.Services.Concrete
                 _logger.LogWarning("[ModuleService] AddFeatureToUser: Error saving database");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
+
+            _ = Task.Run(() => _cache.Update(CacheMap.UserModuleFeature));
 
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
@@ -298,6 +313,8 @@ namespace VueServer.Services.Concrete
                 _logger.LogWarning("[ModuleService] DeleteFeatureFromUser: Error saving database");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
+
+            _ = Task.Run(() => _cache.Update(CacheMap.UserModuleFeature));
 
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }

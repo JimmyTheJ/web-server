@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>VueServer.Core</AssemblyName>
+    <RootNamespace>VueServer.Core</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\VueServer.Domain.csproj" />
+    <ProjectReference Include="..\Models\VueServer.Models.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -27,9 +27,8 @@
   </ItemGroup>
   
   <ItemGroup>
-	<ProjectReference Include="..\Domain\VueServer.Domain.csproj" />
 	<ProjectReference Include="..\Controllers\VueServer.Controllers.csproj" />
-	<ProjectReference Include="..\Models\VueServer.Models.csproj" />
+	<ProjectReference Include="..\Core\VueServer.Core.csproj" />
 	<ProjectReference Include="..\Services\VueServer.Services.csproj" />
   </ItemGroup>
 

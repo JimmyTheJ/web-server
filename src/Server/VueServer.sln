@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VueServer", "VueServer\VueServer.csproj", "{03F6EE77-9B10-4C26-99A4-69CC80EA1ABA}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VueServer.Test.Unit", "Test.Unit\VueServer.Test.Unit.csproj", "{6DD08587-8208-4540-AC97-1EE29DA60B4E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VueServer.Test.Integration", "Test.Integration\VueServer.Test.Integration.csproj", "{68DEF014-9AB9-44C2-8B4A-A016E017B2E4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VueServer.Core", "Core\VueServer.Core.csproj", "{72DD5040-88C5-461C-88B6-F35630D016C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{68DEF014-9AB9-44C2-8B4A-A016E017B2E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68DEF014-9AB9-44C2-8B4A-A016E017B2E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68DEF014-9AB9-44C2-8B4A-A016E017B2E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72DD5040-88C5-461C-88B6-F35630D016C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72DD5040-88C5-461C-88B6-F35630D016C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72DD5040-88C5-461C-88B6-F35630D016C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72DD5040-88C5-461C-88B6-F35630D016C5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
