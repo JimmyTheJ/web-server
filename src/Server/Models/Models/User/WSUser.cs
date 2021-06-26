@@ -13,6 +13,7 @@ namespace VueServer.Models.User
         [Key]
         public string Id { get; set; }
 
+        [MaxLength(128),MinLength(1)]
         public string UserName { get; set; }
 
         [JsonIgnore]

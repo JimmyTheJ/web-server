@@ -13,6 +13,7 @@ namespace VueServer.Models.User
         public string Username { get; set; }
 
         [Required]
+        [MaxLength(45)]
         public string IpAddress { get; set; }
 
         [Required]

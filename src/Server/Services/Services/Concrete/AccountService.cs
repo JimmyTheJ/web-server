@@ -29,6 +29,7 @@ namespace VueServer.Services.Concrete
 {
     public class AccountService : IAccountService
     {
+        const int MAX_FAILED_LOGINS = 6;
         const double REFRESH_TIME = 30;
 
         /// <summary>  Used to manage the user sign in process, which is all part of the Identity Framework </summary>
@@ -136,15 +137,26 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<LoginResponse>> Login(LoginRequest model)
         {
+            var guestLogin = _context.GuestLogin.Where(x => x.IPAddress == _user.IP).FirstOrDefault();
+            if (guestLogin != null && guestLogin.Blocked)
+            {
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Login attempt from {_user.IP}, which is a blocked IP address");
+                return new Result<LoginResponse>(null, Domain.Enums.StatusCode.FORBIDDEN);
+            }
+
             // Try and sign in with the username and password
-            //var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, false, false);
             var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, true, false);
 
-            // If log in was unsuccessful redirect back to view
+            // If login was unsuccessful redirect back to view
             if (!result.Succeeded)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed login from " + _user.IP + " with credentials: username=" + model.Username + ", password=" + model.Password);
-                return new Result<LoginResponse>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                // TODO: We probably shouldn't log the plaintext password here
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed login from {_user.IP} with credentials: username={model.Username}, password={model.Password}");
+
+                await CreateFailedLogin(model.Username);
+                await IncrementGuestLoginFailure(guestLogin);
+
+                return new Result<LoginResponse>(null, Domain.Enums.StatusCode.UNAUTHORIZED);
             }
             _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successful login of " + model.Username + " @ " + _user.IP);
 
@@ -153,14 +165,14 @@ namespace VueServer.Services.Concrete
             if (user == null)
             {
                 _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User not found");
-                return new Result<LoginResponse>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<LoginResponse>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
             var roles = await _userManager.GetRolesAsync(user);
             if (roles == null || roles.Count == 0)
             {
                 _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Roles not found");
-                return new Result<LoginResponse>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<LoginResponse>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
             DateTime now = DateTime.UtcNow;
@@ -176,9 +188,9 @@ namespace VueServer.Services.Concrete
             //claimsIdentity.AddClaims(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
             var token = GenerateJwtToken(claims);
-            if (!await SaveRefreshToken(user.Id, model.CodeChallenge, _user.IP))
+            if (!(await SaveRefreshToken(user.Id, model.CodeChallenge, _user.IP)))
             {
-                new Result<LoginResponse>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<LoginResponse>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
             // Try to get user profile. If we don't find one, that is okay it won't have any real impact on the app
@@ -194,6 +206,8 @@ namespace VueServer.Services.Concrete
             {
                 user.UserProfile = userProfile;
             }
+
+            await ResetGuestLoginFailure(guestLogin);
 
             var resp = new LoginResponse(token, new WSUserResponse(user), roles);
             return new Result<LoginResponse>(resp, Domain.Enums.StatusCode.OK);
@@ -757,6 +771,100 @@ namespace VueServer.Services.Concrete
             }
 
             return true;
+        }
+
+        private async Task<WSFailedLogin> CreateFailedLogin(string username)
+        {
+            var failedLogin = new WSFailedLogin()
+            {
+                IPAddress = _user.IP,
+                Username = username,
+                Timestamp = DateTime.UtcNow.Ticks
+            };
+
+            _context.FailedLogin.Add(failedLogin);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving when creating log to account: '{username}' from IP '{_user.IP}'");
+                return null;
+            }
+
+            return failedLogin;
+        }
+
+        private async Task<bool> IncrementGuestLoginFailure(WSGuestLogin guestLogin)
+        {
+            if (guestLogin == null)
+            {
+                guestLogin = await CreateGuestLogin();
+                if (guestLogin == null)
+                {
+                    return false;
+                }
+            }
+
+            guestLogin.FailedLogins++;
+            if (!guestLogin.Blocked && guestLogin.FailedLogins > MAX_FAILED_LOGINS)
+            {
+                guestLogin.Blocked = true;
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving when updating guest login from IP '{_user.IP}'");
+                return false;
+            }
+        }
+
+        private async Task<WSGuestLogin> CreateGuestLogin()
+        {
+            var guestLogin = new WSGuestLogin()
+            {
+                IPAddress = _user.IP
+            };
+
+            var result = _context.GuestLogin.Add(guestLogin);
+            try
+            {
+                await _context.SaveChangesAsync();
+                return result.Entity;
+            }
+            catch (Exception)
+            {
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving when creating guest login from IP '{_user.IP}'");
+                return null;
+            }
+        }
+
+        private async Task<WSGuestLogin> ResetGuestLoginFailure(WSGuestLogin guestLogin)
+        {
+            if (guestLogin == null)
+            {
+                return null;
+            }
+
+            guestLogin.FailedLogins = 0;
+            guestLogin.Blocked = false;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return guestLogin;
+            }
+            catch (Exception)
+            {
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving when resettting guest login from IP '{_user.IP}' to an active state");
+                return null;
+            }
         }
 
         #endregion

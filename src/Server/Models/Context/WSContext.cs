@@ -25,6 +25,8 @@ namespace VueServer.Models.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) 
         {
+            #region Library
+
             modelBuilder.Entity<Book>().HasOne(x => x.Bookcase).WithMany(x => x.Books).HasForeignKey(x => x.BookcaseId).IsRequired(false);
             modelBuilder.Entity<Book>().HasOne(x => x.Series).WithMany(x => x.Books).HasForeignKey(x => x.SeriesId).IsRequired(false);
             modelBuilder.Entity<Book>().HasOne(x => x.Shelf).WithMany(x => x.Books).HasForeignKey(x => x.ShelfId).IsRequired(false);
@@ -39,6 +41,10 @@ namespace VueServer.Models.Context
             modelBuilder.Entity<BookGenre>().HasOne(x => x.Genre).WithMany(x => x.BookGenres).HasForeignKey(x => x.GenreId);
             modelBuilder.Entity<BookGenre>().HasOne(x => x.Book).WithMany(x => x.BookGenres).HasForeignKey(x => x.BookId);
 
+            #endregion
+
+            #region ModuleAddOns
+
             // User Modules many to many setup
             modelBuilder.Entity<UserHasModuleAddOn>().HasKey(x => new { x.UserId, x.ModuleAddOnId });
             modelBuilder.Entity<UserHasModuleAddOn>().HasOne(x => x.User).WithMany(x => x.UserModuleAddOns).HasForeignKey(x => x.UserId);
@@ -49,10 +55,20 @@ namespace VueServer.Models.Context
             modelBuilder.Entity<UserHasModuleFeature>().HasOne(x => x.User).WithMany(x => x.UserModuleFeatures).HasForeignKey(x => x.UserId);
             modelBuilder.Entity<UserHasModuleFeature>().HasOne(x => x.ModuleFeature).WithMany(x => x.UserModuleFeatures).HasForeignKey(x => x.ModuleFeatureId);
 
+            #endregion
+
             // Conversation User many to many setup
             modelBuilder.Entity<ConversationHasUser>().HasKey(x => new { x.ConversationId, x.UserId });
             modelBuilder.Entity<ConversationHasUser>().HasOne(x => x.Conversation).WithMany(x => x.ConversationUsers).HasForeignKey(x => x.ConversationId);
             modelBuilder.Entity<ConversationHasUser>().HasOne(x => x.User).WithMany(x => x.ConversationUsers).HasForeignKey(x => x.UserId);
+
+            // Setup ClusteredId and Primary key as the IP Address for guest login meta data table
+            modelBuilder.Entity<WSGuestLogin>().HasKey(x => x.IPAddress).IsClustered(false);
+            modelBuilder.Entity<WSGuestLogin>().HasIndex(x => x.ClusterId).IsClustered(true);
+            modelBuilder.Entity<WSGuestLogin>().Property(x => x.ClusterId).ValueGeneratedOnAdd();
+
+            // Setup index on the IP Address for the guest failed logging attempt table
+            modelBuilder.Entity<WSFailedLogin>().HasIndex(x => x.IPAddress).IsClustered(false);
 
             // Data Seeding
             SeedGenres(modelBuilder);
@@ -109,6 +125,8 @@ namespace VueServer.Models.Context
         public DbSet<WSUserLogin> UserLogin { get; set; }
         public DbSet<WSUserTokens> UserTokens { get; set; }
         public DbSet<WSUserProfile> UserProfile { get; set; }
+        public DbSet<WSGuestLogin> GuestLogin { get; set; }
+        public DbSet<WSFailedLogin> FailedLogin { get; set; }
 
         #endregion
 

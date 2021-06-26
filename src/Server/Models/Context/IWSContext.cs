@@ -63,6 +63,8 @@ namespace VueServer.Models.Context
         DbSet<WSUserTokens> UserTokens { get; set; }
 
         DbSet<WSUserProfile> UserProfile { get; set; }
+        DbSet<WSGuestLogin> GuestLogin { get; set; }
+        DbSet<WSFailedLogin> FailedLogin { get; set; }
 
         #endregion
 
