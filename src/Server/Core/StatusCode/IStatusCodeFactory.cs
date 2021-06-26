@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using VueServer.Domain.Enums;
 using VueServer.Domain.Interface;
 
-namespace VueServer.Domain.Factory.Interface
+namespace VueServer.Core.StatusFactory
 {
     public interface IStatusCodeFactory<T>
     {

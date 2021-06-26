@@ -1,16 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using static VueServer.Domain.Constants.Authentication;
-using VueServer.Domain.Factory.Interface;
-using VueServer.Services.Interface;
 using System.Threading.Tasks;
-using VueServer.Models;
-using AddOns = VueServer.Domain.Constants.Models.ModuleAddOns;
-using Features = VueServer.Domain.Constants.Models.ModuleFeatures;
 using VueServer.Controllers.Filters;
+using VueServer.Core.StatusFactory;
+using VueServer.Models;
+using VueServer.Services.Interface;
+using static VueServer.Domain.Constants.Authentication;
+using AddOns = VueServer.Domain.Constants.Models.ModuleAddOns;
 
 namespace VueServer.Controllers
 {
@@ -18,12 +15,12 @@ namespace VueServer.Controllers
     [Authorize(Roles = ROLES_ALL)]
     public class WeightController : Controller
     {
-        private readonly IWeightService  _service;
+        private readonly IWeightService _service;
 
         private readonly IStatusCodeFactory<IActionResult> _codeFactory;
 
         public WeightController(
-            IWeightService service, 
+            IWeightService service,
             IStatusCodeFactory<IActionResult> codeFactory)
         {
             _codeFactory = codeFactory ?? throw new ArgumentNullException("Code factory is null");

@@ -4,18 +4,15 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
-
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
@@ -26,14 +23,10 @@ using System.Threading.Tasks;
 using VueServer.Classes.Scheduling;
 using VueServer.Controllers.Filters;
 using VueServer.Core.Cache;
+using VueServer.Core.Helper;
+using VueServer.Core.StatusFactory;
 using VueServer.Domain.Enums;
-using VueServer.Domain.Factory.Concrete;
-using VueServer.Domain.Factory.Interface;
-using VueServer.Domain.Helper;
-using VueServer.Models;
-using VueServer.Models.Account;
 using VueServer.Models.Context;
-using VueServer.Models.Directory;
 using VueServer.Models.Identity;
 using VueServer.Models.User;
 using VueServer.Services.Concrete;
@@ -148,7 +141,7 @@ namespace VueServer.Classes.Extensions
 
             services.AddScoped<ModuleAuthFilter>();
             services.AddTransient<IUserService, UserService>();
-            
+
 
             // Scheduled task for deleting the files from the temporary folder
             services.AddSingleton<IScheduledTask, TempFileDeletionTask>();

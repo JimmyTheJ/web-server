@@ -1,34 +1,25 @@
 ﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
-
+using Microsoft.Extensions.Logging;
 using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Security;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
-using VueServer.Domain;
-using VueServer.Domain.Enums;
-using VueServer.Domain.Helper;
-using VueServer.Domain.Interface;
+using VueServer.Core.Helper;
 using VueServer.Domain.Concrete;
+using VueServer.Domain.Enums;
+using VueServer.Domain.Interface;
 using VueServer.Models;
+using VueServer.Models.Context;
 using VueServer.Models.Directory;
+using VueServer.Models.Request;
 using VueServer.Services.Interface;
-
 using Xabe.FFmpeg;
 using Xabe.FFmpeg.Enums;
-using Microsoft.AspNetCore.Http;
-using VueServer.Models.Request;
-using VueServer.Models.Context;
-
 using static VueServer.Domain.Constants.Authentication;
 
 namespace VueServer.Services.Concrete
@@ -40,7 +31,7 @@ namespace VueServer.Services.Concrete
         private readonly IWebHostEnvironment _env;
         private readonly IConfiguration _config;
         private readonly IWSContext _wSContext;
-         
+
         public DirectoryService(ILoggerFactory logger, IUserService user, IWebHostEnvironment env, IConfigurationRoot config, IWSContext wSContext)
         {
             _logger = logger?.CreateLogger<DirectoryService>() ?? throw new ArgumentNullException("Logger null");
@@ -52,14 +43,14 @@ namespace VueServer.Services.Concrete
 
         # region -> Public Functions
 
-        public async Task<IResult<IEnumerable<ServerDirectory>>> GetDirectories ()
+        public async Task<IResult<IEnumerable<ServerDirectory>>> GetDirectories()
         {
             var dirs = await GetSingleDirectoryList(_user.Id, true);
             return new Result<IEnumerable<ServerDirectory>>(dirs, StatusCode.OK);
         }
 
-        public async Task<IResult<Tuple<string, string, string>>> Download (string filename, string user, bool media = false)
-        { 
+        public async Task<IResult<Tuple<string, string, string>>> Download(string filename, string user, bool media = false)
+        {
             if (string.IsNullOrWhiteSpace(filename))
             {
                 _logger.LogWarning("Directory.Download: Filename passed is null or empty");
@@ -116,7 +107,7 @@ namespace VueServer.Services.Concrete
                     contentType = "application/zip";
                     cleanFilename += ".zip";
                     string zipPath = Path.Combine(_env.WebRootPath, "tmp", cleanFilename);
-                    
+
                     try
                     {
                         if (File.Exists(zipPath))
@@ -184,12 +175,12 @@ namespace VueServer.Services.Concrete
 
             _logger.LogInformation("Private download begun by " + user + " @ " + _user.IP + " - name=" + filename);
             //if (!media)
-                return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(Path.Combine(sourcePath, cleanFilename), contentType, cleanFilename), StatusCode.OK);
+            return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(Path.Combine(sourcePath, cleanFilename), contentType, cleanFilename), StatusCode.OK);
             //else
             //    return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(mediaFilename.Item1, mediaFilename.Item2, cleanFilename), StatusCode.OK);
         }
 
-        public async Task<IResult<IOrderedEnumerable<WebServerFile>>> Load (string directory, string subDir)
+        public async Task<IResult<IOrderedEnumerable<WebServerFile>>> Load(string directory, string subDir)
         {
             if (string.IsNullOrWhiteSpace(directory))
             {
@@ -387,28 +378,28 @@ namespace VueServer.Services.Concrete
 
         #region -> Private Functions
 
-        private async Task<ACCESS_LEVELS> GetMaxLevel (string user)
+        private async Task<ACCESS_LEVELS> GetMaxLevel(string user)
         {
             var wsUser = await _user.GetUserByIdAsync(user);
             var roles = await _user.GetUserRolesAsync(wsUser);
 
-            if (roles.Contains(ADMINISTRATOR_STRING) )
+            if (roles.Contains(ADMINISTRATOR_STRING))
                 return ACCESS_LEVELS.ADMIN;
-            else if (roles.Contains(ELEVATED_STRING) )
+            else if (roles.Contains(ELEVATED_STRING))
                 return ACCESS_LEVELS.ELEVATED;
-            else if (roles.Contains(USER_STRING) )
+            else if (roles.Contains(USER_STRING))
                 return ACCESS_LEVELS.GENERAL;
             else
                 return 0;
         }
 
-        private string GetMaxLevelString ()
+        private string GetMaxLevelString()
         {
-            if (_user.Context.User.IsInRole(ADMINISTRATOR_STRING) )
+            if (_user.Context.User.IsInRole(ADMINISTRATOR_STRING))
                 return ADMINISTRATOR_STRING;
-            else if (_user.Context.User.IsInRole(ELEVATED_STRING) )
+            else if (_user.Context.User.IsInRole(ELEVATED_STRING))
                 return ELEVATED_STRING;
-            else if (_user.Context.User.IsInRole(USER_STRING) )
+            else if (_user.Context.User.IsInRole(USER_STRING))
                 return USER_STRING;
             else
                 return INVALID_STRING;
@@ -425,7 +416,7 @@ namespace VueServer.Services.Concrete
                 if (index == -1)
                     index = new int[] { cleaned.IndexOf('/'), cleaned.IndexOf('\\') }.Max();
 
-                if (cleaned.Length == index+1)
+                if (cleaned.Length == index + 1)
                 {
                     _logger.LogWarning("Directory.GetStrippedFilename: Filename ends with a slash. Invalid filename.");
                     return null;
@@ -437,7 +428,7 @@ namespace VueServer.Services.Concrete
             return new Tuple<IEnumerable<string>, string>(folders, cleaned);
         }
 
-        private string GetSourcePath (string dir, IList<string> folders)
+        private string GetSourcePath(string dir, IList<string> folders)
         {
             // TODO: Add logger stuff for these null checks
             if (folders == null || folders.Count == 0)
@@ -456,16 +447,16 @@ namespace VueServer.Services.Concrete
                 if (i == 0)
                     continue;
 
-                if (fn[fn.Length-1] != Path.DirectorySeparatorChar)
+                if (fn[fn.Length - 1] != Path.DirectorySeparatorChar)
                     fn += Path.DirectorySeparatorChar;
-                
+
                 fn += folders[i];
             }
 
             return fn;
         }
 
-        private string GetSourceFile (string dir, string filename)
+        private string GetSourceFile(string dir, string filename)
         {
             // TODO: Add logger stuff for these null checks
             if (dir == null)
@@ -490,7 +481,7 @@ namespace VueServer.Services.Concrete
             return dirs;
         }
 
-        private IList<ServerDirectory> GetServerDirectoryList (string configPath)
+        private IList<ServerDirectory> GetServerDirectoryList(string configPath)
         {
             IList<ServerDirectory> list = new List<ServerDirectory>();
 

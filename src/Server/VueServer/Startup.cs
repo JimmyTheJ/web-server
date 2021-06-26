@@ -1,32 +1,19 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Net.Http.Headers;
-using Microsoft.AspNetCore.Rewrite;
-using Microsoft.AspNetCore.SpaServices.Webpack;
-using Microsoft.AspNetCore.SpaServices.Extensions;
-
-using Newtonsoft.Json;
-
-using System;
-
-using VueServer.Classes.Extensions;
-using VueServer.Classes;
-using VueServer.Classes.Scheduling;
-using VueServer.Models;
-using Microsoft.AspNetCore.ResponseCompression;
-using System.IO.Compression;
-using System.Linq;
-using System.IO;
-using VueServer.Domain.Helper;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using System;
+using System.IO;
+using VueServer.Classes;
+using VueServer.Classes.Extensions;
+using VueServer.Core.Helper;
 using VueServer.Services.Hubs;
-using Microsoft.AspNetCore.Mvc.TagHelpers;
 
 namespace VueServer
 {
@@ -52,7 +39,8 @@ namespace VueServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDistributedMemoryCache(options => {
+            services.AddDistributedMemoryCache(options =>
+            {
                 options.ExpirationScanFrequency = TimeSpan.FromHours(8);
                 options.SizeLimit = 256 * 1024 * 1024;
             });
@@ -79,7 +67,8 @@ namespace VueServer
             services.AddCustomDataStore(Configuration);
 
             services
-                .AddMvc(options => {
+                .AddMvc(options =>
+                {
                     options.Filters.Add(new IgnoreAntiforgeryTokenAttribute());
                 })
                 .InitializeTagHelper<FormTagHelper>((helper, context) => helper.Antiforgery = false)

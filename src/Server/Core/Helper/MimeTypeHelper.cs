@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using VueServer.Domain;
 using VueServer.Domain.Enums;
 
-namespace VueServer.Domain.Helper
+
+namespace VueServer.Core.Helper
 {
     public static class MimeTypeHelper
     {

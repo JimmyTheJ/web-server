@@ -1,31 +1,16 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-
-using VueServer.Domain;
-using VueServer.Domain.Enums;
-using VueServer.Domain.Helper;
-using VueServer.Domain.Interface;
-using VueServer.Domain.Concrete;
-using VueServer.Services.Interface;
-
-using VueServer.Models;
 using System.Linq;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using VueServer.Models.Directory;
-using System.Collections;
+using System.Threading.Tasks;
+using VueServer.Domain.Concrete;
+using VueServer.Domain.Enums;
+using VueServer.Domain.Interface;
+using VueServer.Models;
 using VueServer.Models.Context;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using VueServer.Services.Interface;
 
 namespace VueServer.Services.Concrete
 {
@@ -36,7 +21,7 @@ namespace VueServer.Services.Concrete
         private IUserService _user { get; set; }
 
         private IWebHostEnvironment _env { get; set; }
-                
+
         private readonly IWSContext _wsContext;
 
         public WeightService(ILoggerFactory logger, IUserService user, IWebHostEnvironment env, IWSContext wsContext)
@@ -47,8 +32,8 @@ namespace VueServer.Services.Concrete
             _wsContext = wsContext ?? throw new ArgumentNullException("Webserver context is null");
         }
 
-        # region -> Public Functions
-        
+        #region -> Public Functions
+
         public async Task<IResult<IEnumerable<Weight>>> GetWeightList()
         {
             IEnumerable<Weight> weights;
@@ -61,11 +46,11 @@ namespace VueServer.Services.Concrete
                 _logger.LogWarning("WeightService.GetWeightList: Error getting list of weights");
                 return new Result<IEnumerable<Weight>>(null, StatusCode.BAD_REQUEST);
             }
-            
+
             return new Result<IEnumerable<Weight>>(weights, StatusCode.OK);
         }
 
-        public async Task<IResult<Weight>> AddWeight (Weight weight)
+        public async Task<IResult<Weight>> AddWeight(Weight weight)
         {
             if (weight == null)
             {
@@ -81,7 +66,7 @@ namespace VueServer.Services.Concrete
             {
                 await _wsContext.SaveChangesAsync();
             }
-            catch(Exception)
+            catch (Exception)
             {
                 _logger.LogError("WeightService.AddWeight: Error saving changes");
                 return new Result<Weight>(null, StatusCode.BAD_REQUEST);
@@ -124,7 +109,7 @@ namespace VueServer.Services.Concrete
         }
 
 
-        public async Task<IResult<bool>> DeleteWeight (int id)
+        public async Task<IResult<bool>> DeleteWeight(int id)
         {
             if (id <= 0)
             {
@@ -144,7 +129,7 @@ namespace VueServer.Services.Concrete
             {
                 await _wsContext.SaveChangesAsync();
             }
-            catch(Exception)
+            catch (Exception)
             {
                 _logger.LogError("[WeightService.DeleteWeight]: Error saving changes");
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);

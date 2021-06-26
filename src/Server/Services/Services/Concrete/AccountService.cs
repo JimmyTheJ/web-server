@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Formatters.Xml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -17,8 +16,8 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using VueServer.Core.Helper;
 using VueServer.Domain.Concrete;
-using VueServer.Domain.Helper;
 using VueServer.Domain.Interface;
 using VueServer.Models.Account;
 using VueServer.Models.Context;
@@ -51,7 +50,7 @@ namespace VueServer.Services.Concrete
         /// <summary>User service to manipulate the context using the user manager</summary>
         private readonly IUserService _user;
 
-        public AccountService (
+        public AccountService(
             UserManager<WSUser> userManager,
             SignInManager<WSUser> signInManager,
             RoleManager<WSRole> roleManager,
@@ -135,7 +134,7 @@ namespace VueServer.Services.Concrete
             return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<LoginResponse>> Login (LoginRequest model)
+        public async Task<IResult<LoginResponse>> Login(LoginRequest model)
         {
             // Try and sign in with the username and password
             //var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, false, false);
@@ -147,7 +146,7 @@ namespace VueServer.Services.Concrete
                 _logger.LogWarning("[AccountService] Login: Failed login from " + _user.IP + " with credentials: username=" + model.Username + ", password=" + model.Password);
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
-            _logger.LogInformation("[AccountService] Login: Successful login of " + model.Username + " @ " + _user.IP );
+            _logger.LogInformation("[AccountService] Login: Successful login of " + model.Username + " @ " + _user.IP);
 
             //set user role to session
             var user = await _userManager.FindByNameAsync(model.Username);
@@ -189,7 +188,7 @@ namespace VueServer.Services.Concrete
                 if (await CreateUserProfile(user.Id))
                 {
                     user.UserProfile = await _context.UserProfile.Where(x => x.UserId == user.Id).SingleOrDefaultAsync();
-                }                
+                }
             }
             else
             {
@@ -200,7 +199,7 @@ namespace VueServer.Services.Concrete
             return new Result<LoginResponse>(resp, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult> Logout (HttpContext context, string username)
+        public async Task<IResult> Logout(HttpContext context, string username)
         {
             var token = await GetRefreshTokenForUser(username, _user.IP);
             if (token != null)
@@ -215,7 +214,7 @@ namespace VueServer.Services.Concrete
             return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
         }
 
-        public IResult<string> GetCsrfToken (HttpContext context)
+        public IResult<string> GetCsrfToken(HttpContext context)
         {
             return new Result<string>(GenerateCsrfToken(context), Domain.Enums.StatusCode.OK);
         }
@@ -277,7 +276,7 @@ namespace VueServer.Services.Concrete
             return new Result<string>(newJwtToken, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<WSUser>>> GetUsers ()
+        public async Task<IResult<IEnumerable<WSUser>>> GetUsers()
         {
             var users = await _context.Users.ToListAsync();
 
@@ -307,7 +306,7 @@ namespace VueServer.Services.Concrete
 
             var fileType = MimeTypeHelper.GetFileType(file.ContentType);
             if (fileType != Domain.Enums.MimeFileType.Photo)
-            {   
+            {
                 _logger.LogInformation($"[AccountService] UpdateUserAvatar: File {file.FileName} uploaded is not an image");
                 return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
@@ -340,7 +339,7 @@ namespace VueServer.Services.Concrete
                     _logger.LogError($"[AccountService] UpdateUserAvatar: Cannot create directory {path}");
                     return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
                 }
-            }            
+            }
 
             try
             {
@@ -406,7 +405,7 @@ namespace VueServer.Services.Concrete
 
         #region -> Private Functions
 
-        private async Task<WSUserTokens> GetRefreshTokenForUser (string id, string ip)
+        private async Task<WSUserTokens> GetRefreshTokenForUser(string id, string ip)
         {
             return await _context.UserTokens.Where(x => x.UserId == id && x.Source == ip && x.Valid).SingleOrDefaultAsync();
         }
@@ -417,7 +416,7 @@ namespace VueServer.Services.Concrete
         /// <param name="id"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async Task<WSUserTokens> CheckRefreshToken (string id, string token, string ip = null)
+        private async Task<WSUserTokens> CheckRefreshToken(string id, string token, string ip = null)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -445,7 +444,7 @@ namespace VueServer.Services.Concrete
                 return null;
             }
 
-            var matchedToken  = tokens.Where(x => x.Token == token).SingleOrDefault();
+            var matchedToken = tokens.Where(x => x.Token == token).SingleOrDefault();
             if (matchedToken == null)
             {
                 _logger.LogWarning($"CheckRefreshToken: User ({id}) does not have a refresh token that matches the passed in token value in the data store. This could potentially mean someone is trying to impersonate the user. Invalidating all refresh tokens for user.");
@@ -478,7 +477,7 @@ namespace VueServer.Services.Concrete
         /// <param name="id"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async Task<bool> InvalidateAllRefreshTokensForUser (string id, string source = null)
+        private async Task<bool> InvalidateAllRefreshTokensForUser(string id, string source = null)
         {
             List<WSUserTokens> tokens = null;
             if (source == null)
@@ -518,7 +517,7 @@ namespace VueServer.Services.Concrete
         /// <param name="id"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async Task<bool> InvalidateRefreshToken (WSUserTokens token)
+        private async Task<bool> InvalidateRefreshToken(WSUserTokens token)
         {
             token.Valid = false;
             try
@@ -539,7 +538,7 @@ namespace VueServer.Services.Concrete
         /// <param name="id"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async Task<bool> SaveRefreshToken (string id, string token, string ip)
+        private async Task<bool> SaveRefreshToken(string id, string token, string ip)
         {
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -616,7 +615,7 @@ namespace VueServer.Services.Concrete
         /// <param name="username"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        private string GenerateJwtToken (IEnumerable<Claim> claims)
+        private string GenerateJwtToken(IEnumerable<Claim> claims)
         {
             var token = new JwtSecurityToken
             (
@@ -638,7 +637,7 @@ namespace VueServer.Services.Concrete
         private string GenerateCsrfToken(HttpContext context)
         {
             var tokens = _antiForgery.GetAndStoreTokens(context);
-            if (tokens != null && !string.IsNullOrWhiteSpace(tokens.RequestToken) )
+            if (tokens != null && !string.IsNullOrWhiteSpace(tokens.RequestToken))
                 return tokens.RequestToken;
 
             return Guid.Empty.ToString();
@@ -651,7 +650,8 @@ namespace VueServer.Services.Concrete
         private string GenerateRefreshToken()
         {
             var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create()){
+            using (var rng = RandomNumberGenerator.Create())
+            {
                 rng.GetBytes(randomNumber);
                 return Convert.ToBase64String(randomNumber);
             }

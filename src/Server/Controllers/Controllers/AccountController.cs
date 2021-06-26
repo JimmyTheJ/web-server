@@ -1,22 +1,12 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Logging;
-
+using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
-
+using VueServer.Core.StatusFactory;
 using VueServer.Models.Account;
-using VueServer.Services.Interface;
-using VueServer.Domain.Factory.Interface;
-
-using static VueServer.Domain.Constants.Authentication;
-using VueServer.Models.Modules;
 using VueServer.Models.Request;
+using VueServer.Services.Interface;
+using static VueServer.Domain.Constants.Authentication;
 
 namespace VueServer.Controllers
 {
@@ -30,7 +20,7 @@ namespace VueServer.Controllers
         // Initializes all components to be able to interface with the Identity Framework
         // To allow users to log in, register, and logout, register roles, etc.
         public AccountController(
-            IAccountService service, 
+            IAccountService service,
             IStatusCodeFactory<IActionResult> factory
         )
         {
@@ -39,7 +29,7 @@ namespace VueServer.Controllers
         }
 
         #region -> Actions
-        
+
         /// <summary>
         /// Registering a new user into the Identity Framework
         /// </summary>
@@ -59,7 +49,7 @@ namespace VueServer.Controllers
         {
             return _codeFactory.GetStatusCode(await _service.Login(model));
         }
-        
+
         /// <summary>
         /// Logout of your account
         /// Authorize checks and sees if the user is logged in to the Identity Framework
@@ -80,9 +70,9 @@ namespace VueServer.Controllers
         /// <returns></returns>
         [Obsolete("CSRF Tokens are not necessary in Bearer auth configuration")]
         [HttpGet]
-        
+
         [Route("get-csrf-token")]
-        public IActionResult GetCSRFToken ()
+        public IActionResult GetCSRFToken()
         {
             return _codeFactory.GetStatusCode(_service.GetCsrfToken(HttpContext));
         }
@@ -94,7 +84,7 @@ namespace VueServer.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("refresh-jwt")]
-        public async Task<IActionResult> RefreshToken ([FromBody] RefreshTokenRequest model)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest model)
         {
             return _codeFactory.GetStatusCode(await _service.RefreshJwtToken(model));
         }
@@ -106,7 +96,7 @@ namespace VueServer.Controllers
         [HttpGet]
         [Authorize(Roles = ADMINISTRATOR_STRING)]
         [Route("user/get-all")]
-        public async Task<IActionResult> GetAllUsers ()
+        public async Task<IActionResult> GetAllUsers()
         {
             return _codeFactory.GetStatusCode(await _service.GetUsers());
         }

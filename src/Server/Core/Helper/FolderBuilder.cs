@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace VueServer.Domain.Helper
+namespace VueServer.Core.Helper
 {
     public static class FolderBuilder
     {

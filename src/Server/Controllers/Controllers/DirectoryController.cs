@@ -2,30 +2,27 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
-using static VueServer.Domain.Constants.Authentication;
-using AddOns = VueServer.Domain.Constants.Models.ModuleAddOns;
-using Features = VueServer.Domain.Constants.Models.ModuleFeatures;
-using VueServer.Domain.Enums;
-using VueServer.Domain.Factory.Interface;
+using VueServer.Controllers.Filters;
+using VueServer.Core.StatusFactory;
+using VueServer.Domain;
 using VueServer.Models;
 using VueServer.Models.Request;
 using VueServer.Services.Interface;
-using VueServer.Controllers.Filters;
-using Microsoft.AspNetCore.Http;
-using System.Linq;
-using VueServer.Domain;
+using static VueServer.Domain.Constants.Authentication;
+using AddOns = VueServer.Domain.Constants.Models.ModuleAddOns;
+using Features = VueServer.Domain.Constants.Models.ModuleFeatures;
 
 namespace VueServer.Controllers
 {
     [Route("api/directory")]
     public class DirectoryController : Controller
     {
-        private readonly IStatusCodeFactory<IActionResult> _codeFactory;        
+        private readonly IStatusCodeFactory<IActionResult> _codeFactory;
         private readonly IDirectoryService _service;
         private readonly IAccountService _accountService;
         private readonly IModuleService _moduleService;
 
-        public DirectoryController (
+        public DirectoryController(
             IStatusCodeFactory<IActionResult> codeFactory,
             IDirectoryService service,
             IAccountService accountService,
@@ -59,7 +56,7 @@ namespace VueServer.Controllers
             else
                 return PhysicalFile(file.Obj.Item1, file.Obj.Item2, file.Obj.Item3);
         }
-        
+
         [HttpGet]
         [Route("/api/serve-file/{*filename}")]
         public async Task<IActionResult> ServeMedia(string filename, string token)
@@ -131,5 +128,5 @@ namespace VueServer.Controllers
         {
             return _codeFactory.GetStatusCode(await _service.Upload(model));
         }
-    }    
+    }
 }

@@ -1,18 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using VueServer.Controllers.Filters;
-using VueServer.Domain.Factory.Interface;
+using VueServer.Core.StatusFactory;
 using VueServer.Models.Chat;
 using VueServer.Models.Request;
 using VueServer.Services.Interface;
-using static VueServer.Domain.Constants.Authentication;
 using AddOns = VueServer.Domain.Constants.Models.ModuleAddOns;
 using Features = VueServer.Domain.Constants.Models.ModuleFeatures;
 
@@ -52,13 +45,13 @@ namespace VueServer.Controllers
         public async Task<IActionResult> GetNewMessageNotifications()
         {
             return _codeFactory.GetStatusCode(await _chatService.GetNewMessageNotifications());
-        }        
+        }
 
         [Route("conversation/get-all")]
         [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
         [HttpGet]
         public async Task<IActionResult> GetAllConversations()
-        
+
         {
             return _codeFactory.GetStatusCode(await _chatService.GetAllConversations());
         }

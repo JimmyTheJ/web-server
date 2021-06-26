@@ -1,22 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using static VueServer.Domain.Constants.Authentication;
-using VueServer.Domain.Factory.Interface;
-using VueServer.Models;
-using VueServer.Models.Account;
-using VueServer.Models.Context;
-using VueServer.Services.Interface;
-using AddOns = VueServer.Domain.Constants.Models.ModuleAddOns;
-using Features = VueServer.Domain.Constants.Models.ModuleFeatures;
+using System;
+using System.Threading.Tasks;
 using VueServer.Controllers.Filters;
+using VueServer.Core.StatusFactory;
+using VueServer.Models;
+using VueServer.Services.Interface;
+using static VueServer.Domain.Constants.Authentication;
+using AddOns = VueServer.Domain.Constants.Models.ModuleAddOns;
 
 namespace VueServer.Controllers
 {
@@ -24,12 +15,12 @@ namespace VueServer.Controllers
     [Authorize]
     public class NoteController : Controller
     {
-        private readonly INoteService  _service;
+        private readonly INoteService _service;
 
         private readonly IStatusCodeFactory<IActionResult> _codeFactory;
 
         public NoteController(
-            INoteService service, 
+            INoteService service,
             IStatusCodeFactory<IActionResult> codeFactory)
         {
             _codeFactory = codeFactory ?? throw new ArgumentNullException("Code factory is null");
@@ -72,7 +63,7 @@ namespace VueServer.Controllers
         [HttpDelete]
         [ModuleAuthFilterFactory(Module = AddOns.Notes.Id)]
         [Route("delete")]
-        public async Task<IActionResult> Delete (int id)
+        public async Task<IActionResult> Delete(int id)
         {
             return _codeFactory.GetStatusCode(await _service.Delete(id));
         }

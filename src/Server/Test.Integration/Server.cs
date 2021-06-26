@@ -6,7 +6,7 @@ using Moq;
 using System;
 using System.IO;
 using System.Net.Http;
-using VueServer.Domain.Factory.Interface;
+using VueServer.Core.StatusFactory;
 using VueServer.Models.Context;
 using VueServer.Services.Interface;
 
