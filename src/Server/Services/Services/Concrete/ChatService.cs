@@ -81,7 +81,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception e)
             {
-                _logger.LogError("StartConversation: Error saving database on starting a conversation", e.StackTrace);
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on starting a conversation", e.StackTrace);
                 return new Result<Conversation>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
             var colorId = 0;
@@ -107,7 +107,7 @@ namespace VueServer.Services.Concrete
                 var user = await _user.GetUserByIdAsync(username);
                 if (user == null) 
                 {
-                    _logger.LogInformation($"Invalid userId: {username}. Cannot create a conversation with this user as they don't exist.");
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid userId: '{username}'. Cannot create a conversation with this user as they don't exist.");
                     continue;
                 }
 
@@ -130,7 +130,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception e)
             {
-                _logger.LogError("StartConversation: Error saving database on adding users to a conversation", e.StackTrace);
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on adding users to a conversation", e.StackTrace);
                 return new Result<Conversation>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -192,20 +192,20 @@ namespace VueServer.Services.Concrete
             var conversation = (await GetConversation(conversationId))?.Obj;
             if (conversation == null)
             {
-                _logger.LogInformation($"UpdateConversationTitle: Conversation with id ({conversationId}) does not exist. Cannot delete it");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Conversation with id ({conversationId}) does not exist. Cannot delete it");
                 return new Result<bool>(false, Domain.Enums.StatusCode.NO_CONTENT);
             }
 
             var selfUser = conversation.ConversationUsers.Where(x => x.UserId == _user.Id).SingleOrDefault();
             if (selfUser == null)
             {
-                _logger.LogWarning($"UpdateConversationTitle: Conversation with id ({conversationId}) does not include user ({_user.Id}) as one of it's members. This is likely an escalation attack");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Conversation with id ({conversationId}) does not include user ({_user.Id}) as one of it's members. This is likely an escalation attack");
                 return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
             if (!selfUser.Owner)
             {
-                _logger.LogInformation($"UpdateConversationTitle: User ({_user.Id}) is not the owner of this conversation ({conversationId}). They cannot change it's title.");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({_user.Id}) is not the owner of this conversation ({conversationId}). They cannot change it's title.");
                 return new Result<bool>(false, Domain.Enums.StatusCode.UNAUTHORIZED);
             }
 
@@ -217,7 +217,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogError("UpdateConversationTitle: Error saving database on updating the conversation's title");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on updating the conversation's title");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -229,7 +229,7 @@ namespace VueServer.Services.Concrete
             var conversationHasUser = _context.ConversationHasUser.Where(x => x.ConversationId == conversationId && x.UserId == userId).FirstOrDefault();
             if (conversationHasUser == null)
             {
-                _logger.LogInformation($"UpdateUserColor: ConversationHasUser with id ({conversationId}) and ({userId}) does not exist. Cannot update the color for it");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: ConversationHasUser with id ({conversationId}) and ({userId}) does not exist. Cannot update the color for it");
                 return new Result<string>(null, Domain.Enums.StatusCode.NO_CONTENT);
             }
 
@@ -241,7 +241,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogError("DeleteConversation: Error saving database on deleting conversation");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on deleting conversation");
                 return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -252,14 +252,14 @@ namespace VueServer.Services.Concrete
         {
             if (_context.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.Chat.DELETE_CONVERSATION_ID && x.UserId == _user.Id).SingleOrDefault() == null)
             {
-                _logger.LogInformation($"DeleteConversation: User ({_user.Id}) does not have permission to delete conversations");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({_user.Id}) does not have permission to delete conversations");
                 return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
             var conversation = (await GetConversation(conversationId))?.Obj;
             if (conversation == null)
             {
-                _logger.LogInformation($"DeleteConversation: Conversation with id ({conversationId}) does not exist. Cannot delete it");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Conversation with id ({conversationId}) does not exist. Cannot delete it");
                 return new Result<bool>(false, Domain.Enums.StatusCode.NO_CONTENT);
             }
 
@@ -273,7 +273,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogError("DeleteConversation: Error saving database on deleting conversation");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on deleting conversation");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -285,13 +285,13 @@ namespace VueServer.Services.Concrete
             var conversation = await _context.Conversations.Include(x => x.ConversationUsers).Include(x => x.Messages).ThenInclude(x => x.ReadReceipts).Where(x => x.Id == id).SingleOrDefaultAsync();
             if (conversation == null)
             {
-                _logger.LogWarning($"GetMessagesForConversation: Unable to get conversation by id ({id})");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unable to get conversation by id ({id})");
                 return new Result<IEnumerable<ChatMessage>>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (!conversation.ConversationUsers.Any(x => x.UserId == _user.Id))
             {
-                _logger.LogInformation($"GetMessagesForConversation: User ({_user.Id}) is not part of the conversation with id ({id}), cannot access this conversation");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({_user.Id}) is not part of the conversation with id ({id}), cannot access this conversation");
                 return new Result<IEnumerable<ChatMessage>>(null, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
@@ -303,20 +303,20 @@ namespace VueServer.Services.Concrete
             var user = await _user.GetUserByIdAsync(_user.Id);
             if (user == null)
             {
-                _logger.LogWarning($"DeleteMessage: Unable to get user by name with name ({_user.Id})");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unable to get user by name with name ({_user.Id})");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
             if (_context.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.Chat.DELETE_MESSAGE_ID && x.UserId == user.Id).SingleOrDefault() == null)
             {
-                _logger.LogInformation($"DeleteMessage: User ({user.Id}) does not have permission to delete messages");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({user.Id}) does not have permission to delete messages");
                 return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
             var message = _context.Messages.Where(x => x.Id == messageId).SingleOrDefault();
             if (message == null)
             {
-                _logger.LogInformation($"DeleteMessage: Message with id ({messageId}) does not exist. Cannot delete it");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Message with id ({messageId}) does not exist. Cannot delete it");
                 return new Result<bool>(false, Domain.Enums.StatusCode.NO_CONTENT);
             }
 
@@ -335,7 +335,7 @@ namespace VueServer.Services.Concrete
                 }
                 else
                 {
-                    _logger.LogInformation($"DeleteMessage: User ({user.Id}) does not have permission to delete messages");
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({user.Id}) does not have permission to delete messages");
                     return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
                 }
             }
@@ -346,7 +346,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogError("DeleteMessage: Error saving database on deleting message");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on deleting message");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -386,7 +386,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogError("AddMessage: Error saving database on adding a message");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on adding a message");
                 return new Result<ChatMessage>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -402,7 +402,7 @@ namespace VueServer.Services.Concrete
             var conversationUser = await _context.ConversationHasUser.Where(x => x.ConversationId == conversationId && x.UserId == _user.Id).FirstOrDefaultAsync();
             if (conversationUser == null)
             {
-                _logger.LogInformation($"ReadMessage: User ({_user.Id}) is not part of conversation ({conversationId})");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({_user.Id}) is not part of conversation ({conversationId})");
                 return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
@@ -412,7 +412,7 @@ namespace VueServer.Services.Concrete
                 ).SingleOrDefaultAsync();
             if (message == null)
             {
-                _logger.LogInformation($"ReadMessage: Message ({messageId}) doesn't exist");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Message ({messageId}) doesn't exist");
                 return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.NOT_FOUND);
             }
             receipt = CreateReadReceipts(_user.Id, new List<ChatMessage> { message }).FirstOrDefault();
@@ -423,7 +423,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogError($"ReadMessage: Error saving database on updating the read status of the message {messageId}");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on updating the read status of the message {messageId}");
                 return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -439,7 +439,7 @@ namespace VueServer.Services.Concrete
             var conversationUser = await _context.ConversationHasUser.Where(x => x.ConversationId == conversationId && x.UserId == _user.Id).FirstOrDefaultAsync();
             if (conversationUser == null)
             {
-                _logger.LogInformation($"ReadMessage: User ({_user.Id}) is not part of conversation ({conversationId})");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({_user.Id}) is not part of conversation ({conversationId})");
                 return new Result<IEnumerable<ReadReceipt>>(receipts, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
@@ -449,7 +449,7 @@ namespace VueServer.Services.Concrete
                 ).ToListAsync();
             if (messageList == null)
             {
-                _logger.LogInformation($"ReadMessage: Message list with values: ({messageList}) doesn't exist");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Message list with values: ({messageList}) doesn't exist");
                 return new Result<IEnumerable<ReadReceipt>>(receipts, Domain.Enums.StatusCode.NOT_FOUND);
             }
 
@@ -461,7 +461,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogError($"ReadMessage: Error saving database on updating the read status of the message list: ({messageList})");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on updating the read status of the message list: ({messageList})");
                 return new Result<IEnumerable<ReadReceipt>>(receipts, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -513,7 +513,7 @@ namespace VueServer.Services.Concrete
             var conversationList = await conversationQuery.ToListAsync();
             if (conversationList == null || conversationList.Count == 0)
             {
-                _logger.LogInformation($"GetAllConversationAsync: Conversation list is empty for user ({_user.Id})");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Conversation list is empty for user ({_user.Id})");
                 return null;
             }
 

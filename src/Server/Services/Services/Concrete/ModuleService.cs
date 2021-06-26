@@ -150,19 +150,19 @@ namespace VueServer.Services.Concrete
         {
             if (userModule == null)
             {
-                _logger.LogInformation("[ModuleService] AddModuleToUser: User Module is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User Module is null");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (string.IsNullOrWhiteSpace(userModule.ModuleAddOnId))
             {
-                _logger.LogInformation("[ModuleService] AddModuleToUser: Module to add is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Module to add is null");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (string.IsNullOrWhiteSpace(userModule.UserId))
             {
-                _logger.LogInformation("[ModuleService] AddModuleToUser: User to add is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User to add is null");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -175,7 +175,7 @@ namespace VueServer.Services.Concrete
             }
             catch
             {
-                _logger.LogWarning("[ModuleService] AddModuleToUser: Error saving database");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -188,19 +188,19 @@ namespace VueServer.Services.Concrete
         {
             if (userModule == null)
             {
-                _logger.LogInformation("[ModuleService] DeleteModuleFromUser: User Module is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User Module is null");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (string.IsNullOrWhiteSpace(userModule.ModuleAddOnId))
             {
-                _logger.LogInformation("[ModuleService] DeleteModuleFromUser: Module to delete is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Module to delete is null");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (string.IsNullOrWhiteSpace(userModule.UserId))
             {
-                _logger.LogInformation("[ModuleService] DeleteModuleFromUser: User to delete is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User to delete is null");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -208,7 +208,7 @@ namespace VueServer.Services.Concrete
                 .Where(x => x.UserId == userModule.UserId && x.ModuleAddOnId == userModule.ModuleAddOnId).FirstOrDefaultAsync();
             if (dbUserModule == null)
             {
-                _logger.LogInformation("[ModuleService] DeleteModuleFromUser: UserModule doesn't exist in database");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: UserModule doesn't exist in database");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -226,7 +226,7 @@ namespace VueServer.Services.Concrete
             }
             catch
             {
-                _logger.LogWarning("[ModuleService] DeleteModuleFromUser: Error saving database");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -243,19 +243,19 @@ namespace VueServer.Services.Concrete
         {
             if (userFeature == null)
             {
-                _logger.LogInformation("[ModuleService] AddFeatureToUser: User Feature is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User Feature is null");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (string.IsNullOrWhiteSpace(userFeature.ModuleFeatureId))
             {
-                _logger.LogInformation("[ModuleService] AddFeatureToUser: Feature to add is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Feature to add is null");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (string.IsNullOrWhiteSpace(userFeature.UserId))
             {
-                _logger.LogInformation("[ModuleService] AddFeatureToUser: User to add is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User to add is null");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -268,7 +268,7 @@ namespace VueServer.Services.Concrete
             }
             catch
             {
-                _logger.LogWarning("[ModuleService] AddFeatureToUser: Error saving database");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -280,26 +280,26 @@ namespace VueServer.Services.Concrete
         {
             if (userFeature == null)
             {
-                _logger.LogInformation("[ModuleService] DeleteFeatureFromUser: User Feature is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User Feature is null");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (string.IsNullOrWhiteSpace(userFeature.ModuleFeatureId))
             {
-                _logger.LogInformation("[ModuleService] DeleteFeatureFromUser: Feature to delete is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Feature to delete is null");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (string.IsNullOrWhiteSpace(userFeature.UserId))
             {
-                _logger.LogInformation("[ModuleService] DeleteFeatureFromUser: User to delete is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User to delete is null");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var dbUserFeature = _context.UserHasFeature.Where(x => x.UserId == userFeature.UserId && x.ModuleFeatureId == userFeature.ModuleFeatureId).FirstOrDefault();
             if (dbUserFeature == null)
             {
-                _logger.LogInformation("[ModuleService] DeleteFeatureFromUser: UserFeature doesn't exist in database");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: UserFeature doesn't exist in database");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -310,7 +310,7 @@ namespace VueServer.Services.Concrete
             }
             catch
             {
-                _logger.LogWarning("[ModuleService] DeleteFeatureFromUser: Error saving database");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -323,7 +323,7 @@ namespace VueServer.Services.Concrete
         {
             if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(module))
             {
-                _logger.LogInformation($"[ModuleService] DoesUserHaveModule: user or module value is null (user: {user} / module: {module})");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: user or module value is null (user: {user} / module: {module})");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -342,7 +342,7 @@ namespace VueServer.Services.Concrete
         {
             if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(feature))
             {
-                _logger.LogInformation($"[ModuleService] DoesUserHaveModule: user or feature value is null (user: {user} / feature: {feature})");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: user or feature value is null (user: {user} / feature: {feature})");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 

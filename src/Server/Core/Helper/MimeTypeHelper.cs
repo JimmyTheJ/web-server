@@ -85,7 +85,7 @@ namespace VueServer.Core.Helper
             }
             catch (Exception)
             {
-                Console.WriteLine("Error getting Mime-type, asumming it's a folder...");
+                Console.WriteLine($"{System.Reflection.MethodBase.GetCurrentMethod().Name}: Error getting Mime-type, asumming it's a folder...");
                 mimeType = MimeUtility.UnknownMimeType;
             }
             //}

@@ -36,7 +36,7 @@ namespace VueServer.Services.Concrete
         {
             var notes = await _wsContext.Notes.ToListAsync();
             if (notes == null || notes.Count == 0) {
-                _logger.LogInformation("[NoteService] GetAll: No notes found for all users");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No notes found for all users");
                 return new Result<List<Notes>>(null, Domain.Enums.StatusCode.NO_CONTENT);
             }
 
@@ -47,7 +47,7 @@ namespace VueServer.Services.Concrete
         {
             var notes = await _wsContext.Notes.Where(a => a.UserId == _user.Id).ToListAsync();
             if (notes == null || notes.Count == 0) {
-                _logger.LogInformation("[NoteService] Get: No notes found for current user");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No notes found for current user");
                 return new Result<List<Notes>>(new List<Notes>(), Domain.Enums.StatusCode.NO_CONTENT);
             }
 
@@ -58,7 +58,7 @@ namespace VueServer.Services.Concrete
         {
             if (note == null)
             {
-                _logger.LogWarning("[NoteService] Create: Note is null");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Note is null");
                 return new Result<Notes>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -76,7 +76,7 @@ namespace VueServer.Services.Concrete
             }
             catch(Exception)
             {
-                _logger.LogError("[NoteService] Create: Error saving changes");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving changes");
             }
             return new Result<Notes>(note, Domain.Enums.StatusCode.OK);
         }
@@ -85,13 +85,13 @@ namespace VueServer.Services.Concrete
         {
             if (note == null)
             {
-                _logger.LogWarning("[NoteService] Update: Note is null");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Note is null");
                 return new Result<Notes>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var updated = await _wsContext.Notes.Where(a => a.Id == note.Id && a.UserId == _user.Id).FirstOrDefaultAsync();
             if (updated == null) {
-                _logger.LogWarning("[NoteService] Update: No note found to update");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No note found to update");
                 return new Result<Notes>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -108,7 +108,7 @@ namespace VueServer.Services.Concrete
             }
             catch(Exception)
             {
-                _logger.LogError("[NoteService] Update: Error saving changes");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving changes");
             }
 
             return new Result<Notes>(updated, Domain.Enums.StatusCode.OK);
@@ -127,7 +127,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogError("[NoteService] Delete: Error deleting note");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error deleting note");
             }
 
             return new Result<IResult>(null, Domain.Enums.StatusCode.OK);

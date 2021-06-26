@@ -53,32 +53,32 @@ namespace VueServer.Services.Concrete
         {
             if (string.IsNullOrWhiteSpace(filename))
             {
-                _logger.LogWarning("Directory.Download: Filename passed is null or empty");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Filename passed is null or empty");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             var tuple = GetStrippedFilename(filename);
             if (tuple == null)
             {
-                _logger.LogWarning("Directory.Download: Error stripping filename. Null Tuple object");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error stripping filename. Null Tuple object");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             if (tuple.Item1 == null)
             {
-                _logger.LogWarning("Directory.Download: Error stripping filename. Null Tuple.Item1");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error stripping filename. Null Tuple.Item1");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             if (tuple.Item2 == null)
             {
-                _logger.LogWarning("Directory.Download: Error stripping filename. Null Tuple.Item2");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error stripping filename. Null Tuple.Item2");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             if (tuple.Item1.Count() == 0)
             {
-                _logger.LogWarning("Directory.Download: Filename contains no folders. Invalid filename");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Filename contains no folders. Invalid filename");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -88,7 +88,7 @@ namespace VueServer.Services.Concrete
             var baseDir = list.Where(a => a.Name == folders[0]).Select(a => a.Path).FirstOrDefault();
             if (baseDir == null)
             {
-                _logger.LogWarning($"Directory.Download: Invalid folder name: {folders[0]}");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name: {folders[0]}");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -112,7 +112,7 @@ namespace VueServer.Services.Concrete
                     {
                         if (File.Exists(zipPath))
                         {
-                            _logger.LogInformation("Directory.Download: Zip file already exists. Serving it as is instead of rebuilding the file.");
+                            _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Zip file already exists. Serving it as is instead of rebuilding the file.");
                         }
                         else
                         {
@@ -123,37 +123,37 @@ namespace VueServer.Services.Concrete
                     }
                     catch (ArgumentException)
                     {
-                        _logger.LogError("DownloadProtectedFile: ArgumentException");
+                        _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: ArgumentException");
                         return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
                     catch (PathTooLongException)
                     {
-                        _logger.LogError("DownloadProtectedFile: PathTooLongException");
+                        _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: PathTooLongException");
                         return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
                     catch (DirectoryNotFoundException)
                     {
-                        _logger.LogError("DownloadProtectedFile: DirectoryNotFoundException");
+                        _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: DirectoryNotFoundException");
                         return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
                     catch (IOException e)
                     {
-                        _logger.LogError("DownloadProtectedFile: IOException");
+                        _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: IOException");
                         _logger.LogError(e.StackTrace);
                         return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
                     catch (UnauthorizedAccessException)
                     {
-                        _logger.LogError("DownloadProtectedFile: UnauthorizedException");
+                        _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: UnauthorizedException");
                         return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
                     catch (NotSupportedException)
                     {
-                        _logger.LogError("DownloadProtectedFile: NotSupportedException");
+                        _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: NotSupportedException");
                         return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
 
-                    _logger.LogInformation("Private zip archive download begun by " + user + " @ " + _user.IP + " - name=" + filename);
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Private zip archive download begun by " + user + " @ " + _user.IP + " - name=" + filename);
                     return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(zipPath, contentType, cleanFilename), StatusCode.OK);
                 }
                 //else
@@ -169,11 +169,11 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogError("DownloadProtectedFile: Unknown exception accessing file");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unknown exception accessing file");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
             }
 
-            _logger.LogInformation("Private download begun by " + user + " @ " + _user.IP + " - name=" + filename);
+            _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Private download begun by " + user + " @ " + _user.IP + " - name=" + filename);
             //if (!media)
             return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(Path.Combine(sourcePath, cleanFilename), contentType, cleanFilename), StatusCode.OK);
             //else
@@ -184,7 +184,7 @@ namespace VueServer.Services.Concrete
         {
             if (string.IsNullOrWhiteSpace(directory))
             {
-                _logger.LogWarning("Directory.Load: Directory is null. Can't get list.");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Directory is null. Can't get list.");
                 return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -192,7 +192,7 @@ namespace VueServer.Services.Concrete
             var basePath = list.Where(a => a.Name == directory).Select(a => a.Path).FirstOrDefault();
             if (basePath == null)
             {
-                _logger.LogWarning($"Directory.Load: Invalid folder name: {directory}");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name: {directory}");
                 return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -208,13 +208,13 @@ namespace VueServer.Services.Concrete
                     uri = new Uri(fullPath);
                     if (!uri.AbsolutePath.ToLower().StartsWith(basePath.ToLower()) && !uri.LocalPath.ToLower().StartsWith(basePath.ToLower()))
                     {
-                        _logger.LogWarning($"{_user.Id} @ {_user.IP} is trying to do a path escalation attack!");
+                        _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is trying to do a path escalation attack!");
                         return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.FORBIDDEN);
                     }
                 }
                 catch
                 {
-                    _logger.LogInformation($"{_user.Id} @ {_user.IP} sent malformed URI path in sub directory.");
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} sent malformed URI path in sub directory.");
                     return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
                 }
             }
@@ -232,7 +232,7 @@ namespace VueServer.Services.Concrete
                 dir = new DirectoryInfo(uri.LocalPath);
                 if (!dir.Exists)
                 {
-                    _logger.LogWarning($"Directory.Load: Directory ({basePath}) does not exist. User: {_user.Id} @ IP: {_user.IP}");
+                    _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Directory ({basePath}) does not exist. User: {_user.Id} @ IP: {_user.IP}");
                     return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
                 }
 
@@ -240,7 +240,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogWarning($"Directory.Load: Error getting directory or file system info at: {basePath}");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error getting directory or file system info at: {basePath}");
                 return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -264,11 +264,11 @@ namespace VueServer.Services.Concrete
                 saveDir += model.SubDirectory;
             }
 
-            _logger.LogInformation("Upload started from " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
+            _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Upload started from " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
 
             if (!Directory.Exists(saveDir))
             {
-                _logger.LogInformation($"{_user.Id} @ {_user.IP} is attempting to create a folder while uploading a file");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to create a folder while uploading a file");
                 return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
             }
 
@@ -277,13 +277,13 @@ namespace VueServer.Services.Concrete
                 var uri = new Uri(saveDir);
                 if (!uri.LocalPath.StartsWith(baseSaveDir))
                 {
-                    _logger.LogWarning($"{_user.Id} @ {_user.IP} is trying to do a path escalation attack!");
+                    _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is trying to do a path escalation attack!");
                     return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
                 }
             }
             catch
             {
-                _logger.LogInformation($"{_user.Id} @ {_user.IP} sent malformed URI path.");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} sent malformed URI path.");
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -293,13 +293,13 @@ namespace VueServer.Services.Concrete
                 {
                     await model.File.CopyToAsync(fs);
                     fs.Flush();
-                    _logger.LogInformation("Upload SUCCESS from " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Upload SUCCESS from " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine("Failed to write file dir\n" + e.StackTrace);
-                _logger.LogInformation("Upload FAILED from " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
+                Console.WriteLine($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed to write file dir\n" + e.StackTrace);
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Upload FAILED from " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
@@ -311,8 +311,8 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception e)
             {
-                Console.WriteLine("Failed to write file dir\n" + e.StackTrace);
-                _logger.LogInformation("Failed to validate file exists after successful upload. " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
+                Console.WriteLine($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed to write file dir\n" + e.StackTrace);
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed to validate file exists after successful upload. " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
         }
@@ -326,7 +326,7 @@ namespace VueServer.Services.Concrete
             string dir = uploadDirs.Where(x => x.Name == model.Directory).Select(y => y.Path).FirstOrDefault();
             if (dir == null)
             {
-                _logger.LogInformation("Invalid folder name provided. Protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name provided. Protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
             }
 
@@ -337,13 +337,13 @@ namespace VueServer.Services.Concrete
             }
             catch
             {
-                _logger.LogInformation("Invalid file provided. Protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid file provided. Protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                 return new Result<bool>(false, StatusCode.UNAUTHORIZED);
             }
 
             if (!fi.Directory.FullName.StartsWith(dir))
             {
-                _logger.LogWarning($"Path escalation attack attempted by {_user.Id} @ {_user.IP} - Filename={fi.Directory.FullName.ToString()}{Path.DirectorySeparatorChar}{model.Name}!");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Path escalation attack attempted by {_user.Id} @ {_user.IP} - Filename={fi.Directory.FullName.ToString()}{Path.DirectorySeparatorChar}{model.Name}!");
                 return new Result<bool>(false, StatusCode.FORBIDDEN);
             }
 
@@ -355,17 +355,17 @@ namespace VueServer.Services.Concrete
                 }
                 catch (UnauthorizedAccessException)
                 {
-                    _logger.LogError("Unauthorized protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
+                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unauthorized protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                     return new Result<bool>(false, StatusCode.UNAUTHORIZED);
                 }
                 catch (SecurityException)
                 {
-                    _logger.LogError("Security exception in protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
+                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Security exception in protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                     return new Result<bool>(false, StatusCode.UNAUTHORIZED);
                 }
                 catch (IOException)
                 {
-                    _logger.LogError("IO exception in protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
+                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: IO exception in protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                     return new Result<bool>(false, StatusCode.BAD_REQUEST);
                 }
             }
@@ -418,7 +418,7 @@ namespace VueServer.Services.Concrete
 
                 if (cleaned.Length == index + 1)
                 {
-                    _logger.LogWarning("Directory.GetStrippedFilename: Filename ends with a slash. Invalid filename.");
+                    _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Filename ends with a slash. Invalid filename.");
                     return null;
                 }
                 folders.Add(cleaned.Substring(0, index));
@@ -490,7 +490,7 @@ namespace VueServer.Services.Concrete
                 var section = _config.GetSection(configPath);
                 if (section == null)
                 {
-                    _logger.LogInformation("[Directory Service] GetServerDirectoryList: Section doesn't exist");
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Section doesn't exist");
                     return list;
                 }
 
@@ -501,7 +501,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogWarning("Error deserializing directories from appsettings json");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error deserializing directories from appsettings json");
             }
 
             return list;
@@ -527,7 +527,7 @@ namespace VueServer.Services.Concrete
         {
             if (groupList == null)
             {
-                _logger.LogWarning("DirectoryService.GetFullUserFolderList: groupList is null returning null");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: groupList is null returning null");
                 return null;
             }
 
@@ -542,7 +542,7 @@ namespace VueServer.Services.Concrete
 
             if (userList == null)
             {
-                _logger.LogWarning("DirectoryService.GetFullUserFolderList: userList is null returning just groupList values");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: userList is null returning just groupList values");
                 return fullList;
             }
 
@@ -603,7 +603,7 @@ namespace VueServer.Services.Concrete
             //Start conversion
             await conversion.Start();
 
-            await Console.Out.WriteLineAsync($"Finished converion file [{file.Name}]");
+            await Console.Out.WriteLineAsync($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Finished converion file [{file.Name}]");
             return new Tuple<string, string>(outputFileName, format);
         }
 

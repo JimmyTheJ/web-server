@@ -84,11 +84,11 @@ namespace VueServer.Services.Concrete
             try
             {
                 await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("CreateBook: Successfully added book to database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully added book to database");
             }
             catch
             {
-                _logger.LogError("CreateBook: Error saving database on adding book");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on adding book");
                 return new Result<Book>(null, SERVER_ERROR);
             }
 
@@ -156,11 +156,11 @@ namespace VueServer.Services.Concrete
             try
             {
                 await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("UpdateBook: Successfully edited book in database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully edited book in database");
             }
             catch
             {
-                _logger.LogError("UpdateBook: Error saving database on editing book");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on editing book");
                 return new Result<Book>(null, SERVER_ERROR);
             }
 
@@ -179,7 +179,7 @@ namespace VueServer.Services.Concrete
             var book = await _wsContext.Books.Include(x => x.BookAuthors).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (book == null)
             {
-                _logger.LogDebug($"DeleteBook: Book not found with id ({id}). Bad request.");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Book not found with id ({id}). Bad request.");
                 return new Result<int>(-1, BAD_REQUEST);
             }
 
@@ -195,11 +195,11 @@ namespace VueServer.Services.Concrete
             try
             {
                 await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("DeleteBook: Successfully deleted book from database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully deleted book from database");
             }
             catch
             {
-                _logger.LogError($"DeleteAuthor: Error saving database on deleting author with id ({id})");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on deleting author with id ({id})");
                 return new Result<int>(id, SERVER_ERROR);
             }
 
@@ -221,12 +221,12 @@ namespace VueServer.Services.Concrete
         {
             if (request == null)
             {
-                _logger.LogDebug("CreateAuthor: Author is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Author is null");
                 return null;
             }
             if (!request.Validate())
             {
-                _logger.LogDebug("CreateAuthor: Author failed model validation");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Author failed model validation");
                 return null;
             }
 
@@ -234,11 +234,11 @@ namespace VueServer.Services.Concrete
             try
             {
                 await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("CreateAuthor: Successfully added author to database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully added author to database");
             }
             catch
             {
-                _logger.LogError("CreateAuthor: Error saving database on adding author");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on adding author");
                 return null;
             }
 
@@ -249,19 +249,19 @@ namespace VueServer.Services.Concrete
         {
             if (request == null)
             {
-                _logger.LogDebug("UpdateAuthor: Author is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Author is null");
                 return null;
             }
             if (!request.Validate())
             {
-                _logger.LogDebug("UpdateAuthor: Author failed model validation");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Author failed model validation");
                 return null;
             }
 
             var oldAuthor = await _wsContext.Authors.Where(x => x.Id == request.Id).FirstOrDefaultAsync();
             if (oldAuthor == null)
             {
-                _logger.LogDebug($"UpdateAuthor: No author exists with id ({request.Id})");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No author exists with id ({request.Id})");
                 return null;
             }
 
@@ -271,11 +271,11 @@ namespace VueServer.Services.Concrete
             try
             {
                 await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("UpdateAuthor: Successfully updated author in database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully updated author in database");
             }
             catch
             {
-                _logger.LogError($"UpdateAuthor: Error saving database on updated author with id ({request.Id})");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on updated author with id ({request.Id})");
                 return null;
             }
 
@@ -287,7 +287,7 @@ namespace VueServer.Services.Concrete
             var author = await _wsContext.Authors.Include(x => x.BookAuthors).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (author == null)
             {
-                _logger.LogDebug($"DeleteAuthor: No author exists with id ({id})");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No author exists with id ({id})");
                 return new Result<int>(-1, BAD_REQUEST);
             }
 
@@ -301,16 +301,16 @@ namespace VueServer.Services.Concrete
                 }
                 catch
                 {
-                    _logger.LogError($"DeleteAuthor: Error saving database on deleting author with id ({id})");
+                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on deleting author with id ({id})");
                     return new Result<int>(-1, SERVER_ERROR);
                 }
 
-                _logger.LogDebug("DeleteAuthor: Successfully deleted author from database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully deleted author from database");
                 return new Result<int>(id, OK);
             }
 
             // Can't delete author because there is other connections at stake
-            _logger.LogDebug($"DeleteAuthor: Can't delete the author with id ({id}) as it has other connections");
+            _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't delete the author with id ({id}) as it has other connections");
             return new Result<int>(-1, NO_CONTENT);
         }
 
@@ -329,12 +329,12 @@ namespace VueServer.Services.Concrete
         {
             if (request == null)
             {
-                _logger.LogDebug("CreateBookcase: Bookcase is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Bookcase is null");
                 return null;
             }
             if (!request.Validate())
             {
-                _logger.LogDebug("CreateBookcase: Bookcase failed model validation");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Bookcase failed model validation");
                 return null;
             }
 
@@ -342,11 +342,11 @@ namespace VueServer.Services.Concrete
             try
             {
                 await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("CreateBookcase: Successfully added bookcase to database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully added bookcase to database");
             }
             catch
             {
-                _logger.LogError("CreateBookcase: Error saving database on adding bookcase");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on adding bookcase");
                 return null;
             }
 
@@ -357,19 +357,19 @@ namespace VueServer.Services.Concrete
         {
             if (request == null)
             {
-                _logger.LogDebug("UpdateBookcase: Bookcase is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Bookcase is null");
                 return null;
             }
             if (!request.Validate())
             {
-                _logger.LogDebug("UpdateBookcase: Bookcase failed model validation");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Bookcase failed model validation");
                 return null;
             }
 
             var oldBookcase = await _wsContext.Bookcases.Where(x => x.Id == request.Id).FirstOrDefaultAsync();
             if (oldBookcase == null)
             {
-                _logger.LogDebug($"UpdateBookcase: No bookcase exists with id ({request.Id})");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No bookcase exists with id ({request.Id})");
                 return null;
             }
 
@@ -377,11 +377,11 @@ namespace VueServer.Services.Concrete
             try
             {
                 await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("UpdateBookcase: Successfully updated bookcase in database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully updated bookcase in database");
             }
             catch
             {
-                _logger.LogError($"UpdateBookcase: Error saving database on updated bookcase with id ({request.Id})");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on updated bookcase with id ({request.Id})");
                 return null;
             }
 
@@ -393,7 +393,7 @@ namespace VueServer.Services.Concrete
             var bookcase = await _wsContext.Bookcases.Include(x => x.Books).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (bookcase == null)
             {
-                _logger.LogDebug($"DeleteBookcase: No bookcase exists with id ({id})");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No bookcase exists with id ({id})");
                 return new Result<int>(-1, BAD_REQUEST);
             }
 
@@ -407,16 +407,16 @@ namespace VueServer.Services.Concrete
                 }
                 catch
                 {
-                    _logger.LogError($"DeleteBookcase: Error saving database on deleting bookcase with id ({id})");
+                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on deleting bookcase with id ({id})");
                     return new Result<int>(-1, SERVER_ERROR);
                 }
 
-                _logger.LogDebug("DeleteBookcase: Successfully deleted bookcase from database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully deleted bookcase from database");
                 return new Result<int>(id, OK);
             }
 
             // Can't delete bookcase because there is other connections at stake
-            _logger.LogDebug($"DeleteBookcase: Can't delete the bookcase with id ({id}) as it has other connections");
+            _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't delete the bookcase with id ({id}) as it has other connections");
             return new Result<int>(-1, NO_CONTENT);
         }
 
@@ -446,12 +446,12 @@ namespace VueServer.Services.Concrete
         {
             if (request == null)
             {
-                _logger.LogDebug("CreateSeries: Series is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Series is null");
                 return null;
             }
             if (!request.Validate())
             {
-                _logger.LogDebug("CreateSeries: Series failed model validation");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Series failed model validation");
                 return null;
             }
 
@@ -459,11 +459,11 @@ namespace VueServer.Services.Concrete
             try
             {
                 await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("CreateSeries: Successfully added series to database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully added series to database");
             }
             catch
             {
-                _logger.LogError("CreateSeries: Error saving database on adding series");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on adding series");
                 return null;
             }
 
@@ -474,19 +474,19 @@ namespace VueServer.Services.Concrete
         {
             if (request == null)
             {
-                _logger.LogDebug("UpdateSeries: Series is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Series is null");
                 return null;
             }
             if (!request.Validate())
             {
-                _logger.LogDebug("UpdateSeries: Series failed model validation");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Series failed model validation");
                 return null;
             }
 
             var oldSeries = await _wsContext.Series.Where(x => x.Id == request.Id).FirstOrDefaultAsync();
             if (oldSeries == null)
             {
-                _logger.LogDebug($"UpdateSeries: No series exists with id ({request.Id})");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No series exists with id ({request.Id})");
                 return null;
             }
 
@@ -496,11 +496,11 @@ namespace VueServer.Services.Concrete
             try
             {
                 await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("UpdateSeries: Successfully updated series in database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully updated series in database");
             }
             catch
             {
-                _logger.LogError($"UpdateSeries: Error saving database on updated series with id ({request.Id})");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on updated series with id ({request.Id})");
                 return null;
             }
 
@@ -512,7 +512,7 @@ namespace VueServer.Services.Concrete
             var series = await _wsContext.Series.Include(x => x.Books).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (series == null)
             {
-                _logger.LogDebug($"DeleteSeries: No series exists with id ({id})");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No series exists with id ({id})");
                 return new Result<int>(-1, BAD_REQUEST);
             }
 
@@ -526,16 +526,16 @@ namespace VueServer.Services.Concrete
                 }
                 catch
                 {
-                    _logger.LogError($"DeleteSeries: Error saving database on deleting series with id ({id})");
+                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on deleting series with id ({id})");
                     return new Result<int>(-1, SERVER_ERROR);
                 }
 
-                _logger.LogDebug("DeleteSeries: Successfully deleted series from database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully deleted series from database");
                 return new Result<int>(id, OK);
             }
 
             // Can't delete series because there is other connections at stake
-            _logger.LogDebug($"DeleteSeries: Can't delete the series with id ({id}) as it has other connections");
+            _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't delete the series with id ({id}) as it has other connections");
             return new Result<int>(-1, NO_CONTENT);
         }
 
@@ -554,12 +554,12 @@ namespace VueServer.Services.Concrete
         {
             if (request == null)
             {
-                _logger.LogDebug("CreateShelf: Shelf is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Shelf is null");
                 return null;
             }
             if (!request.Validate())
             {
-                _logger.LogDebug("CreateShelf: Shelf failed model validation");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Shelf failed model validation");
                 return null;
             }
 
@@ -567,11 +567,11 @@ namespace VueServer.Services.Concrete
             try
             {
                 await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("CreateShelf: Successfully added shelf to database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully added shelf to database");
             }
             catch
             {
-                _logger.LogError("CreateShelf: Error saving database on adding shelf");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on adding shelf");
                 return null;
             }
 
@@ -582,19 +582,19 @@ namespace VueServer.Services.Concrete
         {
             if (request == null)
             {
-                _logger.LogDebug("UpdateShelf: Shelf is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Shelf is null");
                 return null;
             }
             if (!request.Validate())
             {
-                _logger.LogDebug("UpdateShelf: Shelf failed model validation");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Shelf failed model validation");
                 return null;
             }
 
             var oldShelf = await _wsContext.Shelves.Where(x => x.Id == request.Id).FirstOrDefaultAsync();
             if (oldShelf == null)
             {
-                _logger.LogDebug($"UpdateShelf: No shelf exists with id ({request.Id})");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No shelf exists with id ({request.Id})");
                 return null;
             }
 
@@ -603,11 +603,11 @@ namespace VueServer.Services.Concrete
             try
             {
                 await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("UpdateShelf: Successfully updated shelf in database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully updated shelf in database");
             }
             catch
             {
-                _logger.LogError($"UpdateShelf: Error saving database on updated shelf with id ({request.Id})");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on updated shelf with id ({request.Id})");
                 return null;
             }
 
@@ -619,7 +619,7 @@ namespace VueServer.Services.Concrete
             var shelf = await _wsContext.Shelves.Include(x => x.Books).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (shelf == null)
             {
-                _logger.LogDebug($"DeleteShelf: No shelf exists with id ({id})");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No shelf exists with id ({id})");
                 return new Result<int>(-1, BAD_REQUEST);
             }
 
@@ -633,16 +633,16 @@ namespace VueServer.Services.Concrete
                 }
                 catch
                 {
-                    _logger.LogError($"DeleteShelf: Error saving database on deleting shelf with id ({id})");
+                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on deleting shelf with id ({id})");
                     return new Result<int>(-1, SERVER_ERROR);
                 }
 
-                _logger.LogDebug("DeleteShelf: Successfully deleted shelf from database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully deleted shelf from database");
                 return new Result<int>(id, OK);
             }
 
             // Can't delete shelf because there is other connections at stake
-            _logger.LogDebug($"DeleteShelf: Can't delete the shelf with id ({id}) as it has other connections");
+            _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't delete the shelf with id ({id}) as it has other connections");
             return new Result<int>(-1, NO_CONTENT);
         }
 
@@ -658,7 +658,7 @@ namespace VueServer.Services.Concrete
         {
             if (authors == null || authors.Count() == 0)
             {
-                _logger.LogDebug("AddAuthorListAsync: Author list is null or contains only authors that are already present in the database.");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Author list is null or contains only authors that are already present in the database.");
                 return true;
             }
 
@@ -666,11 +666,11 @@ namespace VueServer.Services.Concrete
             try
             {
                 await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("AddAuthorListAsync: Successfully added authors to database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully added authors to database");
             }
             catch
             {
-                _logger.LogError("AddAuthorListAsync: Error saving database on adding authors");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on adding authors");
                 return false;
             }
 
@@ -691,11 +691,11 @@ namespace VueServer.Services.Concrete
             try
             {
                 await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("UpdateBookAuthorListConnectionsAsync: Successfully made book author connections in the database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully made book author connections in the database");
             }
             catch
             {
-                _logger.LogError("UpdateBookAuthorListConnectionsAsync: Error saving database on book author connections");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on book author connections");
                 return null;
             }
 
@@ -711,13 +711,13 @@ namespace VueServer.Services.Concrete
         {
             if (authors == null || authors.Count == 0)
             {
-                _logger.LogDebug("UpdateBookAuthorListAsync: Author list is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Author list is null");
                 return null;
             }
 
             if (book == null)
             {
-                _logger.LogDebug("UpdateBookAuthorListAsync: Book is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Book is null");
                 return null;
             }
 
@@ -745,19 +745,19 @@ namespace VueServer.Services.Concrete
         {
             if (bookcase == null)
             {
-                _logger.LogDebug("UpdateBookcaseConnectionAsync: Bookcase is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Bookcase is null");
                 return null;
             }
 
             if (book == null)
             {
-                _logger.LogDebug("UpdateBookcaseConnectionAsync: Book is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Book is null");
                 return null;
             }
 
             if (bookcase.Id <= 0)
             {
-                _logger.LogDebug("UpdateBookcaseConnectionAsync: Bookcase Id is less than or equal to 0");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Bookcase Id is less than or equal to 0");
                 var newBookcase = await AddBookcaseAsync(bookcase);
                 return newBookcase;
             }
@@ -765,7 +765,7 @@ namespace VueServer.Services.Concrete
             var existingBookcase = await _wsContext.Bookcases.Where(x => x.Id == bookcase.Id).FirstOrDefaultAsync();
             if (existingBookcase == null)
             {
-                _logger.LogDebug("UpdateBookcaseConnectionAsync: No existing bookcase exists");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No existing bookcase exists");
                 var newBookcase = await AddBookcaseAsync(bookcase);
                 return newBookcase;
             }
@@ -773,11 +773,11 @@ namespace VueServer.Services.Concrete
             // Bookcase hasn't changed
             if (existingBookcase.Id == book.BookcaseId)
             {
-                _logger.LogDebug("UpdateBookcaseConnectionAsync: Bookcase's connection hasn't changed");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Bookcase's connection hasn't changed");
                 return existingBookcase;
             }
 
-            _logger.LogDebug("UpdateBookcaseConnectionAsync: Bookcase's connection changed");
+            _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Bookcase's connection changed");
             return existingBookcase;
         }
 
@@ -785,7 +785,7 @@ namespace VueServer.Services.Concrete
         {
             if (bookcase == null)
             {
-                _logger.LogDebug("AddBookcaseAsync: Bookcase is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Bookcase is null");
                 return null;
             }
 
@@ -798,12 +798,12 @@ namespace VueServer.Services.Concrete
             try
             {
                 var result = await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("AddBookcaseAsync: Successfully added bookcase to database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully added bookcase to database");
                 return bookcase;
             }
             catch
             {
-                _logger.LogError("AddBookcaseAsync: Error saving database");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database");
                 return null;
             }
         }
@@ -812,7 +812,7 @@ namespace VueServer.Services.Concrete
         {
             if (bookcase == null)
             {
-                _logger.LogDebug("EditBookcaseAsync: Bookcase is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Bookcase is null");
                 return null;
             }
 
@@ -824,7 +824,7 @@ namespace VueServer.Services.Concrete
             var oldBookcase = await _wsContext.Bookcases.Where(x => x.Id == bookcase.Id).FirstOrDefaultAsync();
             if (oldBookcase == null)
             {
-                _logger.LogDebug("EditBookcaseAsync: Bookcase doesn't exist in database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Bookcase doesn't exist in database");
                 return null;
             }
 
@@ -832,12 +832,12 @@ namespace VueServer.Services.Concrete
             try
             {
                 var result = await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("EditBookcaseAsync: Successfully updated bookcase in database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully updated bookcase in database");
                 return bookcase;
             }
             catch
             {
-                _logger.LogError("EditBookcaseAsync: Error saving database");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database");
                 return null;
             }
         }
@@ -860,11 +860,11 @@ namespace VueServer.Services.Concrete
             try
             {
                 await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("UpdateBookGenreListConnectionsAsync: Successfully made book author connections in the database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully made book author connections in the database");
             }
             catch
             {
-                _logger.LogError("UpdateBookGenreListConnectionsAsync: Error saving database on book author connections");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database on book author connections");
                 return null;
             }
 
@@ -880,13 +880,13 @@ namespace VueServer.Services.Concrete
         {
             if (genres == null || genres.Count == 0)
             {
-                _logger.LogDebug("UpdateBookGenreListAsync: Genre list is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Genre list is null");
                 return null;
             }
 
             if (book == null)
             {
-                _logger.LogDebug("UpdateBookGenreListAsync: Book is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Book is null");
                 return null;
             }
 
@@ -911,19 +911,19 @@ namespace VueServer.Services.Concrete
         {
             if (shelf == null)
             {
-                _logger.LogDebug("UpdateShelfConnectionAsync: Shelf is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Shelf is null");
                 return null;
             }
 
             if (book == null)
             {
-                _logger.LogDebug("UpdateShelfConnectionAsync: Book is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Book is null");
                 return null;
             }
 
             if (shelf.Id <= 0)
             {
-                _logger.LogDebug("UpdateShelfConnectionAsync: Shelf Id is less than or equal to 0");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Shelf Id is less than or equal to 0");
                 var newShelf = await AddShelfAsync(shelf);
                 return newShelf;
             }
@@ -931,7 +931,7 @@ namespace VueServer.Services.Concrete
             var existingShelf = await _wsContext.Shelves.Where(x => x.Id == shelf.Id).FirstOrDefaultAsync();
             if (existingShelf == null)
             {
-                _logger.LogDebug("UpdateShelfConnectionAsync: No existing shelf exists");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No existing shelf exists");
                 var newShelf = await AddShelfAsync(shelf);
                 return newShelf;
             }
@@ -939,11 +939,11 @@ namespace VueServer.Services.Concrete
             // Shelf hasn't changed
             if (existingShelf.Id == book.ShelfId)
             {
-                _logger.LogDebug("UpdateShelfConnectionAsync: Shelf's connection hasn't changed");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Shelf's connection hasn't changed");
                 return existingShelf;
             }
 
-            _logger.LogDebug("UpdateShelfConnectionAsync: Shelf's connection changed");
+            _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Shelf's connection changed");
             return existingShelf;
         }
 
@@ -951,7 +951,7 @@ namespace VueServer.Services.Concrete
         {
             if (shelf == null)
             {
-                _logger.LogDebug("AddShelfAsync: Shelf is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Shelf is null");
                 return null;
             }
 
@@ -964,12 +964,12 @@ namespace VueServer.Services.Concrete
             try
             {
                 var result = await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("AddShelfAsync: Successfully added shelf to database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully added shelf to database");
                 return shelf;
             }
             catch
             {
-                _logger.LogError("AddShelfAsync: Error saving database");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database");
                 return null;
             }
         }
@@ -978,27 +978,27 @@ namespace VueServer.Services.Concrete
         {
             if (shelf == null)
             {
-                _logger.LogDebug("EditShelfAsync: Shelf is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Shelf is null");
                 return null;
             }
 
             var oldShelf = await _wsContext.Shelves.Where(x => x.Id == shelf.Id).FirstOrDefaultAsync();
             if (oldShelf == null)
             {
-                _logger.LogDebug("EditShelfAsync: Shelf doesn't exist in database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Shelf doesn't exist in database");
                 return null;
             }
 
             // Shelf has moved bookcases
             if (shelf.BookcaseId != oldShelf.BookcaseId)
             {
-                _logger.LogDebug("EditShelfAsync: Attempting to change shelf to a new bookcase");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Attempting to change shelf to a new bookcase");
                 var newBookcase = await _wsContext.Bookcases.Where(x => x.Id == shelf.BookcaseId).FirstOrDefaultAsync();
 
                 // New bookcase doesn't exit
                 if (newBookcase == null)
                 {
-                    _logger.LogDebug("EditShelfAsync: Can't change shelf to a non-existant bookcase");
+                    _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't change shelf to a non-existant bookcase");
                     return oldShelf;
                 }
 
@@ -1009,12 +1009,12 @@ namespace VueServer.Services.Concrete
             try
             {
                 var result = await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("EditShelfAsync: Successfully updated shelf in database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully updated shelf in database");
                 return shelf;
             }
             catch
             {
-                _logger.LogError("EditShelfAsync: Error saving database");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database");
                 return null;
             }
         }
@@ -1048,19 +1048,19 @@ namespace VueServer.Services.Concrete
         {
             if (series == null)
             {
-                _logger.LogDebug("UpdateSeriesConnectionAsync: Series is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Series is null");
                 return null;
             }
 
             if (book == null)
             {
-                _logger.LogDebug("UpdateSeriesConnectionAsync: Book is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Book is null");
                 return null;
             }
 
             if (series.Id <= 0)
             {
-                _logger.LogDebug("UpdateSeriesConnectionAsync: Series Id is less than or equal to 0");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Series Id is less than or equal to 0");
                 var newSeries = await AddSeriesAsync(series);
                 return newSeries;
             }
@@ -1068,7 +1068,7 @@ namespace VueServer.Services.Concrete
             var existingSeries = await _wsContext.Series.Where(x => x.Id == series.Id).FirstOrDefaultAsync();
             if (existingSeries == null)
             {
-                _logger.LogDebug("UpdateSeriesConnectionAsync: No existing series exists");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No existing series exists");
                 var newSeries = await AddSeriesAsync(series);
                 return newSeries;
             }
@@ -1076,11 +1076,11 @@ namespace VueServer.Services.Concrete
             // Series hasn't changed
             if (existingSeries.Id == book.SeriesId)
             {
-                _logger.LogDebug("UpdateSeriesConnectionAsync: Series's connection hasn't changed");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Series's connection hasn't changed");
                 return existingSeries;
             }
 
-            _logger.LogDebug("UpdateSeriesConnectionAsync: Series's connection changed");
+            _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Series's connection changed");
             return existingSeries;
         }
 
@@ -1088,7 +1088,7 @@ namespace VueServer.Services.Concrete
         {
             if (series == null)
             {
-                _logger.LogDebug("AddSeriesAsync: Series is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Series is null");
                 return null;
             }
 
@@ -1101,12 +1101,12 @@ namespace VueServer.Services.Concrete
             try
             {
                 var result = await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("AddSeriesAsync: Successfully added series to database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully added series to database");
                 return series;
             }
             catch
             {
-                _logger.LogError("AddSeriesAsync: Error saving database");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database");
                 return null;
             }
         }
@@ -1115,14 +1115,14 @@ namespace VueServer.Services.Concrete
         {
             if (series == null)
             {
-                _logger.LogDebug("EditSeriesAsync: Series is null");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Series is null");
                 return null;
             }
 
             var oldSeries = await _wsContext.Series.Where(x => x.Id == series.Id).FirstOrDefaultAsync();
             if (oldSeries == null)
             {
-                _logger.LogDebug("EditSeriesAsync: Series doesn't exist in database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Series doesn't exist in database");
                 return null;
             }
 
@@ -1132,12 +1132,12 @@ namespace VueServer.Services.Concrete
             try
             {
                 var result = await _wsContext.SaveChangesAsync();
-                _logger.LogDebug("EditSeriesAsync: Successfully updated series in database");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successfully updated series in database");
                 return series;
             }
             catch
             {
-                _logger.LogError("EditSeriesAsync: Error saving database");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving database");
                 return null;
             }
         }

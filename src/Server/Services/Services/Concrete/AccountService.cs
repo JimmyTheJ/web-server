@@ -143,23 +143,23 @@ namespace VueServer.Services.Concrete
             // If log in was unsuccessful redirect back to view
             if (!result.Succeeded)
             {
-                _logger.LogWarning("[AccountService] Login: Failed login from " + _user.IP + " with credentials: username=" + model.Username + ", password=" + model.Password);
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed login from " + _user.IP + " with credentials: username=" + model.Username + ", password=" + model.Password);
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
-            _logger.LogInformation("[AccountService] Login: Successful login of " + model.Username + " @ " + _user.IP);
+            _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successful login of " + model.Username + " @ " + _user.IP);
 
             //set user role to session
             var user = await _userManager.FindByNameAsync(model.Username);
             if (user == null)
             {
-                _logger.LogWarning("[AccountService] Login: User not found");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User not found");
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var roles = await _userManager.GetRolesAsync(user);
             if (roles == null || roles.Count == 0)
             {
-                _logger.LogWarning("[AccountService] Login: Roles not found");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Roles not found");
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -257,7 +257,7 @@ namespace VueServer.Services.Concrete
             var validToken = await CheckRefreshToken(username, model.CodeChallenge);
             if (validToken == null)
             {
-                _logger.LogInformation("AccountService.RefreshJwtToken: No valid token");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No valid token");
                 return new Result<string>(null, Domain.Enums.StatusCode.UNAUTHORIZED);
             }
 
@@ -300,14 +300,14 @@ namespace VueServer.Services.Concrete
         {
             if (file == null)
             {
-                _logger.LogInformation($"[AccountService] UpdateUserAvatar: File is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: File is null");
                 return new Result<string>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var fileType = MimeTypeHelper.GetFileType(file.ContentType);
             if (fileType != Domain.Enums.MimeFileType.Photo)
             {
-                _logger.LogInformation($"[AccountService] UpdateUserAvatar: File {file.FileName} uploaded is not an image");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: File {file.FileName} uploaded is not an image");
                 return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -320,7 +320,7 @@ namespace VueServer.Services.Concrete
                 }
                 else
                 {
-                    _logger.LogInformation($"[AccountService] UpdateUserAvatar: Can't create user profile for {_user.Id}");
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't create user profile for {_user.Id}");
                     return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
                 }
             }
@@ -336,7 +336,7 @@ namespace VueServer.Services.Concrete
                 }
                 catch
                 {
-                    _logger.LogError($"[AccountService] UpdateUserAvatar: Cannot create directory {path}");
+                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Cannot create directory {path}");
                     return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
                 }
             }
@@ -347,12 +347,12 @@ namespace VueServer.Services.Concrete
                 {
                     await file.CopyToAsync(fs);
                     fs.Flush();
-                    _logger.LogInformation($"[AccountService] UpdateUserAvatar: Upload success {filename}");
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Upload success {filename}");
                 }
             }
             catch
             {
-                _logger.LogInformation($"[AccountService] UpdateUserAvatar: Upload FAILED {filename}");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Upload FAILED {filename}");
                 return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -363,7 +363,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[AccountService] CreateUserProfile: Error saving after updating profile user '{_user.Id}' avatar");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after updating profile user '{_user.Id}' avatar");
                 return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -374,14 +374,14 @@ namespace VueServer.Services.Concrete
         {
             if (string.IsNullOrWhiteSpace(name))
             {
-                _logger.LogWarning($"[AccountService] UpdateDisplayName: Must provide a new name, null or empty is not valid");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Must provide a new name, null or empty is not valid");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var wsUser = await _context.Users.Where(x => x.Id == _user.Id).SingleOrDefaultAsync();
             if (wsUser == null)
             {
-                _logger.LogWarning($"[AccountService] UpdateDisplayName: User with user id ({_user.Id}) doesn't exist. This shouldn't be possible though.");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User with user id ({_user.Id}) doesn't exist. This shouldn't be possible though.");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -393,7 +393,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[AccountService] CreateUserProfile: Error saving after updating profile user '{_user.Id}' avatar");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after updating profile user '{_user.Id}' avatar");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -420,13 +420,13 @@ namespace VueServer.Services.Concrete
         {
             if (string.IsNullOrWhiteSpace(id))
             {
-                _logger.LogDebug($"CheckRefreshToken: No user id present");
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No user id present");
                 return null;
             }
 
             if (string.IsNullOrWhiteSpace(token))
             {
-                _logger.LogInformation($"CheckRefreshToken: User ({id}) passed a null token. This is probably a client code bug of some sort.");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) passed a null token. This is probably a client code bug of some sort.");
                 return null;
             }
 
@@ -440,26 +440,26 @@ namespace VueServer.Services.Concrete
             var tokens = await tokenQuery.ToListAsync();
             if (tokens == null)
             {
-                _logger.LogInformation($"CheckRefreshToken: User ({id}) does not have any refresh tokens in the data store");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) does not have any refresh tokens in the data store");
                 return null;
             }
 
             var matchedToken = tokens.Where(x => x.Token == token).SingleOrDefault();
             if (matchedToken == null)
             {
-                _logger.LogWarning($"CheckRefreshToken: User ({id}) does not have a refresh token that matches the passed in token value in the data store. This could potentially mean someone is trying to impersonate the user. Invalidating all refresh tokens for user.");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) does not have a refresh token that matches the passed in token value in the data store. This could potentially mean someone is trying to impersonate the user. Invalidating all refresh tokens for user.");
                 return null;
             }
 
             if (!matchedToken.Valid)
             {
-                _logger.LogWarning($"CheckRefreshToken: User ({id}) does have a refresh token that matches the passed in token value in the data store, but it has been previously invalidated. This could potentially mean someone has gained access to a user's device and is trying to pass iligitimate information to the server.");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) does have a refresh token that matches the passed in token value in the data store, but it has been previously invalidated. This could potentially mean someone has gained access to a user's device and is trying to pass iligitimate information to the server.");
                 return null;
             }
 
             if (IsRefreshTokenExpired(matchedToken.Issued))
             {
-                _logger.LogWarning($"CheckRefreshToken: User ({id}) does have a refresh token that matches the passed in token value in the data store, but it has expired.");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) does have a refresh token that matches the passed in token value in the data store, but it has expired.");
                 return null;
             }
 
@@ -487,7 +487,7 @@ namespace VueServer.Services.Concrete
 
             if (tokens == null || tokens.Count == 0)
             {
-                _logger.LogInformation($"User: '{id}' has no refresh tokens in the data store");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User '{id}' has no refresh tokens in the data store");
                 return false;
             }
 
@@ -503,9 +503,9 @@ namespace VueServer.Services.Concrete
             catch (Exception)
             {
                 if (source == null)
-                    _logger.LogWarning($"Error saving after invalidating all of user: '{id}' refresh tokens");
+                    _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after invalidating all of user: '{id}' refresh tokens");
                 else
-                    _logger.LogWarning($"Error saving after invalidating all of user: '{id}' refresh tokens from the current source: {source}");
+                    _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after invalidating all of user: '{id}' refresh tokens from the current source: {source}");
                 return false;
             }
             return true;
@@ -526,7 +526,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogWarning($"Error saving after invalidating the user: '{token.UserId}' token from IP: {token.Source}");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after invalidating the user: '{token.UserId}' token from IP: {token.Source}");
                 return false;
             }
             return true;
@@ -542,7 +542,7 @@ namespace VueServer.Services.Concrete
         {
             if (string.IsNullOrWhiteSpace(token))
             {
-                _logger.LogInformation($"SaveRefreshToken: Token is null or empty");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Token is null or empty");
                 return false;
             }
 
@@ -579,7 +579,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogWarning($"Error saving after creating the refresh token: '{token}' token from IP: {ip}");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after creating the refresh token: '{token}' token from IP: {ip}");
                 return false;
             }
 
@@ -681,7 +681,7 @@ namespace VueServer.Services.Concrete
                 // If does not succeed creating role
                 if (!result.Succeeded)
                 {
-                    _logger.LogInformation("[AccountService] InitRoles: Error creating general user role.");
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error creating general user role.");
                     return false;
                 }
             }
@@ -702,7 +702,7 @@ namespace VueServer.Services.Concrete
                 // If does not succeed creating role
                 if (!result.Succeeded)
                 {
-                    _logger.LogInformation("[AccountService] InitRoles: Error creating elevated user role.");
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error creating elevated user role.");
                     return false;
                 }
             }
@@ -723,7 +723,7 @@ namespace VueServer.Services.Concrete
                 // If does not succeed creating role
                 if (!result.Succeeded)
                 {
-                    _logger.LogInformation("[AccountService] InitRoles: Error creating admin user role.");
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error creating admin user role.");
                     return false;
                 }
             }
@@ -736,7 +736,7 @@ namespace VueServer.Services.Concrete
         {
             if (string.IsNullOrWhiteSpace(userId))
             {
-                _logger.LogInformation($"[AccountService] CreateUserProfile: User id is null or empty");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User id is null or empty");
                 return false;
             }
 
@@ -752,7 +752,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[AccountService] CreateUserProfile: Error saving after creating a profile for user '{userId}'");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after creating a profile for user '{userId}'");
                 return false;
             }
 

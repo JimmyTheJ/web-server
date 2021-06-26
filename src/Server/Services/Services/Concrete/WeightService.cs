@@ -43,7 +43,7 @@ namespace VueServer.Services.Concrete
             }
             catch
             {
-                _logger.LogWarning("WeightService.GetWeightList: Error getting list of weights");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error getting list of weights");
                 return new Result<IEnumerable<Weight>>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -54,7 +54,7 @@ namespace VueServer.Services.Concrete
         {
             if (weight == null)
             {
-                _logger.LogWarning("WeightService.AddWeight: Weight is null");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Weight is null");
                 return new Result<Weight>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -68,7 +68,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogError("WeightService.AddWeight: Error saving changes");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving changes");
                 return new Result<Weight>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -79,7 +79,7 @@ namespace VueServer.Services.Concrete
         {
             if (weight == null)
             {
-                _logger.LogInformation("WeightService.EditWeight: Weight is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Weight is null");
                 return new Result<Weight>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -87,7 +87,7 @@ namespace VueServer.Services.Concrete
             var oldWeight = await _wsContext.Weight.Where(x => x.Id == weight.Id && x.UserId == _user.Id).FirstOrDefaultAsync();
             if (oldWeight == null)
             {
-                _logger.LogInformation("WeightService.EditWeight: No weight exists with the passed in Id for this user");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No weight exists with the passed in Id for this user");
                 return new Result<Weight>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -101,7 +101,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogError("WeightService.EditWeight: Error saving changes");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving changes");
                 return new Result<Weight>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -113,14 +113,14 @@ namespace VueServer.Services.Concrete
         {
             if (id <= 0)
             {
-                _logger.LogWarning("WeightService.DeleteWeight: Id is <= 0");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Id is <= 0");
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
             }
 
             var weight = await _wsContext.Weight.Where(x => x.Id == id).FirstOrDefaultAsync();
             if (weight == null)
             {
-                _logger.LogWarning($"WeightService.DeleteWeight: No weight exists with id: {id}");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No weight exists with id: {id}");
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
             }
             _wsContext.Weight.Remove(weight);
@@ -131,7 +131,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogError("[WeightService.DeleteWeight]: Error saving changes");
+                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving changes");
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
             }
 

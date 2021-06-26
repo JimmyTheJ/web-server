@@ -42,7 +42,7 @@ namespace VueServer.Core.StatusFactory
                 case StatusCode.UNAVAILABLE:
                     return new StatusCodeResult(StatusCodes.Status503ServiceUnavailable);
                 default:
-                    Console.WriteLine("StatusCodeFactory: Invalid Status Code. Returning null.");
+                    Console.WriteLine($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid Status Code. Returning null.");
                     return null;
             }
         }
