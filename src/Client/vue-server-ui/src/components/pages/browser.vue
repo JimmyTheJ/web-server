@@ -103,7 +103,7 @@ export default {
   beforeRouteLeave(to, from, next) {
     // When leaving the browser page we should clear out the data stored in the vuex store
     // to create a better experience when /if we come back to the browser screen
-    if (to.name !== 'browser-folder') store.dispatch('clearFileExplorer')
+    if (to.name !== 'browser') store.dispatch('clearFileExplorer')
 
     next()
   },

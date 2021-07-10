@@ -50,8 +50,8 @@
             <template
               v-if="
                 typeof activeObject !== 'undefined' &&
-                activeObject !== null &&
-                selectedObject !== null
+                  activeObject !== null &&
+                  selectedObject !== null
               "
             >
               <!-- Author -->
@@ -212,7 +212,7 @@ export default {
         Shelf: SHELF_VALUE,
       },
       rules: {
-        required: (value) => !!value || 'Value is required',
+        required: value => !!value || 'Value is required',
       },
       validated: false,
     }
@@ -225,10 +225,10 @@ export default {
   },
   computed: {
     ...mapState({
-      authorList: (state) => state.library.authors,
-      bookcaseList: (state) => state.library.bookcases,
-      seriesList: (state) => state.library.series,
-      shelfList: (state) => state.library.shelves,
+      authorList: state => state.library.authors,
+      bookcaseList: state => state.library.bookcases,
+      seriesList: state => state.library.series,
+      shelfList: state => state.library.shelves,
     }),
     maxModalWidth() {
       if (window.innerWidth > 1640) return 1500
@@ -349,16 +349,14 @@ export default {
               `add${this.typeList[this.activeType]}`,
               this.selectedObject
             )
-            .then((resp) => {
+            .then(resp => {
               this.$_console_log(
                 `[Dependency Editor] Update Object: Successfully added new object of type (${
                   this.typeList[this.activeType]
                 }). Removing temp object.`
               )
               this.getActiveList()
-              this.selectedObject = this.activeList.find(
-                (x) => x.id === resp.id
-              )
+              this.selectedObject = this.activeList.find(x => x.id === resp.id)
             })
         }
       } else {
@@ -388,7 +386,7 @@ export default {
             `delete${this.typeList[this.activeType]}`,
             this.selectedObject.id
           )
-          .then((resp) => {
+          .then(resp => {
             // If we successfully delete the object, let's unselect that entry as it won't be the same entry anymore
             this.activeObject = -1
             this.getActiveList()

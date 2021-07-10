@@ -6,21 +6,21 @@ import Vuetify from 'vuetify/lib'
 Vue.use(Vuetify)
 
 const opts = {
-    icons: {
-        iconfont: 'mdi'
-    },
-    theme: {
-        dark: true,
-        // If you wanted to override the theming 
-        //themes: {
-        //    light: {
+  icons: {
+    iconfont: 'mdi',
+  },
+  theme: {
+    dark: true,
+    // If you wanted to override the theming
+    //themes: {
+    //    light: {
 
-        //    },
-        //    dark: {
+    //    },
+    //    dark: {
 
-        //    }
-        //}
-    } 
+    //    }
+    //}
+  },
 }
 
 export default new Vuetify(opts)

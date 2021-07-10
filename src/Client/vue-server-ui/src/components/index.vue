@@ -23,10 +23,10 @@ export default {
     return {
       env: process.env.NODE_ENV,
       name: process.env.VUE_APP_TITLE,
-    };
+    }
   },
   created() {
-    if (this.$route.fullPath === "/") this.$router.push({ name: "login" });
+    if (this.$route.fullPath === '/') this.$router.push({ name: 'login' })
   },
-};
+}
 </script>

@@ -54,8 +54,8 @@ export default {
   },
   computed: {
     ...mapState({
-      directory: (state) => state.fileExplorer.directory,
-      subDirectories: (state) => state.fileExplorer.subDirectories,
+      directory: state => state.fileExplorer.directory,
+      subDirectories: state => state.fileExplorer.subDirectories,
     }),
   },
   methods: {
@@ -72,7 +72,7 @@ export default {
         this.$_console_log(this.uploadFiles[i].name)
 
         await this.sendFile(this.uploadFiles[i])
-          .then((resp) => {
+          .then(resp => {
             this.$_console_log('File sent!')
           })
           .catch(() => {
@@ -97,7 +97,7 @@ export default {
 
       await service
         .uploadFile(formData)
-        .then((resp) => {
+        .then(resp => {
           this.$_console_log('Successfully uploaded file')
 
           this.$store.dispatch('addFile', resp.data)

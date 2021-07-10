@@ -108,9 +108,9 @@ export default {
   },
   computed: {
     ...mapState({
-      user: (state) => state.auth.user,
-      userList: (state) => state.auth.otherUsers,
-      conversations: (state) => state.chat.conversations,
+      user: state => state.auth.user,
+      userList: state => state.auth.otherUsers,
+      conversations: state => state.chat.conversations,
     }),
     isMobile() {
       return this.$vuetify.breakpoint.mobile
@@ -147,9 +147,9 @@ export default {
       this.selectedConversation = null
     },
     async getAllConversations() {
-      this.$store.dispatch('getAllConversationsForUser').then((resp) => {
+      this.$store.dispatch('getAllConversationsForUser').then(resp => {
         const newMessages = this.conversation.messages.filter(
-          (x) =>
+          x =>
             (!Array.isArray(x.readReceipts) || x.readReceipts.length === 0) &&
             x.userId !== this.user.id
         )

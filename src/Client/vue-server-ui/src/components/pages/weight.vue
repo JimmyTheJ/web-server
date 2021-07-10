@@ -223,7 +223,7 @@ export default {
   },
   computed: {
     ...mapState({
-      user: (state) => state.auth.user,
+      user: state => state.auth.user,
     }),
     headerText() {
       if (typeof this.weight === 'undefined' || this.weight === null) {
@@ -346,7 +346,7 @@ export default {
           return
         }
 
-        const dates = newValue.map((x) => new Date(x.created))
+        const dates = newValue.map(x => new Date(x.created))
 
         this.endDate = new Date(Math.max.apply(null, dates))
         this.startDate = new Date(Math.min.apply(null, dates))
@@ -356,10 +356,10 @@ export default {
         // TODO: Fix this.. This currently won't necessary give correct values if we have multiple weights on the same day,
         // there is no guarantee it picks the right value
         this.endWeight = newValue.find(
-          (x) => new Date(x.created).getTime() == this.endDate.getTime()
+          x => new Date(x.created).getTime() == this.endDate.getTime()
         ).value
         this.startWeight = newValue.find(
-          (x) => new Date(x.created).getTime() == this.startDate.getTime()
+          x => new Date(x.created).getTime() == this.startDate.getTime()
         ).value
       },
       deep: true,
@@ -380,7 +380,7 @@ export default {
       DispatchFactory.request(() => {
         weightService
           .getWeightList()
-          .then((resp) => {
+          .then(resp => {
             this.$_console_log('[Weight] Success getting weights')
             this.$_console_log(resp.data)
             if (Array.isArray(resp.data)) {
@@ -407,7 +407,7 @@ export default {
         return this.weightList.slice(0)
       }
 
-      const filteredWeightList = this.weightList.slice(0).filter((x) => {
+      const filteredWeightList = this.weightList.slice(0).filter(x => {
         var date = new Date(x.created).getTime()
 
         if (startDate === null) return date <= endDate ? true : false
@@ -480,7 +480,7 @@ export default {
         DispatchFactory.request(() => {
           weightService
             .addWeight(item)
-            .then((resp) => {
+            .then(resp => {
               this.$_console_log('[Weight] Success creating weight')
               this.weight = getNewWeight(this.user.id)
               this.weightList.push(resp.data)
@@ -508,9 +508,9 @@ export default {
       DispatchFactory.request(() => {
         weightService
           .editWeight(item)
-          .then((resp) => {
+          .then(resp => {
             this.$_console_log('[Weight] Success editing weight')
-            const index = this.weightList.findIndex((x) => x.id === item.id)
+            const index = this.weightList.findIndex(x => x.id === item.id)
             if (index === -1) {
               this.$_console_log(
                 "[Weight] Index is -1. Weight doesn\t exist in list. Can't update local list."
@@ -533,10 +533,10 @@ export default {
       DispatchFactory.request(() => {
         weightService
           .deleteWeight(id)
-          .then((resp) => {
+          .then(resp => {
             this.$_console_log('[Weight] Success deleting weight')
 
-            let weightIndex = this.weightList.findIndex((x) => x.id === id)
+            let weightIndex = this.weightList.findIndex(x => x.id === id)
             if (weightIndex >= 0) this.weightList.splice(weightIndex, 1)
           })
           .catch(() => this.$_console_log('[Weight] Error creating weight'))
