@@ -15,21 +15,19 @@ import library from './modules/library'
 import notifications from './modules/notifications'
 import fileExplorer from './modules/file-explorer'
 
-
 Vue.use(Vuex)
-
 
 /**
  * Export
  */
 export default new Vuex.Store({
-    getters,
-    modules: {
-        auth,
-        chat,
-        library,
-        notifications,
-        fileExplorer
-    },
-    strict: true
+  getters,
+  modules: {
+    auth,
+    chat,
+    library,
+    notifications,
+    fileExplorer,
+  },
+  strict: true,
 })

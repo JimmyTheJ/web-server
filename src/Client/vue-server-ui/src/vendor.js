@@ -13,7 +13,6 @@ import 'vue-moment-lib'
 import 'vuetify'
 import 'vuex'
 
-
 // CSS
 import 'vuetify/dist/vuetify.min.css'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'

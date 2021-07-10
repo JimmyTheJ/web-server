@@ -28,26 +28,26 @@ import ConMsgs from './mixins/console'
 /*******************
  * Use libraries
  */
-Vue.use(VueCookie);
-Vue.use(Moment);
+Vue.use(VueCookie)
+Vue.use(Moment)
 
 /*******************
  * Use Plugins
  */
-Vue.use(ChatHub);
+Vue.use(ChatHub)
 
 /*******************
  * Global components
  */
-Vue.component('fa-icon', FontAwesomeIcon);
+Vue.component('fa-icon', FontAwesomeIcon)
 
 /*******************
  * Global mixins
  */
-Vue.mixin(ConMsgs);
+Vue.mixin(ConMsgs)
 
 // Sync router with the Vuex store
-sync(store, router);
+sync(store, router)
 
 Vue.config.productionTip = false
 
@@ -55,5 +55,5 @@ new Vue({
   vuetify,
   store,
   router,
-  render: h => h(App)
+  render: h => h(App),
 }).$mount('#app')

@@ -7,13 +7,13 @@
 </template>
 
 <script>
-const serverName = process.env.VUE_APP_TITLE;
+const serverName = process.env.VUE_APP_TITLE
 
 export default {
   data() {
     return {
       name: serverName,
-    };
+    }
   },
-};
+}
 </script>

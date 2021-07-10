@@ -31,10 +31,10 @@ export default {
     }
   },
   watch: {
-    dialog: function (newValue) {
+    dialog: function(newValue) {
       if (newValue === false) this.$emit('viewer-off', true)
     },
-    open: function (newValue) {
+    open: function(newValue) {
       this.dialog = newValue
     },
   },

@@ -52,9 +52,9 @@
             <template
               v-if="
                 typeof activeBook.authors !== 'undefined' &&
-                activeBook.authors !== null &&
-                activeBook.authors.length > 0 &&
-                !deletingAuthor
+                  activeBook.authors !== null &&
+                  activeBook.authors.length > 0 &&
+                  !deletingAuthor
               "
             >
               <v-flex
@@ -140,9 +140,9 @@
             <template
               v-if="
                 typeof activeBook.genres !== 'undefined' &&
-                activeBook.genres !== null &&
-                activeBook.genres.length > 0 &&
-                !deletingGenre
+                  activeBook.genres !== null &&
+                  activeBook.genres.length > 0 &&
+                  !deletingGenre
               "
             >
               <v-flex xs12>Genre List</v-flex>
@@ -292,8 +292,8 @@
                 my-3
                 v-if="
                   activeBook.shelf === null &&
-                  typeof activeBook.bookcase.name !== 'undefined' &&
-                  activeBook.bookcase.name !== ''
+                    typeof activeBook.bookcase.name !== 'undefined' &&
+                    activeBook.bookcase.name !== ''
                 "
               >
                 <v-btn @click="addShelf()">
@@ -419,12 +419,12 @@ export default {
   },
   computed: {
     ...mapState({
-      authorList: (state) => state.library.authors,
-      bookList: (state) => state.library.books,
-      bookcaseList: (state) => state.library.bookcases,
-      genreList: (state) => state.library.genres,
-      seriesList: (state) => state.library.series,
-      shelfList: (state) => state.library.shelves,
+      authorList: state => state.library.authors,
+      bookList: state => state.library.books,
+      bookcaseList: state => state.library.bookcases,
+      genreList: state => state.library.genres,
+      seriesList: state => state.library.series,
+      shelfList: state => state.library.shelves,
     }),
     maxModalWidth() {
       if (window.innerWidth > 1640) return 1500
@@ -440,11 +440,11 @@ export default {
     },
   },
   watch: {
-    open: function (newValue) {
+    open: function(newValue) {
       this.$_console_log(`[Library Dialog] open = ${newValue}`)
       this.dialogOpen = newValue
     },
-    dialogOpen: function (newValue) {
+    dialogOpen: function(newValue) {
       if (newValue === false) {
         this.$_console_log('[Library Dialog] Dialog open = false')
         this.$emit('closeDialog', false)
@@ -452,7 +452,7 @@ export default {
         this.$_console_log('[Library Dialog] Dialog open = true')
       }
     },
-    book: function (newValue) {
+    book: function(newValue) {
       if (this.loading) {
         this.$_console_log('Active book watcher: Book is loading.')
       }
@@ -466,7 +466,7 @@ export default {
       this.authorToAdd = Helper.getNewAuthor()
       this.updateFilteredAuthorList()
     },
-    'activeBook.bookcaseId': function (newValue, oldValue) {
+    'activeBook.bookcaseId': function(newValue, oldValue) {
       if (this.loading) {
         this.$_console_log(
           'Active book bookcase id watcher: Book is loading. Exiting.'
@@ -484,7 +484,7 @@ export default {
 
       this.updateFilteredShelfList()
     },
-    'activeBook.bookcase': function (newValue) {
+    'activeBook.bookcase': function(newValue) {
       if (this.loading) {
         this.$_console_log(
           'Active book bookcase watcher: Book is loading. Exiting.'
@@ -501,7 +501,7 @@ export default {
         }
       }
     },
-    'activeBook.series': function (newValue) {
+    'activeBook.series': function(newValue) {
       if (this.loading) {
         this.$_console_log(
           'Active book series watcher: Book is loading. Exiting.'
@@ -517,7 +517,7 @@ export default {
         }
       }
     },
-    'activeBook.shelf': function (newValue) {
+    'activeBook.shelf': function(newValue) {
       if (this.loading) {
         this.$_console_log(
           'Active book shelf watcher: Book is loading. Exiting.'
@@ -553,7 +553,7 @@ export default {
         for (let j = 0; j < this.authorList.length; j++) {
           if (this.authorList[j].id === this.activeBook.authors[i].id) {
             let index = list.findIndex(
-              (x) => x.id === this.activeBook.authors[i].id
+              x => x.id === this.activeBook.authors[i].id
             )
             if (index !== -1) {
               list.splice(index, 1)
@@ -582,7 +582,7 @@ export default {
         for (let j = 0; j < this.genreList.length; j++) {
           if (this.genreList[j].id === this.activeBook.genres[i].id) {
             let index = list.findIndex(
-              (x) => x.id === this.activeBook.genres[i].id
+              x => x.id === this.activeBook.genres[i].id
             )
             if (index !== -1) {
               list.splice(index, 1)
@@ -608,7 +608,7 @@ export default {
 
       const bookcaseId = this.activeBook.bookcaseId
       this.filteredShelfList = this.shelfList.filter(
-        (element) => element.bookcaseId === bookcaseId
+        element => element.bookcaseId === bookcaseId
       )
     },
     resetDialogFields() {
@@ -673,7 +673,7 @@ export default {
 
       if (typeof this.genreToAdd !== 'number') return
 
-      const genre = this.genreList.find((x) => x.id === this.genreToAdd)
+      const genre = this.genreList.find(x => x.id === this.genreToAdd)
       if (typeof genre === 'undefined') {
         return
       }
@@ -755,7 +755,7 @@ export default {
         const request = getRequest(this.activeBook)
         this.$store
           .dispatch('editBook', request)
-          .then((resp) => {
+          .then(resp => {
             this.$store.dispatch('pushNotification', {
               text: 'Successfully updated the book in the list',
               type: 0,
@@ -780,7 +780,7 @@ export default {
         const request = getRequest(this.activeBook)
         this.$store
           .dispatch('addBook', request)
-          .then((resp) => {
+          .then(resp => {
             this.$store.dispatch('pushNotification', {
               text: 'Successfully added a new book to the list',
               type: 0,
