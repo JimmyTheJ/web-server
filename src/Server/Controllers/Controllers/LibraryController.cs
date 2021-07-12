@@ -3,16 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using VueServer.Controllers.Filters;
-using VueServer.Core.StatusFactory;
+using VueServer.Core.Status;
 using VueServer.Models.Library;
 using VueServer.Models.Request;
 using VueServer.Services.Interface;
-using static VueServer.Domain.Constants.Authentication;
-using AddOns = VueServer.Domain.Constants.Models.ModuleAddOns;
+using static VueServer.Domain.DomainConstants.Authentication;
+using AddOns = VueServer.Domain.DomainConstants.Models.ModuleAddOns;
+using Route = VueServer.Controllers.Constants.API_ENDPOINTS;
 
 namespace VueServer.Controllers.Controllers
 {
-    [Route("api/library")]
+    [Route(Route.Library.Controller)]
     public class LibraryController : Controller
     {
         private readonly IStatusCodeFactory<IActionResult> _codeFactory;
@@ -32,7 +33,7 @@ namespace VueServer.Controllers.Controllers
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("book/list")]
+        [Route(Route.Library.Book + "/" + Route.Generic.List)]
         public async Task<IActionResult> GetBookList()
         {
             return _codeFactory.GetStatusCode(await _service.GetAllBooks());
@@ -41,7 +42,7 @@ namespace VueServer.Controllers.Controllers
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("book/add")]
+        [Route(Route.Library.Book + "/" + Route.Generic.Add)]
         public async Task<IActionResult> AddBook([FromBody] BookAddRequest request)
         {
             return _codeFactory.GetStatusCode(await _service.CreateBook(request));
@@ -50,7 +51,7 @@ namespace VueServer.Controllers.Controllers
         [HttpPut]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("book/update")]
+        [Route(Route.Library.Book + "/" + Route.Generic.Update)]
         public async Task<IActionResult> UpdateBook([FromBody] BookAddRequest request)
         {
             return _codeFactory.GetStatusCode(await _service.UpdateBook(request));
@@ -59,7 +60,7 @@ namespace VueServer.Controllers.Controllers
         [HttpDelete]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("book/delete")]
+        [Route(Route.Library.Book + "/" + Route.Generic.Delete)]
         public async Task<IActionResult> DeleteBook(int id)
         {
             return _codeFactory.GetStatusCode(await _service.DeleteBook(id));
@@ -72,7 +73,7 @@ namespace VueServer.Controllers.Controllers
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("author/list")]
+        [Route(Route.Library.Author + "/" + Route.Generic.List)]
         public async Task<IActionResult> GetAuthorList()
         {
             return _codeFactory.GetStatusCode(await _service.GetAllAuthors());
@@ -81,7 +82,7 @@ namespace VueServer.Controllers.Controllers
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("author/add")]
+        [Route(Route.Library.Author + "/" + Route.Generic.Add)]
         public async Task<IActionResult> AddAuthor([FromBody] Author request)
         {
             return _codeFactory.GetStatusCode(await _service.CreateAuthor(request));
@@ -90,7 +91,7 @@ namespace VueServer.Controllers.Controllers
         [HttpPut]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("author/update")]
+        [Route(Route.Library.Author + "/" + Route.Generic.Update)]
         public async Task<IActionResult> UpdateAuthor([FromBody] Author request)
         {
             return _codeFactory.GetStatusCode(await _service.UpdateAuthor(request));
@@ -99,7 +100,7 @@ namespace VueServer.Controllers.Controllers
         [HttpDelete]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("author/delete")]
+        [Route(Route.Library.Author + "/" + Route.Generic.Delete)]
         public async Task<IActionResult> DeleteAuthor(int id)
         {
             return _codeFactory.GetStatusCode(await _service.DeleteAuthor(id));
@@ -112,7 +113,7 @@ namespace VueServer.Controllers.Controllers
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("bookcase/list")]
+        [Route(Route.Library.Bookcase + "/" + Route.Generic.List)]
         public async Task<IActionResult> GetBookcaseList()
         {
             return _codeFactory.GetStatusCode(await _service.GetAllBookcases());
@@ -121,7 +122,7 @@ namespace VueServer.Controllers.Controllers
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("bookcase/add")]
+        [Route(Route.Library.Bookcase + "/" + Route.Generic.Add)]
         public async Task<IActionResult> AddBookcase([FromBody] Bookcase request)
         {
             return _codeFactory.GetStatusCode(await _service.CreateBookcase(request));
@@ -130,7 +131,7 @@ namespace VueServer.Controllers.Controllers
         [HttpPut]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("bookcase/update")]
+        [Route(Route.Library.Bookcase + "/" + Route.Generic.Update)]
         public async Task<IActionResult> UpdateBookcase([FromBody] Bookcase request)
         {
             return _codeFactory.GetStatusCode(await _service.UpdateBookcase(request));
@@ -139,7 +140,7 @@ namespace VueServer.Controllers.Controllers
         [HttpDelete]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("bookcase/delete")]
+        [Route(Route.Library.Bookcase + "/" + Route.Generic.Delete)]
         public async Task<IActionResult> DeleteBookcase(int id)
         {
             return _codeFactory.GetStatusCode(await _service.DeleteBookcase(id));
@@ -152,7 +153,7 @@ namespace VueServer.Controllers.Controllers
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("genre/list")]
+        [Route(Route.Library.Genre + "/" + Route.Generic.List)]
         public async Task<IActionResult> GetGenreList()
         {
             return _codeFactory.GetStatusCode(await _service.GetAllGenres());
@@ -165,7 +166,7 @@ namespace VueServer.Controllers.Controllers
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("series/list")]
+        [Route(Route.Library.Series + "/" + Route.Generic.List)]
         public async Task<IActionResult> GetSeriesList()
         {
             return _codeFactory.GetStatusCode(await _service.GetAllSeries());
@@ -174,7 +175,7 @@ namespace VueServer.Controllers.Controllers
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("series/add")]
+        [Route(Route.Library.Series + "/" + Route.Generic.Add)]
         public async Task<IActionResult> AddSeries([FromBody] Series request)
         {
             return _codeFactory.GetStatusCode(await _service.CreateSeries(request));
@@ -183,7 +184,7 @@ namespace VueServer.Controllers.Controllers
         [HttpPut]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("series/update")]
+        [Route(Route.Library.Series + "/" + Route.Generic.Update)]
         public async Task<IActionResult> UpdateSeries([FromBody] Series request)
         {
             return _codeFactory.GetStatusCode(await _service.UpdateSeries(request));
@@ -192,7 +193,7 @@ namespace VueServer.Controllers.Controllers
         [HttpDelete]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("series/delete")]
+        [Route(Route.Library.Series + "/" + Route.Generic.Delete)]
         public async Task<IActionResult> DeleteSeries(int id)
         {
             return _codeFactory.GetStatusCode(await _service.DeleteSeries(id));
@@ -205,7 +206,7 @@ namespace VueServer.Controllers.Controllers
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("shelf/list")]
+        [Route(Route.Library.Shelf + "/" + Route.Generic.List)]
         public async Task<IActionResult> GetShelfList()
         {
             return _codeFactory.GetStatusCode(await _service.GetAllShelves());
@@ -214,7 +215,7 @@ namespace VueServer.Controllers.Controllers
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("shelf/add")]
+        [Route(Route.Library.Shelf + "/" + Route.Generic.Add)]
         public async Task<IActionResult> AddShelf([FromBody] Shelf request)
         {
             return _codeFactory.GetStatusCode(await _service.CreateShelf(request));
@@ -223,7 +224,7 @@ namespace VueServer.Controllers.Controllers
         [HttpPut]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("shelf/update")]
+        [Route(Route.Library.Shelf + "/" + Route.Generic.Update)]
         public async Task<IActionResult> UpdateShelf([FromBody] Shelf request)
         {
             return _codeFactory.GetStatusCode(await _service.UpdateShelf(request));
@@ -232,7 +233,7 @@ namespace VueServer.Controllers.Controllers
         [HttpDelete]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Library.Id)]
-        [Route("shelf/delete")]
+        [Route(Route.Library.Shelf + "/" + Route.Generic.Delete)]
         public async Task<IActionResult> DeleteShelf(int id)
         {
             return _codeFactory.GetStatusCode(await _service.DeleteShelf(id));

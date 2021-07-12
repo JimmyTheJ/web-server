@@ -1,23 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 
 namespace VueServer.Models.Library
 {
     public class Series
     {
-        public Series () { }
+        public Series() { }
 
-        public Series (Series series)
+        public Series(Series series)
         {
             if (series != null)
             {
                 Active = series.Active;
                 Name = series.Name;
                 Number = series.Number;
-            }            
+            }
         }
 
         [Key]

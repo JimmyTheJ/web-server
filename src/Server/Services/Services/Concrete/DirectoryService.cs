@@ -10,7 +10,7 @@ using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using VueServer.Core.Helper;
-using VueServer.Domain.Concrete;
+using VueServer.Core.Objects;
 using VueServer.Domain.Enums;
 using VueServer.Domain.Interface;
 using VueServer.Models;
@@ -20,7 +20,7 @@ using VueServer.Models.Request;
 using VueServer.Services.Interface;
 using Xabe.FFmpeg;
 using Xabe.FFmpeg.Enums;
-using static VueServer.Domain.Constants.Authentication;
+using static VueServer.Domain.DomainConstants.Authentication;
 
 namespace VueServer.Services.Concrete
 {

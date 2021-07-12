@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Security.Permissions;
-using System.Text;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using VueServer.Models.User;
 
 namespace VueServer.Models.Chat

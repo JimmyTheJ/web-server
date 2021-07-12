@@ -1,16 +1,14 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
-
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
-using System.Linq;
 using System.Collections.Generic;
-
+using System.Linq;
 using System.Threading.Tasks;
+using VueServer.Core.Objects;
 using VueServer.Domain.Interface;
-using VueServer.Domain.Concrete;
 using VueServer.Models;
-using VueServer.Services.Interface;
 using VueServer.Models.Context;
+using VueServer.Services.Interface;
 
 
 namespace VueServer.Services.Concrete
@@ -22,9 +20,9 @@ namespace VueServer.Services.Concrete
         private readonly IUserService _user;
 
         private readonly IWSContext _wsContext;
-        
-        public NoteService (ILoggerFactory logger,
-            IUserService user, 
+
+        public NoteService(ILoggerFactory logger,
+            IUserService user,
             IWSContext wsContext)
         {
             _logger = logger?.CreateLogger<NoteService>() ?? throw new ArgumentNullException("Logger factory is null");
@@ -35,23 +33,25 @@ namespace VueServer.Services.Concrete
         public async Task<IResult<List<Notes>>> GetAll()
         {
             var notes = await _wsContext.Notes.ToListAsync();
-            if (notes == null || notes.Count == 0) {
+            if (notes == null || notes.Count == 0)
+            {
                 _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No notes found for all users");
                 return new Result<List<Notes>>(null, Domain.Enums.StatusCode.NO_CONTENT);
             }
 
-            return new Result<List<Notes>>(notes, Domain.Enums.StatusCode.OK);;
+            return new Result<List<Notes>>(notes, Domain.Enums.StatusCode.OK); ;
         }
 
         public async Task<IResult<List<Notes>>> Get()
         {
             var notes = await _wsContext.Notes.Where(a => a.UserId == _user.Id).ToListAsync();
-            if (notes == null || notes.Count == 0) {
+            if (notes == null || notes.Count == 0)
+            {
                 _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No notes found for current user");
                 return new Result<List<Notes>>(new List<Notes>(), Domain.Enums.StatusCode.NO_CONTENT);
             }
 
-            return new Result<List<Notes>>(notes, Domain.Enums.StatusCode.OK);;
+            return new Result<List<Notes>>(notes, Domain.Enums.StatusCode.OK); ;
         }
 
         public async Task<IResult<Notes>> Create(Notes note)
@@ -74,7 +74,7 @@ namespace VueServer.Services.Concrete
             {
                 await _wsContext.SaveChangesAsync();
             }
-            catch(Exception)
+            catch (Exception)
             {
                 _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving changes");
             }
@@ -90,7 +90,8 @@ namespace VueServer.Services.Concrete
             }
 
             var updated = await _wsContext.Notes.Where(a => a.Id == note.Id && a.UserId == _user.Id).FirstOrDefaultAsync();
-            if (updated == null) {
+            if (updated == null)
+            {
                 _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No note found to update");
                 return new Result<Notes>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
@@ -106,7 +107,7 @@ namespace VueServer.Services.Concrete
             {
                 await _wsContext.SaveChangesAsync();
             }
-            catch(Exception)
+            catch (Exception)
             {
                 _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving changes");
             }
@@ -114,7 +115,7 @@ namespace VueServer.Services.Concrete
             return new Result<Notes>(updated, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult> Delete (int id)
+        public async Task<IResult> Delete(int id)
         {
             var note = await _wsContext.Notes.Where(a => a.Id == id).FirstOrDefaultAsync();
             if (note == null)

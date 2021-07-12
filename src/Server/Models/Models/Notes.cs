@@ -11,11 +11,11 @@ namespace VueServer.Models
         public int Id { get; set; }
 
         public int Type { get; set; }
-        
+
         public int Priority { get; set; }
 
         public string Color { get; set; }
-        
+
         public string Text { get; set; }
 
         public string Title { get; set; }

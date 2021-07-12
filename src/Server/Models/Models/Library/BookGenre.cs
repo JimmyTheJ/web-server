@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace VueServer.Models.Library
+﻿namespace VueServer.Models.Library
 {
     public class BookGenre
     {

@@ -4,10 +4,10 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using VueServer.Models.Modules;
-using VueServer.Models.Library;
-using VueServer.Models.User;
 using VueServer.Models.Chat;
+using VueServer.Models.Library;
+using VueServer.Models.Modules;
+using VueServer.Models.User;
 
 namespace VueServer.Models.Context
 {
@@ -76,7 +76,7 @@ namespace VueServer.Models.Context
         void Commit();
         void Rollback();
 
-        int SaveChanges ();
+        int SaveChanges();
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
 

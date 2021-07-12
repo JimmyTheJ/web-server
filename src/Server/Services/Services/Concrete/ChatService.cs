@@ -4,20 +4,14 @@ using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
+using VueServer.Core.Objects;
 using VueServer.Domain;
-using VueServer.Domain.Concrete;
 using VueServer.Domain.Interface;
 using VueServer.Models.Chat;
 using VueServer.Models.Context;
 using VueServer.Models.Request;
-using VueServer.Models.User;
 using VueServer.Services.Enums;
 using VueServer.Services.Hubs;
 using VueServer.Services.Interface;
@@ -96,16 +90,17 @@ namespace VueServer.Services.Concrete
 
             };
             conversationUserList.Add(selfUser);
-            
+
             // Add all the other users to the conversation
             foreach (var username in request.Users.Where(x => x != _user.Id))
             {
-                if (string.IsNullOrWhiteSpace(username)) {
+                if (string.IsNullOrWhiteSpace(username))
+                {
                     continue;
                 }
 
                 var user = await _user.GetUserByIdAsync(username);
-                if (user == null) 
+                if (user == null)
                 {
                     _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid userId: '{username}'. Cannot create a conversation with this user as they don't exist.");
                     continue;
@@ -118,11 +113,11 @@ namespace VueServer.Services.Concrete
                     UserDisplayName = user.DisplayName,
                     Color = GetUserColor(colorId++)
                 };
-                
+
                 conversationUserList.Add(conversationUser);
             }
 
-            _context.ConversationHasUser.AddRange(conversationUserList);            
+            _context.ConversationHasUser.AddRange(conversationUserList);
 
             try
             {
@@ -224,7 +219,7 @@ namespace VueServer.Services.Concrete
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<string>> UpdateUserColor (long conversationId, string userId, int colorId)
+        public async Task<IResult<string>> UpdateUserColor(long conversationId, string userId, int colorId)
         {
             var conversationHasUser = _context.ConversationHasUser.Where(x => x.ConversationId == conversationId && x.UserId == userId).FirstOrDefault();
             if (conversationHasUser == null)
@@ -250,7 +245,7 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<bool>> DeleteConversation(long conversationId)
         {
-            if (_context.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.Chat.DELETE_CONVERSATION_ID && x.UserId == _user.Id).SingleOrDefault() == null)
+            if (_context.UserHasFeature.Where(x => x.ModuleFeatureId == DomainConstants.Models.ModuleFeatures.Chat.DELETE_CONVERSATION_ID && x.UserId == _user.Id).SingleOrDefault() == null)
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({_user.Id}) does not have permission to delete conversations");
                 return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
@@ -307,7 +302,7 @@ namespace VueServer.Services.Concrete
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
-            if (_context.UserHasFeature.Where(x => x.ModuleFeatureId == Constants.Models.ModuleFeatures.Chat.DELETE_MESSAGE_ID && x.UserId == user.Id).SingleOrDefault() == null)
+            if (_context.UserHasFeature.Where(x => x.ModuleFeatureId == DomainConstants.Models.ModuleFeatures.Chat.DELETE_MESSAGE_ID && x.UserId == user.Id).SingleOrDefault() == null)
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({user.Id}) does not have permission to delete messages");
                 return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
@@ -329,7 +324,7 @@ namespace VueServer.Services.Concrete
             {
                 // If another user is trying to delete a user's messages ensure that user is an administrator
                 var userRoles = await _user.GetUserRolesAsync(user);
-                if (userRoles != null && userRoles.Contains(Constants.Authentication.ADMINISTRATOR_STRING))
+                if (userRoles != null && userRoles.Contains(DomainConstants.Authentication.ADMINISTRATOR_STRING))
                 {
                     _context.Messages.Remove(message);
                 }
@@ -444,7 +439,7 @@ namespace VueServer.Services.Concrete
             }
 
             var messageList = await _context.Messages.Include(x => x.ReadReceipts)
-                .Where(x => x.UserId != _user.Id && messageIds.Contains(x.Id) && 
+                .Where(x => x.UserId != _user.Id && messageIds.Contains(x.Id) &&
                     (x.ReadReceipts == null || (x.ReadReceipts != null && !x.ReadReceipts.Any(y => y.UserId == _user.Id)))
                 ).ToListAsync();
             if (messageList == null)
@@ -474,7 +469,7 @@ namespace VueServer.Services.Concrete
 
         #region -> Private Functions
 
-        private async Task<IEnumerable<Conversation>> GetAllConversationAsync (string userId, GetMessageType getMessages = GetMessageType.None)
+        private async Task<IEnumerable<Conversation>> GetAllConversationAsync(string userId, GetMessageType getMessages = GetMessageType.None)
         {
             IQueryable<Conversation> conversationQuery = _context.Set<Conversation>().AsQueryable();
             conversationQuery = conversationQuery.Include(x => x.ConversationUsers)
@@ -492,20 +487,20 @@ namespace VueServer.Services.Concrete
                     Id = x.Id,
                     Title = x.Title
                 });
-            
+
             if (getMessages == GetMessageType.All)
             {
                 conversationQuery = conversationQuery.Include(x => x.Messages).ThenInclude(x => x.ReadReceipts);
-            }                
+            }
             else if (getMessages == GetMessageType.New)
             {
                 conversationQuery = conversationQuery.Select(x => new Conversation()
-                    {
-                        ConversationUsers = x.ConversationUsers,
-                        Id = x.Id,
-                        Title = x.Title,
-                        Messages = _context.Messages.Include(y => y.ReadReceipts).Where(y => y.ConversationId == x.Id && y.UserId != userId &&
-                                (y.ReadReceipts == null || (y.ReadReceipts != null && !y.ReadReceipts.Any(z => z.UserId == userId))))
+                {
+                    ConversationUsers = x.ConversationUsers,
+                    Id = x.Id,
+                    Title = x.Title,
+                    Messages = _context.Messages.Include(y => y.ReadReceipts).Where(y => y.ConversationId == x.Id && y.UserId != userId &&
+                            (y.ReadReceipts == null || (y.ReadReceipts != null && !y.ReadReceipts.Any(z => z.UserId == userId))))
                                 .OrderByDescending(y => y.Timestamp)
                 });
             }
@@ -536,7 +531,7 @@ namespace VueServer.Services.Concrete
             return conversationList;
         }
 
-        private IEnumerable<ReadReceipt> CreateReadReceipts (string userId, IList<ChatMessage> messages)
+        private IEnumerable<ReadReceipt> CreateReadReceipts(string userId, IList<ChatMessage> messages)
         {
             var receipts = new List<ReadReceipt>();
             foreach (var message in messages)
@@ -554,7 +549,7 @@ namespace VueServer.Services.Concrete
         }
 
         // TODO: Update to include more colors, and probably make this a lookup table
-        private static string GetUserColor (int id)
+        private static string GetUserColor(int id)
         {
             return id switch
             {

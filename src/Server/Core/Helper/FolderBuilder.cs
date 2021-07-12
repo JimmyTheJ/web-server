@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace VueServer.Core.Helper
 {
     public static class FolderBuilder
     {
-        public static bool CreateFolder (string name, string errMsg = "")
+        public static bool CreateFolder(string name, string errMsg = "")
         {
             if (string.IsNullOrWhiteSpace(name)) return false;
             if (Directory.Exists(name)) return true;
@@ -32,7 +30,7 @@ namespace VueServer.Core.Helper
             catch (NotSupportedException)
             {
                 Console.WriteLine($"{System.Reflection.MethodBase.GetCurrentMethod().Name}: ({errMsg}) Failed to create folder. Not supported exception.");
-            }            
+            }
             catch (UnauthorizedAccessException)
             {
                 Console.WriteLine($"{System.Reflection.MethodBase.GetCurrentMethod().Name}: ({errMsg}) Failed to create folder. Unauthorized access exception.");

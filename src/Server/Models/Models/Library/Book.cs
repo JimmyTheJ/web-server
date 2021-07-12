@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 using VueServer.Models.User;
 
 namespace VueServer.Models.Library
@@ -97,7 +96,7 @@ namespace VueServer.Models.Library
             return true;
         }
 
-        public Book Clone ()
+        public Book Clone()
         {
             var newBookAuthors = new List<BookAuthor>();
             if (this.BookAuthors != null)

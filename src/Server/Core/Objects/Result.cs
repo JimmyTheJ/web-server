@@ -3,7 +3,7 @@
 using VueServer.Domain.Enums;
 using VueServer.Domain.Interface;
 
-namespace VueServer.Domain.Concrete
+namespace VueServer.Core.Objects
 {
     public class Result<T> : IResult<T>, IResult
     {
@@ -15,7 +15,7 @@ namespace VueServer.Domain.Concrete
         {
             get
             {
-                return (T) Obj;
+                return (T)Obj;
             }
             set
             {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace VueServer.Models.Directory
+﻿namespace VueServer.Models.Directory
 {
     public class ServerDirectory
     {

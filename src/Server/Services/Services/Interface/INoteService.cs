@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using VueServer.Domain.Concrete;
 using VueServer.Domain.Interface;
 using VueServer.Models;
 
@@ -16,7 +15,7 @@ namespace VueServer.Services.Interface
 
         Task<IResult<Notes>> Update(Notes note);
 
-        Task<IResult> Delete (int id);
+        Task<IResult> Delete(int id);
 
     }
 }

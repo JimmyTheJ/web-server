@@ -5,7 +5,7 @@ namespace VueServer.Models.User
 {
     public class WSUserInRoles
     {
-        public WSUserInRoles()  { }
+        public WSUserInRoles() { }
 
         public WSUserInRoles(string userId, int roleId)
         {

@@ -1,10 +1,8 @@
-﻿using System.Data.Common;
-
-namespace VueServer.Domain
+﻿namespace VueServer.Domain
 {
-    public class Constants
+    public class DomainConstants
     {
-        public const string INVALID_FOLDER = "__NA__";        
+        public const string INVALID_FOLDER = "__NA__";
 
         public static class Authentication
         {
@@ -73,7 +71,7 @@ namespace VueServer.Domain
                     public const string UPLOAD_NAME = "Upload";
                     public const string VIEWER_NAME = "Viewer";
                 }
-                
+
                 public static class Chat
                 {
                     public const string DELETE_CONVERSATION_ID = "chat-delete-conversation";

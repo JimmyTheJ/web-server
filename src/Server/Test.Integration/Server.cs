@@ -6,30 +6,33 @@ using Moq;
 using System;
 using System.IO;
 using System.Net.Http;
-using VueServer.Core.StatusFactory;
+using VueServer.Core.Status;
 using VueServer.Models.Context;
 using VueServer.Services.Interface;
 
 namespace VueServer.Test.Integration
 {
-    public class Server<TestStartup> : IDisposable where TestStartup : class {
+    public class Server<TestStartup> : IDisposable where TestStartup : class
+    {
         private readonly TestServer VueServer;
 
-        public Mock<IAccountService> AccountService = new Mock<IAccountService>();        
+        public Mock<IAccountService> AccountService = new Mock<IAccountService>();
         public Mock<IWSContext> VueContext = new Mock<IWSContext>();
         public Mock<IStatusCodeFactory<IActionResult>> CodeFactory = new Mock<IStatusCodeFactory<IActionResult>>();
 
         private const string DOMAIN = "localhost";
         private const int PORT = 7757;
 
-        public Server() {
+        public Server()
+        {
             var basepath = Directory.GetCurrentDirectory();
             var path = Path.Combine(basepath, "..", "..", "..", "..", "VueServer");
 
             IWebHostBuilder webHostBuilder = new WebHostBuilder()
                 .UseKestrel()
                 .UseContentRoot(path)
-                .ConfigureServices(services => {
+                .ConfigureServices(services =>
+                {
                     services.AddSingleton(serviceProvider => AccountService.Object);
                     services.AddSingleton(serviceProvider => VueContext.Object);
                     services.AddSingleton(serviceProvider => CodeFactory.Object);
@@ -42,13 +45,15 @@ namespace VueServer.Test.Integration
             Client.BaseAddress = BuildUrl();
         }
 
-        private Uri BuildUrl() {
+        private Uri BuildUrl()
+        {
             return new Uri("https://" + DOMAIN + ":" + PORT.ToString());
         }
 
         public HttpClient Client { get; }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             Client.Dispose();
             VueServer.Dispose();
         }

@@ -1,14 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Text;
 using VueServer.Core.Cache;
-using VueServer.Models.Context;
 using VueServer.Models.Modules;
 
 namespace VueServer.Controllers.Filters
@@ -64,7 +59,7 @@ namespace VueServer.Controllers.Filters
             else
             {
                 context.Result = new StatusCodeResult(500);
-            }   
+            }
         }
     }
 }

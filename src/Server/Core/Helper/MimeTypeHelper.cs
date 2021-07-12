@@ -1,9 +1,6 @@
 ﻿using MimeMapping;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
 using VueServer.Domain;
 using VueServer.Domain.Enums;
 
@@ -57,7 +54,7 @@ namespace VueServer.Core.Helper
             { "video/x-matroska", MimeFileType.Video }
         };
 
-        public static string GetMimeType (string file)
+        public static string GetMimeType(string file)
         {
             if (string.IsNullOrWhiteSpace(file))
             {
@@ -66,7 +63,7 @@ namespace VueServer.Core.Helper
 
             if (!file.Contains("."))
             {
-                return Constants.Helper.MIMETYPE_FOLDER;
+                return DomainConstants.Helper.MIMETYPE_FOLDER;
             }
 
             string mimeType;

@@ -2,15 +2,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
-using VueServer.Core.StatusFactory;
+using VueServer.Core.Status;
 using VueServer.Models.Account;
 using VueServer.Models.Request;
 using VueServer.Services.Interface;
-using static VueServer.Domain.Constants.Authentication;
+using static VueServer.Domain.DomainConstants.Authentication;
+using Route = VueServer.Controllers.Constants.API_ENDPOINTS;
 
 namespace VueServer.Controllers
 {
-    [Route("/api/account")]
+    [Route(Route.Account.Controller)]
     public class AccountController : Controller
     {
         private readonly IAccountService _service;
@@ -36,7 +37,7 @@ namespace VueServer.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost]
-        [Route("register")]
+        [Route(Route.Account.Register)]
         public async Task<IActionResult> SignUp([FromBody] RegisterRequest model)
         {
             return _codeFactory.GetStatusCode(await _service.Register(model));
@@ -44,10 +45,10 @@ namespace VueServer.Controllers
 
         // Login to a existing user account using the Identity Framework
         [HttpPost]
-        [Route("login")]
+        [Route(Route.Account.Login)]
         public async Task<IActionResult> Login([FromBody] LoginRequest model)
         {
-            return _codeFactory.GetStatusCode(await _service.Login(model));
+            return _codeFactory.GetStatusCode(await _service.Login(HttpContext, model));
         }
 
         /// <summary>
@@ -58,23 +59,10 @@ namespace VueServer.Controllers
         /// <returns></returns>
         [HttpPost]
         [Authorize]
-        [Route("logout")]
+        [Route(Route.Account.Logout)]
         public async Task<IActionResult> Logout([FromBody] string username)
         {
             return _codeFactory.GetStatusCode(await _service.Logout(HttpContext, username));
-        }
-
-        /// <summary>
-        /// Get a new CSRF token on a page refresh most likely
-        /// </summary>
-        /// <returns></returns>
-        [Obsolete("CSRF Tokens are not necessary in Bearer auth configuration")]
-        [HttpGet]
-
-        [Route("get-csrf-token")]
-        public IActionResult GetCSRFToken()
-        {
-            return _codeFactory.GetStatusCode(_service.GetCsrfToken(HttpContext));
         }
 
         /// <summary>
@@ -83,7 +71,7 @@ namespace VueServer.Controllers
         /// <param name="accessToken">Old token to be refreshed</param>
         /// <returns></returns>
         [HttpPost]
-        [Route("refresh-jwt")]
+        [Route(Route.Account.RefreshJwt)]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest model)
         {
             return _codeFactory.GetStatusCode(await _service.RefreshJwtToken(model));
@@ -95,7 +83,7 @@ namespace VueServer.Controllers
         /// <returns></returns>
         [HttpGet]
         [Authorize(Roles = ADMINISTRATOR_STRING)]
-        [Route("user/get-all")]
+        [Route(Route.Account.GetAllUsers)]
         public async Task<IActionResult> GetAllUsers()
         {
             return _codeFactory.GetStatusCode(await _service.GetUsers());
@@ -107,7 +95,7 @@ namespace VueServer.Controllers
         /// <returns></returns>
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
-        [Route("user/get-all-others")]
+        [Route(Route.Account.GetAllOtherUsers)]
         public async Task<IActionResult> GetAllOtherUsers()
         {
             return _codeFactory.GetStatusCode(await _service.GetAllOtherUsers());
@@ -119,7 +107,7 @@ namespace VueServer.Controllers
         /// <returns></returns>
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
-        [Route("user/update-avatar")]
+        [Route(Route.Account.UpdateAvatar)]
         public async Task<IActionResult> UpdateUserAvatar(UploadRegularFileRequest request)
         {
             return _codeFactory.GetStatusCode(await _service.UpdateUserAvatar(request?.File));
@@ -131,10 +119,34 @@ namespace VueServer.Controllers
         /// <returns></returns>
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
-        [Route("user/update-display-name")]
+        [Route(Route.Account.UpdateDisplayName)]
         public async Task<IActionResult> UpdateDisplayName([FromBody] string name)
         {
             return _codeFactory.GetStatusCode(await _service.UpdateDisplayName(name));
+        }
+
+        /// <summary>
+        /// Gets the list of all IP addresses who have attempted logins
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route(Route.Account.GetGuestLogins)]
+        public async Task<IActionResult> GetGuestLogins()
+        {
+            return _codeFactory.GetStatusCode(await _service.GetGuestLogins());
+        }
+
+        /// <summary>
+        /// Unblocks an IP address through the guest login system
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route(Route.Account.UnblockGuest)]
+        public async Task<IActionResult> UnblockGuest([FromBody] string guest)
+        {
+            return _codeFactory.GetStatusCode(await _service.UnblockGuestIP(guest));
         }
 
         #endregion

@@ -1,5 +1,5 @@
-﻿using System;
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
+using System;
 using VueServer.Models.Context;
 
 namespace VueServer.Test.Integration.Fixture

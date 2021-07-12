@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 using VueServer.Models.User;
 
 namespace VueServer.Models.Chat
@@ -34,9 +32,9 @@ namespace VueServer.Models.Chat
         [NotMapped]
         public string Color { get; set; }
 
-        public ChatMessage () { }
+        public ChatMessage() { }
 
-        public ChatMessage (ChatMessage message)
+        public ChatMessage(ChatMessage message)
         {
             if (message != null)
             {

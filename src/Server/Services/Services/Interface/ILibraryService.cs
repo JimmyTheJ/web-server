@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using VueServer.Domain.Concrete;
 using VueServer.Domain.Interface;
-using VueServer.Models;
 using VueServer.Models.Library;
 using VueServer.Models.Request;
 
@@ -16,7 +14,7 @@ namespace VueServer.Services.Interface
         Task<IResult<Book>> GetBook(int id);
         Task<IResult<Book>> CreateBook(BookAddRequest request);
         Task<IResult<Book>> UpdateBook(BookAddRequest request);
-        Task<IResult<int>> DeleteBook (int id);
+        Task<IResult<int>> DeleteBook(int id);
 
         #endregion
 

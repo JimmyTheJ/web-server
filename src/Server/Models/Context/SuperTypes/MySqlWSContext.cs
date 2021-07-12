@@ -1,12 +1,4 @@
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Data.Entity.Infrastructure;
-using System.Threading.Tasks;
-using VueServer.Models.User;
 
 namespace VueServer.Models.Context
 {

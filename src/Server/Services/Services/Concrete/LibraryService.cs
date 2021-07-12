@@ -1,14 +1,12 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using VueServer.Domain.Concrete;
+using VueServer.Core.Objects;
 using VueServer.Domain.Interface;
-using VueServer.Models;
 using VueServer.Models.Context;
 using VueServer.Models.Library;
 using VueServer.Models.Request;
@@ -174,7 +172,7 @@ namespace VueServer.Services.Concrete
             return new Result<Book>(oldBook, OK);
         }
 
-        public async Task<IResult<int>> DeleteBook (int id)
+        public async Task<IResult<int>> DeleteBook(int id)
         {
             var book = await _wsContext.Books.Include(x => x.BookAuthors).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (book == null)
@@ -189,7 +187,7 @@ namespace VueServer.Services.Concrete
                 {
                     _wsContext.BookHasAuthors.Remove(bookAuthor);
                 }
-            }            
+            }
 
             _wsContext.Books.Remove(book);
             try
@@ -781,7 +779,7 @@ namespace VueServer.Services.Concrete
             return existingBookcase;
         }
 
-        private async Task<Bookcase> AddBookcaseAsync (Bookcase bookcase)
+        private async Task<Bookcase> AddBookcaseAsync(Bookcase bookcase)
         {
             if (bookcase == null)
             {
@@ -793,7 +791,7 @@ namespace VueServer.Services.Concrete
             {
                 bookcase.Id = 0;
             }
-                
+
             _wsContext.Bookcases.Add(bookcase);
             try
             {
@@ -1019,7 +1017,7 @@ namespace VueServer.Services.Concrete
             }
         }
 
-        private async Task<Shelf> ShelfInBookCaseCheck (BookAddRequest request, Book book)
+        private async Task<Shelf> ShelfInBookCaseCheck(BookAddRequest request, Book book)
         {
             Shelf shelf = null;
             if (request.Bookcase != null && request.Shelf != null)
@@ -1084,7 +1082,7 @@ namespace VueServer.Services.Concrete
             return existingSeries;
         }
 
-        private async Task<Series> AddSeriesAsync (Series series)
+        private async Task<Series> AddSeriesAsync(Series series)
         {
             if (series == null)
             {
@@ -1096,7 +1094,7 @@ namespace VueServer.Services.Concrete
             {
                 series.Id = 0;
             }
-                
+
             _wsContext.Series.Add(series);
             try
             {

@@ -1,9 +1,4 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using VueServer.Models.Chat;
 
@@ -16,7 +11,7 @@ namespace VueServer.Services.Hubs
             if (Clients != null)
             {
                 await Clients.All.SendMessage(message);
-            }                
+            }
         }
 
         public async Task ReadMessage(ReadReceipt receipt)
@@ -24,7 +19,7 @@ namespace VueServer.Services.Hubs
             if (Clients != null)
             {
                 await Clients.All.ReadMessage(receipt);
-            }            
+            }
         }
     }
 }

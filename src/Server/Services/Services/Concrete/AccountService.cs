@@ -16,8 +16,9 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using VueServer.Core.Cache;
 using VueServer.Core.Helper;
-using VueServer.Domain.Concrete;
+using VueServer.Core.Objects;
 using VueServer.Domain.Interface;
 using VueServer.Models.Account;
 using VueServer.Models.Context;
@@ -50,6 +51,8 @@ namespace VueServer.Services.Concrete
         private readonly IWSContext _context;
         /// <summary>User service to manipulate the context using the user manager</summary>
         private readonly IUserService _user;
+        /// <summary>Custom Caching service</summary>
+        private readonly IVueServerCache _serverCache;
 
         public AccountService(
             UserManager<WSUser> userManager,
@@ -60,7 +63,8 @@ namespace VueServer.Services.Concrete
             ILoggerFactory logger,
             IConfigurationRoot config,
             IAntiforgery forgery,
-            IUserService user
+            IUserService user,
+            IVueServerCache serverCache
         )
         {
             _antiForgery = forgery ?? throw new ArgumentNullException("Anti-Forgery service is null");
@@ -71,6 +75,7 @@ namespace VueServer.Services.Concrete
             _user = user ?? throw new ArgumentNullException("User service is null");
             _context = context ?? throw new ArgumentNullException("User context is null");
             _userManager = userManager ?? throw new ArgumentNullException("User manager is null");
+            _serverCache = serverCache ?? throw new ArgumentNullException("Server cache is null");
             _logger = logger?.CreateLogger<AccountService>() ?? throw new ArgumentNullException("Logger factory is null");
         }
 
@@ -135,12 +140,21 @@ namespace VueServer.Services.Concrete
             return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<LoginResponse>> Login(LoginRequest model)
+        public async Task<IResult<LoginResponse>> Login(HttpContext context, LoginRequest model)
         {
+            // Cached security check for password sniffing bots
+            if (_serverCache.GetSubDictionaryValue(CacheMap.BlockedIP, _user.IP, out bool isBlocked) && isBlocked)
+            {
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Login attempt from {_user.IP}, which is a blocked IP address");
+                return new Result<LoginResponse>(null, Domain.Enums.StatusCode.FORBIDDEN);
+            }
+
+            // If server has been reset, we wouldn't have a cached value yet in the BlockedIP list
             var guestLogin = _context.GuestLogin.Where(x => x.IPAddress == _user.IP).FirstOrDefault();
             if (guestLogin != null && guestLogin.Blocked)
             {
                 _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Login attempt from {_user.IP}, which is a blocked IP address");
+                _serverCache.SetSubDictionaryValue(CacheMap.BlockedIP, _user.IP, true);
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
@@ -156,6 +170,7 @@ namespace VueServer.Services.Concrete
                 await CreateFailedLogin(model.Username);
                 await IncrementGuestLoginFailure(guestLogin);
 
+                await Signout(context, model.Username);
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.UNAUTHORIZED);
             }
             _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successful login of " + model.Username + " @ " + _user.IP);
@@ -165,6 +180,8 @@ namespace VueServer.Services.Concrete
             if (user == null)
             {
                 _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User not found");
+
+                await Signout(context, model.Username);
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -172,6 +189,8 @@ namespace VueServer.Services.Concrete
             if (roles == null || roles.Count == 0)
             {
                 _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Roles not found");
+
+                await Signout(context, model.Username);
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -190,6 +209,7 @@ namespace VueServer.Services.Concrete
             var token = GenerateJwtToken(claims);
             if (!(await SaveRefreshToken(user.Id, model.CodeChallenge, _user.IP)))
             {
+                await Signout(context, model.Username);
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -215,15 +235,7 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult> Logout(HttpContext context, string username)
         {
-            var token = await GetRefreshTokenForUser(username, _user.IP);
-            if (token != null)
-            {
-                await InvalidateRefreshToken(token);
-            }
-
-            // Sign me out
-            await _signInManager.SignOutAsync();
-            context.Session.Clear();
+            await Signout(context, username);
 
             return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
         }
@@ -231,6 +243,43 @@ namespace VueServer.Services.Concrete
         public IResult<string> GetCsrfToken(HttpContext context)
         {
             return new Result<string>(GenerateCsrfToken(context), Domain.Enums.StatusCode.OK);
+        }
+
+        public async Task<IResult<IEnumerable<WSGuestLogin>>> GetGuestLogins()
+        {
+            var guestLogins = await _context.GuestLogin.ToListAsync();
+
+            return new Result<IEnumerable<WSGuestLogin>>(guestLogins, Domain.Enums.StatusCode.OK);
+        }
+
+        public async Task<IResult<bool>> UnblockGuestIP(string ip)
+        {
+            if (string.IsNullOrWhiteSpace(ip))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: IP is null or empty");
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            var blockedUser = _context.GuestLogin.Where(x => x.IPAddress == ip).FirstOrDefault();
+            if (blockedUser == null)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: This IP address is not blocked");
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            blockedUser.Blocked = false;
+            blockedUser.FailedLogins = 0;
+            try
+            {
+                await _context.SaveChangesAsync();
+                _serverCache.SetSubDictionaryValue(CacheMap.BlockedIP, ip, false);
+                return new Result<bool>(true, Domain.Enums.StatusCode.OK);
+            }
+            catch (Exception)
+            {
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after unblocking IP address '{_user.IP}'");
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
         }
 
         public IResult<string> ValidateTokenAndGetName(string token)
@@ -418,6 +467,19 @@ namespace VueServer.Services.Concrete
         #endregion
 
         #region -> Private Functions
+
+        private async Task Signout(HttpContext context, string username)
+        {
+            var token = await GetRefreshTokenForUser(username, _user.IP);
+            if (token != null)
+            {
+                await InvalidateRefreshToken(token);
+            }
+
+            // Sign me out
+            await _signInManager.SignOutAsync();
+            context.Session.Clear();
+        }
 
         private async Task<WSUserTokens> GetRefreshTokenForUser(string id, string ip)
         {
@@ -816,6 +878,11 @@ namespace VueServer.Services.Concrete
             try
             {
                 await _context.SaveChangesAsync();
+
+                if (guestLogin.Blocked)
+                {
+                    _serverCache.SetSubDictionaryValue(CacheMap.BlockedIP, _user.IP, true);
+                }
                 return true;
             }
             catch (Exception)

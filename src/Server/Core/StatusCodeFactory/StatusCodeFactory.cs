@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-using VueServer.Domain.Interface;
-using VueServer.Domain.Enums;
 using System;
+using VueServer.Domain.Enums;
+using VueServer.Domain.Interface;
 
-namespace VueServer.Core.StatusFactory
+namespace VueServer.Core.Status
 {
     public class StatusCodeFactory : IStatusCodeFactory<IActionResult>
     {

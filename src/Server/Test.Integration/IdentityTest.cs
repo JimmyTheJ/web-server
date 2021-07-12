@@ -20,7 +20,7 @@ namespace VueServer.Test.Integration
         public static Mock<SignInManager<TUser>> MockSignInManager<TUser>(UserManager<TUser> userManager) where TUser : class
         {
             var signinManager = new Mock<SignInManager<TUser>>(
-                userManager, 
+                userManager,
                 new Mock<IHttpContextAccessor>().Object,
                 new Mock<IUserClaimsPrincipalFactory<TUser>>().Object,
                 new Mock<IOptions<IdentityOptions>>().Object,

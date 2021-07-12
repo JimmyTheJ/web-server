@@ -68,7 +68,18 @@ export const baseRoutes = [
   },
 ]
 
-export const extendedRoutes = [
+export const adminToolsRoute = {
+  path: 'admin-tools',
+  name: 'admin-tools',
+  component: AdminTools,
+  meta: {
+    display: 'Admin Tools',
+    authLevel: Roles.Level.Admin,
+    hidden: false,
+  },
+}
+
+export const defaultRoutes = [
   {
     path: 'profile',
     name: 'profile',
@@ -79,16 +90,9 @@ export const extendedRoutes = [
       hidden: true,
     },
   },
-  {
-    path: 'admin-tools',
-    name: 'admin-tools',
-    component: AdminTools,
-    meta: {
-      display: 'Admin Tools',
-      authLevel: Roles.Level.Admin,
-      hidden: false,
-    },
-  },
+]
+
+export const moduleRoutes = [
   {
     path: 'chat',
     name: 'chat',

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Claims;
-using System.Security.Principal;
-using System.Text;
+﻿using System.Security.Claims;
 
 namespace VueServer.Test.Integration
 {
@@ -10,7 +6,7 @@ namespace VueServer.Test.Integration
     {
         public TestUserClaimsPrinciple()
         {
-            
+
         }
     }
 }

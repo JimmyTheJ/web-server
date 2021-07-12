@@ -3,15 +3,16 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using VueServer.Controllers.Filters;
-using VueServer.Core.StatusFactory;
+using VueServer.Core.Status;
 using VueServer.Models;
 using VueServer.Services.Interface;
-using static VueServer.Domain.Constants.Authentication;
-using AddOns = VueServer.Domain.Constants.Models.ModuleAddOns;
+using static VueServer.Domain.DomainConstants.Authentication;
+using AddOns = VueServer.Domain.DomainConstants.Models.ModuleAddOns;
+using Route = VueServer.Controllers.Constants.API_ENDPOINTS;
 
 namespace VueServer.Controllers
 {
-    [Route("/api/weight")]
+    [Route(Route.Weight.Controller)]
     [Authorize(Roles = ROLES_ALL)]
     public class WeightController : Controller
     {
@@ -29,7 +30,7 @@ namespace VueServer.Controllers
 
         [HttpGet]
         [ModuleAuthFilterFactory(Module = AddOns.Weight.Id)]
-        [Route("list")]
+        [Route(Route.Generic.List)]
         public async Task<IActionResult> GetWeightHistory()
         {
             return _codeFactory.GetStatusCode(await _service.GetWeightList());
@@ -37,7 +38,7 @@ namespace VueServer.Controllers
 
         [HttpPost]
         [ModuleAuthFilterFactory(Module = AddOns.Weight.Id)]
-        [Route("add")]
+        [Route(Route.Generic.Add)]
         public async Task<IActionResult> AddWeight([FromBody] Weight weight)
         {
             return _codeFactory.GetStatusCode(await _service.AddWeight(weight));
@@ -45,7 +46,7 @@ namespace VueServer.Controllers
 
         [HttpPost]
         [ModuleAuthFilterFactory(Module = AddOns.Weight.Id)]
-        [Route("edit")]
+        [Route(Route.Generic.Edit)]
         public async Task<IActionResult> EditWeight([FromBody] Weight weight)
         {
             return _codeFactory.GetStatusCode(await _service.EditWeight(weight));
@@ -53,7 +54,7 @@ namespace VueServer.Controllers
 
         [HttpDelete]
         [ModuleAuthFilterFactory(Module = AddOns.Weight.Id)]
-        [Route("delete")]
+        [Route(Route.Generic.Delete)]
         public async Task<IActionResult> DeleteWeight(int id)
         {
             return _codeFactory.GetStatusCode(await _service.DeleteWeight(id));

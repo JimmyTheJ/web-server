@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace VueServer.Domain.Interface
+﻿namespace VueServer.Domain.Interface
 {
     public interface IPK<T>
     {

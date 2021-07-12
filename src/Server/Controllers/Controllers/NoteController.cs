@@ -3,15 +3,16 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using VueServer.Controllers.Filters;
-using VueServer.Core.StatusFactory;
+using VueServer.Core.Status;
 using VueServer.Models;
 using VueServer.Services.Interface;
-using static VueServer.Domain.Constants.Authentication;
-using AddOns = VueServer.Domain.Constants.Models.ModuleAddOns;
+using static VueServer.Domain.DomainConstants.Authentication;
+using AddOns = VueServer.Domain.DomainConstants.Models.ModuleAddOns;
+using Route = VueServer.Controllers.Constants.API_ENDPOINTS;
 
 namespace VueServer.Controllers
 {
-    [Route("api/note")]
+    [Route(Route.Note.Controller)]
     [Authorize]
     public class NoteController : Controller
     {
@@ -30,7 +31,7 @@ namespace VueServer.Controllers
         [Authorize(Roles = ADMINISTRATOR_STRING)]
         [HttpGet]
         [ModuleAuthFilterFactory(Module = AddOns.Notes.Id)]
-        [Route("getall")]
+        [Route(Route.Generic.GetAll)]
         public async Task<IActionResult> GetAll()
         {
             return _codeFactory.GetStatusCode(await _service.GetAll());
@@ -38,7 +39,7 @@ namespace VueServer.Controllers
 
         [HttpGet]
         [ModuleAuthFilterFactory(Module = AddOns.Notes.Id)]
-        [Route("get")]
+        [Route(Route.Generic.Get)]
         public async Task<IActionResult> Get()
         {
             return _codeFactory.GetStatusCode(await _service.Get());
@@ -46,7 +47,7 @@ namespace VueServer.Controllers
 
         [HttpPost]
         [ModuleAuthFilterFactory(Module = AddOns.Notes.Id)]
-        [Route("create")]
+        [Route(Route.Generic.Create)]
         public async Task<IActionResult> Create([FromBody] Notes note)
         {
             return _codeFactory.GetStatusCode(await _service.Create(note));
@@ -54,7 +55,7 @@ namespace VueServer.Controllers
 
         [HttpPut]
         [ModuleAuthFilterFactory(Module = AddOns.Notes.Id)]
-        [Route("update")]
+        [Route(Route.Generic.Update)]
         public async Task<IActionResult> Update([FromBody] Notes note)
         {
             return _codeFactory.GetStatusCode(await _service.Update(note));
@@ -62,7 +63,7 @@ namespace VueServer.Controllers
 
         [HttpDelete]
         [ModuleAuthFilterFactory(Module = AddOns.Notes.Id)]
-        [Route("delete")]
+        [Route(Route.Generic.Delete)]
         public async Task<IActionResult> Delete(int id)
         {
             return _codeFactory.GetStatusCode(await _service.Delete(id));

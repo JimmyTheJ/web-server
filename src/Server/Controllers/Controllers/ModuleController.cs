@@ -2,15 +2,15 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
-using VueServer.Core.StatusFactory;
+using VueServer.Core.Status;
 using VueServer.Models.Modules;
 using VueServer.Services.Interface;
-
-using static VueServer.Domain.Constants.Authentication;
+using static VueServer.Domain.DomainConstants.Authentication;
+using Route = VueServer.Controllers.Constants.API_ENDPOINTS;
 
 namespace VueServer.Controllers.Controllers
 {
-    [Route("api/modules")]
+    [Route(Route.Module.Controller)]
     public class ModuleController : Controller
     {
         private readonly IModuleService _service;
@@ -28,7 +28,7 @@ namespace VueServer.Controllers.Controllers
 
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
-        [Route("get-modules-for-user")]
+        [Route(Route.Module.GetModulesForUser)]
         public async Task<IActionResult> GetActiveModules()
         {
             return _codeFactory.GetStatusCode(await _service.GetActiveModulesForUser());
@@ -36,7 +36,7 @@ namespace VueServer.Controllers.Controllers
 
         [HttpGet]
         [Authorize(Roles = ADMINISTRATOR_STRING)]
-        [Route("get-user-modules-and-features")]
+        [Route(Route.Module.GetUserModuleAndFeatures)]
         public async Task<IActionResult> GetAllModulesAndFeatures(string user)
         {
             return _codeFactory.GetStatusCode(await _service.GetModulesAndFeaturesForOtherUser(user));
@@ -44,7 +44,7 @@ namespace VueServer.Controllers.Controllers
 
         [HttpGet]
         [Authorize(Roles = ADMINISTRATOR_STRING)]
-        [Route("get-all-modules")]
+        [Route(Route.Module.GetAllModules)]
         public async Task<IActionResult> GetAllModules()
         {
             return _codeFactory.GetStatusCode(await _service.GetAllModules());
@@ -52,7 +52,7 @@ namespace VueServer.Controllers.Controllers
 
         [HttpGet]
         [Authorize(Roles = ADMINISTRATOR_STRING)]
-        [Route("get-modules-for-all-users")]
+        [Route(Route.Module.GetModulesForAllUsers)]
         public async Task<IActionResult> GetModulesForAllUsers()
         {
             return _codeFactory.GetStatusCode(await _service.GetActiveModulesForAllUsers());
@@ -60,7 +60,7 @@ namespace VueServer.Controllers.Controllers
 
         [HttpPost]
         [Authorize(Roles = ADMINISTRATOR_STRING)]
-        [Route("add-module-to-user")]
+        [Route(Route.Module.AddModuleToUser)]
         public async Task<IActionResult> AddModuleToUser([FromBody] UserHasModuleAddOn module)
         {
             return _codeFactory.GetStatusCode(await _service.AddModuleToUser(module));
@@ -68,7 +68,7 @@ namespace VueServer.Controllers.Controllers
 
         [HttpPost]
         [Authorize(Roles = ADMINISTRATOR_STRING)]
-        [Route("delete-module-from-user")]
+        [Route(Route.Module.DeleteModuleFromUser)]
         public async Task<IActionResult> DeleteModuleFromUser([FromBody] UserHasModuleAddOn module)
         {
             return _codeFactory.GetStatusCode(await _service.DeleteModuleFromUser(module));
@@ -76,7 +76,7 @@ namespace VueServer.Controllers.Controllers
 
         [HttpPost]
         [Authorize(Roles = ADMINISTRATOR_STRING)]
-        [Route("add-feature-to-user")]
+        [Route(Route.Module.AddFeatureToUser)]
         public async Task<IActionResult> AddFeatureToUser([FromBody] UserHasModuleFeature feature)
         {
             return _codeFactory.GetStatusCode(await _service.AddFeatureToUser(feature));
@@ -84,7 +84,7 @@ namespace VueServer.Controllers.Controllers
 
         [HttpPost]
         [Authorize(Roles = ADMINISTRATOR_STRING)]
-        [Route("delete-feature-from-user")]
+        [Route(Route.Module.DeleteFeatureFromUser)]
         public async Task<IActionResult> DeleteFeatureFromUser([FromBody] UserHasModuleFeature feature)
         {
             return _codeFactory.GetStatusCode(await _service.DeleteFeatureFromUser(feature));

@@ -1,9 +1,7 @@
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using VueServer.Models.Context;
 
 namespace VueServer.Core.Cache
@@ -47,10 +45,68 @@ namespace VueServer.Core.Cache
             else
             {
                 var obj = GetCacheObject(key);
-                result = Set<T>(key, obj, out value);
+                if (obj != null)
+                {
+                    result = SetKey<T>(key, obj, out value);
+                }
             }
 
             return result;
+        }
+
+        public bool GetSubDictionaryValue<T>(string key, string subKey, out T value)
+        {
+            bool result = false;
+            value = default(T);
+
+            if (Cache == null)
+            {
+                Cache = new Dictionary<string, object>();
+            }
+
+            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(subKey))
+            {
+                return result;
+            }
+
+            if (Cache.ContainsKey(key) && Cache[key] is Dictionary<string, T> subDic)
+            {
+                if (subDic.ContainsKey(subKey))
+                {
+                    value = subDic[subKey];
+                    result = true;
+                }
+
+            }
+
+            return result;
+        }
+
+        public bool SetSubDictionaryValue<T>(string key, string subKey, T value)
+        {
+            if (Cache == null)
+            {
+                Cache = new Dictionary<string, object>();
+            }
+
+            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(subKey))
+            {
+                return false;
+            }
+
+            if (Cache.ContainsKey(key) && Cache[key] is Dictionary<string, T> subDic)
+            {
+                subDic[subKey] = value;
+            }
+            else
+            {
+                Cache[key] = new Dictionary<string, T>()
+                {
+                    { subKey, value }
+                };
+            }
+
+            return true;
         }
 
         public void Update(string key)
@@ -63,7 +119,7 @@ namespace VueServer.Core.Cache
             if (!string.IsNullOrWhiteSpace(key))
             {
                 var obj = GetCacheObject(key);
-                Set<object>(key, obj, out var value);
+                SetKey<object>(key, obj, out var value);
             }
         }
 
@@ -101,7 +157,7 @@ namespace VueServer.Core.Cache
             GC.SuppressFinalize(this);
         }
 
-        private bool Set<T>(string key, object obj, out T value)
+        private bool SetKey<T>(string key, object obj, out T value)
         {
             var result = false;
             value = default(T);
@@ -143,9 +199,10 @@ namespace VueServer.Core.Cache
         }
     }
 
-    public class CacheMap
+    public static class CacheMap
     {
         public const string UserModuleAddOn = "UserModuleAddOn";
         public const string UserModuleFeature = "UserModuleFeature";
+        public const string BlockedIP = "BlockedIP";
     }
 }

@@ -1,18 +1,16 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
-using static VueServer.Domain.Constants.Authentication;
 using VueServer.Models.Context;
 using VueServer.Services.Concrete;
 using VueServer.Services.Interface;
-using VueServer.Test.Integration;
 using Xunit;
+using static VueServer.Domain.DomainConstants.Authentication;
 
 namespace VueServer.Test.Integration.Services
 {
@@ -23,11 +21,11 @@ namespace VueServer.Test.Integration.Services
         private Mock<ILoggerFactory> LoggerFactory;
 
         private Mock<ILogger<DirectoryService>> Logger;
-    
+
         private Mock<IUserService> User;
-    
+
         private Mock<IWebHostEnvironment> Env;
-    
+
         private IConfigurationRoot Config;
 
         public IWSContext Context { get; set; }
@@ -44,26 +42,26 @@ namespace VueServer.Test.Integration.Services
             Logger = LoggerUtilities.LoggerMock<DirectoryService>();
             User = new Mock<IUserService>();
             Env = new Mock<IWebHostEnvironment>();
-            
+
             Env.Setup(o => o.EnvironmentName).Returns("PRODUCTION");
             Env.Setup(o => o.ContentRootPath).Returns(
                 Path.Combine(basepath, "..", "..", ".."));
-            
+
 
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Env.Object.ContentRootPath)
                 .AddJsonFile($"appsettings.json", optional: false, reloadOnChange: true)
                 .AddEnvironmentVariables();
             Config = builder.Build();
-            
+
             LoggerFactory.Setup(o => o.CreateLogger(It.IsAny<string>())).Returns(Logger.Object);
         }
 
         [Fact]
-        public void GetAdminDirectoriesNoLevel ()
+        public void GetAdminDirectoriesNoLevel()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ADMINISTRATOR_STRING);
-            var dirs = service.GetDirectories();          
+            var dirs = service.GetDirectories();
 
             Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
             Assert.NotNull(dirs.Result.Obj);
@@ -74,10 +72,10 @@ namespace VueServer.Test.Integration.Services
         }
 
         [Fact]
-        public void GetAdminDirectoriesAdminLevel ()
+        public void GetAdminDirectoriesAdminLevel()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ADMINISTRATOR_STRING);
-            var dirs = service.GetDirectories();          
+            var dirs = service.GetDirectories();
 
             Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
             Assert.NotNull(dirs.Result.Obj);
@@ -88,10 +86,10 @@ namespace VueServer.Test.Integration.Services
         }
 
         [Fact]
-        public void GetAdminDirectoriesElevatedLevel ()
+        public void GetAdminDirectoriesElevatedLevel()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ADMINISTRATOR_STRING);
-            var dirs = service.GetDirectories();          
+            var dirs = service.GetDirectories();
 
             Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
             Assert.NotNull(dirs.Result.Obj);
@@ -103,10 +101,10 @@ namespace VueServer.Test.Integration.Services
         }
 
         [Fact]
-        public void GetAdminDirectoriesGeneralLevel ()
+        public void GetAdminDirectoriesGeneralLevel()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ADMINISTRATOR_STRING);
-            var dirs = service.GetDirectories();          
+            var dirs = service.GetDirectories();
 
             Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
             Assert.NotNull(dirs.Result.Obj);
@@ -120,7 +118,7 @@ namespace VueServer.Test.Integration.Services
 
 
         [Fact]
-        public void GetElevatedDirectoriesNoLevel ()
+        public void GetElevatedDirectoriesNoLevel()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ELEVATED_STRING);
             var dirs = service.GetDirectories();
@@ -135,7 +133,7 @@ namespace VueServer.Test.Integration.Services
         }
 
         [Fact]
-        public void GetElevatedDirectoriesAdminLevel ()
+        public void GetElevatedDirectoriesAdminLevel()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ELEVATED_STRING);
             var dirs = service.GetDirectories();
@@ -150,7 +148,7 @@ namespace VueServer.Test.Integration.Services
         }
 
         [Fact]
-        public void GetElevatedDirectoriesElevatedLevel ()
+        public void GetElevatedDirectoriesElevatedLevel()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ELEVATED_STRING);
             var dirs = service.GetDirectories();
@@ -165,7 +163,7 @@ namespace VueServer.Test.Integration.Services
         }
 
         [Fact]
-        public void GetElevatedDirectoriesUserLevel ()
+        public void GetElevatedDirectoriesUserLevel()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, ELEVATED_STRING);
             var dirs = service.GetDirectories();
@@ -183,7 +181,7 @@ namespace VueServer.Test.Integration.Services
 
 
         [Fact]
-        public void GetUserDirectoriesNoLevel ()
+        public void GetUserDirectoriesNoLevel()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, USER_STRING);
             var dirs = service.GetDirectories();
@@ -197,22 +195,7 @@ namespace VueServer.Test.Integration.Services
         }
 
         [Fact]
-        public void GetUserDirectoriesAdminLevel ()
-        {
-            var service = GetDirectoryService(MAIN_IP, USERNAME, USER_STRING);
-            var dirs = service.GetDirectories();
-
-            Logger.VerifyLog(LogLevel.Warning, "Directory.GetDirectories: Permission escalation attack attempted. Setting level to the lowest setting.");
-            Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
-            Assert.NotNull(dirs.Result.Obj);
-            Assert.Collection(dirs.Result.Obj,
-                o => Assert.Equal("Shared Files", o.Name),
-                o => Assert.Equal("Test", o.Name)
-            );
-        }
-
-        [Fact]
-        public void GetUserDirectoriesElevatedLevel ()
+        public void GetUserDirectoriesAdminLevel()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, USER_STRING);
             var dirs = service.GetDirectories();
@@ -227,7 +210,22 @@ namespace VueServer.Test.Integration.Services
         }
 
         [Fact]
-        public void GetUserDirectoriesGeneralLevel ()
+        public void GetUserDirectoriesElevatedLevel()
+        {
+            var service = GetDirectoryService(MAIN_IP, USERNAME, USER_STRING);
+            var dirs = service.GetDirectories();
+
+            Logger.VerifyLog(LogLevel.Warning, "Directory.GetDirectories: Permission escalation attack attempted. Setting level to the lowest setting.");
+            Assert.True(dirs.Result.Code == Domain.Enums.StatusCode.OK);
+            Assert.NotNull(dirs.Result.Obj);
+            Assert.Collection(dirs.Result.Obj,
+                o => Assert.Equal("Shared Files", o.Name),
+                o => Assert.Equal("Test", o.Name)
+            );
+        }
+
+        [Fact]
+        public void GetUserDirectoriesGeneralLevel()
         {
             var service = GetDirectoryService(MAIN_IP, USERNAME, USER_STRING);
             var dirs = service.GetDirectories();
@@ -245,8 +243,8 @@ namespace VueServer.Test.Integration.Services
 
         private DirectoryService GetDirectoryService(string IP, string username, string role)
         {
-            var claims = new List<Claim>() 
-            { 
+            var claims = new List<Claim>()
+            {
                 new Claim(ClaimTypes.Name, username),
                 new Claim(ClaimTypes.NameIdentifier, username.ToLower()),
                 new Claim(ClaimTypes.Role, role)
@@ -255,15 +253,15 @@ namespace VueServer.Test.Integration.Services
             var claimsPrincipal = new ClaimsPrincipal(identity);
 
             HttpContext.User = claimsPrincipal;
-            
+
             User.Setup(o => o.IP).Returns(IP);
             User.Setup(o => o.Id).Returns(username);
             User.Setup(o => o.Context).Returns(HttpContext);
 
             var service = new DirectoryService(
-                LoggerFactory.Object, 
-                User.Object, 
-                Env.Object, 
+                LoggerFactory.Object,
+                User.Object,
+                Env.Object,
                 Config,
                 Context);
 

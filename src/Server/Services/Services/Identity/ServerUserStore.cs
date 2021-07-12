@@ -23,7 +23,7 @@ namespace VueServer.Models.Identity
 
         public Task<IdentityResult> CreateAsync(WSUser user, CancellationToken cancellationToken)
         {
-            if (context.Users.Find(user.Id) != null )
+            if (context.Users.Find(user.Id) != null)
             {
                 return Task.FromResult(IdentityResult.Failed());
             }
@@ -42,7 +42,7 @@ namespace VueServer.Models.Identity
                 context.Users.Remove(toDelete);
                 context.SaveChanges();
             }
-            
+
             return Task.FromResult(IdentityResult.Success);
         }
 
@@ -124,7 +124,7 @@ namespace VueServer.Models.Identity
             if (userRole == null)
             {
                 WSRole role = context.Roles.Where(o => o.NormalizedName == roleName).FirstOrDefault();
-                
+
                 if (role == null) throw new ArgumentException($"Not a valid role name ('{roleName}')");
 
                 context.UserRoles.Add(new WSUserInRoles(user.Id, role.Id));

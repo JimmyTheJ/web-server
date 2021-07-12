@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,13 +10,13 @@ namespace VueServer.Classes.Scheduling
     public class SchedulerHostedService : HostedService
     {
         public event EventHandler<UnobservedTaskExceptionEventArgs> UnobservedTaskException;
-            
+
         private readonly List<SchedulerTaskWrapper> _scheduledTasks = new List<SchedulerTaskWrapper>();
 
         public SchedulerHostedService(IEnumerable<IScheduledTask> scheduledTasks)
         {
             var referenceTime = DateTime.UtcNow;
-            
+
             foreach (var scheduledTask in scheduledTasks)
             {
                 _scheduledTasks.Add(new SchedulerTaskWrapper
@@ -33,7 +33,7 @@ namespace VueServer.Classes.Scheduling
             while (!cancellationToken.IsCancellationRequested)
             {
                 await ExecuteOnceAsync(cancellationToken);
-                
+
                 await Task.Delay(TimeSpan.FromMinutes(30), cancellationToken);
             }
         }
@@ -42,7 +42,7 @@ namespace VueServer.Classes.Scheduling
         {
             var taskFactory = new TaskFactory(TaskScheduler.Current);
             var referenceTime = DateTime.UtcNow;
-            
+
             var tasksThatShouldRun = _scheduledTasks.Where(t => t.ShouldRun(referenceTime)).ToList();
 
             foreach (var taskThatShouldRun in tasksThatShouldRun)
@@ -60,9 +60,9 @@ namespace VueServer.Classes.Scheduling
                         {
                             var args = new UnobservedTaskExceptionEventArgs(
                                 ex as AggregateException ?? new AggregateException(ex));
-                            
+
                             UnobservedTaskException?.Invoke(this, args);
-                            
+
                             if (!args.Observed)
                             {
                                 throw;

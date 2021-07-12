@@ -1,15 +1,12 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using VueServer.Core.Cache;
-using VueServer.Domain.Concrete;
+using VueServer.Core.Objects;
 using VueServer.Domain.Interface;
 using VueServer.Models.Context;
 using VueServer.Models.Modules;
@@ -91,7 +88,7 @@ namespace VueServer.Services.Concrete
                 }).ToListAsync();
 
             var userModuleGroups = new Dictionary<string, IList<ModuleAddOn>>();
-            foreach (var module in userModules) 
+            foreach (var module in userModules)
             {
                 if (!userModuleGroups.ContainsKey(module.UserId))
                 {

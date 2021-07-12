@@ -24,7 +24,7 @@ using VueServer.Classes.Scheduling;
 using VueServer.Controllers.Filters;
 using VueServer.Core.Cache;
 using VueServer.Core.Helper;
-using VueServer.Core.StatusFactory;
+using VueServer.Core.Status;
 using VueServer.Domain.Enums;
 using VueServer.Models.Context;
 using VueServer.Models.Identity;

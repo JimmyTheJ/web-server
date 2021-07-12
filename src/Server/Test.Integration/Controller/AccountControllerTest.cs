@@ -1,23 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Xunit;
-using VueServer.Test.Integration;
-using Moq;
-using Microsoft.AspNetCore.Hosting;
-using VueServer.Controllers;
-using VueServer.Domain.Interface;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http;
-using VueServer.Models.Account;
-using System.Threading.Tasks;
+using Moq;
+using VueServer.Domain.Interface;
+using Xunit;
 
 namespace VueServer.Test.Integration.Controller
 {
     public class AccountControllerTest : IClassFixture<Server<TestStartup>>
     {
         private readonly Mock<IWebHostEnvironment> Environment = new Mock<IWebHostEnvironment>();
-        
+
         private Server<TestStartup> VueServer;
 
         private const string Token = "3836-573-254gzds6-34fdtfg-65-7244d";
@@ -33,11 +25,11 @@ namespace VueServer.Test.Integration.Controller
             SetupMocks();
         }
 
-        private void SetupMocks() 
+        private void SetupMocks()
         {
             VueServer.CodeFactory.Setup(codeFactory => codeFactory.GetStatusCode(It.IsAny<IResult>())).Returns(new OkResult());
         }
-        
+
         //[Fact]
         //public async Task TestSignUp ()
         //{

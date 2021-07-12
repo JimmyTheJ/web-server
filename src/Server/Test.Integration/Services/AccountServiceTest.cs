@@ -1,7 +1,4 @@
 ﻿using Moq;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using VueServer.Services.Concrete;
 
 namespace VueServer.Test.Integration.Services

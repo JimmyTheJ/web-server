@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace VueServer.Domain.Enums
+﻿namespace VueServer.Domain.Enums
 {
     public enum MimeFileType
     {

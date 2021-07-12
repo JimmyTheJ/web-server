@@ -65,26 +65,37 @@ const actions = {
   async signout({ commit, dispatch }) {
     try {
       const res = await authAPI.signout(state.user.id)
-      commit(types.LOGOUT)
 
       // Clear all store values from other modules
       ConMsgs.methods.$_console_log(
         '[Vuex][Actions] Logout success. Clearing state.'
       )
-      dispatch('clearChat')
-      dispatch('clearNotifications')
-      dispatch('clearLibrary')
-      dispatch('clearFileExplorer')
 
+      dispatch('clearCredentials')
       return await Promise.resolve(res)
     } catch (e) {
       ConMsgs.methods.$_console_group(
         '[Vuex][Actions] Error from signout',
         e.response
       )
-      commit(types.LOGOUT)
+
+      dispatch('clearCredentials')
       return await Promise.reject(e.response)
     }
+  },
+  async clearCredentials({ commit, dispatch }) {
+    // Clear all store values from other modules
+    ConMsgs.methods.$_console_log(
+      '[Vuex][Actions] Calling clearCredentials. Clearing state.'
+    )
+
+    dispatch('clearChat')
+    dispatch('clearNotifications')
+    dispatch('clearLibrary')
+    dispatch('clearFileExplorer')
+    commit(types.LOGOUT)
+
+    return await Promise.resolve(true)
   },
   async register({}, context) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Calling register: ', context)

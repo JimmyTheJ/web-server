@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 
 namespace VueServer.Models.Library
 {
     public class Bookcase
     {
-        public Bookcase () { }
+        public Bookcase() { }
 
-        public Bookcase (Bookcase bookcase)
+        public Bookcase(Bookcase bookcase)
         {
             if (bookcase != null)
                 Name = bookcase.Name;

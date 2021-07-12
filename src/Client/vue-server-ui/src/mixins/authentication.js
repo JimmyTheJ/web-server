@@ -1,5 +1,5 @@
 import store from '../store/index'
-import { extendedRoutes } from '../routes'
+import { defaultRoutes, adminToolsRoute, moduleRoutes } from '../routes'
 import { Roles } from '../constants'
 import ConMsgs from './console'
 
@@ -44,7 +44,7 @@ export default {
         })
         .catch(ex => {
           ConMsgs.methods.$_console_log('Error logging in', ex)
-          this.$store.dispatch('signout')
+          this.$store.dispatch('clearCredentials')
           error = true
         })
     },
@@ -106,14 +106,27 @@ export default {
         this.$router.getRoutes()
       )
 
+      // If user if an admin we need to add the admin-tools page so they can start modifying module / feature permissions
+      if (this.$store.state.auth.role === Roles.Name.Admin) {
+        self.$router.addRoute('home', adminToolsRoute)
+      }
+
+      // Add any routes that don't require any permission level, these will by definition not be included in the module list from the API
+      defaultRoutes.forEach(item => {
+        if (item.meta.authLevel === Roles.Level.Default) {
+          self.$router.addRoute('home', item)
+        }
+      })
+
+      // Go through the API returned modules this user has active and add their respective routes
       activeModules.forEach(module => {
-        let foundItemByName = extendedRoutes.find(x => x.name === module.id)
+        let foundItemByName = moduleRoutes.find(x => x.name === module.id)
         ConMsgs.methods.$_console_log(
           '[Authentication] addRoutes: Found Item by name: ',
           foundItemByName
         )
 
-        let foundItemByMeta = extendedRoutes.find(
+        let foundItemByMeta = moduleRoutes.find(
           x => x.meta.relative === module.id
         )
         ConMsgs.methods.$_console_log(

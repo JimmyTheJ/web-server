@@ -14,6 +14,8 @@ const getUsersUrl = `api/account/user/get-all`
 const getAllOtherUsersUrl = `api/account/user/get-all-others`
 const updateAvatarImageUrl = `api/account/user/update-avatar`
 const updateDisplayNameUrl = `api/account/user/update-display-name`
+const getGuestLoginListUrl = `api/account/guest/logins`
+const unblockGuestIPUrl = `api/account/guest/unblock`
 
 /**
  * Export
@@ -54,5 +56,11 @@ export default {
   },
   updateDisplayName(name) {
     return axios.post(updateDisplayNameUrl, `"${name}"`)
+  },
+  getGuestLogins() {
+    return axios.get(getGuestLoginListUrl)
+  },
+  unblockGuest(ip) {
+    return axios.post(unblockGuestIPUrl, `"${ip}"`)
   },
 }

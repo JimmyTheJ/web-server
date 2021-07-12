@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace VueServer.Services.Enums
+﻿namespace VueServer.Services.Enums
 {
     public enum GetMessageType
     {

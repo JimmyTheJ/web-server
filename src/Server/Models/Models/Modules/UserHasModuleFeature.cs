@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
-using VueServer.Models.User;
+﻿using VueServer.Models.User;
 
 namespace VueServer.Models.Modules
 {

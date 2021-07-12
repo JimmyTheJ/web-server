@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using VueServer.Domain.Interface;
 using VueServer.Models.Chat;
 using VueServer.Models.Modules;
@@ -13,7 +12,7 @@ namespace VueServer.Models.User
         [Key]
         public string Id { get; set; }
 
-        [MaxLength(128),MinLength(1)]
+        [MaxLength(128), MinLength(1)]
         public string UserName { get; set; }
 
         [JsonIgnore]
