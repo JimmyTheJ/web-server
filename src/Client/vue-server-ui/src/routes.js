@@ -21,7 +21,6 @@ export const baseRoutes = [
     path: '/',
     name: 'index',
     component: Index,
-
     meta: {
       display: 'Login',
       authLevel: Roles.Level.Default,
@@ -33,14 +32,6 @@ export const baseRoutes = [
         component: Login,
         meta: {
           display: 'Login',
-        },
-      },
-      {
-        path: 'register',
-        name: 'register',
-        component: Register,
-        meta: {
-          display: 'Register',
         },
       },
     ],
@@ -68,16 +59,26 @@ export const baseRoutes = [
   },
 ]
 
-export const adminToolsRoute = {
-  path: 'admin-tools',
-  name: 'admin-tools',
-  component: AdminTools,
-  meta: {
-    display: 'Admin Tools',
-    authLevel: Roles.Level.Admin,
-    hidden: false,
+export const adminRoutes = [
+  {
+    path: 'admin-tools',
+    name: 'admin-tools',
+    component: AdminTools,
+    meta: {
+      display: 'Admin Tools',
+      authLevel: Roles.Level.Admin,
+      hidden: false,
+    },
   },
-}
+  {
+    path: 'register',
+    name: 'register',
+    component: Register,
+    meta: {
+      display: 'Create Users',
+    },
+  },
+]
 
 export const defaultRoutes = [
   {

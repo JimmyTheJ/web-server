@@ -7,7 +7,7 @@ namespace VueServer.Models.User
     {
         public WSUserInRoles() { }
 
-        public WSUserInRoles(string userId, int roleId)
+        public WSUserInRoles(string userId, string roleId)
         {
             UserId = userId;
             RoleId = roleId;
@@ -22,7 +22,7 @@ namespace VueServer.Models.User
         public virtual WSUser User { get; set; }
 
         [ForeignKey("Role")]
-        public int RoleId { get; set; }
+        public string RoleId { get; set; }
 
         public virtual WSRole Role { get; set; }
     }

@@ -89,13 +89,6 @@ namespace VueServer.Services.Concrete
                 return new Result<IResult>(null, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
-            // Initialize the roles
-            if (!InitRoles())
-            {
-                _logger.LogError("[AccountService] Register: Failed to initialize the roles");
-                return new Result<IResult>(null, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-
             // Create a new identity user to pass to the registration method
             var userId = model.Username.ToLower();
             var newUser = new WSUser
@@ -731,81 +724,6 @@ namespace VueServer.Services.Concrete
                 rng.GetBytes(randomNumber);
                 return Convert.ToBase64String(randomNumber);
             }
-        }
-
-        /// <summary>
-        /// TODO: Convert to dotnet core 2.1 seeding [HasData]
-        /// TODO: Don't use the default implementation of Identity Framework. Do it all "in-house"
-        /// Initialize Identity Framework roles
-        /// </summary>
-        /// <returns></returns>
-        private bool InitRoles()
-        {
-            // Create a general user role if it does not exist
-            if (!_roleManager.RoleExistsAsync("User").Result)
-            {
-                // Create new Role
-                WSRole role = new WSRole()
-                {
-                    Name = "User",
-                    NormalizedName = "User"
-                };
-
-                // Create role in data store
-                var result = _roleManager.CreateAsync(role).Result;
-
-                // If does not succeed creating role
-                if (!result.Succeeded)
-                {
-                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error creating general user role.");
-                    return false;
-                }
-            }
-
-            // Create an elevated user role if it does not exist
-            if (!_roleManager.RoleExistsAsync("Elevated").Result)
-            {
-                // Create new Role
-                WSRole role = new WSRole()
-                {
-                    Name = "Elevated",
-                    NormalizedName = "Elevated"
-                };
-
-                // Create role in data store
-                var result = _roleManager.CreateAsync(role).Result;
-
-                // If does not succeed creating role
-                if (!result.Succeeded)
-                {
-                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error creating elevated user role.");
-                    return false;
-                }
-            }
-
-            // Create a admin user role if it does not exist
-            if (!_roleManager.RoleExistsAsync("Administrator").Result)
-            {
-                // Create new Role
-                WSRole role = new WSRole()
-                {
-                    Name = "Administrator",
-                    NormalizedName = "Administrator"
-                };
-
-                // Create role in data store
-                var result = _roleManager.CreateAsync(role).Result;
-
-                // If does not succeed creating role
-                if (!result.Succeeded)
-                {
-                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error creating admin user role.");
-                    return false;
-                }
-            }
-
-            // If it makes it this far it was a success
-            return true;
         }
 
         private async Task<bool> CreateUserProfile(string userId)

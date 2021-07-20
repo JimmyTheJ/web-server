@@ -4,7 +4,7 @@ namespace VueServer.Models.Context
 {
     public class MySqlWSContext : WSContext, IWSContext
     {
-        public MySqlWSContext() { }
+        public MySqlWSContext() : base() { }
 
         public MySqlWSContext(DbContextOptions<WSContext> options) : base(options) { }
 

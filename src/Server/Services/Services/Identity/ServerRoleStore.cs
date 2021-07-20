@@ -53,9 +53,9 @@ namespace VueServer.Models.Identity
             return Task.FromResult(IdentityResult.Success);
         }
 
-        public Task<WSRole> FindByIdAsync(string roleId, CancellationToken cancellationToken)
+        public Task<WSRole> FindByIdAsync(string id, CancellationToken cancellationToken)
         {
-            return context.Roles.Where(o => o.RoleId == roleId).FirstOrDefaultAsync();
+            return context.Roles.Where(o => o.Id == id).FirstOrDefaultAsync();
         }
 
         public Task<WSRole> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
@@ -70,7 +70,7 @@ namespace VueServer.Models.Identity
 
         public Task<string> GetRoleIdAsync(WSRole role, CancellationToken cancellationToken)
         {
-            return Task.FromResult(role.RoleId.ToString());
+            return Task.FromResult(role.Id.ToString());
         }
 
         public Task<string> GetRoleNameAsync(WSRole role, CancellationToken cancellationToken)
@@ -92,7 +92,7 @@ namespace VueServer.Models.Identity
 
         public async Task<IdentityResult> UpdateAsync(WSRole role, CancellationToken cancellationToken)
         {
-            WSRole toUpdate = await FindByIdAsync(role.RoleId.ToString(), cancellationToken);
+            WSRole toUpdate = await FindByIdAsync(role.Id, cancellationToken);
             toUpdate.NormalizedName = role.NormalizedName;
             toUpdate.Name = role.Name;
 

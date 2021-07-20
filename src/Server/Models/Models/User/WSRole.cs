@@ -3,10 +3,10 @@ using VueServer.Domain.Interface;
 
 namespace VueServer.Models.User
 {
-    public class WSRole : IPK<int>
+    public class WSRole : IPK<string>
     {
         [Key]
-        public int Id { get; set; }
+        public string Id { get; set; }
 
         public string RoleId { get; set; }
 

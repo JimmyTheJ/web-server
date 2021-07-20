@@ -4,7 +4,7 @@ namespace VueServer.Models.Context
 {
     public class SqlServerWSContext : WSContext, IWSContext
     {
-        public SqlServerWSContext() { }
+        public SqlServerWSContext() : base() { }
 
         public SqlServerWSContext(DbContextOptions<WSContext> options) : base(options) { }
 

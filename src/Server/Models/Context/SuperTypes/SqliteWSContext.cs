@@ -7,9 +7,9 @@ namespace VueServer.Models.Context
     {
         private readonly SqliteConnection _connection;
 
-        public SqliteWSContext() { }
+        public SqliteWSContext() : base() { }
 
-        public SqliteWSContext(SqliteConnection connection)
+        public SqliteWSContext(SqliteConnection connection) : base()
         {
             _connection = connection;
         }

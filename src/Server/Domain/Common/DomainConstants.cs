@@ -6,7 +6,13 @@
 
         public static class Authentication
         {
+            public const string DEFAULT_PASSWORD = "SimplePa$$word420-69_777";
+
             public const string INVALID_STRING = "INVALID";
+
+            public const int USER_ID = 1;
+            public const int ELEVATED_ID = 2;
+            public const int ADMINISTRATOR_ID = 3;
 
             public const string USER_STRING = "User";
             public const string ELEVATED_STRING = "Elevated";

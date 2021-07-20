@@ -1,5 +1,5 @@
 import store from '../store/index'
-import { defaultRoutes, adminToolsRoute, moduleRoutes } from '../routes'
+import { defaultRoutes, adminRoutes, moduleRoutes } from '../routes'
 import { Roles } from '../constants'
 import ConMsgs from './console'
 
@@ -106,9 +106,11 @@ export default {
         this.$router.getRoutes()
       )
 
-      // If user if an admin we need to add the admin-tools page so they can start modifying module / feature permissions
+      // If user if an admin we need to add the admin routes so they can start modifying module / feature permissions and creating accounts
       if (this.$store.state.auth.role === Roles.Name.Admin) {
-        self.$router.addRoute('home', adminToolsRoute)
+        adminRoutes.forEach(item => {
+          self.$router.addRoute('home', item)
+        })
       }
 
       // Add any routes that don't require any permission level, these will by definition not be included in the module list from the API

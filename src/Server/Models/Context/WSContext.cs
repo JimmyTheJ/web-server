@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using System;
 using VueServer.Domain;
 using VueServer.Models.Chat;
 using VueServer.Models.Library;
@@ -11,10 +13,22 @@ namespace VueServer.Models.Context
     public class WSContext : DbContext, IWSContext
     {
         private IDbContextTransaction _transaction;
+        private IPasswordHasher<WSUser> _passwordHasher;
 
-        public WSContext() { }
+        public WSContext()
+        {
+            Initialize();
+        }
 
-        public WSContext(DbContextOptions<WSContext> options) : base(options) { }
+        public WSContext(DbContextOptions<WSContext> options) : base(options)
+        {
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            _passwordHasher = new PasswordHasher<WSUser>();
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -64,6 +78,7 @@ namespace VueServer.Models.Context
             modelBuilder.Entity<WSFailedLogin>().HasIndex(x => x.IPAddress).IsClustered(false);
 
             // Data Seeding
+            SeedIdentity(modelBuilder);
             SeedGenres(modelBuilder);
             SeedModules(modelBuilder);
             SeedModuleFeatures(modelBuilder);
@@ -154,6 +169,34 @@ namespace VueServer.Models.Context
         #endregion
 
         #region -> Private Functions
+
+        private void SeedIdentity(ModelBuilder modelBuilder)
+        {
+            var userRoleId = Guid.NewGuid().ToString();
+            var elevatedRoleId = Guid.NewGuid().ToString();
+            var adminRoleId = Guid.NewGuid().ToString();
+
+            modelBuilder.Entity<WSRole>().HasData(new WSRole { Id = userRoleId, Name = DomainConstants.Authentication.USER_STRING, NormalizedName = DomainConstants.Authentication.USER_STRING.ToUpper() });
+            modelBuilder.Entity<WSRole>().HasData(new WSRole { Id = elevatedRoleId, Name = DomainConstants.Authentication.ELEVATED_STRING, NormalizedName = DomainConstants.Authentication.ELEVATED_STRING.ToUpper() });
+            modelBuilder.Entity<WSRole>().HasData(new WSRole { Id = adminRoleId, Name = DomainConstants.Authentication.ADMINISTRATOR_STRING, NormalizedName = DomainConstants.Authentication.ADMINISTRATOR_STRING.ToUpper() });
+
+            SeedAdministrator(modelBuilder, adminRoleId);
+        }
+
+        private void SeedAdministrator(ModelBuilder modelBuilder, string adminRoleId)
+        {
+            var adminUser = new WSUser
+            {
+                Id = Guid.NewGuid().ToString(),
+                UserName = DomainConstants.Authentication.ADMIN_STRING.ToLower(),
+                NormalizedUserName = DomainConstants.Authentication.ADMIN_STRING.ToUpper(),
+                DisplayName = DomainConstants.Authentication.ADMIN_STRING
+            };
+
+            adminUser.PasswordHash = _passwordHasher.HashPassword(adminUser, DomainConstants.Authentication.DEFAULT_PASSWORD);
+            modelBuilder.Entity<WSUser>().HasData(adminUser);
+            modelBuilder.Entity<WSUserInRoles>().HasData(new WSUserInRoles() { Id = 1, RoleId = adminRoleId, UserId = DomainConstants.Authentication.ADMIN_STRING.ToLower() });
+        }
 
         private void SeedGenres(ModelBuilder modelBuilder)
         {
