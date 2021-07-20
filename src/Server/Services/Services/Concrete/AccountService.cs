@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -83,18 +82,11 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult> Register(RegisterRequest model)
         {
-            if (_env.IsProduction())
-            {
-                _logger.LogWarning("[AccountService] Register: User attemped to register a new account from: " + _user.IP + " with credentials: username=" + model.Username + ", password=" + model.Password + ", comfirm_password=" + model.ConfirmPassword + ", role=" + model.Role);
-                return new Result<IResult>(null, Domain.Enums.StatusCode.FORBIDDEN);
-            }
-
             // Create a new identity user to pass to the registration method
-            var userId = model.Username.ToLower();
             var newUser = new WSUser
             {
-                Id = userId,
-                UserName = model.Username,
+                Id = Guid.NewGuid().ToString(),
+                UserName = model.Username.ToLower(),
                 NormalizedUserName = model.Username.ToUpper(),
                 DisplayName = model.Username
             };
@@ -105,7 +97,7 @@ namespace VueServer.Services.Concrete
             // If it does not succeed then fill error list and redirect back to view
             if (!result.Succeeded)
             {
-                _logger.LogInformation("[AccountService] Register: Failed to create user.");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed to create user.");
                 return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -114,7 +106,7 @@ namespace VueServer.Services.Concrete
 
             if (!resultRole.Succeeded)
             {
-                _logger.LogInformation("[AccountService] Register: Failed to add user to the role.");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed to add user to the role.");
                 return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -122,14 +114,14 @@ namespace VueServer.Services.Concrete
             var resultUpdate = await _userManager.UpdateAsync(newUser);
             if (!resultUpdate.Succeeded)
             {
-                _logger.LogInformation("[AccountService] Register: Failed to update user with new role.");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed to update user with new role.");
                 return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             // Create profile for user
-            await CreateUserProfile(userId);
+            await CreateUserProfile(newUser.Id);
 
-            // Login was a success and now they should log in
+            // Creation of user was successful
             return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
         }
 
@@ -736,7 +728,7 @@ namespace VueServer.Services.Concrete
 
             WSUserProfile profile = new WSUserProfile()
             {
-                UserId = userId
+                UserId = userId,
             };
 
             _context.UserProfile.Add(profile);

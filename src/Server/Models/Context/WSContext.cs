@@ -195,7 +195,7 @@ namespace VueServer.Models.Context
 
             adminUser.PasswordHash = _passwordHasher.HashPassword(adminUser, DomainConstants.Authentication.DEFAULT_PASSWORD);
             modelBuilder.Entity<WSUser>().HasData(adminUser);
-            modelBuilder.Entity<WSUserInRoles>().HasData(new WSUserInRoles() { Id = 1, RoleId = adminRoleId, UserId = DomainConstants.Authentication.ADMIN_STRING.ToLower() });
+            modelBuilder.Entity<WSUserInRoles>().HasData(new WSUserInRoles() { Id = 1, RoleId = adminRoleId, UserId = adminUser.Id });
         }
 
         private void SeedGenres(ModelBuilder modelBuilder)

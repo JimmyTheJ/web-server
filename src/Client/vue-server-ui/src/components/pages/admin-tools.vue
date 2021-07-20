@@ -10,7 +10,7 @@
             <v-list-item-group v-model="selectedUserPosition">
               <v-list-item v-for="(item, index) in userList" :key="index">
                 <v-list-item-content>
-                  {{ item.id }}
+                  {{ item.displayName }}
                 </v-list-item-content>
               </v-list-item>
             </v-list-item-group>
@@ -455,6 +455,7 @@ export default {
         )
         return false
       }
+
       if (
         typeof this.selectedModule === 'undefined' ||
         this.selectedModule === null
@@ -464,6 +465,7 @@ export default {
         )
         return false
       }
+
       if (typeof feature === 'undefined' || feature === null) {
         this.$_console_log('[admin-tools] userHasFeature: feature is null')
         return false

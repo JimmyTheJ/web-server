@@ -37,13 +37,18 @@ namespace VueServer.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
         [Route(Route.Account.Register)]
         public async Task<IActionResult> SignUp([FromBody] RegisterRequest model)
         {
             return _codeFactory.GetStatusCode(await _service.Register(model));
         }
 
-        // Login to a existing user account using the Identity Framework
+        /// <summary>
+        /// Login to a existing user account using the Identity Framework
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route(Route.Account.Login)]
         public async Task<IActionResult> Login([FromBody] LoginRequest model)

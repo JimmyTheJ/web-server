@@ -76,6 +76,8 @@ export const adminRoutes = [
     component: Register,
     meta: {
       display: 'Create Users',
+      authLevel: Roles.Level.Admin,
+      hidden: false,
     },
   },
 ]

@@ -8,8 +8,6 @@ namespace VueServer.Models.User
         [Key]
         public string Id { get; set; }
 
-        public string RoleId { get; set; }
-
         public string Name { get; set; }
 
         public string NormalizedName { get; set; }
