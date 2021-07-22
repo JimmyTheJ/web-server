@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using VueServer.Models.User;
+﻿using System.Collections.Generic;
 
 namespace VueServer.Models.Response
 {
@@ -13,11 +10,11 @@ namespace VueServer.Models.Response
 
         public WSUserResponse User { get; set; }
 
-        public IList<String> Roles { get; set; }
+        public IList<string> Roles { get; set; }
 
-        public LoginResponse () { }
+        public LoginResponse() { }
 
-        public LoginResponse (string token, WSUserResponse user, IList<string> roles)
+        public LoginResponse(string token, WSUserResponse user, IList<string> roles)
         {
             Token = token;
             User = user;

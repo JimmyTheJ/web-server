@@ -10,6 +10,8 @@ const signinUrl = `api/account/login`
 const signoutUrl = `api/account/logout`
 const refreshTokenUrl = `api/account/refresh-jwt`
 const registerUrl = `api/account/register`
+const adminChangePasswordUrl = `api/account/admin/change-password`
+const userChangePasswordUrl = `api/account/user/change-password`
 const getUsersUrl = `api/account/user/get-all`
 const getAllOtherUsersUrl = `api/account/user/get-all-others`
 const updateAvatarImageUrl = `api/account/user/update-avatar`
@@ -30,6 +32,21 @@ export default {
   },
   signout(username) {
     return axios.post(signoutUrl, `"${username}"`)
+  },
+  changePassword(data, isAdmin) {
+    if (isAdmin) {
+      return axios.post(adminChangePasswordUrl, {
+        oldPassword: data.oldPassword,
+        newPassword: data.newPassword,
+        confirmNewPassword: data.confirmNewPassword,
+      })
+    } else {
+      return axios.post(userChangePasswordUrl, {
+        oldPassword: data.oldPassword,
+        newPassword: data.newPassword,
+        confirmNewPassword: data.confirmNewPassword,
+      })
+    }
   },
   refreshToken(token, codeChallenge) {
     return axios.post(`${refreshTokenUrl}`, {

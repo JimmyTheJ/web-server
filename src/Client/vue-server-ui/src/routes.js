@@ -2,11 +2,13 @@ import { Roles } from './constants'
 
 import Index from './components/index'
 import Login from './components/modules/login'
-import Register from './components/modules/register'
+import UserManagement from './components/modules/user-management'
 
 import Home from './components/home'
 import Start from './components/pages/start'
+import ChangePassword from './components/modules/change-password'
 import Profile from './components/pages/profile'
+
 import AdminTools from './components/pages/admin-tools'
 import Chat from './components/pages/chat-messaging'
 import Browser from './components/pages/browser'
@@ -55,6 +57,16 @@ export const baseRoutes = [
           hidden: false,
         },
       },
+      {
+        path: 'change-password',
+        name: 'change-password',
+        component: ChangePassword,
+        meta: {
+          display: 'Change Password',
+          authLevel: Roles.Level.Default,
+          hidden: true,
+        },
+      },
     ],
   },
 ]
@@ -71,11 +83,11 @@ export const adminRoutes = [
     },
   },
   {
-    path: 'register',
-    name: 'register',
-    component: Register,
+    path: 'user-management',
+    name: 'user-management',
+    component: UserManagement,
     meta: {
-      display: 'Create Users',
+      display: 'User Management',
       authLevel: Roles.Level.Admin,
       hidden: false,
     },

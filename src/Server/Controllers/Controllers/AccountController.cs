@@ -36,7 +36,7 @@ namespace VueServer.Controllers
         [Route(Route.Account.AdminChangePassword)]
         public async Task<IActionResult> ChangeAdminPassword([FromBody] ChangePasswordRequest model)
         {
-            return _codeFactory.GetStatusCode(await _service.ChangePassword(HttpContext, model, true));
+            return _codeFactory.GetStatusCode(await _service.ChangePassword(model, true));
         }
 
         [HttpPost]
@@ -44,7 +44,7 @@ namespace VueServer.Controllers
         [Route(Route.Account.UserChangePassword)]
         public async Task<IActionResult> ChangeUserPassword([FromBody] ChangePasswordRequest model)
         {
-            return _codeFactory.GetStatusCode(await _service.ChangePassword(HttpContext, model, false));
+            return _codeFactory.GetStatusCode(await _service.ChangePassword(model, false));
         }
 
         /// <summary>

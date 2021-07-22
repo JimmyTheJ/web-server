@@ -83,7 +83,11 @@ namespace VueServer.Models.Identity
 
         public Task SetNormalizedUserNameAsync(WSUser user, string normalizedName, CancellationToken cancellationToken)
         {
-            user.NormalizedUserName = normalizedName;
+            if (normalizedName != user.Id.ToUpper())
+            {
+                user.NormalizedUserName = normalizedName;
+            }
+
             return Task.CompletedTask;
         }
 

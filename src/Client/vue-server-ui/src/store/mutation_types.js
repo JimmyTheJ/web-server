@@ -6,6 +6,8 @@ export const LOGIN_SUCCESS = 'LOGIN_SUCCESS'
 export const LOGIN_FAILED = 'LOGIN_FAILED'
 export const LOGOUT = 'LOGOUT'
 
+export const CHANGED_PASSWORD = 'CHANGED_PASSWORD'
+
 export const JWT_TOKEN_CREATE = 'JWT_TOKEN_CREATE'
 export const JWT_TOKEN_DESTROY = 'JWT_TOKEN_DESTROY'
 

@@ -10,6 +10,7 @@ namespace VueServer.Models.Response
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Avatar { get; set; }
+        public bool ChangePassword { get; set; }
 
         public WSUserResponse() { }
 

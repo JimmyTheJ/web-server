@@ -90,12 +90,12 @@ export default {
     },
   },
   beforeDestroy() {
-    window.removeEventListener('keyup', this.enterKeyListener)
+    //window.removeEventListener('keyup', this.enterKeyListener)
   },
   mounted() {
-    window.addEventListener('keyup', this.enterKeyListener)
+    //window.addEventListener('keyup', this.enterKeyListener)
 
-    this.form.role = this.getRoleList[0].value
+    this.form.role = this.getRoleList[2].value
   },
   methods: {
     enterKeyListener(e) {

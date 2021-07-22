@@ -110,6 +110,23 @@ const actions = {
       return await Promise.reject(e.response)
     }
   },
+  async passwordChanged({ commit }, context) {
+    ConMsgs.methods.$_console_log('[Vuex][Actions] Password Changed: ', context)
+    try {
+      const res = await authAPI.changePassword(context.data, context.isAdmin)
+      if (res.data === true) {
+        commit(types.CHANGED_PASSWORD)
+      }
+
+      return Promise.resolve(res)
+    } catch (e) {
+      ConMsgs.methods.$_console_group(
+        '[Vuex][Actions] Error from password changed',
+        e.response
+      )
+      return await Promise.reject(e.response)
+    }
+  },
   async getModules({ commit }) {
     try {
       return DispatchFactory.request(async () => {
@@ -232,6 +249,9 @@ const mutations = {
     localStorage.removeItem('activeModules')
     localStorage.removeItem('otherUsers')
     localStorage.removeItem('userMap')
+  },
+  [types.CHANGED_PASSWORD](state) {
+    state.user.changePassword = false
   },
   [types.GET_MODULES](state, data) {
     ConMsgs.methods.$_console_log('Mutating get modules')
