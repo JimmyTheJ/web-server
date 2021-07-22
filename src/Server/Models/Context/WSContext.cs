@@ -190,7 +190,9 @@ namespace VueServer.Models.Context
                 Id = Guid.NewGuid().ToString(),
                 UserName = DomainConstants.Authentication.ADMIN_STRING.ToLower(),
                 NormalizedUserName = DomainConstants.Authentication.ADMIN_STRING.ToUpper(),
-                DisplayName = DomainConstants.Authentication.ADMIN_STRING
+                DisplayName = DomainConstants.Authentication.ADMIN_STRING,
+                PasswordExpired = true,
+                Active = false
             };
 
             adminUser.PasswordHash = _passwordHasher.HashPassword(adminUser, DomainConstants.Authentication.DEFAULT_PASSWORD);

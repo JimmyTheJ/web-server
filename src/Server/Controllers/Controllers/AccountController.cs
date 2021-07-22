@@ -31,6 +31,22 @@ namespace VueServer.Controllers
 
         #region -> Actions
 
+        [HttpPost]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route(Route.Account.AdminChangePassword)]
+        public async Task<IActionResult> ChangeAdminPassword([FromBody] ChangePasswordRequest model)
+        {
+            return _codeFactory.GetStatusCode(await _service.ChangePassword(HttpContext, model, true));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = ROLES_ELEVATED_USER)]
+        [Route(Route.Account.UserChangePassword)]
+        public async Task<IActionResult> ChangeUserPassword([FromBody] ChangePasswordRequest model)
+        {
+            return _codeFactory.GetStatusCode(await _service.ChangePassword(HttpContext, model, false));
+        }
+
         /// <summary>
         /// Registering a new user into the Identity Framework
         /// </summary>

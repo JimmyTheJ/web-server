@@ -84,6 +84,8 @@
                 internal const string Login = "login";
                 internal const string Logout = "logout";
                 internal const string RefreshJwt = "refresh-jwt";
+                internal const string AdminChangePassword = "admin/change-password";
+                internal const string UserChangePassword = "user/change-password";
                 internal const string GetAllUsers = "user/get-all";
                 internal const string GetAllOtherUsers = "user/get-all-others";
                 internal const string UpdateAvatar = "user/update-avatar";

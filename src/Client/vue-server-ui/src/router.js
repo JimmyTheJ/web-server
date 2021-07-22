@@ -35,11 +35,7 @@ function addBeforeEnter(router) {
       next()
     }
     // Also allow access to index / login
-    else if (
-      to.name === 'index' ||
-      to.name === 'login' ||
-      to.name == 'register'
-    ) {
+    else if (to.name === 'index' || to.name === 'login') {
       next()
     }
     // Allow access to paths that have no access level requirement

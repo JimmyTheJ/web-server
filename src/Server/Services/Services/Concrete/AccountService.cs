@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using VueServer.Core.Cache;
 using VueServer.Core.Helper;
 using VueServer.Core.Objects;
+using VueServer.Domain;
 using VueServer.Domain.Interface;
 using VueServer.Models.Account;
 using VueServer.Models.Context;
@@ -123,6 +124,17 @@ namespace VueServer.Services.Concrete
 
             // Creation of user was successful
             return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
+        }
+
+        public async Task<IResult<bool>> ChangePassword(HttpContext context, ChangePasswordRequest model, bool isAdmin)
+        {
+            var user = await _userManager.FindByIdAsync(_user.Id);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            if (!isAdmin)
+                return await ChangeUserPassword(user, roles, model);
+            else
+                return await ChangeAdminPassword(user, roles, model);
         }
 
         public async Task<IResult<LoginResponse>> Login(HttpContext context, LoginRequest model)
@@ -452,6 +464,107 @@ namespace VueServer.Services.Concrete
         #endregion
 
         #region -> Private Functions
+
+        private bool IsAdminFirstTimeLogin(WSUser user, string pw) => user.PasswordExpired && !user.Active && string.IsNullOrWhiteSpace(pw);
+
+        private async Task<IResult<bool>> ChangeUserPassword(WSUser user, IList<string> roles, ChangePasswordRequest model)
+        {
+            if (roles.Contains(DomainConstants.Authentication.ADMINISTRATOR_STRING))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Administrators should use the /api/account/admin to change their password");
+                return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
+            }
+
+            // User is not an administrator
+
+            if (string.IsNullOrWhiteSpace(model.OldPassword))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Request requires an old password");
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            var passwordChange = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+            if (passwordChange.Succeeded)
+            {
+                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User password for user '{user.DisplayName}' changed successfully");
+
+                if (user.PasswordExpired)
+                {
+                    try
+                    {
+                        user.PasswordExpired = false;
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (Exception)
+                    {
+                        _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after changing password for user '{_user.IP}'");
+                        return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+                    }
+                }
+
+                return new Result<bool>(true, Domain.Enums.StatusCode.OK);
+            }
+            else
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User password for user '{user.DisplayName}' failed to change password");
+                return new Result<bool>(false, Domain.Enums.StatusCode.UNAUTHORIZED);
+            }
+        }
+
+        private async Task<IResult<bool>> ChangeAdminPassword(WSUser user, IList<string> roles, ChangePasswordRequest model)
+        {
+            if (!roles.Contains(DomainConstants.Authentication.ADMINISTRATOR_STRING))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Administrators should use the /api/account/admin to change their password");
+                return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
+            }
+            else
+            {
+                // User is an administrator
+
+                // If user is an administrator, has an expired password, has an innactive account and the model 
+                // doesn't contain an old password then this is our first login password change activation
+                if (IsAdminFirstTimeLogin(user, model.OldPassword))
+                {
+                    model.OldPassword = DomainConstants.Authentication.DEFAULT_PASSWORD;
+                }
+                // Model doesn't have an old password, but we aren't the on a first time login, so the request in invalid
+                else if (string.IsNullOrWhiteSpace(model.OldPassword))
+                {
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Request requires an old password");
+                    return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
+                }
+
+                var passwordChange = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+                if (passwordChange.Succeeded)
+                {
+                    _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Administrator password for user '{user.DisplayName}' changed successfully");
+
+                    if (user.PasswordExpired)
+                    {
+                        if (IsAdminFirstTimeLogin(user, model.OldPassword))
+                            user.Active = true;
+                        user.PasswordExpired = false;
+                        try
+                        {
+                            await _context.SaveChangesAsync();
+                        }
+                        catch (Exception)
+                        {
+                            _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after changing password for user '{_user.IP}'");
+                            return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
+                        }
+                    }
+
+                    return new Result<bool>(true, Domain.Enums.StatusCode.OK);
+                }
+                else
+                {
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Administrator password for user '{user.DisplayName}' failed to change password");
+                    return new Result<bool>(false, Domain.Enums.StatusCode.UNAUTHORIZED);
+                }
+            }
+        }
 
         private async Task Signout(HttpContext context, string username)
         {

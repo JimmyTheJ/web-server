@@ -23,6 +23,12 @@ namespace VueServer.Models.User
         [JsonIgnore]
         public string PasswordHash { get; set; }
 
+        [JsonIgnore]
+        public bool PasswordExpired { get; set; }
+
+        [JsonIgnore]
+        public bool Active { get; set; }
+
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public virtual IList<WSUserInRoles> Roles { get; set; }
