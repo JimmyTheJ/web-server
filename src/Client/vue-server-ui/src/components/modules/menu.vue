@@ -5,7 +5,7 @@
       v-model="drawer"
       class="grey lighten-4"
       disable-resize-watcher
-      width="150"
+      width="180"
       :height="getDrawerHeight"
       absolute
       app

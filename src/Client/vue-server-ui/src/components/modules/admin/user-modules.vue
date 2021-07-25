@@ -1,97 +1,65 @@
 <template>
-  <v-container>
-    <v-card>
-      <v-card-title>
-        Manage User's modules
-      </v-card-title>
-      <v-card-text>
-        <v-layout row>
-          <v-flex xs12 sm12 md4>
-            <v-list-item-group v-model="selectedUserPosition">
-              <v-list-item v-for="(item, index) in userList" :key="index">
+  <v-card>
+    <v-card-title>
+      Manage User's modules
+    </v-card-title>
+    <v-card-text>
+      <v-layout row>
+        <v-flex xs12 sm12 md4>
+          <v-list-item-group v-model="selectedUserPosition">
+            <v-list-item v-for="(item, index) in userList" :key="index">
+              <v-list-item-content>
+                {{ item.displayName }}
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-item-group>
+        </v-flex>
+        <v-flex xs12 sm6 md4>
+          <v-list-item-group v-model="selectedModulePosition">
+            <template v-for="(item, index) in moduleList">
+              <v-list-item :key="index">
+                <v-list-item-icon @click="addModuleToUser(item)">
+                  <fa-icon icon="check" v-if="userHasModule(item)"></fa-icon>
+                  <fa-icon icon="times" v-else></fa-icon>
+                </v-list-item-icon>
                 <v-list-item-content>
-                  {{ item.displayName }}
+                  {{ item.name }}
                 </v-list-item-content>
               </v-list-item>
-            </v-list-item-group>
-          </v-flex>
-          <v-flex xs12 sm6 md4>
-            <v-list-item-group v-model="selectedModulePosition">
-              <template v-for="(item, index) in moduleList">
-                <v-list-item :key="index">
-                  <v-list-item-icon @click="addModuleToUser(item)">
-                    <fa-icon icon="check" v-if="userHasModule(item)"></fa-icon>
-                    <fa-icon icon="times" v-else></fa-icon>
-                  </v-list-item-icon>
-                  <v-list-item-content>
-                    {{ item.name }}
-                  </v-list-item-content>
-                </v-list-item>
-              </template>
-            </v-list-item-group>
-          </v-flex>
-          <v-flex xs12 sm6 md4>
-            <v-list
-              v-if="
-                typeof selectedModule === 'object' && selectedModule !== null
-              "
-            >
-              <template v-for="(item, index) in selectedModule.features">
-                <v-list-item :key="index">
-                  <v-list-item-icon @click="addFeatureToUser(item)">
-                    <fa-icon icon="check" v-if="userHasFeature(item)"></fa-icon>
-                    <fa-icon icon="times" v-else></fa-icon>
-                  </v-list-item-icon>
-                  <v-list-item-content>
-                    {{ item.name }}
-                  </v-list-item-content>
-                </v-list-item>
-              </template>
-            </v-list>
-          </v-flex>
-        </v-layout>
-      </v-card-text>
-    </v-card>
-    <v-card>
-      <v-card-title>Guest Logins</v-card-title>
-      <v-card-text>
-        <div v-for="(guest, i) in guestLoginList" :key="i">
-          <v-layout row>
-            <v-flex xs5 px-1>
-              <v-text-field
-                v-model="guest.iPAddress"
-                label="IP Address:"
-                readonly
-              />
-            </v-flex>
-            <v-flex xs3 px-1>
-              <v-text-field
-                v-model="guest.failedLogins"
-                label="Failed logins:"
-                readonly
-              />
-            </v-flex>
-            <v-flex xs2 px-1>
-              <v-text-field v-model="guest.blocked" label="Blocked:" readonly />
-            </v-flex>
-            <v-flex xs2 px-1 mt-3>
-              <v-btn icon @click="unblockGuest(guest.iPAddress)"
-                ><fa-icon icon="window-close" size="md"></fa-icon
-              ></v-btn>
-            </v-flex>
-          </v-layout>
-        </div>
-      </v-card-text>
-    </v-card>
-  </v-container>
+            </template>
+          </v-list-item-group>
+        </v-flex>
+        <v-flex xs12 sm6 md4>
+          <v-list
+            v-if="typeof selectedModule === 'object' && selectedModule !== null"
+          >
+            <template v-for="(item, index) in selectedModule.features">
+              <v-list-item :key="index">
+                <v-list-item-icon @click="addFeatureToUser(item)">
+                  <fa-icon icon="check" v-if="userHasFeature(item)"></fa-icon>
+                  <fa-icon icon="times" v-else></fa-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  {{ item.name }}
+                </v-list-item-content>
+              </v-list-item>
+            </template>
+          </v-list>
+        </v-flex>
+      </v-layout>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script>
-import authService from '../../services/auth'
-import moduleService from '../../services/modules'
-import DispatchFactory from '../../factories/dispatchFactory'
+const FN = 'user-modules'
+
+import authService from '@/services/auth'
+import moduleService from '@/services/modules'
+import DispatchFactory from '@/factories/dispatchFactory'
 
 export default {
+  name: 'user-modules',
   data() {
     return {
       selectedModule: null,
@@ -103,7 +71,6 @@ export default {
       usersHaveModuleList: [],
       selectedUserModuleList: [],
       selectedUserFeatureList: [],
-      guestLoginList: [],
     }
   },
   mounted() {
@@ -138,13 +105,11 @@ export default {
         authService
           .getUsers()
           .then(resp => {
-            this.$_console_log(
-              '[admin-tools] getData: Successfully got user list'
-            )
+            this.$_console_log(`[${FN}] getData: Successfully got user list`)
             this.userList = resp.data
           })
           .catch(() =>
-            this.$_console_log('[admin-tools] getData: Failed to get user list')
+            this.$_console_log(`${FN} getData: Failed to get user list`)
           )
       })
 
@@ -152,15 +117,11 @@ export default {
         moduleService
           .getAllModules()
           .then(resp => {
-            this.$_console_log(
-              '[admin-tools] getData: Successfully got module list'
-            )
+            this.$_console_log(`${FN} getData: Successfully got module list`)
             this.moduleList = resp.data
           })
           .catch(() =>
-            this.$_console_log(
-              '[admin-tools] getData: Failed to get module list'
-            )
+            this.$_console_log(`${FN} getData: Failed to get module list`)
           )
       })
 
@@ -169,13 +130,13 @@ export default {
           .getAllModulesForAllUser()
           .then(resp => {
             this.$_console_log(
-              '[admin-tools] getData: Successfully got user has module list'
+              `${FN} getData: Successfully got user has module list`
             )
             this.usersHaveModuleList = resp.data
           })
           .catch(() =>
             this.$_console_log(
-              '[admin-tools] getData: Failed to get module lists for users'
+              `${FN} getData: Failed to get module lists for users`
             )
           )
       })
@@ -185,14 +146,12 @@ export default {
           .getGuestLogins()
           .then(resp => {
             this.$_console_log(
-              '[admin-tools] getData: Successfully got guest login list'
+              `${FN} getData: Successfully got guest login list`
             )
             this.guestLoginList = resp.data
           })
           .catch(() =>
-            this.$_console_log(
-              '[admin-tools] getData: Failed to get guest login list'
-            )
+            this.$_console_log(`${FN} getData: Failed to get guest login list`)
           )
       })
     },
@@ -201,14 +160,12 @@ export default {
         typeof this.selectedUser === 'undefined' ||
         this.selectedUser === null
       ) {
-        this.$_console_log(
-          '[admin-tools] deleteModuleFromUser: selected user is null'
-        )
+        this.$_console_log(`${FN} deleteModuleFromUser: selected user is null`)
         return false
       }
 
       if (typeof module === 'undefined' || module === null) {
-        this.$_console_log('[admin-tools] deleteModuleFromUser: module is null')
+        this.$_console_log(`${FN} deleteModuleFromUser: module is null`)
         return false
       }
 
@@ -223,7 +180,7 @@ export default {
           .deleteModuleFromUser(obj)
           .then(() => {
             this.$_console_log(
-              '[admin-tools] deleteModuleFromUser: Successfully deleted module from user'
+              `${FN} deleteModuleFromUser: Successfully deleted module from user`
             )
             const index = this.usersHaveModuleList[obj.userId].findIndex(
               x => x.id === module.id
@@ -231,7 +188,7 @@ export default {
             if (index < 0) {
               // Failed somehow...
               this.$_console_log(
-                "[admmin-tools] deleteModuleFromuser: Index doesn't exist"
+                `[admmin-tools] deleteModuleFromuser: Index doesn't exist`
               )
             } else {
               this.usersHaveModuleList[obj.userId].splice(index, 1)
@@ -240,7 +197,7 @@ export default {
           })
           .catch(() =>
             this.$_console_log(
-              '[admin-tools] deleteModuleFromUser: Failed to delete module from user'
+              `[${FN}] deleteModuleFromUser: Failed to delete module from user`
             )
           )
       })
@@ -251,15 +208,13 @@ export default {
         this.selectedModule === null
       ) {
         this.$_console_log(
-          '[admin-tools] deleteFeatureFromUser: selected user is null'
+          `[${FN}] deleteFeatureFromUser: selected user is null`
         )
         return false
       }
 
       if (typeof feature === 'undefined' || feature === null) {
-        this.$_console_log(
-          '[admin-tools] deleteFeatureFromUser: module is null'
-        )
+        this.$_console_log(`[${FN}] deleteFeatureFromUser: module is null`)
         return false
       }
 
@@ -276,7 +231,7 @@ export default {
           .deleteFeatureFromUser(obj)
           .then(() => {
             this.$_console_log(
-              '[admin-tools] deleteFeatureFromUser: Successfully deleted feature from user'
+              `[${FN}] deleteFeatureFromUser: Successfully deleted feature from user`
             )
 
             const moduleIndex = this.usersHaveModuleList[obj.userId].findIndex(
@@ -285,7 +240,7 @@ export default {
             if (moduleIndex < 0) {
               // It failed somehow
               this.$_console_log(
-                "[admmin-tools] deleteFeatureFromUser: Module index doesn't exist"
+                `[admmin-tools] deleteFeatureFromUser: Module index doesn't exist`
               )
             } else {
               if (
@@ -295,20 +250,20 @@ export default {
               ) {
                 // It failed somehow
                 this.$_console_log(
-                  "[admmin-tools] deleteFeatureFromUser: Selected user doesn't have any features for this module"
+                  `[admmin-tools] deleteFeatureFromUser: Selected user doesn't have any features for this module`
                 )
               } else {
                 const featureIndex = this.usersHaveModuleList[obj.userId][
                   moduleIndex
                 ].features.findIndex(x => x.id === feature.id)
                 this.$_console_log(
-                  '[admin-tools] deleteFeatureFromUser: Got feature id, ',
+                  '[${FN}] deleteFeatureFromUser: Got feature id, ',
                   featureIndex
                 )
                 if (featureIndex < 0) {
                   // It failed somehow
                   this.$_console_log(
-                    "[admmin-tools] deleteFeatureFromUser: Feature index doesn't exist"
+                    `[admmin-tools] deleteFeatureFromUser: Feature index doesn't exist`
                   )
                 } else {
                   this.usersHaveModuleList[obj.userId][
@@ -320,7 +275,7 @@ export default {
           })
           .catch(ex =>
             this.$_console_log(
-              '[admin-tools] deleteFeatureFromUser: Failed to delete feature from user',
+              `[${FN}] deleteFeatureFromUser: Failed to delete feature from user`,
               ex
             )
           )
@@ -345,7 +300,7 @@ export default {
           .then(resp => {
             if (resp.data === true) {
               this.$_console_log(
-                '[admin-tools] addModuleToUser: Successfully added module to user'
+                `[${FN}] addModuleToUser: Successfully added module to user`
               )
 
               if (!Array.isArray(this.usersHaveModuleList[obj.userId]))
@@ -358,7 +313,7 @@ export default {
           })
           .catch(() =>
             this.$_console_log(
-              '[admin-tools] addModuleToUser: Failed to get add module to user'
+              `[${FN}] addModuleToUser: Failed to get add module to user`
             )
           )
       })
@@ -377,7 +332,7 @@ export default {
 
       if (!Array.isArray(this.usersHaveModuleList[obj.userId])) {
         this.$_console_log(
-          "[admin-tools] addFeatureToUser: Can't add a feature to a user that doesn't have any modules"
+          `[${FN}] addFeatureToUser: Can't add a feature to a user that doesn't have any modules`
         )
         return
       }
@@ -388,7 +343,7 @@ export default {
       )
       if (moduleIndex < 0) {
         this.$_console_log(
-          "[admin-tools] addFeatureToUser: Can't add a feature to a user that doesn't have the corresponding module"
+          `[${FN}] addFeatureToUser: Can't add a feature to a user that doesn't have the corresponding module`
         )
         return
       }
@@ -399,7 +354,7 @@ export default {
           .then(resp => {
             if (resp.data === true) {
               this.$_console_log(
-                '[admin-tools] addFeatureToUser: Successfully added feature to user'
+                `[${FN}] addFeatureToUser: Successfully added feature to user`
               )
 
               if (
@@ -417,7 +372,7 @@ export default {
           })
           .catch(() =>
             this.$_console_log(
-              '[admin-tools] addFeatureToUser: Failed to get add feature to user'
+              `[${FN}] addFeatureToUser: Failed to get add feature to user`
             )
           )
       })
@@ -427,18 +382,18 @@ export default {
         typeof this.selectedUser === 'undefined' ||
         this.selectedUser === null
       ) {
-        this.$_console_log('[admin-tools] userHasModule: selected user is null')
+        this.$_console_log(`[${FN}] userHasModule: selected user is null`)
         return false
       }
 
       if (typeof module === 'undefined' || module === null) {
-        this.$_console_log('[admin-tools] userHasModule: module is null')
+        this.$_console_log(`[${FN}] userHasModule: module is null`)
         return false
       }
 
       if (!Array.isArray(this.selectedUserModuleList)) {
         this.$_console_log(
-          '[admin-tools] userHasModule: selected user module list is not an array'
+          `[${FN}] userHasModule: selected user module list is not an array`
         )
         return false
       }
@@ -450,9 +405,7 @@ export default {
         typeof this.selectedUser === 'undefined' ||
         this.selectedUser === null
       ) {
-        this.$_console_log(
-          '[admin-tools] userHasFeature: selected user is null'
-        )
+        this.$_console_log(`[${FN}] userHasFeature: selected user is null`)
         return false
       }
 
@@ -460,20 +413,18 @@ export default {
         typeof this.selectedModule === 'undefined' ||
         this.selectedModule === null
       ) {
-        this.$_console_log(
-          '[admin-tools] userHasFeature: selected module is null'
-        )
+        this.$_console_log(`[${FN}] userHasFeature: selected module is null`)
         return false
       }
 
       if (typeof feature === 'undefined' || feature === null) {
-        this.$_console_log('[admin-tools] userHasFeature: feature is null')
+        this.$_console_log(`[${FN}] userHasFeature: feature is null`)
         return false
       }
 
       if (!Array.isArray(this.selectedUserModuleList)) {
         this.$_console_log(
-          '[admin-tools] userHasModule: selected user module list is not an array'
+          `[${FN}] userHasModule: selected user module list is not an array`
         )
         return false
       }
@@ -497,34 +448,15 @@ export default {
       return false
     },
     updateSelectedUserList(value) {
-      this.$_console_log('Update Selected User List')
+      this.$_console_log(
+        `[${FN}] updateSelectedUserList: Update Selected User List`
+      )
       if (typeof value === 'undefined' || value === null) {
         this.selectedUserModuleList = []
         return
       }
 
       this.selectedUserModuleList = this.usersHaveModuleList[value.id]
-    },
-    unblockGuest(ip) {
-      DispatchFactory.request(() => {
-        authService
-          .unblockGuest(ip)
-          .then(resp => {
-            this.$_console_log(
-              '[admin-tools] unblockGuest: Successfully unblocked IP'
-            )
-            let login = this.guestLoginList.find(x => x.iPAddress == ip)
-            if (login !== undefined) {
-              login.blocked = false
-              login.failedLogins = 0
-            }
-          })
-          .catch(() =>
-            this.$_console_log(
-              '[admin-tools] unblockGuest: Failed to unblock IP'
-            )
-          )
-      })
     },
   },
 }

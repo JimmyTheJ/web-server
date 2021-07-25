@@ -501,6 +501,7 @@ namespace VueServer.Services.Concrete
                 {
                     try
                     {
+                        _context.Users.Update(user);
                         user.PasswordExpired = false;
                         await _context.SaveChangesAsync();
                     }

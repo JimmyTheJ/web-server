@@ -2,14 +2,13 @@ import { Roles } from './constants'
 
 import Index from './components/index'
 import Login from './components/modules/login'
-import UserManagement from './components/modules/user-management'
+
+import UserManagement from './components/pages/user-management'
 
 import Home from './components/home'
 import Start from './components/pages/start'
-import ChangePassword from './components/modules/change-password'
 import Profile from './components/pages/profile'
 
-import AdminTools from './components/pages/admin-tools'
 import Chat from './components/pages/chat-messaging'
 import Browser from './components/pages/browser'
 import Notes from './components/pages/notes'
@@ -57,31 +56,11 @@ export const baseRoutes = [
           hidden: false,
         },
       },
-      {
-        path: 'change-password',
-        name: 'change-password',
-        component: ChangePassword,
-        meta: {
-          display: 'Change Password',
-          authLevel: Roles.Level.Default,
-          hidden: true,
-        },
-      },
     ],
   },
 ]
 
 export const adminRoutes = [
-  {
-    path: 'admin-tools',
-    name: 'admin-tools',
-    component: AdminTools,
-    meta: {
-      display: 'Admin Tools',
-      authLevel: Roles.Level.Admin,
-      hidden: false,
-    },
-  },
   {
     path: 'user-management',
     name: 'user-management',

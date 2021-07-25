@@ -6,6 +6,7 @@
     <v-form ref="form" v-model="valid" lazy-validation>
       <v-text-field
         v-model="auth.user.displayName"
+        v-show="!hideUsername"
         :label="`Username`"
         name="Username"
         readonly
@@ -48,7 +49,6 @@
 </template>
 
 <script>
-import service from '../../services/auth.js'
 import { Roles } from '../../constants.js'
 import { mapState } from 'vuex'
 
@@ -73,7 +73,10 @@ export default {
       valid: true,
       btnClicked: false,
       rules: {
-        newPassword: [v => !!v || 'Required'],
+        newPassword: [
+          v => !!v || 'Required',
+          v => v.length >= 16 || 'Password must be at least 16 characters',
+        ],
         confirmNewPassword: [
           v => !!v || 'Required',
           v => v === this.form.newPassword || 'Passwords must match',
@@ -82,7 +85,11 @@ export default {
       error: false,
     }
   },
-  created() {},
+  props: {
+    hideUsername: {
+      type: Boolean,
+    },
+  },
   computed: {
     ...mapState({
       auth: state => state.auth,

@@ -28,7 +28,7 @@ export default {
   },
   created() {
     if (!this.$store.state.auth.isAuthorize) this.$router.push('/')
-    if (this.user.changePassword) this.$router.push({ name: 'change-password' })
+    if (this.user.changePassword) this.$router.push({ name: 'profile' })
     if (this.$route.fullPath === '/home') this.$router.push({ name: 'start' })
 
     this.getUserConversations()
