@@ -18,6 +18,9 @@
           <user-modules />
         </v-tab-item>
         <v-tab-item key="1">
+          <register-user />
+        </v-tab-item>
+        <v-tab-item key="2">
           <guest-logins />
         </v-tab-item>
       </v-tabs-items>
@@ -29,18 +32,20 @@
 import Auth from '../../mixins/authentication'
 import UserModules from '../modules/admin/user-modules.vue'
 import GuestLogins from '../modules/admin/guest-logins.vue'
+import RegisterUser from '../modules/admin/register-user.vue'
 
 export default {
   mixins: [Auth],
   data() {
     return {
       tab: null,
-      tabs: ['User Modules', 'Guest Logins'],
+      tabs: ['User Modules', 'Register Users', 'Guest Logins'],
     }
   },
   components: {
     'user-modules': UserModules,
     'guest-logins': GuestLogins,
+    'register-user': RegisterUser,
   },
   computed: {},
   beforeDestroy() {},
