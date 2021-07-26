@@ -14,6 +14,7 @@
 </template>
 
 <script>
+const FN = 'Video Player'
 import { mapState } from 'vuex'
 
 export default {
@@ -21,16 +22,18 @@ export default {
   data() {
     return {
       player: null,
-      path: null,
     }
   },
   props: {
+    dialog: {
+      type: Boolean,
+    },
     url: {
       type: String,
       required: true,
     },
-    on: {
-      type: Boolean,
+    file: {
+      type: Object,
       required: true,
     },
   },
@@ -40,23 +43,22 @@ export default {
   computed: {
     ...mapState({
       accessToken: state => state.auth.accessToken,
+      fileExplorer: state => state.fileExplorer,
     }),
     type: function() {
-      if (typeof this.url === 'undefined' || this.url === '') {
-        this.$_console_log('[VIDEO PLAYER] type: Undefined or empty')
-        return ''
+      if (
+        typeof this.fileExplorer.file === 'undefined' ||
+        this.fileExplorer.file === null
+      ) {
+        this.$_console_log(`[${FN}] type: File is undefined or null`)
+        return null
+      } else if (this.fileExplorer.file.isFolder) {
+        this.$_console_log(`[${FN}] type: File is a folder, it has no type`)
+        return null
       }
-
-      if (!this.url.includes('.')) {
-        this.$_console_log("[VIDEO PLAYER] type: Doesn't include a period (.) ")
-        return ''
-      }
-
-      const index = this.url.lastIndexOf('.')
-      const extension = this.url.slice(index).toLowerCase()
 
       // TODO: Create exhaustive list of extensions
-      switch (extension) {
+      switch (this.fileExplorer.file.extension) {
         case '.mkv':
         case '.avi':
         case '.mpeg':
@@ -69,48 +71,11 @@ export default {
         case '.mp3':
           return 'audio/mpeg'
         default:
-          return ''
+          return null
       }
     },
-  },
-  watch: {
-    on(newValue) {
-      this.pausePlayer()
-      if (newValue === true) this.loadPlayer()
-    },
-    url(newValue) {
-      this.$_console_log('[Video Player] Url watcher: url value', newValue)
-
-      this.pausePlayer()
-
-      if (
-        typeof newValue === 'undefined' ||
-        newValue === null ||
-        newValue === ''
-      ) {
-        this.$_console_log('[Video Player] Empty url string')
-        return
-      } else {
-        this.loadPlayer()
-      }
-    },
-  },
-  methods: {
-    loadPlayer() {
-      this.path = `${process.env.VUE_APP_API_URL}/api/serve-file/${this.url}?token=${this.accessToken}`
-
-      const self = this
-      setTimeout(() => {
-        self.player.load()
-        if (self.player.canPlayType(self.type)) {
-          self.player.play()
-        } else {
-          self.$_console_log("[Video Player] Load Player: Can't play type")
-        }
-      }, 25)
-    },
-    pausePlayer() {
-      this.player.pause()
+    path: function() {
+      return `${process.env.VUE_APP_API_URL}/api/serve-file/${this.url}?token=${this.accessToken}`
     },
   },
 }

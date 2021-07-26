@@ -1,3 +1,5 @@
+import { MediaTypes } from '../constants'
+
 export const getSubdirectoryString = function(subDirs) {
   let path = ''
 
@@ -59,4 +61,31 @@ export const splitPathFromRoute = function(path) {
   }
 
   return obj
+}
+
+export const getFileType = function(file) {
+  if (typeof file === 'undefined' || file === null) return null
+  else {
+    switch (file.extension) {
+      case '.mkv':
+      case '.avi':
+      case '.mpeg':
+      case '.mpg':
+      case '.mp4':
+      case '.wmv':
+      case '.webm':
+      case '.mp3':
+        return MediaTypes.Video
+      case '.jpg':
+      case '.jpeg':
+      case '.gif':
+      case '.tiff':
+      case '.bmp':
+      case '.png':
+      case '.img':
+        return MediaTypes.Image
+      default:
+        return MediaTypes.Text
+    }
+  }
 }

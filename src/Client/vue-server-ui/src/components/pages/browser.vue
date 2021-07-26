@@ -1,78 +1,45 @@
 <template>
   <div>
-    <file-explorer
-      parentView="browser"
-      :goFile="goFile"
-      @loadFile="loadFile"
-    ></file-explorer>
+    <file-explorer parentView="browser"></file-explorer>
 
     <generic-dialog
       :title="dialogTitle"
       :open="dialogOpen"
       @dialog-close="dialogOpen = false"
     >
-      <file-viewer @file-back="browserGo(-1)" @file-forward="browserGo(1)">
-        <template v-if="type === mediaTypes.video">
-          <video-player :url="path" :on="on" @player-off="on = false" />
-        </template>
-        <template v-else-if="type === mediaTypes.image">
-          <image-viewer :url="path" />
-        </template>
-        <template v-else-if="type === mediaTypes.text">
-          <text-viewer :url="path" :on="on" @text-off="on = false" />
-        </template>
-      </file-viewer>
+      <file-viewer :dialog="dialogOpen" :activeIndex="activeIndex" />
     </generic-dialog>
   </div>
 </template>
 
 <script>
-import Service from '../../services/file-explorer'
+const FN = 'Browser'
 
-import Explorer from '../modules/file-explorer'
-import FileViewer from '../modules/viewers/file-viewer'
-import VideoPlayer from '../modules/viewers/video-player'
-import TextViewer from '../modules/viewers/text-viewer'
-import ImageViewer from '../modules/viewers/image-viewer'
-import GenericDialog from '../modules/generic-dialog.vue'
+import { mapState } from 'vuex'
 
-import { Roles } from '../../constants'
+import Explorer from '@/components/modules/file-explorer'
+import FileViewer from '@/components/modules/viewers/file-viewer'
+import GenericDialog from '@/components/modules/generic-dialog.vue'
 
-import store from '../../store/index'
-import router from '../../router'
-import ConMsgs from '../../mixins/console'
+import { getFileType } from '@/helpers/browser'
+import { MediaTypes, Delay } from '@/constants'
+
+import store from '@/store/index'
+import router from '@/router'
+import ConMsgs from '@/mixins/console'
 
 export default {
   data() {
     return {
-      level: 0,
-      folders: [],
-
-      type: null,
-      path: null,
-      on: false,
-
       dialogOpen: false,
-
-      mediaTypes: {
-        video: 'video',
-        image: 'image',
-        text: 'text',
-      },
-
-      goFile: {
-        file: null,
-        num: 0,
-      },
+      dialogTitle: null,
+      activeIndex: -1,
     }
   },
   components: {
     'generic-dialog': GenericDialog,
     'file-explorer': Explorer,
     'file-viewer': FileViewer,
-    'video-player': VideoPlayer,
-    'text-viewer': TextViewer,
-    'image-viewer': ImageViewer,
   },
   async beforeRouteEnter(to, from, next) {
     let success = await handleRouteChange(to, from, next)
@@ -107,132 +74,92 @@ export default {
 
     next()
   },
-  created() {
-    let role = this.$store.state.auth.role
-
-    // TODO: Get the list from the server
-    if (role === Roles.Name.Admin) {
-      this.level = Roles.Level.Admin
-    } else if (role === Roles.Name.Elevated) {
-      this.level = Roles.Level.Elevated
-    } else if (role === Roles.Name.General) {
-      this.level = Roles.Level.General
-    } else this.$router.push({ name: 'start' })
-  },
   computed: {
-    dialogTitle() {
-      switch (this.type) {
-        case this.mediaTypes.video:
-          return 'Video Player'
-        case this.mediaTypes.image:
-          return 'Image Viewer'
-        case this.mediaTypes.text:
-          return 'Text Viewer'
-      }
-    },
+    ...mapState({
+      fileExplorer: state => state.fileExplorer,
+    }),
   },
   watch: {
-    dialogOpen(newValue) {
-      // Close dialog
-      if (newValue === false) {
-        // If our player isn't on
-        if (!this.on) {
-          const self = this
-          // Turn it on so when we turn it off it'll flip the watcher
-          this.on = true
-          setTimeout(() => {
-            self.on = false
-          }, 50)
+    'fileExplorer.file': {
+      handler(newValue, oldValue) {
+        this.$_console_log(
+          `[${FN}] file watcher: old value / new value`,
+          oldValue,
+          newValue
+        )
+
+        // If the dialog isn't open, and we aren't in the process
+        // of closing it or an active file then open the dialog
+        if (
+          !this.dialogOpen &&
+          typeof newValue !== 'undefined' &&
+          newValue != null
+        ) {
+          this.dialogOpen = true
+
+          this.$nextTick(() => {
+            let index = this.fileExplorer.filteredFiles.findIndex(
+              x => x.title === newValue.title
+            )
+
+            this.$_console_log(
+              `[${FN}] fileExplorer.file watcher: replace old with new`,
+              index
+            )
+
+            if (index >= 0) this.activeIndex = index
+          })
         }
-        // Otherwise just turn it off
+        // Closing the dialog. Cleanup.
+        else if (typeof newValue === 'undefined' || newValue === null) {
+          this.dialogOpen = false
+
+          // When closing the dialog we also need to make sure the video players stop.
+          // The code in the activeItem watcher in file-viewer isn't going to trigger
+          let videoElements = document.getElementsByClassName('video-player')
+          videoElements.forEach(item => {
+            item.pause()
+          })
+        } else if (oldValue == newValue);
         else {
-          this.on = false
+          // Situation like where we already have the file viewer open but we are switching
+          // between files in the carousel. In this case we need to update the dialog title
+          // It's a bit annoying having to do this here. Considering putting something in
+          // the vuex store to handle it so we don't need to
+          this.updateDialogTitle()
         }
+      },
+      deep: true,
+    },
+    dialogOpen: function(newValue) {
+      if (!newValue) {
+        this.$store.dispatch('loadFile', null)
+        this.activeIndex = -1
+      } else {
+        this.updateDialogTitle()
       }
     },
   },
   methods: {
-    getType(file) {
-      if (typeof file === 'undefined' || file === '') {
-        this.$_console_log('[File Viewer] getType: Undefined or empty')
-        return this.mediaTypes.text
-      }
+    updateDialogTitle() {
+      let fileType = getFileType(this.fileExplorer.file)
+      this.$_console_log(
+        `[${FN}] updateDialogTitle: ${fileType} - ${typeof fileType}`
+      )
 
-      if (!file.includes('.')) {
-        this.$_console_log(
-          "[File Viewer] getType: Doesn't include a period (.) "
-        )
-        return this.mediaTypes.text
-      }
-
-      const index = file.lastIndexOf('.')
-      const extension = file.slice(index).toLowerCase()
-
-      // TODO: Create exhaustive list of extensions
-      switch (extension) {
-        case '.mkv':
-        case '.avi':
-        case '.mpeg':
-        case '.mpg':
-        case '.mp4':
-        case '.wmv':
-        case '.webm':
-        case '.mp3':
-          return this.mediaTypes.video
-        case '.jpg':
-        case '.jpeg':
-        case '.gif':
-        case '.tiff':
-        case '.bmp':
-        case '.png':
-        case '.img':
-          return this.mediaTypes.image
+      switch (fileType) {
+        case MediaTypes.Video:
+          this.dialogTitle = 'Video Player'
+          break
+        case MediaTypes.Image:
+          this.dialogTitle = 'Image Viewer'
+          break
+        case MediaTypes.Text:
+          this.dialogTitle = 'Text Viewer'
+          break
         default:
-          return this.mediaTypes.text
-      }
-    },
-    loadFile(file) {
-      this.$_console_log('[BROWSER] LoadFile: ', file)
-
-      this.type = this.getType(file)
-
-      this.path = file
-      this.dialogOpen = true
-      setTimeout(() => {
-        this.on = true
-      }, 15)
-    },
-    browserGo(num) {
-      if (typeof num !== 'number' || num === 0) {
-        this.$_console_log('[Browser] Browser Go: Number is not a number or 0')
-        return
-      }
-      if (typeof this.path !== 'string') {
-        this.$_console_log('[Browser] Browser Go: Path is not a string')
-        return
-      }
-
-      let filename
-      if (this.path.includes('/')) {
-        if (this.path.lastIndexOf('/') === this.path.length - 1) {
-          filename = this.path.substring(0, this.path.lastIndexOf('/'))
-          if (filename.includes('/')) {
-            if (filename.lastIndexOf('/') === filename.length - 1) {
-              filename = filename.substring(0, filename.lastIndexOf('/'))
-            } else {
-              filename = filename.substring(filename.lastIndexOf('/') + 1)
-            }
-          }
-        } else {
-          filename = this.path.substring(this.path.lastIndexOf('/') + 1)
-        }
-      } else {
-        filename = this.path
-      }
-
-      this.goFile = {
-        file: filename,
-        num: num,
+          this.dialogTitle = 'Folder'
+          break
       }
     },
   },

@@ -8,6 +8,7 @@ namespace VueServer.Models
         public string Title { get; set; }
         public bool IsFolder { get; set; }
         public long Size { get; set; }
+        public string Extension { get; set; }
 
         public WebServerFile(FileSystemInfo fsi)
         {
@@ -18,24 +19,21 @@ namespace VueServer.Models
         {
             if (fsi == null)
             {
-                Console.WriteLine($"[WebServerFile] BuildFileInfo: fsi is null");
+                Console.WriteLine($"[{GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: fsi is null");
                 return;
             }
 
             Title = fsi.Name;
 
-            //Console.WriteLine("Attributes: " + fsi.Attributes.ToString());
-
             if (fsi.Attributes.HasFlag(FileAttributes.Directory))
             {
-                Size = 0;
                 IsFolder = true;
             }
             else
             {
                 FileInfo info = new FileInfo(fsi.FullName);
                 Size = info.Length;
-                IsFolder = false;
+                Extension = info.Extension;
             }
         }
     }

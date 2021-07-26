@@ -8,6 +8,7 @@
 </template>
 
 <script>
+const FN = 'Image Viewer'
 import { mapState } from 'vuex'
 
 export default {
@@ -21,14 +22,22 @@ export default {
     }
   },
   props: {
+    dialog: {
+      type: Boolean,
+    },
     url: {
       type: String,
+      required: true,
+    },
+    file: {
+      type: Object,
       required: true,
     },
   },
   computed: {
     ...mapState({
       accessToken: state => state.auth.accessToken,
+      fileExplorer: state => state.fileExplorer,
     }),
     getMaxWidth() {
       return this.windowWidth * 0.8
@@ -39,10 +48,17 @@ export default {
     getPath() {
       return `${this.basepath}/api/directory/download/file/${this.url}?token=${this.accessToken}`
     },
+    isActive: function() {
+      return this.file.active
+    },
   },
   watch: {
     url(newValue) {
-      this.$_console_log('[Image Viewer] Url watcher: url value', newValue)
+      this.$_console_log(`[${FN}] Url watcher: url value`, newValue)
+    },
+    isActive(newValue) {
+      this.$_console_log(`[${FN}] isActive watcher: new value -> ${newValue}`)
+      if (newValue === true); // noop
     },
   },
   mounted() {

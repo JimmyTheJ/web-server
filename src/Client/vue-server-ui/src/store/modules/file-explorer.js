@@ -9,10 +9,12 @@ import DispatchFactory from '../../factories/dispatchFactory'
 
 const state = {
   contents: [],
+  filteredFiles: [],
   folders: [],
   directory: '',
   subDirectories: [],
   loadingContents: false,
+  file: null,
 }
 
 const getters = {}
@@ -109,6 +111,18 @@ const actions = {
 
     commit(types.BROWSER_FILE_DELETE, context)
   },
+  async loadFile({ commit }, context) {
+    ConMsgs.methods.$_console_log('[Vuex][Actions] Loading file into viewer')
+
+    commit(types.BROWSER_FILE_LOAD, context)
+  },
+  async setActiveFile({ commit }, context) {
+    ConMsgs.methods.$_console_log(
+      `[Vuex][Actions] Setting ${context.value ? 'active' : 'innactive'} file`
+    )
+
+    commit(types.BROWSER_FILE_SET_ACTIVE, context)
+  },
 }
 
 const mutations = {
@@ -116,6 +130,7 @@ const mutations = {
     ConMsgs.methods.$_console_log('[Vuex][Mutations] Clearing file-explorer')
 
     state.contents = []
+    state.filteredFiles = []
     state.folders = []
     state.directory = ''
     state.subDirectories = []
@@ -131,6 +146,12 @@ const mutations = {
     )
 
     state.contents = data
+
+    let copiedData = data.slice(0)
+    copiedData.forEach(item => {
+      item.active = false
+    })
+    state.filteredFiles = copiedData.filter(x => !x.isFolder)
   },
   [types.BROWSER_CHANGE_DIRECTORY](state, data) {
     ConMsgs.methods.$_console_log('[Vuex][Mutations] Changing directory')
@@ -162,6 +183,10 @@ const mutations = {
     ConMsgs.methods.$_console_log('[Vuex][Mutations] Adding a file')
 
     state.contents.push(data)
+    if (!data.isFolder) {
+      data.active = false
+      state.filteredFiles.push(data)
+    }
   },
   [types.BROWSER_FILE_DELETE](state, data) {
     ConMsgs.methods.$_console_log('[Vuex][Mutations] Deleting a file')
@@ -170,6 +195,11 @@ const mutations = {
     if (index > -1) {
       state.contents.splice(index, 1)
     }
+
+    let filteredIndex = state.filteredFiles.findIndex(x => x.title === data)
+    if (filteredIndex > -1) {
+      state.filteredFiles.splice(filteredIndex, 1)
+    }
   },
   [types.BROWSER_LOADING_CONTENTS](state, data) {
     ConMsgs.methods.$_console_log(
@@ -177,6 +207,18 @@ const mutations = {
     )
 
     state.loadingContents = data
+  },
+  [types.BROWSER_FILE_LOAD](state, data) {
+    ConMsgs.methods.$_console_log(`[Vuex][Mutations] Load file into viewer`)
+
+    state.file = data
+  },
+  [types.BROWSER_FILE_SET_ACTIVE](state, data) {
+    ConMsgs.methods.$_console_log(
+      `[Vuex][Mutations] Setting ${data.value ? 'active' : 'innactive'} file`
+    )
+
+    state.filteredFiles[data.index].active = data.value
   },
 }
 

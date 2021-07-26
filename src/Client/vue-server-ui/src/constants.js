@@ -15,6 +15,12 @@ export const Roles = {
   },
 }
 
+export const MediaTypes = {
+  Video: 1,
+  Image: 2,
+  Text: 3,
+}
+
 export const Admin = {
   RefreshTokenTimer: 60 * 1000,
 }

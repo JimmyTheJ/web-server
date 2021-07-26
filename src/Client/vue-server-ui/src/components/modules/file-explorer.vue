@@ -116,6 +116,7 @@ import Auth from '../../mixins/authentication'
 import { getSubdirectoryString } from '../../helpers/browser'
 
 let path = process.env.VUE_APP_API_URL
+const FN = 'FILE EXPLORER'
 
 export default {
   data() {
@@ -353,16 +354,17 @@ export default {
           path = this.$route.params.folder + '/' + item.title
         }
 
+        this.$store.dispatch('loadFile', null)
         this.$router.push({ name: 'browser-folder', params: { folder: path } })
       } else {
         if (this.features.viewing) {
           this.$_console_log(
-            '[FILE EXPLORER] Open Item: item, dl path',
+            `[${FN}] Open Item: item, dl path`,
             item,
             this.getFilePath(item)
           )
           setTimeout(() => {
-            this.$emit('loadFile', this.getFilePath(item))
+            this.$store.dispatch('loadFile', item)
           }, 125)
         }
       }

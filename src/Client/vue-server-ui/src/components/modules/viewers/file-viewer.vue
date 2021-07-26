@@ -1,83 +1,111 @@
 <template>
-  <v-card>
-    <v-card-text>
-      <v-layout row>
-        <v-flex xs1>
-          <v-btn @click="goBack()" class="chevron-center" icon>
-            <fa-icon icon="chevron-left" size="3x"></fa-icon>
-          </v-btn>
-        </v-flex>
-
-        <v-flex xs10>
-          <slot> File Viewer contents </slot>
-        </v-flex>
-
-        <v-flex xs1>
-          <v-btn @click="goForward()" class="chevron-center" icon>
-            <fa-icon icon="chevron-right" size="3x"></fa-icon>
-          </v-btn>
-        </v-flex>
-      </v-layout>
-    </v-card-text>
-  </v-card>
+  <v-carousel v-model="activeItem">
+    <v-carousel-item v-for="(item, i) in fileExplorer.filteredFiles" :key="i">
+      <v-card height="100%" class="text-center">
+        <template v-if="getMediaType(item) === mediaTypes.Video">
+          <video-player :file="item" :url="buildPath(item)" :dialog="dialog" />
+        </template>
+        <template v-else-if="getMediaType(item) === mediaTypes.Image">
+          <image-viewer :file="item" :url="buildPath(item)" :dialog="dialog" />
+        </template>
+        <template v-else-if="getMediaType(item) === mediaTypes.Text">
+          <text-viewer :file="item" :url="buildPath(item)" :dialog="dialog" />
+        </template>
+      </v-card>
+    </v-carousel-item>
+  </v-carousel>
 </template>
 
 <script>
+const FN = 'File Viewer'
+
+import { mapState } from 'vuex'
+import { MediaTypes } from '@/constants'
+import { getSubdirectoryString, getFileType } from '@/helpers/browser'
+
+import VideoPlayer from './video-player.vue'
+import TextViewer from './text-viewer.vue'
+import ImageViewer from './image-viewer.vue'
+
 export default {
   name: 'file-viewer',
   data() {
     return {
-      dialog: false,
+      activeItem: -1,
+      mediaTypes: MediaTypes,
     }
   },
+  components: {
+    'video-player': VideoPlayer,
+    'text-viewer': TextViewer,
+    'image-viewer': ImageViewer,
+  },
+  props: {
+    dialog: {
+      type: Boolean,
+    },
+    activeIndex: {
+      type: Number,
+      default: 0,
+      required: false,
+    },
+  },
+  computed: {
+    ...mapState({
+      fileExplorer: state => state.fileExplorer,
+    }),
+  },
   watch: {
-    dialog: function(newValue) {
-      if (newValue === false) this.$emit('viewer-off', true)
+    activeIndex: function(newValue) {
+      if (newValue === -1) return
+      this.setActiveIndex()
     },
-    open: function(newValue) {
-      this.dialog = newValue
+    activeItem: function(newValue, oldValue) {
+      this.$_console_log(
+        `[${FN} active item watcher]: old(${oldValue}) isInteger (${Number.isInteger(
+          oldValue
+        )}) 
+        / new(${newValue}) isInteger (${Number.isInteger(newValue)})`
+      )
+
+      let videoElements = document.getElementsByClassName('video-player')
+      videoElements.forEach(item => {
+        item.pause()
+      })
+
+      if (Number.isInteger(newValue) && newValue >= 0) {
+        this.$store.dispatch(
+          'loadFile',
+          this.fileExplorer.filteredFiles[newValue]
+        )
+        this.$store.dispatch('setActiveFile', { index: newValue, value: true })
+      }
+      if (Number.isInteger(oldValue) && oldValue >= 0) {
+        this.$store.dispatch('setActiveFile', { index: oldValue, value: false })
+      }
     },
   },
-  mounted() {
-    window.addEventListener('keyup', this.keypressNavigation)
-  },
-  beforeDestroy() {
-    window.removeEventListener('keyup', this.keypressNavigation)
+  created() {
+    this.setActiveIndex()
   },
   methods: {
-    keypressNavigation(evt) {
-      //this.$_console_log('Event', evt);
+    getMediaType(file) {
+      return getFileType(file)
+    },
+    buildPath(file) {
+      if (typeof file === 'undefined' || file === null || file.isFolder)
+        return null
 
-      // Left arrow
-      if (evt.keyCode === 37) {
-        this.goBack()
-      }
-      // Right arrow
-      else if (evt.keyCode === 39) {
-        this.goForward()
-      }
+      let subDirStr = getSubdirectoryString(this.fileExplorer.subDirectories)
+      let fullStr = `${this.fileExplorer.directory}/${subDirStr}/${file.title}`
+
+      //this.$_console_log(`[${FN}] subDir / fullPath: `, subDirStr, fullStr)
+
+      return fullStr
     },
-    goBack() {
-      this.$_console_log('[File Viewer] Go Back')
-      this.$emit('file-back')
-    },
-    goForward() {
-      this.$_console_log('[File Viewer] Go Forward')
-      this.$emit('file-forward')
+    setActiveIndex() {
+      this.activeItem = this.activeIndex
     },
   },
 }
 </script>
-
-<style>
-.center {
-  margin: 0 auto;
-}
-
-.chevron-center {
-  position: relative;
-  top: 45%;
-  width: 55px !important;
-  height: 55px !important;
-}
-</style>

@@ -5,12 +5,12 @@ const Html = require('html-webpack-plugin')
 module.exports = {
   configureWebpack: {
     plugins: [
-		new Dotenv(),
-		new Html({
-			template: 'public/index.html',
-			title: process.env.VUE_APP_TITLE
-		})
-	],
+      new Dotenv(),
+      new Html({
+        template: 'public/index.html',
+        title: process.env.VUE_APP_TITLE,
+      }),
+    ],
   },
 
   chainWebpack: config => {
