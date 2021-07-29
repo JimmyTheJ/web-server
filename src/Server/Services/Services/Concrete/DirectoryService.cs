@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
@@ -17,6 +18,8 @@ using VueServer.Models;
 using VueServer.Models.Context;
 using VueServer.Models.Directory;
 using VueServer.Models.Request;
+using VueServer.Models.Response;
+using VueServer.Models.User;
 using VueServer.Services.Interface;
 using Xabe.FFmpeg;
 using Xabe.FFmpeg.Enums;
@@ -378,31 +381,18 @@ namespace VueServer.Services.Concrete
 
         #region -> Private Functions
 
-        private async Task<ACCESS_LEVELS> GetMaxLevel(string user)
+        private async Task<string> GetMaxRole(WSUser user)
         {
-            var wsUser = await _user.GetUserByIdAsync(user);
-            var roles = await _user.GetUserRolesAsync(wsUser);
+            var roles = await _user.GetUserRolesAsync(user);
 
             if (roles.Contains(ADMINISTRATOR_STRING))
-                return ACCESS_LEVELS.ADMIN;
-            else if (roles.Contains(ELEVATED_STRING))
-                return ACCESS_LEVELS.ELEVATED;
-            else if (roles.Contains(USER_STRING))
-                return ACCESS_LEVELS.GENERAL;
-            else
-                return 0;
-        }
-
-        private string GetMaxLevelString()
-        {
-            if (_user.Context.User.IsInRole(ADMINISTRATOR_STRING))
                 return ADMINISTRATOR_STRING;
-            else if (_user.Context.User.IsInRole(ELEVATED_STRING))
+            else if (roles.Contains(ELEVATED_STRING))
                 return ELEVATED_STRING;
-            else if (_user.Context.User.IsInRole(USER_STRING))
+            else if (roles.Contains(USER_STRING))
                 return USER_STRING;
             else
-                return INVALID_STRING;
+                return null;
         }
 
         private Tuple<IEnumerable<string>, string> GetStrippedFilename(string fn)
@@ -468,93 +458,59 @@ namespace VueServer.Services.Concrete
             return Path.Combine(dir, filename);
         }
 
-        private ServerDirectoryLists GetServerGroupDirectoryLists(string user)
+        private async Task<IEnumerable<ServerUserDirectory>> GetServerUserDirectoryList(WSUser user)
         {
-            ServerDirectoryLists dirs = new ServerDirectoryLists
-            {
-                Admin = GetServerDirectoryList("Directories:Group:Admin"),
-                Elevated = GetServerDirectoryList("Directories:Group:Elevated"),
-                General = GetServerDirectoryList("Directories:Group:General"),
-                User = GetServerDirectoryList($"Directories:User:{user}"),
-            };
+            if (user == null)
+                return new List<ServerUserDirectory>();
 
-            return dirs;
+            return await _wSContext.ServerUserDirectory.Where(x => x.UserId == user.Id).ToListAsync();
         }
 
-        private IList<ServerDirectory> GetServerDirectoryList(string configPath)
+        private async Task<IEnumerable<ServerGroupDirectory>> GetServerGroupDirectoryList(string role)
         {
-            IList<ServerDirectory> list = new List<ServerDirectory>();
+            if (role == null)
+                return new List<ServerGroupDirectory>();
 
-            try
-            {
-                var section = _config.GetSection(configPath);
-                if (section == null)
-                {
-                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Section doesn't exist");
-                    return list;
-                }
-
-                foreach (IConfigurationSection s in section.GetChildren())
-                {
-                    list.Add(new ServerDirectory(s.GetValue<string>("Name"), s.GetValue<string>("Path"), s.GetValue<bool?>("Default") ?? false));
-                }
-            }
-            catch (Exception)
-            {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error deserializing directories from appsettings json");
-            }
-
-            return list;
+            return await _wSContext.ServerGroupDirectory.Where(x => x.Role == role).ToListAsync();
         }
 
         private async Task<IList<ServerDirectory>> GetSingleDirectoryList(string user, bool stripPath = false)
         {
-            var dirs = GetServerGroupDirectoryLists(user);
-            switch (await GetMaxLevel(user))
-            {
-                case ACCESS_LEVELS.ADMIN:
-                    return GetFullUserFolderList(dirs.Admin, dirs.User, stripPath);
-                case ACCESS_LEVELS.ELEVATED:
-                    return GetFullUserFolderList(dirs.Elevated, dirs.User, stripPath);
-                case ACCESS_LEVELS.GENERAL:
-                    return GetFullUserFolderList(dirs.General, dirs.User, stripPath);
-                default:
-                    return new List<ServerDirectory>();
-            }
-        }
+            var wsUser = await _user.GetUserByIdAsync(user);
 
-        private IList<ServerDirectory> GetFullUserFolderList(IList<ServerDirectory> groupList, IList<ServerDirectory> userList, bool stripPath)
-        {
-            if (groupList == null)
+            var groupDirs = await GetServerGroupDirectoryList(await GetMaxRole(wsUser));
+            var userDirs = await GetServerUserDirectoryList(wsUser);
+
+            var allDirs = new List<ServerDirectory>();
+            if (groupDirs != null)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: groupList is null returning null");
-                return null;
+                foreach (var dir in groupDirs)
+                {
+                    allDirs.Add(new ServerDirectory()
+                    {
+                        AllowSubDirs = dir.AllowSubDirs,
+                        Name = dir.Name,
+                        Default = false,
+                        Path = stripPath ? null : dir.Path
+                    });
+                }
             }
 
-            IList<ServerDirectory> fullList = new List<ServerDirectory>();
-
-            foreach (var item in groupList)
+            if (userDirs != null)
             {
-                if (stripPath)
-                    item.Path = null;
-                fullList.Add(item);
+                foreach (var dir in userDirs)
+                {
+                    allDirs.Add(new ServerDirectory()
+                    {
+                        AllowSubDirs = dir.AllowSubDirs,
+                        Name = dir.Name,
+                        Default = dir.Default,
+                        Path = stripPath ? null : dir.Path
+                    });
+                }
             }
 
-            if (userList == null)
-            {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: userList is null returning just groupList values");
-                return fullList;
-            }
-
-            foreach (var item in userList)
-            {
-                if (stripPath)
-                    item.Path = null;
-                fullList.Add(item);
-            }
-
-            return fullList;
-
+            return allDirs;
         }
 
         /// <summary>

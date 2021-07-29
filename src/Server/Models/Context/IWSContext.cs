@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using VueServer.Models.Chat;
+using VueServer.Models.Directory;
 using VueServer.Models.Library;
 using VueServer.Models.Modules;
 using VueServer.Models.User;
@@ -16,6 +17,8 @@ namespace VueServer.Models.Context
         #region -> Tables
 
         #region -> Misc
+
+        DbSet<ServerSettings> ServerSettings { get; set; }
 
         DbSet<Notes> Notes { get; set; }
 
@@ -29,6 +32,13 @@ namespace VueServer.Models.Context
         DbSet<ConversationHasUser> ConversationHasUser { get; set; }
         DbSet<ChatMessage> Messages { get; set; }
         DbSet<ReadReceipt> ReadReceipts { get; set; }
+
+        #endregion
+
+        #region -> Directory
+
+        DbSet<ServerUserDirectory> ServerUserDirectory { get; set; }
+        DbSet<ServerGroupDirectory> ServerGroupDirectory { get; set; }
 
         #endregion
 

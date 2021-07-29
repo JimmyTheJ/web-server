@@ -92,6 +92,17 @@
                 internal const string UpdateDisplayName = "user/update-display-name";
                 internal const string GetGuestLogins = "guest/logins";
                 internal const string UnblockGuest = "guest/unblock";
+                internal const string GetAllRoles = "roles/get-all";
+
+                internal const string GetDirectorySettings = "directory/settings/get";
+                internal const string SetUseDefaultUserDirectoryPath = "directory/settings/set/default-path/on";
+                internal const string SetPathDefaultUserDirectoryPath = "directory/settings/set/default-path/path";
+                internal const string GetGroupDirectories = "directory/group/get";
+                internal const string AddGroupDirectory = "directory/group/add";
+                internal const string DeleteGroupDirectory = "directory/group/delete";
+                internal const string GetUserDirectories = "directory/user/get";
+                internal const string AddUserDirectory = "directory/user/add";
+                internal const string DeleteUserDirectory = "directory/user/delete";
             }
         }
     }

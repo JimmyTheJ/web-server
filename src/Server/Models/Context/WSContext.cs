@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using VueServer.Domain;
 using VueServer.Models.Chat;
+using VueServer.Models.Directory;
 using VueServer.Models.Library;
 using VueServer.Models.Modules;
 using VueServer.Models.User;
@@ -88,6 +89,8 @@ namespace VueServer.Models.Context
 
         #region -> Misc
 
+        public DbSet<ServerSettings> ServerSettings { get; set; }
+
         public DbSet<Notes> Notes { get; set; }
 
         public DbSet<Weight> Weight { get; set; }
@@ -100,6 +103,13 @@ namespace VueServer.Models.Context
         public DbSet<ConversationHasUser> ConversationHasUser { get; set; }
         public DbSet<ChatMessage> Messages { get; set; }
         public DbSet<ReadReceipt> ReadReceipts { get; set; }
+
+        #endregion
+
+        #region -> Directory
+
+        public DbSet<ServerUserDirectory> ServerUserDirectory { get; set; }
+        public DbSet<ServerGroupDirectory> ServerGroupDirectory { get; set; }
 
         #endregion
 

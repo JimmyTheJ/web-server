@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using VueServer.Core.Status;
 using VueServer.Models.Account;
+using VueServer.Models.Directory;
 using VueServer.Models.Request;
 using VueServer.Services.Interface;
 using static VueServer.Domain.DomainConstants.Authentication;
@@ -168,6 +169,88 @@ namespace VueServer.Controllers
         public async Task<IActionResult> UnblockGuest([FromBody] string guest)
         {
             return _codeFactory.GetStatusCode(await _service.UnblockGuestIP(guest));
+        }
+
+
+
+        [HttpGet]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route(Route.Account.GetDirectorySettings)]
+        public async Task<IActionResult> GetDirectorySettings()
+        {
+            return _codeFactory.GetStatusCode(await _service.GetDirectorySettings());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route(Route.Account.SetUseDefaultUserDirectoryPath)]
+        public async Task<IActionResult> SetUseDefaultUserDirectoryPath(bool should)
+        {
+            return _codeFactory.GetStatusCode(await _service.SetUseDefaultUserDirectoryPath(should));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route(Route.Account.SetPathDefaultUserDirectoryPath)]
+        public async Task<IActionResult> SetPathDefaultUserDirectoryPath(string path)
+        {
+            return _codeFactory.GetStatusCode(await _service.SetPathDefaultUserDirectoryPath(path));
+        }
+
+        [HttpGet]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route(Route.Account.GetGroupDirectories)]
+        public async Task<IActionResult> GetGroupDirectories()
+        {
+            return _codeFactory.GetStatusCode(await _service.GetGroupDirectories());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route(Route.Account.GetUserDirectories)]
+        public async Task<IActionResult> GetUserDirectories()
+        {
+            return _codeFactory.GetStatusCode(await _service.GetUserDirectories());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route(Route.Account.AddGroupDirectory)]
+        public async Task<IActionResult> AddGroupDirectory([FromBody] ServerGroupDirectory dir)
+        {
+            return _codeFactory.GetStatusCode(await _service.AddGroupDirectory(dir));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route(Route.Account.AddUserDirectory)]
+        public async Task<IActionResult> AddUserDirectory([FromBody] ServerUserDirectory dir)
+        {
+            return _codeFactory.GetStatusCode(await _service.AddUserDirectory(dir));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route(Route.Account.DeleteGroupDirectory)]
+        public async Task<IActionResult> DeleteGroupDirectory(int id)
+        {
+            return _codeFactory.GetStatusCode(await _service.DeleteGroupDirectory(id));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route(Route.Account.DeleteUserDirectory)]
+        public async Task<IActionResult> DeleteUserDirectory(long id)
+        {
+            return _codeFactory.GetStatusCode(await _service.DeleteUserDirectory(id));
+        }
+
+        [HttpGet]
+        [Authorize(Roles = ADMINISTRATOR_STRING)]
+        [Route(Route.Account.GetAllRoles)]
+        public async Task<IActionResult> GetAllRoles()
+        {
+            return _codeFactory.GetStatusCode(await _service.GetRoles());
         }
 
         #endregion

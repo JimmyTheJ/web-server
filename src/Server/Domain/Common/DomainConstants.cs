@@ -25,6 +25,20 @@
             public const string MIMETYPE_FOLDER = "_FOLDER";
         }
 
+        public static class ServerSettings
+        {
+            public static class BaseKeys
+            {
+                public const string Directory = "Directory_";
+            }
+
+            public static class Directory
+            {
+                public const string ShouldUseDefaultPath = "ShouldUseDefaultPath";
+                public const string DefaultPathValue = "DefaultPathValue";
+            }
+        }
+
         public static class Models
         {
             public static class ModuleAddOns
