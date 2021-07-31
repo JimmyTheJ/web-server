@@ -29,10 +29,10 @@
 </template>
 
 <script>
-import Auth from '../../mixins/authentication'
-import UserModules from '../modules/admin/user-modules.vue'
-import GuestLogins from '../modules/admin/guest-logins.vue'
-import RegisterUser from '../modules/admin/register-user.vue'
+import Auth from '@/mixins/authentication'
+import UserModules from '@/components/modules/admin/user-modules.vue'
+import GuestLogins from '@/components/modules/admin/guest-logins.vue'
+import RegisterUser from '@/components/modules/admin/register-user.vue'
 
 export default {
   mixins: [Auth],
@@ -49,7 +49,10 @@ export default {
   },
   computed: {},
   beforeDestroy() {},
-  mounted() {},
+  mounted() {
+    if (typeof this.$store.state.auth.admin === 'undefined')
+      this.$store.dispatch('getRoles')
+  },
   methods: {},
 }
 </script>

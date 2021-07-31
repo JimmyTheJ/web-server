@@ -8,22 +8,22 @@ import 'material-design-icons-iconfont/dist/material-design-icons.css'
 
 // Font Awesome
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import './font-awesome'
+import '@/font-awesome'
 
 // Vuetify
-import vuetify from './plugins/vuetify'
+import vuetify from '@/plugins/vuetify'
 import 'vuetify/dist/vuetify.min.css'
 
 // Site css
-import './css/site.css'
+import '@/css/site.css'
 
 // User stuff
-import ChatHub from './plugins/chat-hub'
-import router from './router'
-import store from './store'
-import App from './App.vue'
+import ChatHub from '@/plugins/chat-hub'
+import router from '@/router'
+import store from '@/store'
+import App from '@/App.vue'
 import Moment from 'vue-moment-lib'
-import ConMsgs from './mixins/console'
+import ConMsgs from '@/mixins/console'
 
 /*******************
  * Use libraries

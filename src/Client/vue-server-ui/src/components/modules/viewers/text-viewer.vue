@@ -26,7 +26,7 @@ const FN = 'Text Viewer'
 import { mapState } from 'vuex'
 
 import service from '../../../services/file-explorer'
-import DispatchFactory from '../../../factories/dispatchFactory'
+import Dispatcher from '../../../services/ws-dispatcher'
 
 export default {
   name: 'text-viewer',
@@ -69,7 +69,7 @@ export default {
       }
 
       const tmpUrl = this.url
-      await DispatchFactory.request(() => {
+      await Dispatcher.request(() => {
         return service
           .getFile(tmpUrl)
           .then(resp => {

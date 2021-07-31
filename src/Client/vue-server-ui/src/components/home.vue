@@ -7,8 +7,8 @@
 </template>
 
 <script>
-import Menu from './modules/menu'
-import NotificationBar from './modules/notification-bar'
+import Menu from '@/components/modules/menu'
+import NotificationBar from '@/components/modules/notification-bar'
 
 import { mapState } from 'vuex'
 

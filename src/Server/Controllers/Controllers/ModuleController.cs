@@ -8,7 +8,7 @@ using VueServer.Services.Interface;
 using static VueServer.Domain.DomainConstants.Authentication;
 using Route = VueServer.Controllers.Constants.API_ENDPOINTS;
 
-namespace VueServer.Controllers.Controllers
+namespace VueServer.Controllers
 {
     [Route(Route.Module.Controller)]
     public class ModuleController : Controller

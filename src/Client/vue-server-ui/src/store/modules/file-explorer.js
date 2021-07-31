@@ -1,11 +1,8 @@
 import * as types from '../mutation_types'
-import fileAPI from '../../services/file-explorer'
-import {
-  getSubdirectoryString,
-  getSubdirectoryArray,
-} from '../../helpers/browser'
-import ConMsgs from '../../mixins/console'
-import DispatchFactory from '../../factories/dispatchFactory'
+import fileAPI from '@/services/file-explorer'
+import { getSubdirectoryString, getSubdirectoryArray } from '@/helpers/browser'
+import ConMsgs from '@/mixins/console'
+import Dispatcher from '@/services/ws-dispatcher'
 
 const state = {
   contents: [],
@@ -28,7 +25,7 @@ const actions = {
   async getFolders({ commit }) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Getting folder list')
     try {
-      return await DispatchFactory.request(async () => {
+      return await Dispatcher.request(async () => {
         const res = await fileAPI.getFolderList()
         commit(types.BROWSER_GET_FOLDERS, res.data)
 
@@ -58,7 +55,7 @@ const actions = {
       let subDirString = getSubdirectoryString(state.subDirectories)
 
       commit(types.BROWSER_LOADING_CONTENTS, true)
-      return await DispatchFactory.request(async () => {
+      return await Dispatcher.request(async () => {
         const res = await fileAPI.loadDirectory(state.directory, subDirString)
         commit(types.BROWSER_LOAD_DIRECTORY, res.data)
 

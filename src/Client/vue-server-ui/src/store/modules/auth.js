@@ -1,9 +1,9 @@
 import * as types from '../mutation_types'
-import authAPI from '../../services/auth'
-import moduleAPI from '../../services/modules'
-import ConMsgs from '../../mixins/console'
-import DispatchFactory from '../../factories/dispatchFactory'
-import { getCodeChallenge } from '../../helpers/jwt'
+import authAPI from '@/services/auth'
+import moduleAPI from '@/services/modules'
+import ConMsgs from '@/mixins/console'
+import Dispatcher from '@/services/ws-dispatcher'
+import { getCodeChallenge } from '@/helpers/jwt'
 
 const state = {
   isAuthorize: Boolean(localStorage.getItem('isAuthorize')) || false,
@@ -97,6 +97,21 @@ const actions = {
 
     return await Promise.resolve(true)
   },
+  async getRoles({ commit }) {
+    ConMsgs.methods.$_console_log('[Vuex][Actions] Calling get roles: ')
+    try {
+      const res = await authAPI.getRoles()
+      commit(types.ROLES_GET, res.data)
+
+      return Promise.resolve(res)
+    } catch (e) {
+      ConMsgs.methods.$_console_group(
+        '[Vuex][Actions] Error from register',
+        e.response
+      )
+      return await Promise.reject(e.response)
+    }
+  },
   async register({}, context) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Calling register: ', context)
     try {
@@ -129,7 +144,7 @@ const actions = {
   },
   async getModules({ commit }) {
     try {
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await moduleAPI.getModulesForUser()
         ConMsgs.methods.$_console_log(res.data)
         commit(types.GET_MODULES, res.data)
@@ -145,7 +160,7 @@ const actions = {
   },
   async updateAvatarImage({ commit }, context) {
     try {
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await authAPI.uploadAvatarImage(context)
         ConMsgs.methods.$_console_log(res.data)
         commit(types.USER_UPDATE_AVATAR, res.data)
@@ -161,7 +176,7 @@ const actions = {
   },
   async updateDisplayName({ commit }, context) {
     try {
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await authAPI.updateDisplayName(context)
         ConMsgs.methods.$_console_log(res.data)
         commit(types.USER_UPDATE_DISPLAY_NAME, context)
@@ -177,7 +192,7 @@ const actions = {
   },
   async getAllOtherUsers({ commit }) {
     try {
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         let res = await authAPI.getAllOtherUsers()
         ConMsgs.methods.$_console_log('Got all other user data:', res.data)
         commit(types.USER_GET_OTHERS, res.data)
@@ -240,6 +255,7 @@ const mutations = {
     state.activeModules = []
     state.otherUsers = []
     state.userMap = {}
+    delete state.admin
 
     localStorage.removeItem('user')
     localStorage.removeItem('userRole')
@@ -249,6 +265,10 @@ const mutations = {
     localStorage.removeItem('activeModules')
     localStorage.removeItem('otherUsers')
     localStorage.removeItem('userMap')
+  },
+  [types.ROLES_GET](state, data) {
+    if (typeof state.admin === 'undefined') state.admin = {}
+    state.admin.roles = data
   },
   [types.CHANGED_PASSWORD](state) {
     state.user.changePassword = false

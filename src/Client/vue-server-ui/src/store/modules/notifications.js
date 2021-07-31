@@ -1,5 +1,5 @@
 import * as types from '../mutation_types'
-import ConMsgs from '../../mixins/console'
+import ConMsgs from '@/mixins/console'
 
 let staticId = 1
 

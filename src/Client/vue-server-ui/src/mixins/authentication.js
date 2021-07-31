@@ -1,6 +1,6 @@
-import store from '../store/index'
-import { defaultRoutes, adminRoutes, moduleRoutes } from '../routes'
-import { Roles } from '../constants'
+import store from '@/store/index'
+import { defaultRoutes, adminRoutes, moduleRoutes } from '@/routes'
+import { Roles } from '@/constants'
 import ConMsgs from './console'
 
 export default {

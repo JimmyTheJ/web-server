@@ -1,7 +1,7 @@
 /**
  * Import Dependency
  */
-import axios from '../axios'
+import axios from '@/axios'
 
 const getAllModulesUrl = `api/modules/get-all-modules`
 const getModulesForUserUrl = `api/modules/get-modules-for-user`

@@ -176,9 +176,9 @@
 <script>
 import { mapState } from 'vuex'
 import { setTimeout } from 'core-js'
-import weightService from '../../services/weight'
-import DispatchFactory from '../../factories/dispatchFactory'
-import genericDialog from '../modules/generic-dialog.vue'
+import weightService from '@/services/weight'
+import Dispatcher from '@/services/ws-dispatcher'
+import genericDialog from '@/components/modules/generic-dialog.vue'
 
 function getNewWeight(user) {
   let usr = null
@@ -377,7 +377,7 @@ export default {
   methods: {
     async getData() {
       this.$_console_log('[Weight] Get weights')
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         weightService
           .getWeightList()
           .then(resp => {
@@ -477,7 +477,7 @@ export default {
       if (item.value === '') {
         this.$_console_log('[Weight] Weight is empty, not going to create it')
       } else {
-        DispatchFactory.request(() => {
+        Dispatcher.request(() => {
           weightService
             .addWeight(item)
             .then(resp => {
@@ -505,7 +505,7 @@ export default {
         return
       }
 
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         weightService
           .editWeight(item)
           .then(resp => {
@@ -530,7 +530,7 @@ export default {
     },
     async deleteItem(id) {
       this.$_console_log(`[Weight] Delete weight with id: ${id}`)
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         weightService
           .deleteWeight(id)
           .then(resp => {

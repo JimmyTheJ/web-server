@@ -1,4 +1,4 @@
-import { MediaTypes } from '../constants'
+import { MediaTypes } from '@/constants'
 
 export const getSubdirectoryString = function(subDirs) {
   let path = ''

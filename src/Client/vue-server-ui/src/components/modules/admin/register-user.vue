@@ -15,14 +15,14 @@
       <v-text-field
         v-model="form.username"
         :rules="rules.username"
-        v-bind:label="`Username`"
+        label="Username"
         name="Username"
         required
       ></v-text-field>
       <v-text-field
         name="Password"
         v-model="form.password"
-        v-bind:label="`Password`"
+        label="Password"
         :append-icon="passwordOn ? 'visibility' : 'visibility_off'"
         :type="passwordOn ? 'password' : 'text'"
         :rules="rules.password"
@@ -32,7 +32,7 @@
       <v-text-field
         name="ConfirmPassword"
         v-model="form.confirmPassword"
-        v-bind:label="`Confirm Password`"
+        label="Confirm Password"
         :append-icon="passwordConfirmOn ? 'visibility' : 'visibility_off'"
         :type="passwordConfirmOn ? 'password' : 'text'"
         :rules="rules.confirmPassword"
@@ -40,9 +40,9 @@
         @click:append="passwordConfirmOn = !passwordConfirmOn"
       ></v-text-field>
       <v-select
-        :items="getRoleList"
+        :items="roles"
         v-model="form.role"
-        v-bind:label="`Role`"
+        label="Role"
         name="Role"
         single-line
       ></v-select>
@@ -54,7 +54,9 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
 import Auth from '@/mixins/authentication'
+import { Roles } from '@/constants'
 
 function newForm() {
   return {
@@ -92,20 +94,20 @@ export default {
     }
   },
   computed: {
-    getRoleList: function() {
-      return [
-        { value: 'Administrator', text: 'Administrator' },
-        { value: 'Elevated', text: 'Elevated' },
-        { value: 'User', text: 'User' },
-      ]
-    },
+    ...mapState({
+      roles: state =>
+        typeof state.auth.admin !== 'undefined' ? state.auth.admin.roles : [],
+    }),
   },
   beforeDestroy() {
     //window.removeEventListener('keyup', this.enterKeyListener)
   },
   mounted() {
     //window.addEventListener('keyup', this.enterKeyListener)
-    this.form.role = this.getRoleList[2].value
+    this.$nextTick(() => {
+      if (Array.isArray(this.roles))
+        this.form.role = this.roles.find(x => x === Roles.Name.General)
+    })
   },
   methods: {
     enterKeyListener(e) {

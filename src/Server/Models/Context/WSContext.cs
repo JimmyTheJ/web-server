@@ -83,6 +83,7 @@ namespace VueServer.Models.Context
             SeedGenres(modelBuilder);
             SeedModules(modelBuilder);
             SeedModuleFeatures(modelBuilder);
+            SeedWSSettings(modelBuilder);
         }
 
         #region -> Database tables
@@ -284,6 +285,12 @@ namespace VueServer.Models.Context
 
             modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = DomainConstants.Models.ModuleFeatures.Chat.DELETE_MESSAGE_ID, Name = DomainConstants.Models.ModuleFeatures.Chat.DELETE_MESSAGE_NAME, ModuleAddOnId = DomainConstants.Models.ModuleAddOns.Chat.Id });
             modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = DomainConstants.Models.ModuleFeatures.Chat.DELETE_CONVERSATION_ID, Name = DomainConstants.Models.ModuleFeatures.Chat.DELETE_CONVERSATION_NAME, ModuleAddOnId = DomainConstants.Models.ModuleAddOns.Chat.Id });
+        }
+
+        private void SeedWSSettings(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ServerSettings>().HasData(new ServerSettings() { Key = $"{DomainConstants.ServerSettings.BaseKeys.Directory}_{DomainConstants.ServerSettings.Directory.ShouldUseDefaultPath}", Value = "0" });
+            modelBuilder.Entity<ServerSettings>().HasData(new ServerSettings() { Key = $"{DomainConstants.ServerSettings.BaseKeys.Directory}_{DomainConstants.ServerSettings.Directory.DefaultPathValue}", Value = "" });
         }
 
         #endregion

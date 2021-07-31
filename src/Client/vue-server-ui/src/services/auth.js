@@ -1,7 +1,7 @@
 /**
  * Import Dependency
  */
-import axios from '../axios'
+import axios from '@/axios'
 
 /**
  * Declare Variable
@@ -10,7 +10,6 @@ const signinUrl = `api/account/login`
 const signoutUrl = `api/account/logout`
 const refreshTokenUrl = `api/account/refresh-jwt`
 const registerUrl = `api/account/register`
-const adminChangePasswordUrl = `api/account/admin/change-password`
 const userChangePasswordUrl = `api/account/user/change-password`
 const getUsersUrl = `api/account/user/get-all`
 const getAllOtherUsersUrl = `api/account/user/get-all-others`
@@ -18,6 +17,9 @@ const updateAvatarImageUrl = `api/account/user/update-avatar`
 const updateDisplayNameUrl = `api/account/user/update-display-name`
 const getGuestLoginListUrl = `api/account/guest/logins`
 const unblockGuestIPUrl = `api/account/guest/unblock`
+
+const adminChangePasswordUrl = `api/admin/change-password`
+const adminGetRolesUrl = `api/admin/roles/get-all`
 
 /**
  * Export
@@ -61,6 +63,9 @@ export default {
       confirmPassword: data.confirmPassword,
       role: data.role,
     })
+  },
+  getRoles() {
+    return axios.get(adminGetRolesUrl)
   },
   getUsers() {
     return axios.get(getUsersUrl)

@@ -15,6 +15,10 @@ namespace VueServer.Models.Directory
 
         public bool AllowSubDirs { get; set; }
 
+        public bool CanUpload { get; set; }
+
+        public bool CanDelete { get; set; }
+
         public string UserId { get; set; }
     }
 }

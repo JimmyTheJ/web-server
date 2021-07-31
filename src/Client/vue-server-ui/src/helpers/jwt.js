@@ -1,4 +1,4 @@
-import ConMsgs from '../mixins/console'
+import ConMsgs from '@/mixins/console'
 
 export const requiresRefresh = function(token) {
   ConMsgs.methods.$_console_log(

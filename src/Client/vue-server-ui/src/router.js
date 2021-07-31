@@ -1,15 +1,15 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 
-import { Roles } from './constants'
-import { baseRoutes as routes } from './routes'
+import { Roles } from '@/constants'
+import { baseRoutes as routes } from '@/routes'
 
-import store from './store'
+import store from '@/store'
 
 // Mixins
-import Auth from './mixins/authentication'
-import Module from './mixins/module'
-import ConMsgs from './mixins/console'
+import Auth from '@/mixins/authentication'
+import Module from '@/mixins/module'
+import ConMsgs from '@/mixins/console'
 
 Vue.use(VueRouter)
 

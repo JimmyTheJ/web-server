@@ -16,6 +16,26 @@
                 internal const string Delete = "delete";
             }
 
+            internal static class Admin
+            {
+                internal const string Controller = "/api/admin";
+                internal const string ChangePassword = "change-password";
+                internal const string GetAllRoles = "roles/get-all";
+                internal const string SetServerSetting = "settings/set";
+                internal const string DeleteServerSetting = "settings/delete/{key}";
+
+                internal static class Directory
+                {
+                    internal const string GetDirectorySettings = "directory/settings/get";
+                    internal const string GetGroupDirectories = "directory/group/get";
+                    internal const string AddGroupDirectory = "directory/group/add";
+                    internal const string DeleteGroupDirectory = "directory/group/delete/{id}";
+                    internal const string GetUserDirectories = "directory/user/get";
+                    internal const string AddUserDirectory = "directory/user/add";
+                    internal const string DeleteUserDirectory = "directory/user/delete/{id}";
+                }
+            }
+
             internal static class Weight
             {
                 internal const string Controller = "/api/weight";
@@ -84,7 +104,7 @@
                 internal const string Login = "login";
                 internal const string Logout = "logout";
                 internal const string RefreshJwt = "refresh-jwt";
-                internal const string AdminChangePassword = "admin/change-password";
+
                 internal const string UserChangePassword = "user/change-password";
                 internal const string GetAllUsers = "user/get-all";
                 internal const string GetAllOtherUsers = "user/get-all-others";
@@ -92,17 +112,6 @@
                 internal const string UpdateDisplayName = "user/update-display-name";
                 internal const string GetGuestLogins = "guest/logins";
                 internal const string UnblockGuest = "guest/unblock";
-                internal const string GetAllRoles = "roles/get-all";
-
-                internal const string GetDirectorySettings = "directory/settings/get";
-                internal const string SetUseDefaultUserDirectoryPath = "directory/settings/set/default-path/on";
-                internal const string SetPathDefaultUserDirectoryPath = "directory/settings/set/default-path/path";
-                internal const string GetGroupDirectories = "directory/group/get";
-                internal const string AddGroupDirectory = "directory/group/add";
-                internal const string DeleteGroupDirectory = "directory/group/delete";
-                internal const string GetUserDirectories = "directory/user/get";
-                internal const string AddUserDirectory = "directory/user/add";
-                internal const string DeleteUserDirectory = "directory/user/delete";
             }
         }
     }

@@ -1,4 +1,4 @@
-import axios from '../axios'
+import axios from '@/axios'
 
 const StartConversationUrl = 'api/chat/conversation/start'
 const GetConversationUrl = 'api/chat/conversation/get'

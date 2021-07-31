@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using VueServer.Domain.Interface;
-using VueServer.Models;
 using VueServer.Models.Account;
-using VueServer.Models.Directory;
 using VueServer.Models.Response;
 using VueServer.Models.User;
 
@@ -31,16 +29,6 @@ namespace VueServer.Services.Interface
         Task<IResult<IEnumerable<WSGuestLogin>>> GetGuestLogins();
         Task<IResult<bool>> UnblockGuestIP(string ip);
 
-
-        Task<IResult<IEnumerable<ServerSettings>>> GetDirectorySettings();
-        Task<IResult<bool>> SetUseDefaultUserDirectoryPath(bool should);
-        Task<IResult<bool>> SetPathDefaultUserDirectoryPath(string path);
-        Task<IResult<IEnumerable<ServerGroupDirectory>>> GetGroupDirectories();
-        Task<IResult<IEnumerable<ServerUserDirectory>>> GetUserDirectories();
-        Task<IResult<bool>> AddGroupDirectory(ServerGroupDirectory dir);
-        Task<IResult<bool>> AddUserDirectory(ServerUserDirectory dir);
-        Task<IResult<bool>> DeleteGroupDirectory(int id);
-        Task<IResult<bool>> DeleteUserDirectory(long id);
         Task<IResult<IEnumerable<string>>> GetRoles();
     }
 }

@@ -1,8 +1,8 @@
 import * as types from '../mutation_types'
-import libraryAPI from '../../services/library'
-import ConMsgs from '../../mixins/console'
+import libraryAPI from '@/services/library'
+import ConMsgs from '@/mixins/console'
 
-import DispatchFactory from '../../factories/dispatchFactory'
+import Dispatcher from '@/services/ws-dispatcher'
 
 const state = {
   authors: [],
@@ -26,7 +26,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Getting author list')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.author.getList()
         commit(types.LIBRARY_AUTHOR_GET_ALL, res.data)
 
@@ -44,7 +44,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Adding author')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.author.add(context)
         commit(types.LIBRARY_AUTHOR_ADD, res.data)
 
@@ -62,7 +62,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Editing author')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.author.update(context)
         commit(types.LIBRARY_AUTHOR_EDIT, res.data)
 
@@ -80,7 +80,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting author')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.author.delete(context)
         commit(types.LIBRARY_AUTHOR_DELETE, res.data)
 
@@ -100,7 +100,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Getting book list')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.book.getList()
         commit(types.LIBRARY_BOOK_GET_ALL, res.data)
 
@@ -118,7 +118,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Adding book')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.book.add(context)
 
         // Add book
@@ -149,7 +149,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Editing book')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.book.update(context)
         commit(types.LIBRARY_BOOK_EDIT, res.data)
 
@@ -178,7 +178,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting book')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.book.delete(context)
         commit(types.LIBRARY_BOOK_DELETE, res.data)
 
@@ -198,7 +198,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Getting bookcase list')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.bookcase.getList()
         commit(types.LIBRARY_BOOKCASE_GET_ALL, res.data)
 
@@ -216,7 +216,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Adding bookcase')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.bookcase.add(context)
         commit(types.LIBRARY_BOOKCASE_ADD, res.data)
 
@@ -234,7 +234,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Editing bookcase')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.bookcase.update(context)
         commit(types.LIBRARY_BOOKCASE_EDIT, res.data)
 
@@ -252,7 +252,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting bookcase')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.bookcase.delete(context)
         commit(types.LIBRARY_BOOKCASE_DELETE, res.data)
 
@@ -272,7 +272,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Getting genre list')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.genre.getList()
         commit(types.LIBRARY_GENRE_GET_ALL, res.data)
 
@@ -292,7 +292,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Getting series list')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.series.getList()
         commit(types.LIBRARY_SERIES_GET_ALL, res.data)
 
@@ -310,7 +310,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Adding series')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.series.add(context)
         commit(types.LIBRARY_SERIES_ADD, res.data)
 
@@ -328,7 +328,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Editing series')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.series.update(context)
         commit(types.LIBRARY_SERIES_EDIT, res.data)
 
@@ -346,7 +346,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting series')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.series.delete(context)
         commit(types.LIBRARY_SERIES_DELETE, res.data)
 
@@ -366,7 +366,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('Getting shelf list')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.shelf.getList()
         commit(types.LIBRARY_SHELF_GET_ALL, res.data)
 
@@ -384,7 +384,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Adding shelf')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.shelf.add(context)
         commit(types.LIBRARY_SHELF_ADD, res.data)
 
@@ -402,7 +402,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Updating shelf')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.shelf.update(context)
         commit(types.LIBRARY_SHELF_EDIT, res.data)
 
@@ -420,7 +420,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting shelf')
 
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await libraryAPI.shelf.delete(context)
         commit(types.LIBRARY_SHELF_DELETE, res.data)
 

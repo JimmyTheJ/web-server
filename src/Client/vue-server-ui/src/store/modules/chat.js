@@ -1,7 +1,7 @@
 import * as types from '../mutation_types'
-import chatAPI from '../../services/chat'
-import ConMsgs from '../../mixins/console'
-import DispatchFactory from '../../factories/dispatchFactory'
+import chatAPI from '@/services/chat'
+import ConMsgs from '@/mixins/console'
+import Dispatcher from '@/services/ws-dispatcher'
 
 const state = {
   conversations: [],
@@ -39,7 +39,7 @@ const actions = {
       '[Vuex][Actions] Getting all new conversation notifications'
     )
     try {
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await chatAPI.getAllNewMessagesForConversations()
         if (Array.isArray(res.data)) {
           commit(types.CHAT_CONVERSATION_UPDATE_NEW_MESSAGE_COUNT, res.data)
@@ -59,7 +59,7 @@ const actions = {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Getting all conversations')
 
     try {
-      return await DispatchFactory.request(async () => {
+      return await Dispatcher.request(async () => {
         let res = await chatAPI.getAllConversations()
         ConMsgs.methods.$_console_log(res.data)
         commit(types.CHAT_CONVERSATION_GET_ALL, {
@@ -78,7 +78,7 @@ const actions = {
   async startNewConversation({ commit, rootState }, context) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Starting new conversation')
     try {
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await chatAPI.startConversation(context)
         if (typeof res.data === 'object' && res.data !== null) {
           commit(types.CHAT_CONVERSATION_START_NEW, {
@@ -104,7 +104,7 @@ const actions = {
   async deleteConversation({ commit }, context) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting conversation')
     try {
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await chatAPI.deleteConversation(context)
         if (typeof res.data === 'boolean' && res.data === true) {
           commit(types.CHAT_CONVERSATION_DELETE, context)
@@ -127,7 +127,7 @@ const actions = {
   async updateConversationTitle({ commit }, context) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Update conversation title')
     try {
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await chatAPI.updateConversationTitle(
           context.conversationId,
           context.title
@@ -155,7 +155,7 @@ const actions = {
       '[Vuex][Actions] Update conversation user color'
     )
     try {
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await chatAPI.updateConversationUserColor(
           context.conversationId,
           context.userId,
@@ -193,7 +193,7 @@ const actions = {
       '[Vuex][Actions] Get messages for conversation'
     )
     try {
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await chatAPI.getMessagesForConversation(context)
         commit(types.CHAT_CONVERSATION_GET_MESSAGES, {
           messages: res.data,
@@ -235,7 +235,7 @@ const actions = {
   async deleteChatMessage({ commit }, context) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Delete chat message')
     try {
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await chatAPI.deleteMessage(context.messageId)
         if (typeof res.data === 'boolean' && res.data === true) {
           commit(types.CHAT_MESSAGE_DELETE, context)
@@ -258,7 +258,7 @@ const actions = {
   async readChatMessage({ commit }, context) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Read chat message')
     try {
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await chatAPI.readMessage(
           context.conversationId,
           context.messageId
@@ -280,7 +280,7 @@ const actions = {
   async readChatMessageList({ commit }, context) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Read chat message list')
     try {
-      return DispatchFactory.request(async () => {
+      return Dispatcher.request(async () => {
         const res = await chatAPI.readMessageList(
           context.conversationId,
           context.messageIds

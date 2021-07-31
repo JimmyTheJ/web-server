@@ -1,5 +1,5 @@
-import axios from '../axios'
-import store from '../store/index'
+import axios from '@/axios'
+import store from '@/store/index'
 
 const LoadDirectoryUrl = `api/directory/folder`
 const FileListUrl = `api/directory/list`

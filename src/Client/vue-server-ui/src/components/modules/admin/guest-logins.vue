@@ -36,7 +36,7 @@
 const FN = 'guest-login'
 
 import authService from '@/services/auth'
-import DispatchFactory from '@/factories/dispatchFactory'
+import Dispatcher from '@/services/ws-dispatcher'
 
 export default {
   name: 'guest-logins',
@@ -50,7 +50,7 @@ export default {
   },
   methods: {
     getData() {
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         authService
           .getGuestLogins()
           .then(resp => {
@@ -67,7 +67,7 @@ export default {
       })
     },
     unblockGuest(ip) {
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         authService
           .unblockGuest(ip)
           .then(resp => {

@@ -20,7 +20,7 @@
       </v-flex>
 
       <v-flex>
-        <div v-for="(item, index) in newNotes" :key="item.id">
+        <div v-for="item in newNotes" :key="item.id">
           <note-editor
             :obj="item"
             @delete="deleteNew"
@@ -34,9 +34,9 @@
 </template>
 
 <script>
-import noteService from '../../services/note'
-import DispatchFactory from '../../factories/dispatchFactory'
-import NoteEditor from '../modules/note-editor'
+import noteService from '@/services/note'
+import Dispatcher from '@/services/ws-dispatcher'
+import NoteEditor from '@/components/modules/note-editor'
 import { setTimeout } from 'core-js'
 
 function initializeNewNote(id) {
@@ -82,7 +82,7 @@ export default {
     async getData() {
       this.$_console_log('[Notes] Get notes')
 
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         noteService
           .getNotes()
           .then(resp => {
@@ -96,7 +96,7 @@ export default {
       this.newNotes.push(initializeNewNote(this.idCount--))
     },
     async deleteOld(item) {
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         noteService
           .deleteNote(item.id)
           .then(resp => {
@@ -124,7 +124,7 @@ export default {
       if (item.text === '') {
         this.$_console_log('[Notes] Note is empty, not going to create it')
       } else {
-        DispatchFactory.request(() => {
+        Dispatcher.request(() => {
           noteService
             .createNote(item)
             .then(resp => {
@@ -158,7 +158,7 @@ export default {
     async updateNote(note) {
       this.$_console_log('[Notes] Update note')
       this.$_console_log(note)
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         noteService
           .updateNote(note)
           .then(resp => {

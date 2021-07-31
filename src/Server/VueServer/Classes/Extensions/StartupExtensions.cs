@@ -132,6 +132,7 @@ namespace VueServer.Classes.Extensions
             services.AddSingleton<IVueServerCache, VueServerCache>();
 
             services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<IChatService, ChatService>();
             services.AddScoped<IModuleService, ModuleService>();
             services.AddScoped<IDirectoryService, DirectoryService>();

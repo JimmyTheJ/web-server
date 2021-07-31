@@ -151,13 +151,6 @@ export default {
       type: String,
       required: true,
     },
-    goFile: {
-      type: Object,
-      default: () => {
-        null
-        0
-      },
-    },
   },
   created() {
     this.setActiveFeatures()
@@ -223,62 +216,6 @@ export default {
           params: { folder: newValue },
         })
       }
-    },
-    goFile: {
-      handler(newValue) {
-        if (typeof newValue !== 'object' || newValue === null) {
-          this.$_console_log(
-            '[FileExplorer] goFile watcher: value is not an object or null'
-          )
-          this.goFile = { file: null, num: 0 }
-          return
-        }
-
-        if (newValue.num === 0) {
-          this.$_console_log(
-            '[FileExplorer] goFile watcher: Num is 0, therefore we aren\t navigating to a new file'
-          )
-          return
-        }
-
-        const folderlessList = this.contents
-          .filter(x => x.isFolder === false)
-          .slice(0)
-        this.$_console_log('Folderless List:', folderlessList)
-        if (folderlessList.length === 0) {
-          this.$_console_log(
-            '[FileExplorer] goFile watcher: This folder only contains other folders. Nothing to load.'
-          )
-          return
-        }
-
-        const fileIndex = folderlessList.findIndex(
-          x => encodeURI(x.title) === newValue.file
-        )
-        if (fileIndex === -1) {
-          this.$_console_log(
-            '[FileExplorer] goFile watcher: File not found in list'
-          )
-          return
-        }
-
-        if (fileIndex + newValue.num >= folderlessList.length) {
-          this.$_console_log(
-            '[FileExplorer] goFile watcher: Navigating here will overflow the list.'
-          )
-          return
-        } else if (fileIndex + newValue.num < 0) {
-          this.$_console_log(
-            '[FileExplorer] goFile watcher: Navigating here will underflow the list.'
-          )
-          return
-        } else {
-          // Everything is good to go. Change files.
-          const fileToOpen = folderlessList[fileIndex + newValue.num]
-          this.open(fileToOpen)
-        }
-      },
-      deep: true,
     },
   },
   methods: {

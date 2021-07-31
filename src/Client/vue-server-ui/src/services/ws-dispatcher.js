@@ -1,10 +1,12 @@
-import { requiresRefresh } from '../helpers/jwt'
-import store from '../store/index'
-import ConMsgs from '../mixins/console'
+import { requiresRefresh } from '@/helpers/jwt'
+import store from '@/store/index'
+import ConMsgs from '@/mixins/console'
+
+const FN = 'WSDispatcher'
 
 let instance = null
 
-class DispatchFactory {
+class WSDispatcher {
   constructor() {
     if (!instance) {
       instance = this
@@ -19,9 +21,9 @@ class DispatchFactory {
   }
 
   async request(request) {
-    ConMsgs.methods.$_console_log(`[DispatchFactory] request call`, request)
+    ConMsgs.methods.$_console_log(`[${FN}}] request call`, request)
     if (!requiresRefresh(store.state.auth.accessToken)) {
-      ConMsgs.methods.$_console_log('[DispatchFactory] Running request')
+      ConMsgs.methods.$_console_log(`[${FN}] Running request`)
       return await request()
     } else {
       this.queue.push(request)
@@ -30,7 +32,7 @@ class DispatchFactory {
   }
 
   async processQueue() {
-    ConMsgs.methods.$_console_log('[DispatchFactory] Processing queue...')
+    ConMsgs.methods.$_console_log(`[${FN}] Processing queue...`)
     let promiseList = []
     for (let i = 0; i < this.queue.length; i++) {
       promiseList.push(this.request(this.queue[i]))
@@ -41,20 +43,18 @@ class DispatchFactory {
       .catch(() => {})
       .then(() => {
         // Once all promises are handled clear the promises out of the list
-        ConMsgs.methods.$_console_log(
-          '[DispatchFactory] Emptying out promise queue.'
-        )
+        ConMsgs.methods.$_console_log(`[${FN}}] Emptying out promise queue.`)
         for (let i = 0; i < promiseList.length; i++) {
           this.queue.shift()
         }
         ConMsgs.methods.$_console_log(
-          `[DispatchFactory] Removed ${promiseList.length} promises from the queue`
+          `[${FN}] Removed ${promiseList.length} promises from the queue`
         )
       })
   }
 
   async getRefreshToken() {
-    ConMsgs.methods.$_console_log(`[DispatchFactory] ${this.gettingToken}`)
+    ConMsgs.methods.$_console_log(`[${FN}] ${this.gettingToken}`)
     if (this.gettingToken === false) {
       this.gettingToken = true
       await store.dispatch('refreshToken')
@@ -63,10 +63,10 @@ class DispatchFactory {
       return await this.processQueue()
     } else {
       ConMsgs.methods.$_console_log(
-        '[DispatchFactory] We are already getting a refresh token.'
+        `[${FN}] We are already getting a refresh token.`
       )
     }
   }
 }
 
-export default new DispatchFactory()
+export default new WSDispatcher()

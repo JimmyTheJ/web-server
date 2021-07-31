@@ -20,6 +20,8 @@ export const USER_UPDATE_AVATAR = 'USER_UPDATE_AVATAR'
 export const USER_UPDATE_DISPLAY_NAME = 'USER_UPDATE_DISPLAY_NAME'
 export const USER_GET_OTHERS = 'USER_GET_OTHERS'
 
+export const ROLES_GET = 'ROLES_GET'
+
 /*
  * Library
  */

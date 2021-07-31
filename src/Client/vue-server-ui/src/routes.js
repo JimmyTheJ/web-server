@@ -1,21 +1,23 @@
-import { Roles } from './constants'
+import { Roles } from '@/constants'
 
-import Index from './components/index'
-import Login from './components/modules/login'
+import Index from '@/components/index'
+import Login from '@/components/modules/login'
 
-import UserManagement from './components/pages/user-management'
+import AdminTools from '@/components/pages/admin/admin-tools'
+import UserManagement from '@/components/pages/admin/user-management'
+import DirectoryManagement from '@/components/pages/admin/directory-management'
 
-import Home from './components/home'
-import Start from './components/pages/start'
-import Profile from './components/pages/profile'
+import Home from '@/components/home'
+import Start from '@/components/pages/start'
+import Profile from '@/components/pages/profile'
 
-import Chat from './components/pages/chat-messaging'
-import Browser from './components/pages/browser'
-import Notes from './components/pages/notes'
-import Documentation from './components/pages/documentation'
-import Doc from './components/modules/doc'
-import Weight from './components/pages/weight'
-import Library from './components/pages/library'
+import Chat from '@/components/pages/chat-messaging'
+import Browser from '@/components/pages/browser'
+import Notes from '@/components/pages/notes'
+import Documentation from '@/components/pages/documentation'
+import Doc from '@/components/modules/doc'
+import Weight from '@/components/pages/weight'
+import Library from '@/components/pages/library'
 
 export const baseRoutes = [
   {
@@ -62,14 +64,36 @@ export const baseRoutes = [
 
 export const adminRoutes = [
   {
-    path: 'user-management',
-    name: 'user-management',
-    component: UserManagement,
+    path: 'admin-tools',
+    name: 'admin-tools',
+    component: AdminTools,
     meta: {
-      display: 'User Management',
+      display: 'Admin Tools',
       authLevel: Roles.Level.Admin,
       hidden: false,
     },
+    children: [
+      {
+        path: 'user-management',
+        name: 'user-management',
+        component: UserManagement,
+        meta: {
+          display: 'User Management',
+          authLevel: Roles.Level.Admin,
+          hidden: false,
+        },
+      },
+      {
+        path: 'directory-management',
+        name: 'directory-management',
+        component: DirectoryManagement,
+        meta: {
+          display: 'Directory Management',
+          authLevel: Roles.Level.Admin,
+          hidden: false,
+        },
+      },
+    ],
   },
 ]
 

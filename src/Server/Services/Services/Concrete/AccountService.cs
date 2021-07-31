@@ -15,16 +15,13 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using VueServer.Core;
 using VueServer.Core.Cache;
 using VueServer.Core.Helper;
 using VueServer.Core.Objects;
 using VueServer.Domain;
 using VueServer.Domain.Interface;
-using VueServer.Models;
 using VueServer.Models.Account;
 using VueServer.Models.Context;
-using VueServer.Models.Directory;
 using VueServer.Models.Response;
 using VueServer.Models.User;
 using VueServer.Services.Interface;
@@ -38,8 +35,6 @@ namespace VueServer.Services.Concrete
 
         /// <summary>  Used to manage the user sign in process, which is all part of the Identity Framework </summary>
         private readonly SignInManager<WSUser> _signInManager;
-        /// <summary> Used to manage the roles of the user, either create or check roles </summary>
-        private readonly RoleManager<WSRole> _roleManager;
         /// <summary>Hosting environment</summary>
         private readonly IWebHostEnvironment _env;
         /// <summary> Configuration file. </summary>
@@ -60,7 +55,6 @@ namespace VueServer.Services.Concrete
         public AccountService(
             UserManager<WSUser> userManager,
             SignInManager<WSUser> signInManager,
-            RoleManager<WSRole> roleManager,
             IWSContext context,
             IWebHostEnvironment env,
             ILoggerFactory logger,
@@ -73,7 +67,6 @@ namespace VueServer.Services.Concrete
             _antiForgery = forgery ?? throw new ArgumentNullException("Anti-Forgery service is null");
             _config = config ?? throw new ArgumentNullException("Configuration is null");
             _env = env ?? throw new ArgumentNullException("Hosting environment is null");
-            _roleManager = roleManager ?? throw new ArgumentNullException("Role manager is null");
             _signInManager = signInManager ?? throw new ArgumentNullException("Signin manager is null");
             _user = user ?? throw new ArgumentNullException("User service is null");
             _context = context ?? throw new ArgumentNullException("User context is null");
@@ -468,197 +461,9 @@ namespace VueServer.Services.Concrete
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<ServerSettings>>> GetDirectorySettings()
-        {
-            var directorySettings = await _context.ServerSettings.Where(x => x.Key.StartsWith(DomainConstants.ServerSettings.BaseKeys.Directory)).ToListAsync();
-            return new Result<IEnumerable<ServerSettings>>(directorySettings, Domain.Enums.StatusCode.OK);
-        }
-
-        public async Task<IResult<bool>> SetUseDefaultUserDirectoryPath(bool should)
-        {
-            var shouldUseDefaultUserDirectory = await _context.ServerSettings.Where(x => x.Key == $"{DomainConstants.ServerSettings.BaseKeys.Directory}_{DomainConstants.ServerSettings.Directory.ShouldUseDefaultPath}").FirstOrDefaultAsync();
-            if (shouldUseDefaultUserDirectory == null)
-            {
-                shouldUseDefaultUserDirectory = new ServerSettings()
-                {
-                    Key = $"{DomainConstants.ServerSettings.BaseKeys.Directory}_{DomainConstants.ServerSettings.Directory.ShouldUseDefaultPath}",
-                    Value = should.BoolToString()
-                };
-
-                _context.ServerSettings.Add(shouldUseDefaultUserDirectory);
-            }
-            else
-            {
-                if (shouldUseDefaultUserDirectory.Value == should.BoolToString())
-                {
-                    _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Value matches. No need to save database with changes, returning true but doing nothing.");
-                    return new Result<bool>(true, Domain.Enums.StatusCode.OK);
-                }
-
-                shouldUseDefaultUserDirectory.Value = should.BoolToString();
-            }
-
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new Result<bool>(true, Domain.Enums.StatusCode.OK);
-            }
-            catch (Exception)
-            {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after adding or editing a {nameof(ServerSettings)} with name: {DomainConstants.ServerSettings.BaseKeys.Directory}_{DomainConstants.ServerSettings.Directory.ShouldUseDefaultPath}");
-                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-        }
-
-        public async Task<IResult<bool>> SetPathDefaultUserDirectoryPath(string path)
-        {
-            var shouldUseDefaultUserDirectory = await _context.ServerSettings.Where(x => x.Key == $"{DomainConstants.ServerSettings.BaseKeys.Directory}_{DomainConstants.ServerSettings.Directory.DefaultPathValue}").FirstOrDefaultAsync();
-            if (shouldUseDefaultUserDirectory == null)
-            {
-                shouldUseDefaultUserDirectory = new ServerSettings()
-                {
-                    Key = $"{DomainConstants.ServerSettings.BaseKeys.Directory}_{DomainConstants.ServerSettings.Directory.DefaultPathValue}",
-                    Value = path
-                };
-
-                _context.ServerSettings.Add(shouldUseDefaultUserDirectory);
-            }
-            else
-            {
-                if (shouldUseDefaultUserDirectory.Value == path)
-                {
-                    _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Value matches. No need to save database with changes, returning true but doing nothing.");
-                    return new Result<bool>(true, Domain.Enums.StatusCode.OK);
-                }
-
-                shouldUseDefaultUserDirectory.Value = path;
-            }
-
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new Result<bool>(true, Domain.Enums.StatusCode.OK);
-            }
-            catch (Exception)
-            {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after adding or editing a {nameof(ServerSettings)} with name: {DomainConstants.ServerSettings.BaseKeys.Directory}_{DomainConstants.ServerSettings.Directory.DefaultPathValue}");
-                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-        }
-
-        public async Task<IResult<IEnumerable<ServerGroupDirectory>>> GetGroupDirectories()
-        {
-            var directories = await _context.ServerGroupDirectory.ToListAsync();
-            return new Result<IEnumerable<ServerGroupDirectory>>(directories, Domain.Enums.StatusCode.OK);
-        }
-
-        public async Task<IResult<IEnumerable<ServerUserDirectory>>> GetUserDirectories()
-        {
-            var directories = await _context.ServerUserDirectory.ToListAsync();
-            return new Result<IEnumerable<ServerUserDirectory>>(directories, Domain.Enums.StatusCode.OK);
-        }
-
-        public async Task<IResult<bool>> AddGroupDirectory(ServerGroupDirectory dir)
-        {
-            if (dir == null || dir.Id != 0)
-            {
-                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Directory must exist and have an Id of 0 to be able to be created");
-                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
-            }
-
-            _context.ServerGroupDirectory.Add(dir);
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new Result<bool>(true, Domain.Enums.StatusCode.OK);
-            }
-            catch (Exception)
-            {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after adding {nameof(ServerGroupDirectory)} with name: {dir.Name}");
-                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-        }
-
-        public async Task<IResult<bool>> AddUserDirectory(ServerUserDirectory dir)
-        {
-            if (dir == null || dir.Id != 0)
-            {
-                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Directory must exist and have an Id of 0 to be able to be created");
-                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
-            }
-
-            _context.ServerUserDirectory.Add(dir);
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new Result<bool>(true, Domain.Enums.StatusCode.OK);
-            }
-            catch (Exception)
-            {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after adding {nameof(ServerUserDirectory)} with name: {dir.Name}");
-                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-        }
-
-        public async Task<IResult<bool>> DeleteGroupDirectory(int id)
-        {
-            if (id < 1)
-            {
-                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Id must be > 0 to be valid");
-                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
-            }
-
-            var item = await _context.ServerGroupDirectory.Where(x => x.Id == id).FirstOrDefaultAsync();
-            if (item == null)
-            {
-                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No {nameof(ServerGroupDirectory)} found with Id: {id}");
-                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
-            }
-
-            _context.ServerGroupDirectory.Remove(item);
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new Result<bool>(true, Domain.Enums.StatusCode.OK);
-            }
-            catch (Exception)
-            {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after deleting {nameof(ServerGroupDirectory)} with id: {id}");
-                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-        }
-
-        public async Task<IResult<bool>> DeleteUserDirectory(long id)
-        {
-            if (id < 1)
-            {
-                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Id must be > 0 to be valid");
-                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
-            }
-
-            var item = await _context.ServerUserDirectory.Where(x => x.Id == id).FirstOrDefaultAsync();
-            if (item == null)
-            {
-                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No {nameof(ServerUserDirectory)} found with Id: {id}");
-                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
-            }
-
-            _context.ServerUserDirectory.Remove(item);
-            try
-            {
-                await _context.SaveChangesAsync();
-                return new Result<bool>(true, Domain.Enums.StatusCode.OK);
-            }
-            catch (Exception)
-            {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after deleting {nameof(ServerUserDirectory)} with id: {id}");
-                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-        }
-
         public async Task<IResult<IEnumerable<string>>> GetRoles()
         {
-            var roles = await _roleManager.Roles.Select(x => x.Name).ToListAsync();
+            var roles = await _context.Roles.Select(x => x.Name).ToListAsync();
             return new Result<IEnumerable<string>>(roles, Domain.Enums.StatusCode.OK);
         }
 

@@ -56,7 +56,7 @@ const FN = 'user-modules'
 
 import authService from '@/services/auth'
 import moduleService from '@/services/modules'
-import DispatchFactory from '@/factories/dispatchFactory'
+import Dispatcher from '@/services/ws-dispatcher'
 
 export default {
   name: 'user-modules',
@@ -101,7 +101,7 @@ export default {
   },
   methods: {
     getData() {
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         authService
           .getUsers()
           .then(resp => {
@@ -113,7 +113,7 @@ export default {
           )
       })
 
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         moduleService
           .getAllModules()
           .then(resp => {
@@ -125,7 +125,7 @@ export default {
           )
       })
 
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         moduleService
           .getAllModulesForAllUser()
           .then(resp => {
@@ -141,7 +141,7 @@ export default {
           )
       })
 
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         authService
           .getGuestLogins()
           .then(resp => {
@@ -175,7 +175,7 @@ export default {
         moduleAddOnId: module.id,
       }
 
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         moduleService
           .deleteModuleFromUser(obj)
           .then(() => {
@@ -226,7 +226,7 @@ export default {
 
       let currentlySelectedModule = Object.assign({}, this.selectedModule)
 
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         moduleService
           .deleteFeatureFromUser(obj)
           .then(() => {
@@ -294,7 +294,7 @@ export default {
       }
 
       const tempModule = Object.assign({}, module)
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         moduleService
           .addModuleToUser(obj)
           .then(resp => {
@@ -348,7 +348,7 @@ export default {
         return
       }
 
-      DispatchFactory.request(() => {
+      Dispatcher.request(() => {
         moduleService
           .addFeatureToUser(obj)
           .then(resp => {
