@@ -165,7 +165,7 @@ namespace VueServer.Classes.Extensions
             DatabaseTypes dbType = (DatabaseTypes)config.GetSection("Options").GetValue<int>("DatabaseType");
             if (dbType == DatabaseTypes.MSSQLSERVER)
             {
-                if (!env.IsDevelopment())
+                if (env.IsDevelopment())
                 {
                     using (var client = new SqlServerWSContext())
                     {
@@ -178,7 +178,7 @@ namespace VueServer.Classes.Extensions
             }
             else if (dbType == DatabaseTypes.SQLITE)
             {
-                if (!env.IsDevelopment())
+                if (env.IsDevelopment())
                 {
                     using (var client = new SqliteWSContext())
                     {
@@ -191,7 +191,7 @@ namespace VueServer.Classes.Extensions
             }
             else if (dbType == DatabaseTypes.MYSQL)
             {
-                if (!env.IsDevelopment())
+                if (env.IsDevelopment())
                 {
                     using (var client = new MySqlWSContext())
                     {
