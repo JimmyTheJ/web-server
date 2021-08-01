@@ -292,8 +292,8 @@ namespace VueServer.Models.Context
 
         private void SeedWSSettings(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<ServerSettings>().HasData(new ServerSettings() { Key = $"{DomainConstants.ServerSettings.BaseKeys.Directory}_{DomainConstants.ServerSettings.Directory.ShouldUseDefaultPath}", Value = "0" });
-            modelBuilder.Entity<ServerSettings>().HasData(new ServerSettings() { Key = $"{DomainConstants.ServerSettings.BaseKeys.Directory}_{DomainConstants.ServerSettings.Directory.DefaultPathValue}", Value = "" });
+            modelBuilder.Entity<ServerSettings>().HasData(new ServerSettings() { Key = $"{DomainConstants.ServerSettings.BaseKeys.Directory}{DomainConstants.ServerSettings.Directory.ShouldUseDefaultPath}", Value = "0" });
+            modelBuilder.Entity<ServerSettings>().HasData(new ServerSettings() { Key = $"{DomainConstants.ServerSettings.BaseKeys.Directory}{DomainConstants.ServerSettings.Directory.DefaultPathValue}", Value = "" });
         }
 
         #endregion
