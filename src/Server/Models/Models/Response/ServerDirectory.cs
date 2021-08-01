@@ -1,4 +1,6 @@
-﻿namespace VueServer.Models.Response
+﻿using VueServer.Models.Directory;
+
+namespace VueServer.Models.Response
 {
     public class ServerDirectory
     {
@@ -7,6 +9,6 @@
         public string Path { get; set; }
 
         public bool Default { get; set; }
-        public bool AllowSubDirs { get; set; }
+        public DirectoryAccessFlags AccessFlags { get; set; }
     }
 }

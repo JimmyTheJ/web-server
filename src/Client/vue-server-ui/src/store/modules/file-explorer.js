@@ -215,7 +215,15 @@ const mutations = {
       `[Vuex][Mutations] Setting ${data.value ? 'active' : 'innactive'} file`
     )
 
-    state.filteredFiles[data.index].active = data.value
+    if (typeof state.filteredFiles[data.index] === 'undefined') {
+      ConMsgs.methods.$_console_log(
+        `[Vuex][Mutations] state.filteredFiles[data.index] is undefined. Here are all the filtered files, and the targetted index/value`,
+        state.filteredFiles,
+        data
+      )
+    } else {
+      state.filteredFiles[data.index].active = data.value
+    }
   },
 }
 

@@ -85,18 +85,30 @@ namespace VueServer.Services.Concrete
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
-            var list = (await GetSingleDirectoryList(user)).ToList();
+            var list = await GetSingleDirectoryList(user);
             var folders = tuple.Item1.ToList();
 
-            var baseDir = list.Where(a => a.Name == folders[0]).Select(a => a.Path).FirstOrDefault();
-            if (baseDir == null)
+            var baseDirObj = list.Where(a => a.Name == folders[0]).FirstOrDefault();
+            if (baseDirObj == null)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name: {folders[0]}");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name: {folders[0]}");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
+            if (string.IsNullOrWhiteSpace(baseDirObj.Path))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Path of object is null");
+                return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
+            }
+
+            if (!baseDirObj.AccessFlags.HasFlag(DirectoryAccessFlags.ReadFile))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No read file access to files in this folder");
+                return new Result<Tuple<string, string, string>>(null, StatusCode.UNAUTHORIZED);
+            }
+
             var cleanFilename = tuple.Item2;
-            var sourcePath = GetSourcePath(baseDir, folders);
+            var sourcePath = GetSourcePath(baseDirObj.Path, folders);
             var sourceFile = GetSourceFile(sourcePath, cleanFilename);
             var contentType = MimeTypeHelper.GetMimeType(sourceFile);
             Tuple<string, string> mediaFilename = null;
@@ -187,15 +199,22 @@ namespace VueServer.Services.Concrete
         {
             if (string.IsNullOrWhiteSpace(directory))
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Directory is null. Can't get list.");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Directory is null. Can't get list.");
                 return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
             }
 
-            var list = (await GetSingleDirectoryList(_user.Id)).ToList();
-            var basePath = list.Where(a => a.Name == directory).Select(a => a.Path).FirstOrDefault();
-            if (basePath == null)
+            var list = await GetSingleDirectoryList(_user.Id);
+            var serverDirectory = list.Where(a => a.Name == directory).FirstOrDefault();
+            if (serverDirectory == null)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name: {directory}");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name: {directory}");
+                return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
+            }
+
+            var basePath = serverDirectory.Path;
+            if (string.IsNullOrWhiteSpace(basePath))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Server directory has a null path");
                 return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -204,6 +223,12 @@ namespace VueServer.Services.Concrete
 
             if (!string.IsNullOrWhiteSpace(subDir))
             {
+                if (!serverDirectory.AccessFlags.HasFlag(DirectoryAccessFlags.ReadFolder))
+                {
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Server directory has a null path");
+                    return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.UNAUTHORIZED);
+                }
+
                 fullPath = Path.Combine(basePath, subDir);
                 // Security check to ensure the user isn't trying a path escalation attack
                 try
@@ -258,8 +283,21 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model)
         {
-            var uploadDirs = await GetSingleDirectoryList(_user.Id);
-            string baseSaveDir = uploadDirs.Where(x => x.Name == model.Directory).Select(y => y.Path).FirstOrDefault();
+            var dirList = await GetSingleDirectoryList(_user.Id);
+            var dir = dirList.Where(x => x.Name == model.Directory).FirstOrDefault();
+            if (dir == null)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name provided. File upload attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
+                return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
+            }
+
+            if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.UploadFile))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to upload to a folder that doesn't allow file uploading regardless of their permissions");
+                return new Result<WebServerFile>(null, StatusCode.UNAUTHORIZED);
+            }
+
+            string baseSaveDir = dir.Path;
             string saveDir = baseSaveDir;
 
             if (!string.IsNullOrEmpty(model.SubDirectory))
@@ -325,18 +363,24 @@ namespace VueServer.Services.Concrete
             if (string.IsNullOrWhiteSpace(model.Name))
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
 
-            var uploadDirs = await GetSingleDirectoryList(_user.Id);
-            string dir = uploadDirs.Where(x => x.Name == model.Directory).Select(y => y.Path).FirstOrDefault();
+            var dirList = await GetSingleDirectoryList(_user.Id);
+            var dir = dirList.Where(x => x.Name == model.Directory).FirstOrDefault();
             if (dir == null)
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name provided. Protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
             }
 
+            if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.DeleteFile))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unable to delete folder. User: " + _user.Id + " @ " + _user.IP + " doesn't have permission to delete this folder.");
+                return new Result<bool>(false, StatusCode.UNAUTHORIZED);
+            }
+
             FileInfo fi = null;
             try
             {
-                fi = new FileInfo(Path.Combine(dir, model.SubDirectory, model.Name));
+                fi = new FileInfo(Path.Combine(dir.Path, model.SubDirectory, model.Name));
             }
             catch
             {
@@ -344,7 +388,7 @@ namespace VueServer.Services.Concrete
                 return new Result<bool>(false, StatusCode.UNAUTHORIZED);
             }
 
-            if (!fi.Directory.FullName.StartsWith(dir))
+            if (!fi.Directory.FullName.StartsWith(dir.Path))
             {
                 _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Path escalation attack attempted by {_user.Id} @ {_user.IP} - Filename={fi.Directory.FullName.ToString()}{Path.DirectorySeparatorChar}{model.Name}!");
                 return new Result<bool>(false, StatusCode.FORBIDDEN);
@@ -463,7 +507,7 @@ namespace VueServer.Services.Concrete
             if (user == null)
                 return new List<ServerUserDirectory>();
 
-            return await _wSContext.ServerUserDirectory.Where(x => x.UserId == user.Id).ToListAsync();
+            return await _wSContext.ServerUserDirectory.Where(x => x.UserId == user.UserName).ToListAsync();
         }
 
         private async Task<IEnumerable<ServerGroupDirectory>> GetServerGroupDirectoryList(string role)
@@ -488,10 +532,10 @@ namespace VueServer.Services.Concrete
                 {
                     allDirs.Add(new ServerDirectory()
                     {
-                        AllowSubDirs = dir.AllowSubDirs,
                         Name = dir.Name,
                         Default = false,
-                        Path = stripPath ? null : dir.Path
+                        Path = stripPath ? null : dir.Path,
+                        AccessFlags = dir.AccessFlags
                     });
                 }
             }
@@ -502,10 +546,10 @@ namespace VueServer.Services.Concrete
                 {
                     allDirs.Add(new ServerDirectory()
                     {
-                        AllowSubDirs = dir.AllowSubDirs,
                         Name = dir.Name,
                         Default = dir.Default,
-                        Path = stripPath ? null : dir.Path
+                        Path = stripPath ? null : dir.Path,
+                        AccessFlags = dir.AccessFlags
                     });
                 }
             }

@@ -78,6 +78,9 @@ namespace VueServer.Models.Context
             // Setup index on the IP Address for the guest failed logging attempt table
             modelBuilder.Entity<WSFailedLogin>().HasIndex(x => x.IPAddress).IsClustered(false);
 
+            // Ensure user names are unique and indexed
+            modelBuilder.Entity<WSUser>().HasIndex(x => x.UserName).IsClustered(false).IsUnique();
+
             // Data Seeding
             SeedIdentity(modelBuilder);
             SeedGenres(modelBuilder);

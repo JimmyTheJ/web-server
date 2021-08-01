@@ -66,7 +66,8 @@ export const splitPathFromRoute = function(path) {
 export const getFileType = function(file) {
   if (typeof file === 'undefined' || file === null) return null
   else {
-    switch (file.extension) {
+    let type
+    switch (file.extension.toLowerCase()) {
       case '.mkv':
       case '.avi':
       case '.mpeg':
@@ -75,7 +76,8 @@ export const getFileType = function(file) {
       case '.wmv':
       case '.webm':
       case '.mp3':
-        return MediaTypes.Video
+        type = MediaTypes.Video
+        break
       case '.jpg':
       case '.jpeg':
       case '.gif':
@@ -83,9 +85,12 @@ export const getFileType = function(file) {
       case '.bmp':
       case '.png':
       case '.img':
-        return MediaTypes.Image
+        type = MediaTypes.Image
+        break
       default:
-        return MediaTypes.Text
+        type = MediaTypes.Text
+        break
     }
+    return type
   }
 }
