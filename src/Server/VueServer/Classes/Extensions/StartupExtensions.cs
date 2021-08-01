@@ -158,16 +158,19 @@ namespace VueServer.Classes.Extensions
         /// </summary>
         /// <param name="services"></param>
         /// <param name="config"></param>
-        public static void AddCustomDataStore(this IServiceCollection services, IConfiguration config)
+        public static void AddCustomDataStore(this IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
         {
             ConnectionStrings.WSCONTEXT = config.GetConnectionString("WebServerDbConnectionString");
 
             DatabaseTypes dbType = (DatabaseTypes)config.GetSection("Options").GetValue<int>("DatabaseType");
             if (dbType == DatabaseTypes.MSSQLSERVER)
             {
-                using (var client = new SqlServerWSContext())
+                if (!env.IsDevelopment())
                 {
-                    client.Database.Migrate();
+                    using (var client = new SqlServerWSContext())
+                    {
+                        client.Database.Migrate();
+                    }
                 }
 
                 services.AddEntityFrameworkSqlServer().AddDbContext<IWSContext, SqlServerWSContext>
@@ -175,9 +178,12 @@ namespace VueServer.Classes.Extensions
             }
             else if (dbType == DatabaseTypes.SQLITE)
             {
-                using (var client = new SqliteWSContext())
+                if (!env.IsDevelopment())
                 {
-                    client.Database.Migrate();
+                    using (var client = new SqliteWSContext())
+                    {
+                        client.Database.Migrate();
+                    }
                 }
 
                 services.AddEntityFrameworkSqlite().AddDbContext<IWSContext, SqliteWSContext>
@@ -185,9 +191,12 @@ namespace VueServer.Classes.Extensions
             }
             else if (dbType == DatabaseTypes.MYSQL)
             {
-                using (var client = new MySqlWSContext())
+                if (!env.IsDevelopment())
                 {
-                    client.Database.Migrate();
+                    using (var client = new MySqlWSContext())
+                    {
+                        client.Database.Migrate();
+                    }
                 }
 
                 services.AddEntityFrameworkMySql().AddDbContext<IWSContext, MySqlWSContext>

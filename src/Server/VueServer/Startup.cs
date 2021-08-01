@@ -64,7 +64,7 @@ namespace VueServer
 
             services.AddCustomAuthentication(Configuration);
             services.AddCustomServices(Configuration);
-            services.AddCustomDataStore(Configuration);
+            services.AddCustomDataStore(Configuration, Environment);
 
             services
                 .AddMvc(options =>
