@@ -14,7 +14,7 @@ namespace VueServer.Models.User
         }
 
         [Key]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [ForeignKey("User")]
         public string UserId { get; set; }

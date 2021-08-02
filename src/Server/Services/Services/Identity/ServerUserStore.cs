@@ -99,7 +99,7 @@ namespace VueServer.Models.Identity
 
         public Task SetUserNameAsync(WSUser user, string userName, CancellationToken cancellationToken)
         {
-            user.UserName = userName;
+            user.DisplayName = userName;
             return Task.CompletedTask;
         }
 
@@ -107,7 +107,7 @@ namespace VueServer.Models.Identity
         {
             WSUser toUpdate = await FindByIdAsync(user.Id, cancellationToken);
             toUpdate.NormalizedUserName = user.NormalizedUserName;
-            toUpdate.UserName = user.UserName;
+            toUpdate.DisplayName = user.DisplayName;
             toUpdate.PasswordHash = user.PasswordHash;
 
             try
@@ -123,7 +123,8 @@ namespace VueServer.Models.Identity
 
         public Task AddToRoleAsync(WSUser user, string roleName, CancellationToken cancellationToken)
         {
-            var userRole = context.UserRoles.Where(o => o.UserId == user.Id && o.Role.Name == roleName).FirstOrDefault();
+            // TODO: Possibly check if this should be the Role.DisplayName or the Id
+            var userRole = context.UserRoles.Where(o => o.UserId == user.Id && o.Role.DisplayName == roleName).FirstOrDefault();
 
             if (userRole == null)
             {
@@ -140,7 +141,8 @@ namespace VueServer.Models.Identity
 
         public Task RemoveFromRoleAsync(WSUser user, string roleName, CancellationToken cancellationToken)
         {
-            var userRole = context.UserRoles.Where(o => o.UserId == user.Id && o.Role.Name == roleName).FirstOrDefault();
+            // TODO: Possibly check if this should be the Role.DisplayName or the Id
+            var userRole = context.UserRoles.Where(o => o.UserId == user.Id && o.Role.DisplayName == roleName).FirstOrDefault();
 
             if (userRole != null)
             {
@@ -153,17 +155,20 @@ namespace VueServer.Models.Identity
 
         public async Task<IList<string>> GetRolesAsync(WSUser user, CancellationToken cancellationToken)
         {
-            return await context.UserRoles.Where(o => o.UserId == user.Id).Select(o => o.Role.Name).ToListAsync();
+            // TODO: Possibly check if this should be the Role.DisplayName or the Id
+            return await context.UserRoles.Where(o => o.UserId == user.Id).Select(o => o.Role.DisplayName).ToListAsync();
         }
 
         public Task<bool> IsInRoleAsync(WSUser user, string roleName, CancellationToken cancellationToken)
         {
-            return context.UserRoles.Where(o => o.UserId == user.Id && o.Role.Name == roleName).AnyAsync();
+            // TODO: Possibly check if this should be the Role.DisplayName or the Id
+            return context.UserRoles.Where(o => o.UserId == user.Id && o.Role.DisplayName == roleName).AnyAsync();
         }
 
         public Task<IList<WSUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
         {
-            return Task.FromResult((IList<WSUser>)context.UserRoles.Where(o => o.Role.Name == roleName).Select(o => o.User).ToList());
+            // TODO: Possibly check if this should be the Role.DisplayName or the Id
+            return Task.FromResult((IList<WSUser>)context.UserRoles.Where(o => o.Role.DisplayName == roleName).Select(o => o.User).ToList());
         }
 
         public void Dispose()

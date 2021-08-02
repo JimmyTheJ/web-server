@@ -84,8 +84,7 @@ namespace VueServer.Services.Concrete
             // Create a new identity user to pass to the registration method
             var newUser = new WSUser
             {
-                Id = Guid.NewGuid().ToString(),
-                UserName = model.Username.ToLower(),
+                Id = model.Username.ToLower(),
                 NormalizedUserName = model.Username.ToUpper(),
                 DisplayName = model.Username,
                 Active = true,
@@ -164,7 +163,7 @@ namespace VueServer.Services.Concrete
                 // TODO: We probably shouldn't log the plaintext password here
                 _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed login from {_user.IP} with credentials: username={model.Username}, password={model.Password}");
 
-                await CreateFailedLogin(model.Username);
+                await CreateUserLoginLog(model.Username);
                 await IncrementGuestLoginFailure(guestLogin);
 
                 await Signout(context, model.Username);
@@ -225,6 +224,7 @@ namespace VueServer.Services.Concrete
             }
 
             await ResetGuestLoginFailure(guestLogin);
+            await CreateUserLoginLog(model.Username, true);
 
             var userResponse = new WSUserResponse(user);
             if (roles.Contains(DomainConstants.Authentication.ADMINISTRATOR_STRING) && IsAdminFirstTimeLogin(user, model.Password))
@@ -466,10 +466,10 @@ namespace VueServer.Services.Concrete
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<string>>> GetRoles()
+        public async Task<IResult<IEnumerable<WSRole>>> GetRoles()
         {
-            var roles = await _context.Roles.Select(x => x.Name).ToListAsync();
-            return new Result<IEnumerable<string>>(roles, Domain.Enums.StatusCode.OK);
+            var roles = await _context.Roles.ToListAsync();
+            return new Result<IEnumerable<WSRole>>(roles, Domain.Enums.StatusCode.OK);
         }
 
 
@@ -611,7 +611,7 @@ namespace VueServer.Services.Concrete
 
         private async Task<WSUserTokens> GetRefreshTokenForUser(string id, string ip)
         {
-            return await _context.UserTokens.Where(x => x.UserId == id && x.Source == ip && x.Valid).SingleOrDefaultAsync();
+            return await _context.UserTokens.Where(x => x.UserId == id && x.IPAddress == ip && x.Valid).SingleOrDefaultAsync();
         }
 
         /// <summary>
@@ -638,7 +638,7 @@ namespace VueServer.Services.Concrete
             tokenQuery = tokenQuery.Where(x => x.UserId == id);
             if (ip != null)
             {
-                tokenQuery = tokenQuery.Where(x => x.Source == ip);
+                tokenQuery = tokenQuery.Where(x => x.IPAddress == ip);
             }
 
             var tokens = await tokenQuery.ToListAsync();
@@ -687,7 +687,7 @@ namespace VueServer.Services.Concrete
             if (source == null)
                 tokens = await _context.UserTokens.Where(x => x.UserId == id).ToListAsync();
             else
-                tokens = await _context.UserTokens.Where(x => x.UserId == id && x.Source == source).ToListAsync();
+                tokens = await _context.UserTokens.Where(x => x.UserId == id && x.IPAddress == source).ToListAsync();
 
             if (tokens == null || tokens.Count == 0)
             {
@@ -730,7 +730,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after invalidating the user: '{token.UserId}' token from IP: {token.Source}");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after invalidating the user: '{token.UserId}' token from IP: {token.IPAddress}");
                 return false;
             }
             return true;
@@ -757,7 +757,7 @@ namespace VueServer.Services.Concrete
             }
 
             var now = DateTime.UtcNow;
-            var tokenIP = await _context.UserTokens.Where(x => x.Source == ip && x.UserId == id).SingleOrDefaultAsync();
+            var tokenIP = await _context.UserTokens.Where(x => x.IPAddress == ip && x.UserId == id).SingleOrDefaultAsync();
             if (tokenIP == null)
             {
                 var newTok = new WSUserTokens
@@ -766,7 +766,7 @@ namespace VueServer.Services.Concrete
                     Token = token,
                     UserId = id,
                     Valid = true,
-                    Source = ip
+                    IPAddress = ip
                 };
                 _context.UserTokens.Add(newTok);
             }
@@ -948,9 +948,9 @@ namespace VueServer.Services.Concrete
 
             if (arg != null)
             {
-                if (arg.Contains(nameof(WSUser.UserName).ToLower()))
+                if (arg.Contains(nameof(WSUser.Id).ToLower()))
                 {
-                    createPath = createPath.Replace(arg, user.UserName, StringComparison.OrdinalIgnoreCase);
+                    createPath = createPath.Replace(arg, user.Id, StringComparison.OrdinalIgnoreCase);
                 }
                 else if (arg.Contains(nameof(WSUser.Id).ToLower()))
                 {
@@ -968,7 +968,7 @@ namespace VueServer.Services.Concrete
                 Name = "User Files",
                 Path = createPath,
                 Default = true,
-                UserId = user.UserName,
+                UserId = user.Id,
                 AccessFlags = DirectoryAccessFlags.CreateFolder | DirectoryAccessFlags.DeleteFile | DirectoryAccessFlags.DeleteFolder
                     | DirectoryAccessFlags.ReadFile | DirectoryAccessFlags.ReadFolder | DirectoryAccessFlags.UploadFile
             };
@@ -987,27 +987,28 @@ namespace VueServer.Services.Concrete
             return true;
         }
 
-        private async Task<WSFailedLogin> CreateFailedLogin(string username)
+        private async Task<WSUserLogin> CreateUserLoginLog(string username, bool success = false)
         {
-            var failedLogin = new WSFailedLogin()
+            var loginAttempt = new WSUserLogin()
             {
                 IPAddress = _user.IP,
                 Username = username,
-                Timestamp = DateTime.UtcNow.Ticks
+                Timestamp = DateTime.UtcNow.Ticks,
+                Success = success
             };
 
-            _context.FailedLogin.Add(failedLogin);
+            _context.UserLogin.Add(loginAttempt);
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving when creating log to account: '{username}' from IP '{_user.IP}'");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving when creating login attempt for account: '{username}' from IP '{_user.IP}' with success status '{success}'");
                 return null;
             }
 
-            return failedLogin;
+            return loginAttempt;
         }
 
         private async Task<bool> IncrementGuestLoginFailure(WSGuestLogin guestLogin)

@@ -1,15 +1,12 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
+using VueServer.Domain;
 
 namespace VueServer.Models.Account
 {
     public class RegisterRequest
     {
         [Required]
-        [MaxLength(50)]
+        [MaxLength(DomainConstants.Authentication.MAX_USERNAME_LENGTH), MinLength(1)]
         [Display(Name = "Username")]
         public string Username { get; set; }
 
@@ -30,12 +27,12 @@ namespace VueServer.Models.Account
         public RegisterRequest(
             string username,
             string password,
-            string comfirmPassword,
+            string confirmPassword,
             string role)
         {
             Username = username;
             Password = password;
-            ConfirmPassword = ConfirmPassword;
+            ConfirmPassword = confirmPassword;
             Role = role;
         }
     }

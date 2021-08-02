@@ -507,7 +507,7 @@ namespace VueServer.Services.Concrete
             if (user == null)
                 return new List<ServerUserDirectory>();
 
-            return await _wSContext.ServerUserDirectory.Where(x => x.UserId == user.UserName).ToListAsync();
+            return await _wSContext.ServerUserDirectory.Where(x => x.UserId == user.Id).ToListAsync();
         }
 
         private async Task<IEnumerable<ServerGroupDirectory>> GetServerGroupDirectoryList(string role)

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using System;
 using VueServer.Domain;
 using VueServer.Models.Chat;
 using VueServer.Models.Directory;
@@ -65,21 +64,31 @@ namespace VueServer.Models.Context
 
             #endregion
 
+            #region Conversation
+
             // Conversation User many to many setup
             modelBuilder.Entity<ConversationHasUser>().HasKey(x => new { x.ConversationId, x.UserId });
             modelBuilder.Entity<ConversationHasUser>().HasOne(x => x.Conversation).WithMany(x => x.ConversationUsers).HasForeignKey(x => x.ConversationId);
             modelBuilder.Entity<ConversationHasUser>().HasOne(x => x.User).WithMany(x => x.ConversationUsers).HasForeignKey(x => x.UserId);
 
+            #endregion
+
+            #region Identity
+
+            // Setup ClusteredId and Primary key as the Id
+            modelBuilder.Entity<WSUser>().HasKey(x => x.Id).IsClustered(false);
+            modelBuilder.Entity<WSUser>().HasIndex(x => x.ClusterId).IsUnique().IsClustered();
+            modelBuilder.Entity<WSUser>().Property(x => x.ClusterId).ValueGeneratedOnAdd();
+            modelBuilder.Entity<WSRole>().HasKey(x => x.Id).IsClustered(false);
+            modelBuilder.Entity<WSRole>().HasIndex(x => x.ClusterId).IsUnique().IsClustered();
+            modelBuilder.Entity<WSRole>().Property(x => x.ClusterId).ValueGeneratedOnAdd();
+
             // Setup ClusteredId and Primary key as the IP Address for guest login meta data table
             modelBuilder.Entity<WSGuestLogin>().HasKey(x => x.IPAddress).IsClustered(false);
-            modelBuilder.Entity<WSGuestLogin>().HasIndex(x => x.ClusterId).IsClustered(true);
+            modelBuilder.Entity<WSGuestLogin>().HasIndex(x => x.ClusterId).IsUnique().IsClustered();
             modelBuilder.Entity<WSGuestLogin>().Property(x => x.ClusterId).ValueGeneratedOnAdd();
 
-            // Setup index on the IP Address for the guest failed logging attempt table
-            modelBuilder.Entity<WSFailedLogin>().HasIndex(x => x.IPAddress).IsClustered(false);
-
-            // Ensure user names are unique and indexed
-            modelBuilder.Entity<WSUser>().HasIndex(x => x.UserName).IsClustered(false).IsUnique();
+            #endregion
 
             // Data Seeding
             SeedIdentity(modelBuilder);
@@ -148,7 +157,6 @@ namespace VueServer.Models.Context
         public DbSet<WSUserTokens> UserTokens { get; set; }
         public DbSet<WSUserProfile> UserProfile { get; set; }
         public DbSet<WSGuestLogin> GuestLogin { get; set; }
-        public DbSet<WSFailedLogin> FailedLogin { get; set; }
 
         #endregion
 
@@ -186,23 +194,39 @@ namespace VueServer.Models.Context
 
         private void SeedIdentity(ModelBuilder modelBuilder)
         {
-            var userRoleId = Guid.NewGuid().ToString();
-            var elevatedRoleId = Guid.NewGuid().ToString();
-            var adminRoleId = Guid.NewGuid().ToString();
+            int i = 0;
+            modelBuilder.Entity<WSRole>().HasData(new WSRole
+            {
+                Id = DomainConstants.Authentication.USER_STRING.ToLower(),
+                ClusterId = ++i,
+                DisplayName = DomainConstants.Authentication.USER_STRING,
+                NormalizedName =
+                DomainConstants.Authentication.USER_STRING.ToUpper()
+            });
+            modelBuilder.Entity<WSRole>().HasData(new WSRole
+            {
+                Id = DomainConstants.Authentication.ELEVATED_STRING.ToLower(),
+                ClusterId = ++i,
+                DisplayName = DomainConstants.Authentication.ELEVATED_STRING,
+                NormalizedName = DomainConstants.Authentication.ELEVATED_STRING.ToUpper()
+            });
+            modelBuilder.Entity<WSRole>().HasData(new WSRole
+            {
+                Id = DomainConstants.Authentication.ADMINISTRATOR_STRING.ToLower(),
+                ClusterId = ++i,
+                DisplayName = DomainConstants.Authentication.ADMINISTRATOR_STRING,
+                NormalizedName = DomainConstants.Authentication.ADMINISTRATOR_STRING.ToUpper()
+            });
 
-            modelBuilder.Entity<WSRole>().HasData(new WSRole { Id = userRoleId, Name = DomainConstants.Authentication.USER_STRING, NormalizedName = DomainConstants.Authentication.USER_STRING.ToUpper() });
-            modelBuilder.Entity<WSRole>().HasData(new WSRole { Id = elevatedRoleId, Name = DomainConstants.Authentication.ELEVATED_STRING, NormalizedName = DomainConstants.Authentication.ELEVATED_STRING.ToUpper() });
-            modelBuilder.Entity<WSRole>().HasData(new WSRole { Id = adminRoleId, Name = DomainConstants.Authentication.ADMINISTRATOR_STRING, NormalizedName = DomainConstants.Authentication.ADMINISTRATOR_STRING.ToUpper() });
-
-            SeedAdministrator(modelBuilder, adminRoleId);
+            SeedAdministrator(modelBuilder);
         }
 
-        private void SeedAdministrator(ModelBuilder modelBuilder, string adminRoleId)
+        private void SeedAdministrator(ModelBuilder modelBuilder)
         {
             var adminUser = new WSUser
             {
-                Id = Guid.NewGuid().ToString(),
-                UserName = DomainConstants.Authentication.ADMIN_STRING.ToLower(),
+                Id = DomainConstants.Authentication.ADMIN_STRING.ToLower(),
+                ClusterId = 1L,
                 NormalizedUserName = DomainConstants.Authentication.ADMIN_STRING.ToUpper(),
                 DisplayName = DomainConstants.Authentication.ADMIN_STRING,
                 PasswordExpired = true,
@@ -211,7 +235,7 @@ namespace VueServer.Models.Context
 
             adminUser.PasswordHash = _passwordHasher.HashPassword(adminUser, DomainConstants.Authentication.DEFAULT_PASSWORD);
             modelBuilder.Entity<WSUser>().HasData(adminUser);
-            modelBuilder.Entity<WSUserInRoles>().HasData(new WSUserInRoles() { Id = 1, RoleId = adminRoleId, UserId = adminUser.Id });
+            modelBuilder.Entity<WSUserInRoles>().HasData(new WSUserInRoles() { Id = 1L, RoleId = DomainConstants.Authentication.ADMINISTRATOR_STRING.ToLower(), UserId = adminUser.Id });
         }
 
         private void SeedGenres(ModelBuilder modelBuilder)
@@ -292,8 +316,8 @@ namespace VueServer.Models.Context
 
         private void SeedWSSettings(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<ServerSettings>().HasData(new ServerSettings() { Key = $"{DomainConstants.ServerSettings.BaseKeys.Directory}{DomainConstants.ServerSettings.Directory.ShouldUseDefaultPath}", Value = "0" });
-            modelBuilder.Entity<ServerSettings>().HasData(new ServerSettings() { Key = $"{DomainConstants.ServerSettings.BaseKeys.Directory}{DomainConstants.ServerSettings.Directory.DefaultPathValue}", Value = "" });
+            modelBuilder.Entity<ServerSettings>().HasData(new ServerSettings() { Key = DomainConstants.ServerSettings.BaseKeys.Directory + DomainConstants.ServerSettings.Directory.ShouldUseDefaultPath, Value = "0" });
+            modelBuilder.Entity<ServerSettings>().HasData(new ServerSettings() { Key = DomainConstants.ServerSettings.BaseKeys.Directory + DomainConstants.ServerSettings.Directory.DefaultPathValue, Value = "" });
         }
 
         #endregion

@@ -29,6 +29,6 @@ namespace VueServer.Services.Interface
         Task<IResult<IEnumerable<WSGuestLogin>>> GetGuestLogins();
         Task<IResult<bool>> UnblockGuestIP(string ip);
 
-        Task<IResult<IEnumerable<string>>> GetRoles();
+        Task<IResult<IEnumerable<WSRole>>> GetRoles();
     }
 }

@@ -143,6 +143,7 @@ const actions = {
     }
   },
   async getModules({ commit }) {
+    ConMsgs.methods.$_console_log('[Vuex][Actions] Get Modules')
     try {
       return Dispatcher.request(async () => {
         const res = await moduleAPI.getModulesForUser()
@@ -159,6 +160,10 @@ const actions = {
     }
   },
   async updateAvatarImage({ commit }, context) {
+    ConMsgs.methods.$_console_log(
+      '[Vuex][Actions] Update Avatar Image: ',
+      context
+    )
     try {
       return Dispatcher.request(async () => {
         const res = await authAPI.uploadAvatarImage(context)
@@ -175,6 +180,10 @@ const actions = {
     }
   },
   async updateDisplayName({ commit }, context) {
+    ConMsgs.methods.$_console_log(
+      '[Vuex][Actions] Update User Display Name: ',
+      context
+    )
     try {
       return Dispatcher.request(async () => {
         const res = await authAPI.updateDisplayName(context)
@@ -191,6 +200,7 @@ const actions = {
     }
   },
   async getAllOtherUsers({ commit }) {
+    ConMsgs.methods.$_console_log('[Vuex][Actions] Get all other users')
     try {
       return Dispatcher.request(async () => {
         let res = await authAPI.getAllOtherUsers()
@@ -206,6 +216,10 @@ const actions = {
       )
       return await Promise.reject(e.response)
     }
+  },
+  async addUserToMap({ commit }, context) {
+    ConMsgs.methods.$_console_log('[Vuex][Actions] Add user to map: ', context)
+    commit(types.USER_ADD_TO_MAP, context)
   },
 }
 
@@ -306,6 +320,7 @@ const mutations = {
     localStorage.setItem('user', JSON.stringify(state.user))
   },
   [types.USER_GET_OTHERS](state, data) {
+    // TODO: Move this logic to the back-end.
     ConMsgs.methods.$_console_log('Mutating get all other users')
 
     let dictionary = {}
@@ -327,6 +342,19 @@ const mutations = {
     localStorage.removeItem('userMap')
     localStorage.setItem('otherUsers', JSON.stringify(data))
     localStorage.setItem('userMap', JSON.stringify(dictionary))
+  },
+  [types.USER_ADD_TO_MAP](state, data) {
+    ConMsgs.methods.$_console_log('Mutating adding user to user map')
+
+    if (
+      typeof state.userMap === 'undefined' ||
+      state.userMap === null ||
+      state.userMap.length === 0
+    ) {
+      return
+    }
+
+    state.userMap[data.username.toLowerCase()] = { displayName: data.username }
   },
 }
 

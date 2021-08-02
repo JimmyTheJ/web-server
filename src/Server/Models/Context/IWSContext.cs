@@ -74,7 +74,6 @@ namespace VueServer.Models.Context
 
         DbSet<WSUserProfile> UserProfile { get; set; }
         DbSet<WSGuestLogin> GuestLogin { get; set; }
-        DbSet<WSFailedLogin> FailedLogin { get; set; }
 
         #endregion
 

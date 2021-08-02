@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using VueServer.Domain;
 using VueServer.Domain.Interface;
 using VueServer.Models.Chat;
 using VueServer.Models.Modules;
@@ -9,11 +10,11 @@ namespace VueServer.Models.User
 {
     public class WSUser : IPK<string>
     {
-        [Key]
+        [MaxLength(DomainConstants.Authentication.MAX_USERNAME_LENGTH), MinLength(1)]
         public string Id { get; set; }
 
-        [MaxLength(128), MinLength(1)]
-        public string UserName { get; set; }
+        [JsonIgnore]
+        public long ClusterId { get; set; }
 
         [JsonIgnore]
         public string NormalizedUserName { get; set; }

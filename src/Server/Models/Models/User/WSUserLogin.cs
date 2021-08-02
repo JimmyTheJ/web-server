@@ -1,38 +1,19 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using VueServer.Domain.Interface;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace VueServer.Models.User
 {
-    public class WSUserLogin : IPK<int>
+    public class WSUserLogin
     {
         [Key]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
-        [Required]
+        [MaxLength(45)]
+        public string IPAddress { get; set; }
+
         public string Username { get; set; }
 
-        [Required]
-        [MaxLength(45)]
-        public string IpAddress { get; set; }
-
-        [Required]
         public bool Success { get; set; }
 
-        [Required]
-        public DateTime LoginDate { get; set; }
-
-        public WSUserLogin()
-        {
-
-        }
-
-        public WSUserLogin(string username, string ipAddress, bool success)
-        {
-            Username = username;
-            IpAddress = ipAddress;
-            Success = success;
-            LoginDate = DateTime.UtcNow;
-        }
+        public long Timestamp { get; set; }
     }
 }

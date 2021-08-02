@@ -96,7 +96,9 @@ export default {
   computed: {
     ...mapState({
       roles: state =>
-        typeof state.auth.admin !== 'undefined' ? state.auth.admin.roles : [],
+        typeof state.auth.admin !== 'undefined'
+          ? state.auth.admin.roles.map(x => x.displayName)
+          : [],
     }),
   },
   beforeDestroy() {
@@ -104,27 +106,35 @@ export default {
   },
   mounted() {
     //window.addEventListener('keyup', this.enterKeyListener)
-    this.$nextTick(() => {
-      if (Array.isArray(this.roles))
-        this.form.role = this.roles.find(x => x === Roles.Name.General)
-    })
+    this.resetRole()
   },
   methods: {
+    resetRole() {
+      this.$nextTick(() => {
+        if (Array.isArray(this.roles))
+          this.form.role = this.roles.find(x => x === Roles.Name.General)
+      })
+    },
     enterKeyListener(e) {
       if (e.keyCode === 13) {
         if (this.valid && !this.btnClicked) this.register()
       }
     },
     register() {
+      let tempForm = Object.assign({}, this.form)
       this.btnClicked = true
       this.$refs.form.validate()
 
       if (this.valid) {
-        this.$_auth_register(this.form)
+        this.$_auth_register(tempForm)
           .then(() => {
             this.form = newForm()
+            this.resetRole()
             this.error = false
             this.success = true
+            this.$store.dispatch('addUserToMap', {
+              username: tempForm.username,
+            })
           })
           .catch(() => {
             this.error = true
