@@ -12,6 +12,7 @@ namespace VueServer.Models.User
         [Required]
         public string Token { get; set; }
 
+        [MaxLength(45)]
         public string IPAddress { get; set; }
 
         public bool Valid { get; set; }

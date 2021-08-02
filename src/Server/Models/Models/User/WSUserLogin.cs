@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using VueServer.Domain;
 
 namespace VueServer.Models.User
 {
@@ -10,6 +11,7 @@ namespace VueServer.Models.User
         [MaxLength(45)]
         public string IPAddress { get; set; }
 
+        [MaxLength(DomainConstants.Authentication.MAX_USERNAME_LENGTH)]
         public string Username { get; set; }
 
         public bool Success { get; set; }
