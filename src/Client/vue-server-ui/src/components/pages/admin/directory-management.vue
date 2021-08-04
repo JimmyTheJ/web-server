@@ -133,13 +133,18 @@
       </v-card-text>
     </v-card>
     <v-card>
-      <v-card-title
-        >User Directories
+      <v-card-title>
+        User Directories
         <v-btn icon @click="createNewUserDirectory()"
-          ><fa-icon icon="plus" color="green"/></v-btn
-      ></v-card-title>
+          ><fa-icon icon="plus" color="green"
+        /></v-btn>
+      </v-card-title>
       <v-card-text>
-        <div v-for="(dir, i) in userDirectories" :key="i">
+        <v-text-field
+          label="User Directory UserId Filter"
+          v-model="userDirectoryFilter"
+        />
+        <div v-for="(dir, i) in filteredUserDirectories" :key="i">
           <v-layout row v-if="!isMobile" class="no-gutters">
             <v-row>
               <v-col cols="2">
@@ -336,6 +341,8 @@ export default {
   name: 'directory-management',
   data() {
     return {
+      userDirectoryFilter: null,
+      filteredUserDirectories: [],
       directorySettings: [],
       groupDirectories: [],
       userDirectories: [],
@@ -357,6 +364,38 @@ export default {
     isMobile() {
       let val = this.$vuetify.breakpoint.name
       return val === 'xs' || val === 'sm'
+    },
+  },
+  watch: {
+    userDirectoryFilter(newValue) {
+      if (
+        typeof newValue === 'undefined' ||
+        newValue === null ||
+        newValue === ''
+      ) {
+        this.filteredUserDirectories = this.userDirectories
+        return
+      }
+
+      const tempValue = newValue.slice(0)
+      setTimeout(() => {
+        if (this.userDirectoryFilter === tempValue) {
+          this.$_console_log(
+            `[${FN}] userDirectoryFilter watcher: Values should match`,
+            tempValue,
+            newValue
+          )
+          this.filteredUserDirectories = this.userDirectories.filter(x =>
+            x.userId.includes(tempValue)
+          )
+        } else {
+          this.$_console_log(
+            `[${FN}] userDirectoryFilter watcher: Debounce hit, waiting to update`,
+            tempValue,
+            newValue
+          )
+        }
+      }, 400)
     },
   },
   mounted() {
@@ -414,6 +453,8 @@ export default {
                 this.userDirectories.push(convertFlagsToPermissions(item))
               })
             }
+
+            this.userDirectoryFilter = ''
           })
           .catch(() =>
             this.$_console_log(

@@ -101,6 +101,7 @@
               <td class="hidden-sm-and-down" v-else>
                 <fa-icon icon="times"></fa-icon>
               </td>
+              <!-- TODO: Figure out what's up with this error -->
               <td class="hidden-xs-only" v-else>
                 <fa-icon icon="times"></fa-icon>
               </td>
@@ -237,7 +238,7 @@ export default {
       if (!value) return ''
 
       value = value.toString()
-      console.log(value)
+      this.$_console_log(value)
       if (value.endsWith('T00:00:00'))
         return value.substring(0, value.indexOf('T00:00:00'))
 

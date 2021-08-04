@@ -136,7 +136,7 @@ export default {
   methods: {
     uploadAvatarImage(e) {
       const files = e.target.files
-      console.log(files)
+      this.$_console_log(files)
       if (files.length !== 1) {
         this.$_console_log(
           'SetFiles: File list contains more or less than 1 file'
