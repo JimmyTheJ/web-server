@@ -108,6 +108,7 @@
                 internal const string UserChangePassword = "user/change-password";
                 internal const string GetAllUsers = "user/get-all";
                 internal const string GetAllOtherUsers = "user/get-all-others";
+                internal const string FuzzyUserSearch = "user/get-users-fuzzy";
                 internal const string UpdateAvatar = "user/update-avatar";
                 internal const string UpdateDisplayName = "user/update-display-name";
                 internal const string GetGuestLogins = "guest/logins";

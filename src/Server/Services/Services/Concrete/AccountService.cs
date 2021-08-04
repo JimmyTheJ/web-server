@@ -349,18 +349,34 @@ namespace VueServer.Services.Concrete
             return new Result<IEnumerable<WSUser>>(users, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<WSUserResponse>>> GetAllOtherUsers()
+        public async Task<IResult<IDictionary<string, OtherUsersResponse>>> GetAllOtherUsers()
         {
             var users = await _context.Users.Include(x => x.UserProfile).Where(x => x.Id != _user.Id).ToListAsync();
 
-            var list = new List<WSUserResponse>();
+            var dic = new Dictionary<string, OtherUsersResponse>();
             foreach (var usr in users)
             {
-                list.Add(new WSUserResponse(usr));
+                dic[usr.Id] = new OtherUsersResponse() { DisplayName = usr.DisplayName, Avatar = usr.UserProfile?.AvatarPath };
             }
 
-            return new Result<IEnumerable<WSUserResponse>>(list, Domain.Enums.StatusCode.OK);
+            return new Result<IDictionary<string, OtherUsersResponse>>(dic, Domain.Enums.StatusCode.OK);
         }
+
+        public async Task<IResult<IEnumerable<WSUserResponse>>> FuzzyUserSearch(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return new Result<IEnumerable<WSUserResponse>>(new List<WSUserResponse>(), Domain.Enums.StatusCode.NO_CONTENT);
+            }
+
+            var users = await _context.Users.Include(x => x.UserProfile)
+                .Where(x => x.Id != _user.Id && x.Id.Contains(query))
+                .Select(x => new WSUserResponse(x))
+                .ToListAsync();
+
+            return new Result<IEnumerable<WSUserResponse>>(users, Domain.Enums.StatusCode.OK);
+        }
+
 
         public async Task<IResult<string>> UpdateUserAvatar(IFormFile file)
         {

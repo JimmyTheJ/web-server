@@ -21,7 +21,8 @@ namespace VueServer.Services.Interface
         Task<IResult<string>> RefreshJwtToken(RefreshTokenRequest token);
 
         Task<IResult<IEnumerable<WSUser>>> GetUsers();
-        Task<IResult<IEnumerable<WSUserResponse>>> GetAllOtherUsers();
+        Task<IResult<IDictionary<string, OtherUsersResponse>>> GetAllOtherUsers();
+        Task<IResult<IEnumerable<WSUserResponse>>> FuzzyUserSearch(string query);
 
         Task<IResult<string>> UpdateUserAvatar(IFormFile file);
         Task<IResult<bool>> UpdateDisplayName(string name);

@@ -1,26 +1,23 @@
 <template>
   <v-container class="py-0">
+    <generic-dialog
+      :title="dialogTitle"
+      :open="dialogOpen"
+      @dialog-close="dialogOpen = false"
+      :maxWidth="960"
+    >
+      <v-card>
+        <chat-starter @createConversation="startConversation" />
+      </v-card>
+    </generic-dialog>
+
     <div class="headline">Chat System</div>
 
     <div v-show="(isMobile && !hideMobile) || !isMobile">
       <v-row no-gutters align="center">
-        <v-col cols="12" sm="8" md="9">
-          <v-autocomplete
-            v-model="newConversation.users"
-            :items="userList"
-            item-value="id"
-            item-text="displayName"
-            prepend-icon="mdi-database-search"
-            label="Select user(s)"
-            :loading="isLoading"
-            :search-input="search"
-            multiple
-          >
-          </v-autocomplete>
-        </v-col>
-        <v-col cols="12" sm="4" md="3">
-          <v-btn @click="startConversation" class="mb-2"
-            >Start Conversation</v-btn
+        <v-col cols="12" class="text-center">
+          <v-btn @click="dialogOpen = true" class="mb-2"
+            >Start a new Conversation</v-btn
           >
         </v-col>
       </v-row>
@@ -81,8 +78,10 @@
 <script>
 import ChatConversation from '../modules/chat/chat-conversation.vue'
 import ChatBadge from '../modules/chat/chat-badge.vue'
+import ChatStarter from '../modules/chat/chat-starter.vue'
 
 import { mapState } from 'vuex'
+import GenericDialog from '../modules/generic-dialog.vue'
 
 export default {
   name: 'chat-messaging',
@@ -90,18 +89,19 @@ export default {
     return {
       selectedConversationId: -1,
       selectedConversation: null,
-      newConversation: {
-        users: [],
-      },
       search: null,
       isLoading: false,
       currentTime: 0,
       hideMobile: false,
+      dialogOpen: false,
+      dialogTitle: 'Conversation Starter',
     }
   },
   components: {
     ChatConversation,
     ChatBadge,
+    ChatStarter,
+    GenericDialog,
   },
   mounted() {
     this.countTime()
@@ -109,7 +109,7 @@ export default {
   computed: {
     ...mapState({
       user: state => state.auth.user,
-      userList: state => state.auth.otherUsers,
+      userMap: state => state.auth.userMap,
       conversations: state => state.chat.conversations,
     }),
     isMobile() {
@@ -159,12 +159,10 @@ export default {
         }
       })
     },
-    async startConversation() {
+    async startConversation(conversation) {
       this.$store
-        .dispatch('startNewConversation', this.newConversation)
-        .then(() => {})
-        .catch(() => {})
-        .then(() => (this.newConversation.users = []))
+        .dispatch('startNewConversation', conversation)
+        .finally(() => (this.dialogOpen = false))
     },
     shouldShowConversation(conversation) {
       if (typeof conversation === 'object' && conversation !== null) {

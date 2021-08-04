@@ -113,6 +113,18 @@ namespace VueServer.Controllers
         }
 
         /// <summary>
+        /// Fuzzy user search
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Authorize(Roles = ROLES_ALL)]
+        [Route(Route.Account.FuzzyUserSearch)]
+        public async Task<IActionResult> GetAllOtherUsers(string query)
+        {
+            return _codeFactory.GetStatusCode(await _service.FuzzyUserSearch(query));
+        }
+
+        /// <summary>
         /// Update the active user's avatar image
         /// </summary>
         /// <returns></returns>

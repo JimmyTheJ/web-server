@@ -14,7 +14,6 @@ const state = {
   codeChallenge: localStorage.getItem('codeChallenge') || '',
 
   activeModules: JSON.parse(localStorage.getItem('activeModules')) || [],
-  otherUsers: JSON.parse(localStorage.getItem('otherUsers')) || [],
   userMap: JSON.parse(localStorage.getItem('userMap')) || {},
 }
 
@@ -217,6 +216,7 @@ const actions = {
       return await Promise.reject(e.response)
     }
   },
+  async getAllOtherUser({ commit }) {},
   async addUserToMap({ commit }, context) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Add user to map: ', context)
     commit(types.USER_ADD_TO_MAP, context)
@@ -267,7 +267,6 @@ const mutations = {
     state.codeChallenge = ''
     state.isAuthorize = false
     state.activeModules = []
-    state.otherUsers = []
     state.userMap = {}
     delete state.admin
 
@@ -277,7 +276,6 @@ const mutations = {
     localStorage.removeItem('codeChallenge')
     localStorage.removeItem('isAuthorize')
     localStorage.removeItem('activeModules')
-    localStorage.removeItem('otherUsers')
     localStorage.removeItem('userMap')
   },
   [types.ROLES_GET](state, data) {
@@ -320,28 +318,10 @@ const mutations = {
     localStorage.setItem('user', JSON.stringify(state.user))
   },
   [types.USER_GET_OTHERS](state, data) {
-    // TODO: Move this logic to the back-end.
     ConMsgs.methods.$_console_log('Mutating get all other users')
 
-    let dictionary = {}
-
-    if (Array.isArray(data) && data !== null) {
-      data.forEach(ele => {
-        dictionary[ele.id] = Object.assign({}, ele)
-        delete dictionary[ele.id].id
-      })
-    }
-
-    dictionary[state.user.id] = Object.assign({}, state.user)
-    delete dictionary[state.user.id].id
-
-    state.otherUsers = data
-    state.userMap = dictionary
-
-    localStorage.removeItem('otherUsers')
-    localStorage.removeItem('userMap')
-    localStorage.setItem('otherUsers', JSON.stringify(data))
-    localStorage.setItem('userMap', JSON.stringify(dictionary))
+    state.userMap = data
+    localStorage.setItem('userMap', JSON.stringify(data))
   },
   [types.USER_ADD_TO_MAP](state, data) {
     ConMsgs.methods.$_console_log('Mutating adding user to user map')
@@ -354,7 +334,10 @@ const mutations = {
       return
     }
 
-    state.userMap[data.username.toLowerCase()] = { displayName: data.username }
+    state.userMap[data.username.toLowerCase()] = {
+      displayName: data.username,
+      avatar: null,
+    }
   },
 }
 

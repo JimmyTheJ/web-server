@@ -13,6 +13,7 @@ const registerUrl = `api/account/register`
 const userChangePasswordUrl = `api/account/user/change-password`
 const getUsersUrl = `api/account/user/get-all`
 const getAllOtherUsersUrl = `api/account/user/get-all-others`
+const getUsersFuzzySearchUrl = `api/account/user/get-users-fuzzy`
 const updateAvatarImageUrl = `api/account/user/update-avatar`
 const updateDisplayNameUrl = `api/account/user/update-display-name`
 const getGuestLoginListUrl = `api/account/guest/logins`
@@ -72,6 +73,9 @@ export default {
   },
   getAllOtherUsers() {
     return axios.get(getAllOtherUsersUrl)
+  },
+  getUsersFuzzy(query) {
+    return axios.get(getUsersFuzzySearchUrl, { params: { query: query } })
   },
   uploadAvatarImage(file) {
     return axios.post(updateAvatarImageUrl, file)
