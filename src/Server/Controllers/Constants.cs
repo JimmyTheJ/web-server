@@ -106,6 +106,7 @@
                 internal const string RefreshJwt = "refresh-jwt";
 
                 internal const string UserChangePassword = "user/change-password";
+                internal const string GetUserProfile = "user/profile/get/{id}";
                 internal const string GetAllUsers = "user/get-all";
                 internal const string GetAllOtherUsers = "user/get-all-others";
                 internal const string FuzzyUserSearch = "user/get-users-fuzzy";

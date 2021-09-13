@@ -672,11 +672,11 @@ export default {
       if (this.isGroupConversation) {
         // TODO: Handle how to show icons at bottom of messages for group chats
       } else if (this.friend !== null) {
-        if (
-          typeof this.userMap[this.friend.userId] !== 'undefined' &&
-          typeof this.userMap[this.friend.userId].avatar !== 'undefined'
-        )
-          return this.userMap[this.friend.userId].avatar
+        // if (
+        //   typeof this.userMap[this.friend.userId] !== 'undefined' &&
+        //   typeof this.userMap[this.friend.userId].avatar !== 'undefined'
+        // )
+        //   return this.userMap[this.friend.userId].avatar
       }
 
       return null
@@ -685,11 +685,11 @@ export default {
       if (this.isGroupConversation) {
         // TODO: Handle how to show icons at bottom of messages for group chats
       } else if (this.friend !== null) {
-        if (
-          typeof this.userMap[this.friend.userId] !== 'undefined' &&
-          typeof this.userMap[this.friend.userId].avatar === 'undefined'
-        )
-          return this.userMap[this.friend.userId].displayName.charAt(0)
+        // if (
+        //   typeof this.userMap[this.friend.userId] !== 'undefined' &&
+        //   typeof this.userMap[this.friend.userId].avatar === 'undefined'
+        // )
+        //   return this.userMap[this.friend.userId].displayName.charAt(0)
       }
 
       return null

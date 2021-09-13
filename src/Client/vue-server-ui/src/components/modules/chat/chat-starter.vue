@@ -124,7 +124,6 @@ export default {
     startConversation() {
       const userIds = this.selectedUsers.map(x => x.id)
       this.$emit('createConversation', { users: userIds })
-      this.$emit('dialogClose', true)
 
       this.users = []
       this.selectedUsers = []

@@ -49,9 +49,15 @@ export default {
   },
   computed: {},
   beforeDestroy() {},
-  mounted() {
+  created() {
     if (typeof this.$store.state.auth.admin === 'undefined')
       this.$store.dispatch('getRoles')
+
+    if (
+      typeof this.$store.state.auth.userMap === 'undefined' ||
+      Object.keys(this.$store.state.auth.userMap).length === 0
+    )
+      this.$store.dispatch('getAllOtherUsers')
   },
   methods: {},
 }

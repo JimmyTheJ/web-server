@@ -349,6 +349,17 @@ namespace VueServer.Services.Concrete
             return new Result<IEnumerable<WSUser>>(users, Domain.Enums.StatusCode.OK);
         }
 
+        public async Task<IResult<WSUserProfile>> GetUserProfile(string userId)
+        {
+            var userProfile = await _context.UserProfile.Where(x => x.UserId == userId).FirstOrDefaultAsync();
+            if (userProfile == null)
+            {
+                return new Result<WSUserProfile>(null, Domain.Enums.StatusCode.NO_CONTENT);
+            }
+
+            return new Result<WSUserProfile>(userProfile, Domain.Enums.StatusCode.OK);
+        }
+
         public async Task<IResult<IDictionary<string, OtherUsersResponse>>> GetAllOtherUsers()
         {
             var users = await _context.Users.Include(x => x.UserProfile).Where(x => x.Id != _user.Id).ToListAsync();

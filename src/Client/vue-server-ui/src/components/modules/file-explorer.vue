@@ -75,7 +75,10 @@
         </v-list-item-avatar>
         <v-list-item-content
           @click="open(item)"
-          :class="{ 'hide-extra': $vuetify.breakpoint.xsOnly ? true : false }"
+          :class="{
+            'hide-extra': $vuetify.breakpoint.xsOnly ? true : false,
+            'pointer-arrow': true,
+          }"
         >
           <tooltip :value="item.title"></tooltip>
         </v-list-item-content>
@@ -426,5 +429,9 @@ export default {
 
 .hide-extra {
   white-space: nowrap;
+}
+
+.pointer-arrow {
+  cursor: pointer;
 }
 </style>

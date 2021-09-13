@@ -17,6 +17,7 @@ namespace VueServer.Models.Chat
         [MaxLength(10)]
         public string Color { get; set; }
 
+        // TODO: See if we can remove this
         [NotMapped]
         public string UserDisplayName { get; set; }
     }

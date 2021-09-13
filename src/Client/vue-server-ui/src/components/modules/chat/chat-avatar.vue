@@ -16,6 +16,8 @@
 </template>
 
 <script>
+const FN = 'chat-avatar'
+
 import { mapState } from 'vuex'
 
 export default {
@@ -47,7 +49,6 @@ export default {
   computed: {
     ...mapState({
       user: state => state.auth.user,
-      userMap: state => state.auth.userMap,
     }),
     maxSize() {
       if (typeof this.size !== 'undefined' && this.size !== null)
@@ -61,7 +62,6 @@ export default {
   methods: {
     friendHasAvatar(conversation) {
       if (
-        typeof this.userMap !== 'object' ||
         typeof conversation !== 'object' ||
         conversation === null ||
         !Array.isArray(conversation.conversationUsers)
@@ -77,12 +77,9 @@ export default {
         return false
       }
 
-      var user = this.userMap[friend.userId]
-      if (typeof user === 'undefined' || typeof user.avatar === 'undefined') {
-        return false
-      }
+      this.$_console_log(`[${FN} friendHasAvatar]:`, friend)
 
-      return `${process.env.VUE_APP_API_URL}/public/${user.avatar}`
+      return `${process.env.VUE_APP_API_URL}/public/${friend.user.avatar}`
     },
     getFriendColor(conversation) {
       const defaultColor = 'blue'
@@ -125,12 +122,7 @@ export default {
         return false
       }
 
-      var user = this.userMap[friend.userId]
-      if (typeof user === 'undefined') {
-        return false
-      }
-
-      return user.displayName.charAt(0)
+      return friend.user.displayName.charAt(0)
     },
     getTextSize() {
       if (this.maxSize >= 40) {

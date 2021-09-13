@@ -1,5 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using VueServer.Models.Context;
@@ -10,7 +12,7 @@ namespace VueServer.Core.Cache
     {
         private bool disposedValue;
 
-        private static Dictionary<string, object> Cache = new Dictionary<string, object>();
+        private static ConcurrentDictionary<string, object> Cache = new ConcurrentDictionary<string, object>();
 
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
@@ -26,7 +28,7 @@ namespace VueServer.Core.Cache
 
             if (Cache == null)
             {
-                Cache = new Dictionary<string, object>();
+                Cache = new ConcurrentDictionary<string, object>();
             }
 
             if (string.IsNullOrWhiteSpace(key))
@@ -61,7 +63,7 @@ namespace VueServer.Core.Cache
 
             if (Cache == null)
             {
-                Cache = new Dictionary<string, object>();
+                Cache = new ConcurrentDictionary<string, object>();
             }
 
             if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(subKey))
@@ -86,7 +88,7 @@ namespace VueServer.Core.Cache
         {
             if (Cache == null)
             {
-                Cache = new Dictionary<string, object>();
+                Cache = new ConcurrentDictionary<string, object>();
             }
 
             if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(subKey))
@@ -113,7 +115,7 @@ namespace VueServer.Core.Cache
         {
             if (Cache == null)
             {
-                Cache = new Dictionary<string, object>();
+                Cache = new ConcurrentDictionary<string, object>();
             }
 
             if (!string.IsNullOrWhiteSpace(key))
@@ -127,8 +129,10 @@ namespace VueServer.Core.Cache
         {
             if (Cache != null)
             {
+                Cache[CacheMap.Users] = null;
                 Cache[CacheMap.UserModuleAddOn] = null;
                 Cache[CacheMap.UserModuleFeature] = null;
+                Cache[CacheMap.BlockedIP] = null;
             }
 
             Cache = null;
@@ -181,11 +185,23 @@ namespace VueServer.Core.Cache
         {
             object value = null;
 
+            // TODO: Move this all to Services somewhere
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<IWSContext>();
 
-                if (key == CacheMap.UserModuleAddOn)
+                if (key == CacheMap.Users)
+                {
+                    var users = context.Users.Include(x => x.UserProfile).ToList();
+                    var dic = new Dictionary<string, UserInfoCache>();
+                    foreach (var user in users)
+                    {
+                        dic.TryAdd(user.Id, new UserInfoCache() { Avatar = user?.UserProfile.AvatarPath, DisplayName = user.DisplayName });
+                    }
+
+                    value = dic;
+                }
+                else if (key == CacheMap.UserModuleAddOn)
                 {
                     value = context.UserHasModule.ToList();
                 }
@@ -201,8 +217,18 @@ namespace VueServer.Core.Cache
 
     public static class CacheMap
     {
+        public const string Users = "Users";
         public const string UserModuleAddOn = "UserModuleAddOn";
         public const string UserModuleFeature = "UserModuleFeature";
         public const string BlockedIP = "BlockedIP";
+    }
+
+    /// <summary>
+    /// TODO: Move this to Models assembly
+    /// </summary>
+    public class UserInfoCache
+    {
+        public string DisplayName { get; set; }
+        public string Avatar { get; set; }
     }
 }

@@ -11,6 +11,7 @@ const signoutUrl = `api/account/logout`
 const refreshTokenUrl = `api/account/refresh-jwt`
 const registerUrl = `api/account/register`
 const userChangePasswordUrl = `api/account/user/change-password`
+const getUserProfileUrl = `api/account/user/profile/get`
 const getUsersUrl = `api/account/user/get-all`
 const getAllOtherUsersUrl = `api/account/user/get-all-others`
 const getUsersFuzzySearchUrl = `api/account/user/get-users-fuzzy`
@@ -70,6 +71,9 @@ export default {
   },
   getUsers() {
     return axios.get(getUsersUrl)
+  },
+  getUserProfile(id) {
+    return axios.get(`${getUserProfileUrl}/${id}`)
   },
   getAllOtherUsers() {
     return axios.get(getAllOtherUsersUrl)

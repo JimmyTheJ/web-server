@@ -12,6 +12,7 @@ using System;
 using System.IO;
 using VueServer.Classes;
 using VueServer.Classes.Extensions;
+using VueServer.Core.Cache;
 using VueServer.Core.Helper;
 using VueServer.Services.Hubs;
 
@@ -103,12 +104,14 @@ namespace VueServer
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, IVueServerCache serverCache)
         {
             FolderBuilder.CreateFolder(Path.Combine(env.ContentRootPath, "Logs"), "Startup: Error creating log file directory");
 
             loggerFactory.AddFile(Path.Combine("Logs", "_log-{Date}.txt"));
             ILogger logger = loggerFactory.CreateLogger("Startup");
+
+            logger.LogInformation("Startup begin");
 
             app.UseResponseCompression();
             if (env.IsDevelopment())
@@ -182,6 +185,18 @@ namespace VueServer
                 endpoints.MapHub<ChatHub>("/chat-hub");
                 endpoints.MapControllers();
             });
+
+            BuildCache(serverCache);
+
+            logger.LogInformation("Startup complete");
+        }
+
+        private void BuildCache(IVueServerCache serverCache)
+        {
+            serverCache.Update(CacheMap.BlockedIP);
+            serverCache.Update(CacheMap.Users);
+            serverCache.Update(CacheMap.UserModuleAddOn);
+            serverCache.Update(CacheMap.UserModuleFeature);
         }
     }
 }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using VueServer.Core.Cache;
 using VueServer.Core.Objects;
 using VueServer.Domain;
 using VueServer.Domain.Interface;
@@ -21,13 +22,15 @@ namespace VueServer.Services.Concrete
     public class ChatService : IChatService
     {
         private readonly IWSContext _context;
+        private readonly IVueServerCache _cache;
         private readonly IHubContext<ChatHub, IChatHub> _chatHubContext;
         private readonly IUserService _user;
         private readonly ILogger _logger;
 
-        public ChatService(IWSContext context, IHubContext<ChatHub, IChatHub> chatHubContext, ILoggerFactory logger, IUserService user)
+        public ChatService(IWSContext context, IVueServerCache cache, IHubContext<ChatHub, IChatHub> chatHubContext, ILoggerFactory logger, IUserService user)
         {
             _context = context ?? throw new ArgumentNullException("WSContext is null");
+            _cache = cache ?? throw new ArgumentNullException("VueServer Cache is null");
             _chatHubContext = chatHubContext ?? throw new ArgumentNullException("Chat Hub context is null");
             _user = user ?? throw new ArgumentNullException("User service is null");
             _logger = logger?.CreateLogger<ChatService>() ?? throw new ArgumentNullException("Logger factory is null");
@@ -49,8 +52,8 @@ namespace VueServer.Services.Concrete
                 var allUsersInEachConvo = allUsersConversations.Select(x => x.ConversationUsers).ToList();
                 foreach (var convo in allUsersInEachConvo)
                 {
-                    // Same number of users, so it's possible we have a match
-                    if (convo.Count == request.Users.Count())
+                    // Same number of users, so it's possible. Add 1 is because the request doesn't contain the active user making the request
+                    if (convo.Count == request.Users.Count() + 1)
                     {
                         var userMatches = convo.Where(x => request.Users.Contains(x.UserId));
                         // All users match, can't create this conversation
@@ -110,7 +113,6 @@ namespace VueServer.Services.Concrete
                 {
                     ConversationId = conversation.Id,
                     UserId = user.Id,
-                    UserDisplayName = user.DisplayName,
                     Color = GetUserColor(colorId++)
                 };
 
@@ -131,6 +133,8 @@ namespace VueServer.Services.Concrete
 
             conversation.ConversationUsers = conversationUserList;
             conversation.Messages = new List<ChatMessage>();
+            MapConversationMetaData(conversation);
+
             return new Result<Conversation>(conversation, Domain.Enums.StatusCode.OK);
         }
 
@@ -149,18 +153,7 @@ namespace VueServer.Services.Concrete
 
             // Sort messages
             conversation.Messages.OrderByDescending(x => x.Timestamp);
-
-            // TODO: This is very inneficient. Figure out a better way with LINQ
-            foreach (var userConversation in conversation.ConversationUsers)
-            {
-                var usr = await _user.GetUserByIdAsync(userConversation.UserId);
-                userConversation.UserDisplayName = usr.DisplayName;
-            }
-
-            if (conversation.ConversationUsers.Count == 2)
-            {
-                conversation.Title = conversation.ConversationUsers.Where(x => x.UserId != _user.Id).Select(x => x.UserDisplayName).SingleOrDefault();
-            }
+            MapConversationMetaData(conversation);
 
             return new Result<Conversation>(conversation, Domain.Enums.StatusCode.OK);
         }
@@ -179,6 +172,17 @@ namespace VueServer.Services.Concrete
         public async Task<IResult<IEnumerable<Conversation>>> GetAllConversations()
         {
             var conversationList = await GetAllConversationAsync(_user.Id);
+            foreach (var convo in conversationList)
+            {
+                foreach (var user in convo.ConversationUsers)
+                {
+                    if (_cache.GetSubDictionaryValue(CacheMap.Users, user.UserId, out UserInfoCache info))
+                    {
+                        user.UserDisplayName = info.DisplayName;
+                    }
+                }
+            }
+
             return new Result<IEnumerable<Conversation>>(conversationList, Domain.Enums.StatusCode.OK);
         }
 
@@ -469,6 +473,41 @@ namespace VueServer.Services.Concrete
 
         #region -> Private Functions
 
+        private void MapConversationMetaData(Conversation conversation)
+        {
+            if (conversation == null || conversation.ConversationUsers == null || conversation.ConversationUsers.Count == 0)
+            {
+                return;
+            }
+
+            // 1 on 1 conversation
+            if (conversation.ConversationUsers.Count == 2)
+            {
+                var newUserId = conversation.ConversationUsers.Where(x => x.UserId != _user.Id).Select(x => x.UserId).FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(newUserId) && _cache.GetSubDictionaryValue(CacheMap.Users, newUserId, out UserInfoCache info))
+                {
+                    conversation.Title = info.DisplayName;
+                    conversation.Avatar = info.Avatar;
+                }
+            }
+            else
+            {
+                // Group conversation that doesn't have a title
+                if (string.IsNullOrWhiteSpace(conversation.Title))
+                {
+                    conversation.Title = string.Empty;
+                    foreach (var user in conversation.ConversationUsers)
+                    {
+                        if (_cache.GetSubDictionaryValue(CacheMap.Users, user.UserId, out UserInfoCache info))
+                        {
+                            conversation.Title += info.DisplayName + ", ";
+                        }
+                    }
+                    conversation.Title = conversation.Title.Substring(0, conversation.Title.Length - 2);
+                }
+            }
+        }
+
         private async Task<IEnumerable<Conversation>> GetAllConversationAsync(string userId, GetMessageType getMessages = GetMessageType.None)
         {
             IQueryable<Conversation> conversationQuery = _context.Set<Conversation>().AsQueryable();
@@ -482,7 +521,7 @@ namespace VueServer.Services.Concrete
                         Color = y.Color,
                         Owner = y.Owner,
                         UserId = y.UserId,
-                        UserDisplayName = _context.Users.Where(z => z.Id == y.UserId).Select(z => z.DisplayName).SingleOrDefault()
+                        User = y.User
                     }).ToList(),
                     Id = x.Id,
                     Title = x.Title
@@ -522,10 +561,7 @@ namespace VueServer.Services.Concrete
 
             foreach (var conversation in conversationList)
             {
-                if (conversation.ConversationUsers.Count == 2)
-                {
-                    conversation.Title = conversation.ConversationUsers.Where(x => x.UserId != userId).Select(x => x.UserDisplayName).SingleOrDefault();
-                }
+                MapConversationMetaData(conversation);
             }
 
             return conversationList;

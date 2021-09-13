@@ -101,6 +101,18 @@ namespace VueServer.Controllers
         }
 
         /// <summary>
+        /// Get the profile of a single user
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Authorize(Roles = ROLES_ALL)]
+        [Route(Route.Account.GetUserProfile)]
+        public async Task<IActionResult> GetUserProfile(string id)
+        {
+            return _codeFactory.GetStatusCode(await _service.GetUserProfile(id));
+        }
+
+        /// <summary>
         /// Get all user ids
         /// </summary>
         /// <returns></returns>

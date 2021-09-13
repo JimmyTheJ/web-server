@@ -1,5 +1,6 @@
 import * as types from '../mutation_types'
 import chatAPI from '@/services/chat'
+import authAPI from '@/services/auth'
 import ConMsgs from '@/mixins/console'
 import Dispatcher from '@/services/ws-dispatcher'
 
@@ -62,6 +63,7 @@ const actions = {
       return await Dispatcher.request(async () => {
         let res = await chatAPI.getAllConversations()
         ConMsgs.methods.$_console_log(res.data)
+
         commit(types.CHAT_CONVERSATION_GET_ALL, {
           list: res.data,
           userId: rootState.auth.user.id,

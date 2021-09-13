@@ -15,6 +15,9 @@ namespace VueServer.Models.Chat
 
         public virtual IList<ConversationHasUser> ConversationUsers { get; set; }
 
+        // Not explicitly set on 1 on 1 conversations, only saved to database for group chats
+        public string Avatar { get; set; }
+
         [NotMapped]
         public int UnreadMessages { get; set; }
     }

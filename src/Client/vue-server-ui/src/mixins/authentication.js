@@ -23,14 +23,6 @@ export default {
       await this.$store
         .dispatch('signin', data)
         .then(async () => {
-          // Get the list of all other users for the chat system
-          this.$store
-            .dispatch('getAllOtherUsers')
-            .then(() => ConMsgs.methods.$_console_log('Got user list'))
-            .catch(() =>
-              ConMsgs.methods.$_console_log('Failed to get user list')
-            )
-
           // Get modules for this user
           await this.$store
             .dispatch('getModules')

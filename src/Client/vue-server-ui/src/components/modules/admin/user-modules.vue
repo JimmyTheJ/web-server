@@ -54,6 +54,8 @@
 <script>
 const FN = 'user-modules'
 
+import { mapState } from 'vuex'
+
 import authService from '@/services/auth'
 import moduleService from '@/services/modules'
 import Dispatcher from '@/services/ws-dispatcher'
@@ -67,7 +69,6 @@ export default {
       selectedUserPosition: null,
       selectedModulePosition: null,
       moduleList: [],
-      userList: [],
       usersHaveModuleList: [],
       selectedUserModuleList: [],
       selectedUserFeatureList: [],
@@ -75,6 +76,27 @@ export default {
   },
   mounted() {
     this.getData()
+  },
+  computed: {
+    ...mapState({
+      userList: state => {
+        const list = []
+
+        if (
+          typeof state.auth.userMap === 'undefined' ||
+          state.auth.userMap === null
+        )
+          return list
+
+        for (const [key, value] of Object.entries(state.auth.userMap)) {
+          const obj = Object.assign({}, value)
+          obj.id = key
+          list.push(obj)
+        }
+
+        return list
+      },
+    }),
   },
   watch: {
     selectedUserPosition(newValue) {
@@ -102,18 +124,6 @@ export default {
   methods: {
     getData() {
       Dispatcher.request(() => {
-        authService
-          .getUsers()
-          .then(resp => {
-            this.$_console_log(`[${FN}] getData: Successfully got user list`)
-            this.userList = resp.data
-          })
-          .catch(() =>
-            this.$_console_log(`${FN} getData: Failed to get user list`)
-          )
-      })
-
-      Dispatcher.request(() => {
         moduleService
           .getAllModules()
           .then(resp => {
@@ -138,20 +148,6 @@ export default {
             this.$_console_log(
               `${FN} getData: Failed to get module lists for users`
             )
-          )
-      })
-
-      Dispatcher.request(() => {
-        authService
-          .getGuestLogins()
-          .then(resp => {
-            this.$_console_log(
-              `${FN} getData: Successfully got guest login list`
-            )
-            this.guestLoginList = resp.data
-          })
-          .catch(() =>
-            this.$_console_log(`${FN} getData: Failed to get guest login list`)
           )
       })
     },
