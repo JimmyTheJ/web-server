@@ -199,7 +199,7 @@ namespace VueServer.Core.Cache
                     {
                         foreach (var user in users)
                         {
-                            dic.TryAdd(user.Id, new UserInfoCache() { Avatar = user?.UserProfile.AvatarPath, DisplayName = user.DisplayName });
+                            dic.TryAdd(user.Id, new UserInfoCache() { Avatar = user?.UserProfile?.AvatarPath, DisplayName = user.DisplayName });
                         }
                     }
 
