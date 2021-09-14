@@ -192,11 +192,15 @@ namespace VueServer.Core.Cache
 
                 if (key == CacheMap.Users)
                 {
-                    var users = context.Users.Include(x => x.UserProfile).ToList();
                     var dic = new Dictionary<string, UserInfoCache>();
-                    foreach (var user in users)
+
+                    var users = context.Users.Include(x => x.UserProfile).ToList();
+                    if (users != null)
                     {
-                        dic.TryAdd(user.Id, new UserInfoCache() { Avatar = user?.UserProfile.AvatarPath, DisplayName = user.DisplayName });
+                        foreach (var user in users)
+                        {
+                            dic.TryAdd(user.Id, new UserInfoCache() { Avatar = user?.UserProfile.AvatarPath, DisplayName = user.DisplayName });
+                        }
                     }
 
                     value = dic;
