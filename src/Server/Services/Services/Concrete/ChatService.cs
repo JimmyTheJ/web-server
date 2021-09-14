@@ -172,13 +172,16 @@ namespace VueServer.Services.Concrete
         public async Task<IResult<IEnumerable<Conversation>>> GetAllConversations()
         {
             var conversationList = await GetAllConversationAsync(_user.Id);
-            foreach (var convo in conversationList)
+            if (conversationList != null)
             {
-                foreach (var user in convo.ConversationUsers)
+                foreach (var convo in conversationList)
                 {
-                    if (_cache.GetSubDictionaryValue(CacheMap.Users, user.UserId, out UserInfoCache info))
+                    foreach (var user in convo.ConversationUsers)
                     {
-                        user.UserDisplayName = info.DisplayName;
+                        if (_cache.GetSubDictionaryValue(CacheMap.Users, user.UserId, out UserInfoCache info))
+                        {
+                            user.UserDisplayName = info.DisplayName;
+                        }
                     }
                 }
             }
