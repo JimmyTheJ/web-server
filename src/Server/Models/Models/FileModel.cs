@@ -1,6 +1,6 @@
 namespace VueServer.Models
 {
-    public class DeleteFileModel
+    public class FileModel
     {
         public string Name { get; set; }
 

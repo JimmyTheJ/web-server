@@ -102,6 +102,15 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _service.Load(directory, dir));
         }
 
+        [HttpPost]
+        [Authorize(Roles = ROLES_ALL)]
+        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.CREATE_ID)]
+        [Route(Route.Directory.CreateFolder)]
+        public async Task<IActionResult> CreateFolder([FromBody] FileModel model)
+        {
+            return _codeFactory.GetStatusCode(await _service.CreateFolder(model.Directory, model.SubDirectory, model.Name));
+        }
+
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Browser.Id)]
@@ -116,7 +125,7 @@ namespace VueServer.Controllers
         [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.DELETE_ID)]
         [Route(Route.Generic.Delete)]
         //[Authorize(AuthenticationSchemes = "Identity.Application", Roles = "Administrator")]
-        public async Task<IActionResult> Delete([FromBody] DeleteFileModel model)
+        public async Task<IActionResult> Delete([FromBody] FileModel model)
         {
             return _codeFactory.GetStatusCode(await _service.Delete(model));
         }

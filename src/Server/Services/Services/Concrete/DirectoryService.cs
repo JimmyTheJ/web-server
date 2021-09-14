@@ -281,6 +281,64 @@ namespace VueServer.Services.Concrete
             return new Result<IOrderedEnumerable<WebServerFile>>(fileList.OrderByDescending(x => x.IsFolder).ThenBy(x => x.Title), StatusCode.OK);
         }
 
+        public async Task<IResult<WebServerFile>> CreateFolder(string directory, string subDir, string newFolder)
+        {
+            if (directory == null)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Directory is null. Can't create folder if we don't know where it's located.");
+                return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
+            }
+
+            if (newFolder == null)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New Folder is null. Can't create a folder without a name.");
+                return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
+            }
+
+            var list = await GetSingleDirectoryList(_user.Id);
+            var serverDirectory = list.Where(a => a.Name == directory).FirstOrDefault();
+            if (serverDirectory == null)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name: {directory}");
+                return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
+            }
+
+            if (!serverDirectory.AccessFlags.HasFlag(DirectoryAccessFlags.CreateFolder))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User doesn't have folder creation access for this folder: {directory}\\{subDir}");
+                return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
+            }
+
+            string path = string.Empty;
+            DirectoryInfo info = null;
+
+            if (string.IsNullOrWhiteSpace(subDir))
+            {
+                path = Path.Combine(serverDirectory.Path, newFolder);
+            }
+            else
+            {
+                path = Path.Combine(serverDirectory.Path, subDir, newFolder);
+                if (!path.StartsWith(serverDirectory.Path))
+                {
+                    _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Looks like a path escalation attack from user ({_user.Id}) for path: {path}");
+                    return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
+                }
+            }
+
+            try
+            {
+                info = Directory.CreateDirectory(path);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error creating directory ({path}) for user ({_user.Id})");
+                return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
+            }
+
+            return new Result<WebServerFile>(new WebServerFile(info), StatusCode.OK);
+        }
+
         public async Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model)
         {
             var dirList = await GetSingleDirectoryList(_user.Id);
@@ -358,7 +416,7 @@ namespace VueServer.Services.Concrete
             }
         }
 
-        public async Task<IResult<bool>> Delete(DeleteFileModel model)
+        public async Task<IResult<bool>> Delete(FileModel model)
         {
             if (string.IsNullOrWhiteSpace(model.Name))
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);

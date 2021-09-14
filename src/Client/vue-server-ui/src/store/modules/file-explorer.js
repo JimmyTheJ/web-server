@@ -179,7 +179,32 @@ const mutations = {
   [types.BROWSER_FILE_ADD](state, data) {
     ConMsgs.methods.$_console_log('[Vuex][Mutations] Adding a file')
 
-    state.contents.push(data)
+    let mainIndex
+    let compareName = data.title.toLowerCase()
+    let isFolder = data.isFolder
+
+    // Match the type (folder, or file)
+    let fileTypeContents = state.contents.filter(x => x.isFolder === isFolder)
+
+    // Get the starting index (files come after folders so this index for order would start later than 0)
+    if (!Array.isArray(fileTypeContents) || fileTypeContents.length === 0) {
+      mainIndex = 0
+    } else {
+      mainIndex = state.contents.findIndex(
+        x => x.title === fileTypeContents[0].title
+      )
+    }
+
+    let modifiedIndex = 0
+
+    fileTypeContents.forEach((item, index) => {
+      if (item.title.toLowerCase() < compareName) {
+        modifiedIndex++
+      }
+    })
+
+    state.contents.splice(mainIndex + modifiedIndex, 0, data)
+
     if (!data.isFolder) {
       data.active = false
       state.filteredFiles.push(data)

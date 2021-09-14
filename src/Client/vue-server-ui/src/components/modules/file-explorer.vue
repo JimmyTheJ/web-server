@@ -33,7 +33,45 @@
       </v-card>
     </generic-dialog>
 
+    <generic-dialog
+      title="Create new Folder"
+      :open="createFolderDialog"
+      :maxWidth="800"
+      @dialog-close="closeDeleteConfirmation"
+    >
+      <v-card>
+        <v-card-text>
+          <v-layout row wrap>
+            <v-flex xs12>
+              <v-text-field
+                v-model="newFolderName"
+                label="Folder Name"
+              ></v-text-field>
+            </v-flex>
+            <v-flex xs12 class="text-center mt-3">
+              <v-btn color="secondary" @click="createFolder()"> SUBMIT </v-btn>
+            </v-flex>
+            <v-flex xs12 class="headline red--text text-center">
+              {{ createFolderError }}
+            </v-flex>
+          </v-layout>
+        </v-card-text>
+      </v-card>
+    </generic-dialog>
+
     <file-upload v-if="features.upload === true"></file-upload>
+
+    <v-card v-if="features.create">
+      <v-container class="text-center py-4">
+        <v-layout row wrap>
+          <v-flex xs12>
+            <v-btn @click="createFolderDialog = true" color="green">
+              Create New Folder
+            </v-btn>
+          </v-flex>
+        </v-layout>
+      </v-container>
+    </v-card>
 
     <v-container>
       <v-form v-if="selectable">
@@ -125,17 +163,21 @@ export default {
   data() {
     return {
       selectedDirectory: '',
+      newFolderName: null,
+      createFolderError: null,
 
       loading: false,
       changing: false,
 
       deleteDialog: false,
+      createFolderDialog: false,
       fileToDelete: null,
 
       features: {
         upload: false,
         delete: false,
         viewing: false,
+        create: false,
       },
     }
   },
@@ -220,6 +262,11 @@ export default {
         })
       }
     },
+    newFolderName: function(newValue) {
+      if (this.createFolderError !== null) {
+        this.createFolderError = null
+      }
+    },
   },
   methods: {
     setActiveFeatures() {
@@ -250,6 +297,13 @@ export default {
         )
       )
         this.features.viewing = true
+
+      if (
+        browserObj.userModuleFeatures.some(
+          x => x.moduleFeatureId === 'browser-create'
+        )
+      )
+        this.features.create = true
     },
     getDirectoryFromRoute() {
       this.changing = true
@@ -385,6 +439,32 @@ export default {
 
       this.fileToDelete = file
       this.deleteDialog = true
+    },
+
+    createFolder() {
+      if (this.contents.findIndex(x => x.title === this.newFolderName) > -1) {
+        this.$_console_log(`Can't create a folder that already exists`)
+        this.createFolderError = 'Folder already exists'
+        return
+      }
+
+      service
+        .createFolder(
+          this.newFolderName,
+          this.directory,
+          getSubdirectoryString(this.subDirectories)
+        )
+        .then(resp => {
+          this.$store.dispatch('addFile', resp.data)
+        })
+        .catch(() => {
+          this.$_console_log('Failed to create folder')
+        })
+        .then(() => {
+          this.newFolderName = null
+          this.createFolderDialog = false
+          this.createFolderError = null
+        })
     },
 
     async deleteItem() {

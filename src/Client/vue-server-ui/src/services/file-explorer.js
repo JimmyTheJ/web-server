@@ -6,6 +6,7 @@ const FileListUrl = `api/directory/list`
 const GetFileUrl = `api/directory/download/file`
 const DeleteUploadUrl = `api/directory/delete`
 const UploadFilesUrl = `api/directory/upload`
+const CreateFolderUrl = `api/directory/create-folder`
 
 export default {
   loadDirectory(dir, subDir) {
@@ -25,6 +26,17 @@ export default {
   },
   getFolderList() {
     return axios.get(FileListUrl)
+  },
+  createFolder(file, folder, subFolder) {
+    return axios.request({
+      url: CreateFolderUrl,
+      method: 'POST',
+      data: {
+        Name: file,
+        Directory: folder,
+        SubDirectory: subFolder,
+      },
+    })
   },
   deleteFile(file, folder, subFolder) {
     return axios.request({

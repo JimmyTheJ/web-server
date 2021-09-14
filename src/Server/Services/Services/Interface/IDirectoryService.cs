@@ -17,8 +17,10 @@ namespace VueServer.Services.Interface
 
         Task<IResult<IOrderedEnumerable<WebServerFile>>> Load(string directory, string subDir);
 
+        Task<IResult<WebServerFile>> CreateFolder(string directory, string subDir, string newFolder);
+
         Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model);
 
-        Task<IResult<bool>> Delete(DeleteFileModel model);
+        Task<IResult<bool>> Delete(FileModel model);
     }
 }

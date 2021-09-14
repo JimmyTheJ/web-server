@@ -4,7 +4,7 @@
       <div class="text-xs-center">Files being uploaded...</div>
       <v-list>
         <template v-for="(file, i) in uploadFiles">
-          <v-list-item>
+          <v-list-item :key="i">
             <v-list-item-content>
               {{ file.name }}
             </v-list-item-content>
