@@ -343,6 +343,7 @@ namespace VueServer.Services.Concrete
         {
             var dirList = await GetSingleDirectoryList(_user.Id);
             var dir = dirList.Where(x => x.Name == model.Directory).FirstOrDefault();
+
             if (dir == null)
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name provided. File upload attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
@@ -355,9 +356,22 @@ namespace VueServer.Services.Concrete
                 return new Result<bool>(false, StatusCode.UNAUTHORIZED);
             }
 
+            if (model.Name == model.NewName)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New filename and old filename are the same. Can't rename a file to it's original name");
+                return new Result<bool>(false, StatusCode.BAD_REQUEST);
+            }
+
             string basePath = string.IsNullOrWhiteSpace(model.SubDirectory) ? model.Directory : basePath = Path.Combine(model.Directory, model.SubDirectory);
             string oldFullPath = Path.Combine(basePath, model.Name);
             string newFullPath = Path.Combine(basePath, model.NewName);
+
+            var invalidCharacters = Path.GetInvalidPathChars();
+            if (invalidCharacters.Any(x => newFullPath.Contains(x)))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New filename contains invalid characters");
+                return new Result<bool>(false, StatusCode.BAD_REQUEST);
+            }
 
             if (!oldFullPath.StartsWith(dir.Path) || !newFullPath.StartsWith(dir.Path))
             {

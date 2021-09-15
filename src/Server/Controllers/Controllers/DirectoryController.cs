@@ -111,7 +111,7 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _service.CreateFolder(model.Directory, model.SubDirectory, model.Name));
         }
 
-        [HttpPost]
+        [HttpPut]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.EDIT_ID)]
         [Route(Route.Directory.RenameFile)]
