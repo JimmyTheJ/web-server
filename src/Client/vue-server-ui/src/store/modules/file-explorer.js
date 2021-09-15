@@ -103,6 +103,33 @@ const actions = {
 
     commit(types.BROWSER_FILE_ADD, context)
   },
+  async renameFile({ commit }, context) {
+    ConMsgs.methods.$_console_log('[Vuex][Actions] Renaming a file')
+    try {
+      return await Dispatcher.request(async () => {
+        const res = await fileAPI.renameFile(
+          context.oldName,
+          context.newName,
+          context.dir,
+          context.subDir
+        )
+        commit(types.BROWSER_FILE_RENAME, {
+          name: context.oldName,
+          obj: res.data,
+        })
+
+        return await Promise.resolve(res.data)
+      })
+    } catch (e) {
+      ConMsgs.methods.$_console_group(
+        '[Vuex][Actions] Error renaming file',
+        e.response
+      )
+      return await Promise.reject(e.response)
+    }
+
+    commit(types.BROWSER_FILE_DELETE, context)
+  },
   async deleteFile({ commit }, context) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting a file')
 
@@ -208,6 +235,14 @@ const mutations = {
     if (!data.isFolder) {
       data.active = false
       state.filteredFiles.push(data)
+    }
+  },
+  [types.BROWSER_FILE_RENAME](state, data) {
+    ConMsgs.methods.$_console_log('[Vuex][Mutations] Renaming a file')
+
+    let index = state.contents.findIndex(x => x.title === data.name)
+    if (index > -1) {
+      state.contents.splice(index, 1, data.obj)
     }
   },
   [types.BROWSER_FILE_DELETE](state, data) {

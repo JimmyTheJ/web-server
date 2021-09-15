@@ -15,7 +15,7 @@ namespace VueServer.Services.Interface
         Task<IResult<Tuple<string, string, string>>> Download(string filename, string user, bool media = false);
         Task<IResult<IOrderedEnumerable<WebServerFile>>> Load(string directory, string subDir);
         Task<IResult<WebServerFile>> CreateFolder(string directory, string subDir, string newFolder);
-        Task<IResult<bool>> RenameFile(RenameFileRequest model);
+        Task<IResult<WebServerFile>> RenameFile(RenameFileRequest model);
         Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model);
         Task<IResult<bool>> Delete(FileModel model);
     }

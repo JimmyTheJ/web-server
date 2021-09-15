@@ -117,7 +117,7 @@ namespace VueServer.Controllers
         [Route(Route.Directory.RenameFile)]
         public async Task<IActionResult> RenameFile([FromBody] RenameFileRequest model)
         {
-            return _codeFactory.GetStatusCode(await _service.CreateFolder(model.Directory, model.SubDirectory, model.Name));
+            return _codeFactory.GetStatusCode(await _service.RenameFile(model));
         }
 
         [HttpGet]

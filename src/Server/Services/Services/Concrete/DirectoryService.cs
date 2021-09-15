@@ -339,7 +339,7 @@ namespace VueServer.Services.Concrete
             return new Result<WebServerFile>(new WebServerFile(info), StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> RenameFile(RenameFileRequest model)
+        public async Task<IResult<WebServerFile>> RenameFile(RenameFileRequest model)
         {
             var dirList = await GetSingleDirectoryList(_user.Id);
             var dir = dirList.Where(x => x.Name == model.Directory).FirstOrDefault();
@@ -347,19 +347,19 @@ namespace VueServer.Services.Concrete
             if (dir == null)
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name provided. File upload attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
+                return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
             if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.EditFile))
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to edit a file in a folder that doesn't allow file editing");
-                return new Result<bool>(false, StatusCode.UNAUTHORIZED);
+                return new Result<WebServerFile>(null, StatusCode.UNAUTHORIZED);
             }
 
             if (model.Name == model.NewName)
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New filename and old filename are the same. Can't rename a file to it's original name");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
+                return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
             string basePath = string.IsNullOrWhiteSpace(model.SubDirectory) ? model.Directory : basePath = Path.Combine(model.Directory, model.SubDirectory);
@@ -370,19 +370,19 @@ namespace VueServer.Services.Concrete
             if (invalidCharacters.Any(x => newFullPath.Contains(x)))
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New filename contains invalid characters");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
+                return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
             if (!oldFullPath.StartsWith(dir.Path) || !newFullPath.StartsWith(dir.Path))
             {
                 _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Looks like a path escalation attack from user ({_user.Id}) for path: {newFullPath}");
-                return new Result<bool>(false, StatusCode.FORBIDDEN);
+                return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
             }
 
             if (File.Exists(newFullPath))
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New filename selected already exists. Can't rename a file to an existing file name of {newFullPath}");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
+                return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
             try
@@ -392,20 +392,31 @@ namespace VueServer.Services.Concrete
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying file {newFullPath}");
-                return new Result<bool>(false, StatusCode.SERVER_ERROR);
+                return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
+            //try
+            //{
+            //    File.Delete(oldFullPath);
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error deleting file {newFullPath} after copy");
+            //    return new Result<bool>(false, StatusCode.SERVER_ERROR);
+            //}
+
+            FileInfo fileInfo = null;
             try
             {
-                File.Delete(oldFullPath);
+                fileInfo = new FileInfo(newFullPath);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error deleting file {newFullPath} after copy");
-                return new Result<bool>(false, StatusCode.SERVER_ERROR);
+                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo on the newly moved file. Something must have gone wrong.");
+                return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
-            return new Result<bool>(true, StatusCode.OK);
+            return new Result<WebServerFile>(new WebServerFile(fileInfo), StatusCode.OK);
         }
 
         public async Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model)
