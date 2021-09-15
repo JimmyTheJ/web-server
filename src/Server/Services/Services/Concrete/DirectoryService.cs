@@ -350,11 +350,11 @@ namespace VueServer.Services.Concrete
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
-            if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.EditFile))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to edit a file in a folder that doesn't allow file editing");
-                return new Result<WebServerFile>(null, StatusCode.UNAUTHORIZED);
-            }
+            //if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.EditFile))
+            //{
+            //    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to edit a file in a folder that doesn't allow file editing");
+            //    return new Result<WebServerFile>(null, StatusCode.UNAUTHORIZED);
+            //}
 
             if (model.Name == model.NewName)
             {
@@ -362,7 +362,7 @@ namespace VueServer.Services.Concrete
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
-            string basePath = string.IsNullOrWhiteSpace(model.SubDirectory) ? model.Directory : basePath = Path.Combine(model.Directory, model.SubDirectory);
+            string basePath = string.IsNullOrWhiteSpace(model.SubDirectory) ? dir.Path : Path.Combine(dir.Path, model.SubDirectory);
             string oldFullPath = Path.Combine(basePath, model.Name);
             string newFullPath = Path.Combine(basePath, model.NewName);
 

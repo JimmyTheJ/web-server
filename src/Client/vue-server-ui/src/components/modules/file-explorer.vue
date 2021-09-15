@@ -37,7 +37,7 @@
       title="Create new Folder"
       :open="createFolderDialog"
       :maxWidth="800"
-      @dialog-close="closeDeleteConfirmation"
+      @dialog-close="createFolderDialog = false"
     >
       <v-card>
         <v-card-text>
@@ -53,6 +53,32 @@
             </v-flex>
             <v-flex xs12 class="headline red--text text-center">
               {{ createFolderError }}
+            </v-flex>
+          </v-layout>
+        </v-card-text>
+      </v-card>
+    </generic-dialog>
+
+    <generic-dialog
+      title="Rename File"
+      :open="renameFileDialog"
+      :maxWidth="800"
+      @dialog-close="renameFileDialog = false"
+    >
+      <v-card v-if="activeContextMenu > -1">
+        <v-card-text>
+          <v-layout row wrap>
+            <v-flex xs12>
+              <v-text-field
+                v-model="tempFileRenameField"
+                label="File Name"
+              ></v-text-field>
+            </v-flex>
+            <v-flex xs12 class="text-center mt-3">
+              <v-btn color="secondary" @click="renameFile()"> SUBMIT </v-btn>
+            </v-flex>
+            <v-flex xs12 class="headline red--text text-center">
+              {{ renameFileError }}
             </v-flex>
           </v-layout>
         </v-card-text>
@@ -102,7 +128,7 @@
         </v-container>
       </v-card>
 
-      <v-list-item v-for="item in contents" :key="item.id">
+      <v-list-item v-for="(item, i) in contents" :key="i">
         <v-list-item-action>
           <a :href="getDownloadPath(item)" download
             ><fa-icon icon="download"
@@ -112,12 +138,29 @@
           <fa-icon :icon="getIcon(item)" size="2x" style="color: gray" />
         </v-list-item-avatar>
         <v-list-item-content
-          @click="open(item)"
+          @click.left.exact="open(item)"
+          @click.right.exact="activeContextMenu = i"
+          @contextmenu.prevent="openRenameMenu"
           :class="{
             'hide-extra': $vuetify.breakpoint.xsOnly ? true : false,
             'pointer-arrow': true,
           }"
         >
+          <v-menu
+            v-model="showMenu"
+            :position-x="contextMenuX"
+            :position-y="contextMenuY"
+            offset-y
+            absolute
+          >
+            <v-list>
+              <v-list-item>
+                <v-list-item-title>
+                  <v-btn @click="renameFileDialog = true">Rename </v-btn>
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
           <tooltip :value="item.title"></tooltip>
         </v-list-item-content>
         <v-list-item-action v-if="item.size > 0" class="hidden-xs-only">
@@ -165,12 +208,21 @@ export default {
       selectedDirectory: '',
       newFolderName: null,
       createFolderError: null,
+      renameFileError: null,
+
+      tempFileRenameField: null,
+      showMenu: null,
+      activeContextMenu: -1,
+      contextMenuX: 0,
+      contextMenuY: 0,
 
       loading: false,
       changing: false,
 
       deleteDialog: false,
       createFolderDialog: false,
+      renameFileDialog: false,
+
       fileToDelete: null,
 
       features: {
@@ -265,6 +317,11 @@ export default {
     newFolderName: function(newValue) {
       if (this.createFolderError !== null) {
         this.createFolderError = null
+      }
+    },
+    renameFileDialog: function(newValue) {
+      if (newValue === false) {
+        this.renameFileError = null
       }
     },
   },
@@ -362,6 +419,36 @@ export default {
           }, 125)
         }
       }
+    },
+    openRenameMenu(e) {
+      this.$_console_log(
+        '[file-explorer] openRenameMenu: Opening Rename Menu by right clicking!'
+      )
+
+      // TODO
+      this.showMenu = true
+      this.contextMenuX = e.clientX
+      this.contextMenuY = e.clientY
+
+      this.$nextTick(() => {
+        if (this.activeContextMenu > -1)
+          this.tempFileRenameField = this.contents[this.activeContextMenu].title
+      })
+    },
+    renameFile() {
+      this.$store
+        .dispatch('renameFile', {
+          oldName: this.contents[this.activeContextMenu].title,
+          newName: this.tempFileRenameField,
+          dir: this.directory,
+          subDir: getSubdirectoryString(this.subDirectories),
+        })
+        .then(resp => {
+          this.renameFileDialog = false
+        })
+        .catch(() => {
+          this.renameFileError = 'Failed to rename file'
+        })
     },
     goBack() {
       let path = ''
