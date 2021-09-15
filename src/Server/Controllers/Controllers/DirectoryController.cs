@@ -111,6 +111,15 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _service.CreateFolder(model.Directory, model.SubDirectory, model.Name));
         }
 
+        [HttpPost]
+        [Authorize(Roles = ROLES_ALL)]
+        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.EDIT_ID)]
+        [Route(Route.Directory.RenameFile)]
+        public async Task<IActionResult> RenameFile([FromBody] RenameFileRequest model)
+        {
+            return _codeFactory.GetStatusCode(await _service.CreateFolder(model.Directory, model.SubDirectory, model.Name));
+        }
+
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Browser.Id)]

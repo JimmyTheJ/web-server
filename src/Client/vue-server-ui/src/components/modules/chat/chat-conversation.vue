@@ -157,7 +157,8 @@
           autofocus
           label="Message"
           ref="newMessage"
-          @keyup.enter.prevent="sendMessage"
+          @keyup.shift.enter.stop.prevent="newMessage.text += '\r\n'"
+          @keyup.enter.exact.prevent="sendMessage"
           class="pa-0"
         >
           <template v-slot:append-outer>

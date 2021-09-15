@@ -78,6 +78,7 @@
                 internal const string ServeMedia = "/api/serve-file/{*filename}";
                 internal const string DownloadProtectedFile = "download/file/{*filename}";
                 internal const string CreateFolder = "create-folder";
+                internal const string RenameFile = "rename-file";
             }
 
             internal static class Chat
