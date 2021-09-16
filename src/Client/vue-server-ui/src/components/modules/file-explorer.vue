@@ -11,74 +11,49 @@
     </v-overlay>
 
     <generic-dialog
-      :title="deleteTitle"
-      :open="deleteDialog"
+      :title="fileActionTitle"
+      :open="fileActionDialog"
       :maxWidth="800"
-      @dialog-close="deleteDialog = false"
-    >
-      <v-card v-if="activeContextMenu > -1">
-        <v-card-text>
-          <v-layout row wrap>
-            <v-flex xs12>
-              <span class="body-1">Are you sure you want to delete: </span>
-              <span class="body-1" style="font-weight: bold">
-                {{ contents[activeContextMenu].title }}
-              </span>
-            </v-flex>
-            <v-flex xs12 class="text-center mt-3">
-              <v-btn color="secondary" @click="deleteItem()"> DELETE </v-btn>
-            </v-flex>
-          </v-layout>
-        </v-card-text>
-      </v-card>
-    </generic-dialog>
-
-    <generic-dialog
-      title="Create new Folder"
-      :open="createFolderDialog"
-      :maxWidth="800"
-      @dialog-close="createFolderDialog = false"
+      @dialog-close="fileActionDialog = false"
     >
       <v-card>
         <v-card-text>
-          <v-layout row wrap>
+          <v-layout
+            row
+            wrap
+            v-if="
+              fileActionActive === operationType.move ||
+                fileActionActive === operationType.copy ||
+                fileActionActive === operationType.rename ||
+                fileActionActive === operationType.createFolder
+            "
+          >
             <v-flex xs12>
               <v-text-field
-                v-model="newFolderName"
-                label="Folder Name"
+                v-model="fileActionFieldValue"
+                :label="fileActionFieldLabel"
               ></v-text-field>
             </v-flex>
             <v-flex xs12 class="text-center mt-3">
-              <v-btn color="secondary" @click="createFolder()"> SUBMIT </v-btn>
+              <v-btn color="secondary" @click="fileModificationAction()">
+                SUBMIT
+              </v-btn>
             </v-flex>
             <v-flex xs12 class="headline red--text text-center">
-              {{ createFolderError }}
+              {{ fileActionError }}
             </v-flex>
           </v-layout>
-        </v-card-text>
-      </v-card>
-    </generic-dialog>
-
-    <generic-dialog
-      title="Rename File"
-      :open="renameFileDialog"
-      :maxWidth="800"
-      @dialog-close="renameFileDialog = false"
-    >
-      <v-card v-if="activeContextMenu > -1">
-        <v-card-text>
-          <v-layout row wrap>
+          <v-layout row wrap v-if="fileActionActive === operationType.delete">
             <v-flex xs12>
-              <v-text-field
-                v-model="tempFileRenameField"
-                label="File Name"
-              ></v-text-field>
+              <span class="body-1">Are you sure you want to delete: </span>
+              <span class="body-1" style="font-weight: bold">
+                {{ fileActionFieldValue }}
+              </span>
             </v-flex>
             <v-flex xs12 class="text-center mt-3">
-              <v-btn color="secondary" @click="renameFile()"> SUBMIT </v-btn>
-            </v-flex>
-            <v-flex xs12 class="headline red--text text-center">
-              {{ renameFileError }}
+              <v-btn color="secondary" @click="fileModificationAction()">
+                DELETE
+              </v-btn>
             </v-flex>
           </v-layout>
         </v-card-text>
@@ -91,7 +66,13 @@
       <v-container class="text-center py-4">
         <v-layout row wrap>
           <v-flex xs12>
-            <v-btn @click="createFolderDialog = true" color="green">
+            <v-btn
+              @click="
+                fileActionDialog = true
+                fileActionActive = operationType.createFolder
+              "
+              color="green"
+            >
               Create New Folder
             </v-btn>
           </v-flex>
@@ -139,7 +120,7 @@
         </v-list-item-avatar>
         <v-list-item-content
           @click.left.exact="open(item)"
-          @click.right.exact="activeContextMenu = i"
+          @click.right.exact="fileActionIndex = i"
           @contextmenu.prevent="openContextMenu"
           :class="{
             'hide-extra': $vuetify.breakpoint.xsOnly ? true : false,
@@ -154,32 +135,17 @@
             absolute
           >
             <v-list>
-              <v-list-item>
+              <v-list-item v-for="(menuItem, i) in contextMenuMap" :key="i">
                 <v-list-item-title>
                   <v-btn
-                    :disabled="!canRename(item)"
-                    @click="renameFileDialog = true"
-                    >Rename</v-btn
+                    :disabled="!menuItem.disabled(menuItem)"
+                    @click="
+                      fileActionActive = menuItem.action
+                      fileActionDialog = true
+                      preloadItemName()
+                    "
+                    >{{ menuItem.title }}</v-btn
                   >
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-title>
-                  <v-btn :disabled="true">Move</v-btn>
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-title>
-                  <v-btn
-                    :disabled="!canDelete(item)"
-                    @click="deleteDialog = true"
-                    >Delete</v-btn
-                  >
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-title>
-                  <v-btn :disabled="true">Properties</v-btn>
                 </v-list-item-title>
               </v-list-item>
             </v-list>
@@ -189,12 +155,6 @@
         <v-list-item-action v-if="item.size > 0" class="hidden-xs-only">
           {{ getFileSize(item.size) }}
         </v-list-item-action>
-        <!-- Ensure admin and not a folder for delete -->
-        <!-- <v-list-item-action v-if="features.delete">
-          <v-btn icon @click="openDeleteConfirmation(item)"
-            ><fa-icon size="lg" icon="window-close"
-          /></v-btn>
-        </v-list-item-action> -->
       </v-list-item>
 
       <v-layout row justify-center class="loading-container">
@@ -226,26 +186,32 @@ import { DirectoryAccessFlags } from '@/constants.js'
 let path = process.env.VUE_APP_API_URL
 const FN = 'FILE EXPLORER'
 
+const opType = {
+  move: 1,
+  rename: 2,
+  copy: 3,
+  delete: 4,
+  properties: 5,
+  createFolder: 6,
+}
+
 export default {
   data() {
     return {
       selectedDirectory: '',
-      newFolderName: null,
-      createFolderError: null,
-      renameFileError: null,
 
-      tempFileRenameField: null,
+      fileActionFieldValue: null,
+      fileActionError: null,
+      fileActionDialog: false,
+      fileActionIndex: -1,
+      fileActionActive: -1,
+
       showMenu: null,
-      activeContextMenu: -1,
       contextMenuX: 0,
       contextMenuY: 0,
 
       loading: false,
       changing: false,
-
-      deleteDialog: false,
-      createFolderDialog: false,
-      renameFileDialog: false,
 
       features: {
         upload: false,
@@ -254,6 +220,31 @@ export default {
         create: false,
         move: false,
       },
+
+      operationType: opType,
+
+      contextMenuMap: [
+        {
+          title: 'Rename',
+          disabled: item => this.canRename(item),
+          action: opType.rename,
+        },
+        {
+          title: 'Move',
+          disabled: item => false,
+          action: opType.move,
+        },
+        {
+          title: 'Delete',
+          disabled: item => this.canDelete(item),
+          action: opType.delete,
+        },
+        {
+          title: 'Properties',
+          disabled: item => false,
+          action: opType.properties,
+        },
+      ],
     }
   },
   mixins: [Auth],
@@ -314,15 +305,71 @@ export default {
       if (typeof this.$route.params.folder === 'undefined') return false
       return this.$route.params.folder !== this.selectedDirectory
     },
-    deleteTitle() {
-      if (
-        this.activeContextMenu > -1 &&
-        this.contents[this.activeContextMenu].isFolder
-      ) {
-        return 'Delete Folder'
-      } else {
-        return 'Delete File'
+    fileActionTitle() {
+      if (this.fileActionActive > -1 && this.fileActionIndex > -1) {
+        if (this.contents[this.fileActionIndex].isFolder) {
+          switch (this.fileActionActive) {
+            case this.operationType.move:
+              return 'Move Folder'
+            case this.operationType.copy:
+              return 'Copy Folder'
+            case this.operationType.rename:
+              return 'Rename Folder'
+            case this.operationType.delete:
+              return 'Delete Folder'
+            case this.operationType.properties:
+              return 'Properties'
+          }
+        } else {
+          switch (this.fileActionActive) {
+            case this.operationType.move:
+              return 'Move File'
+            case this.operationType.copy:
+              return 'Copy File'
+            case this.operationType.rename:
+              return 'Rename File'
+            case this.operationType.delete:
+              return 'Delete File'
+            case this.operationType.properties:
+              return 'Properties'
+          }
+        }
       }
+
+      if (this.operationType.createFolder) return 'Create Folder'
+      else 'N/A'
+    },
+    fileActionFieldLabel() {
+      if (this.fileActionActive > -1 && this.fileActionIndex > -1) {
+        if (this.contents[this.fileActionIndex].isFolder) {
+          switch (this.fileActionActive) {
+            case this.operationType.move:
+              return 'New Folder Path'
+            case this.operationType.copy:
+              return 'Copy Folder Location'
+            case this.operationType.rename:
+              return 'New Folder Name'
+            case this.operationType.delete:
+              return 'Folder to Delete'
+          }
+        } else {
+          if (this.contents[this.fileActionIndex].isFolder) {
+            switch (this.fileActionActive) {
+              case this.operationType.move:
+                return 'New File Path'
+              case this.operationType.copy:
+                return 'Copy File Location'
+              case this.operationType.rename:
+                return 'New File Name'
+              case this.operationType.delete:
+                return 'File To Delete'
+            }
+          }
+        }
+      }
+
+      if (this.operationType.createFolder) return 'Create Folder'
+      else 'N/A'
     },
   },
   watch: {
@@ -340,14 +387,13 @@ export default {
         })
       }
     },
-    newFolderName: function(newValue) {
-      if (this.createFolderError !== null) {
-        this.createFolderError = null
-      }
-    },
-    renameFileDialog: function(newValue) {
+    fileActionDialog: function(newValue) {
       if (newValue === false) {
-        this.renameFileError = null
+        // Reset all the file action fields and inputs
+        this.fileActionFieldValue = null
+        this.fileActionError = null
+        this.fileActionIndex = -1
+        this.fileActionActive = -1
       }
     },
   },
@@ -462,25 +508,62 @@ export default {
       this.showMenu = true
       this.contextMenuX = e.clientX
       this.contextMenuY = e.clientY
+    },
 
+    preloadItemName() {
       this.$nextTick(() => {
-        if (this.activeContextMenu > -1)
-          this.tempFileRenameField = this.contents[this.activeContextMenu].title
+        if (this.fileActionIndex > -1)
+          this.fileActionFieldValue = this.contents[this.fileActionIndex].title
       })
     },
+
+    fileModificationAction() {
+      if (this.fileActionActive === -1) {
+        this.$_console_log('fileModificationAction')
+        return
+      }
+
+      switch (this.fileActionActive) {
+        case this.operationType.move:
+          this.$_console_log(
+            `fileMoficiationAction: Move operation doesn't exist yet`
+          )
+          break
+        case this.operationType.copy:
+          this.$_console_log(
+            `fileMoficiationAction: Copy operation doesn't exist yet`
+          )
+          break
+        case this.operationType.rename:
+          this.renameFile()
+          break
+        case this.operationType.delete:
+          this.deleteFile()
+          break
+        case this.operationType.properties:
+          this.$_console_log(
+            `fileMoficiationAction: Properties operation doesn't exist yet`
+          )
+          break
+        case this.operationType.createFolder:
+          this.createFolder()
+          break
+      }
+    },
+
     renameFile() {
       this.$store
         .dispatch('renameFile', {
-          oldName: this.contents[this.activeContextMenu].title,
-          newName: this.tempFileRenameField,
+          oldName: this.contents[this.fileActionIndex].title,
+          newName: this.fileActionFieldValue,
           dir: this.directory,
           subDir: getSubdirectoryString(this.subDirectories),
         })
         .then(resp => {
-          this.renameFileDialog = false
+          this.fileActionDialog = false
         })
         .catch(() => {
-          this.renameFileError = 'Failed to rename file'
+          this.fileActionError = 'Failed to rename file'
         })
     },
     canDelete(item) {
@@ -595,25 +678,22 @@ export default {
 
       service
         .createFolder(
-          this.newFolderName,
+          this.fileActionFieldValue,
           this.directory,
           getSubdirectoryString(this.subDirectories)
         )
         .then(resp => {
           this.$store.dispatch('addFile', resp.data)
+          this.fileActionDialog = false
         })
         .catch(() => {
           this.$_console_log('Failed to create folder')
-        })
-        .then(() => {
-          this.newFolderName = null
-          this.createFolderDialog = false
-          this.createFolderError = null
+          this.fileActionError = 'Failed to create folder'
         })
     },
 
-    async deleteItem() {
-      const file = this.contents[this.activeContextMenu]
+    async deleteFile() {
+      const file = this.contents[this.fileActionIndex]
       if (typeof file === 'undefined' || file === null || file === '')
         return this.$_console_log("Invalid file info, can't delete")
 
@@ -628,10 +708,11 @@ export default {
         .then(resp => {
           this.$_console_log('Successfully deleted the file')
           this.$store.dispatch('deleteFile', file.title)
+          this.fileActionDialog = false
         })
-        .catch(() => this.$_console_log('Error deleting the item in upload'))
-        .then(() => {
-          this.deleteDialog = false
+        .catch(() => {
+          this.$_console_log('Error deleting the item')
+          this.fileActionError = 'Failed to delete file'
         })
     },
   },
