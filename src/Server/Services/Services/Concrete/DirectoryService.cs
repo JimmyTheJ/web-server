@@ -339,22 +339,22 @@ namespace VueServer.Services.Concrete
             return new Result<WebServerFile>(new WebServerFile(info), StatusCode.OK);
         }
 
-        public async Task<IResult<WebServerFile>> RenameFile(RenameFileRequest model)
+        public async Task<IResult<WebServerFile>> RenameFile(MoveFileRequest model)
         {
             var dirList = await GetSingleDirectoryList(_user.Id);
             var dir = dirList.Where(x => x.Name == model.Directory).FirstOrDefault();
 
             if (dir == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name provided. File upload attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name provided. File rename attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
-            //if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.EditFile))
-            //{
-            //    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to edit a file in a folder that doesn't allow file editing");
-            //    return new Result<WebServerFile>(null, StatusCode.UNAUTHORIZED);
-            //}
+            if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.MoveFile))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to rename a file in a folder that doesn't allow file moving");
+                return new Result<WebServerFile>(null, StatusCode.UNAUTHORIZED);
+            }
 
             if (model.Name == model.NewName)
             {
@@ -364,8 +364,22 @@ namespace VueServer.Services.Concrete
 
             string basePath = string.IsNullOrWhiteSpace(model.SubDirectory) ? dir.Path : Path.Combine(dir.Path, model.SubDirectory);
             string oldFullPath = Path.Combine(basePath, model.Name);
+
+            // Ensure this the original file is valid
+            FileInfo oldFileInfo = null;
+            try
+            {
+                oldFileInfo = new FileInfo(oldFullPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo on the old file ({oldFullPath}). Something must have gone wrong. Possible attack vector");
+                return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
+            }
+
             string newFullPath = Path.Combine(basePath, model.NewName);
 
+            // Use the platform specific set of invalid characters to ensure the new file name will be valid
             var invalidCharacters = Path.GetInvalidPathChars();
             if (invalidCharacters.Any(x => newFullPath.Contains(x)))
             {
@@ -373,7 +387,7 @@ namespace VueServer.Services.Concrete
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
-            if (!oldFullPath.StartsWith(dir.Path) || !newFullPath.StartsWith(dir.Path))
+            if (IsPathEscalation(newFullPath) || !oldFullPath.StartsWith(dir.Path) || !newFullPath.StartsWith(dir.Path))
             {
                 _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Looks like a path escalation attack from user ({_user.Id}) for path: {newFullPath}");
                 return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
@@ -395,16 +409,6 @@ namespace VueServer.Services.Concrete
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
-            //try
-            //{
-            //    File.Delete(oldFullPath);
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error deleting file {newFullPath} after copy");
-            //    return new Result<bool>(false, StatusCode.SERVER_ERROR);
-            //}
-
             FileInfo fileInfo = null;
             try
             {
@@ -417,6 +421,90 @@ namespace VueServer.Services.Concrete
             }
 
             return new Result<WebServerFile>(new WebServerFile(fileInfo), StatusCode.OK);
+        }
+
+        public async Task<IResult<WebServerFile>> RenameFolder(MoveFileRequest model)
+        {
+            var dirList = await GetSingleDirectoryList(_user.Id);
+            var dir = dirList.Where(x => x.Name == model.Directory).FirstOrDefault();
+
+            if (dir == null)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name provided. Folder rename attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + model.Name);
+                return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
+            }
+
+            if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.MoveFolder))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to rename a folder that doesn't allow folder moving");
+                return new Result<WebServerFile>(null, StatusCode.UNAUTHORIZED);
+            }
+
+            if (model.Name == model.NewName)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New folder and old folder are the same. Can't rename a folder to it's original name");
+                return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
+            }
+
+            string basePath = string.IsNullOrWhiteSpace(model.SubDirectory) ? dir.Path : Path.Combine(dir.Path, model.SubDirectory);
+            string oldFullPath = Path.Combine(basePath, model.Name);
+
+            // Ensure this the original file is valid
+            DirectoryInfo oldFileInfo = null;
+            try
+            {
+                oldFileInfo = new DirectoryInfo(oldFullPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo / DirectoryInfo on the old file / folder ({oldFullPath}). Something must have gone wrong. Possible attack vector");
+                return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
+            }
+
+            string newFullPath = Path.Combine(basePath, model.NewName);
+
+            // Use the platform specific set of invalid characters to ensure the new file name will be valid
+            var invalidCharacters = Path.GetInvalidPathChars();
+            if (invalidCharacters.Any(x => newFullPath.Contains(x)))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New folder contains invalid characters");
+                return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
+            }
+
+            if (IsPathEscalation(newFullPath) || !oldFullPath.StartsWith(dir.Path) || !newFullPath.StartsWith(dir.Path))
+            {
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Looks like a path escalation attack from user ({_user.Id}) for path: {newFullPath}");
+                return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
+            }
+
+            if (Directory.Exists(newFullPath))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New folder selected already exists. Can't rename a folder to an existing folder name of {newFullPath}");
+                return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
+            }
+
+            try
+            {
+                Directory.Move(oldFullPath, newFullPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying file {newFullPath}");
+                return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
+            }
+
+            DirectoryInfo newDirectoryInfo = null;
+            try
+            {
+                newDirectoryInfo = new DirectoryInfo(newFullPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo on the newly moved file. Something must have gone wrong.");
+                return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
+            }
+
+            return new Result<WebServerFile>(new WebServerFile(newDirectoryInfo), StatusCode.OK);
         }
 
         public async Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model)
@@ -694,6 +782,8 @@ namespace VueServer.Services.Concrete
 
             return allDirs;
         }
+
+        private bool IsPathEscalation(string path) => path.Contains("..") ? true : false;
 
         /// <summary>
         /// Work in progress for live transcoding

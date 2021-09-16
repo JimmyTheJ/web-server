@@ -79,6 +79,7 @@
                 internal const string DownloadProtectedFile = "download/file/{*filename}";
                 internal const string CreateFolder = "create-folder";
                 internal const string RenameFile = "rename-file";
+                internal const string RenameFolder = "rename-folder";
             }
 
             internal static class Chat

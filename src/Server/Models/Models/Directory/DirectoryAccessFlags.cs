@@ -11,7 +11,7 @@ namespace VueServer.Models.Directory
         DeleteFile = 8,     // Allowing deleting files
         CreateFolder = 16,  // Allow creating folders
         DeleteFolder = 32,  // Allow deleting folders
-        EditFolder = 64,    // Allow edit folder names
-        EditFile = 128,     // Allow edit file naems
+        MoveFolder = 64,    // Allow rename/move/copy folders
+        MoveFile = 128,     // Allow rename/move/copy files
     }
 }

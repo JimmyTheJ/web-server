@@ -101,10 +101,6 @@
               <td class="hidden-sm-and-down" v-else>
                 <fa-icon icon="times"></fa-icon>
               </td>
-              <!-- TODO: Figure out what's up with this error -->
-              <td class="hidden-xs-only" v-else>
-                <fa-icon icon="times"></fa-icon>
-              </td>
               <td>{{ getBookcaseName(item) }}</td>
               <td class="hidden-xs-only" v-if="hasSeriesInfo(item)">
                 <fa-icon v-if="item.series.active" icon="minus"></fa-icon>

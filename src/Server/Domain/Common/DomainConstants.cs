@@ -84,13 +84,13 @@
                     public const string UPLOAD_ID = "browser-upload";
                     public const string VIEWER_ID = "browser-viewer";
                     public const string CREATE_ID = "browser-create";
-                    public const string EDIT_ID = "browser-edit";
+                    public const string MOVE_ID = "browser-move";
 
                     public const string DELETE_NAME = "Delete";
                     public const string UPLOAD_NAME = "Upload";
                     public const string VIEWER_NAME = "Viewer";
                     public const string CREATE_NAME = "Create";
-                    public const string EDIT_NAME = "Edit";
+                    public const string MOVE_NAME = "Move";
                 }
 
                 public static class Chat

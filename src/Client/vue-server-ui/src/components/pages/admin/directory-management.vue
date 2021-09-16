@@ -265,6 +265,10 @@ const FN = 'directory-management'
 
 import service from '@/services/admin'
 import Dispatcher from '@/services/ws-dispatcher'
+import {
+  convertFlagsToPermissions,
+  convertPemissionsToFlags,
+} from '@/helpers.js'
 
 import { mapState } from 'vuex'
 
@@ -298,45 +302,6 @@ function newSetting() {
   }
 }
 
-function convertPemissionsToFlags(obj) {
-  let clone = Object.assign({}, obj)
-  if (
-    Array.isArray(clone.selectedPermissions) &&
-    clone.selectedPermissions.length > 0
-  ) {
-    clone.accessFlags = 0
-    clone.selectedPermissions.forEach(value => {
-      clone.accessFlags += value
-    })
-    delete clone.selectedPermissions
-
-    return clone
-  } else {
-    if (typeof clone.selectedPermissions !== 'undefined')
-      delete clone.selectedPermissions
-    return clone
-  }
-}
-
-function convertFlagsToPermissions(obj) {
-  obj.selectedPermissions = []
-  let i = 0
-  let num = Math.pow(2, 8)
-
-  if (obj.accessFlags > 0) {
-    let val = obj.accessFlags
-    while (num > 0) {
-      if (val / num >= 1) {
-        obj.selectedPermissions.push({ key: i++, value: num })
-        val -= num
-      }
-      num /= 2
-    }
-  }
-
-  return obj
-}
-
 export default {
   name: 'directory-management',
   data() {
@@ -353,6 +318,8 @@ export default {
         { key: 'Delete File', value: 8 },
         { key: 'Create Folder', value: 16 },
         { key: 'Delete Folder', value: 32 },
+        { key: 'Move Folder', value: 64 },
+        { key: 'Move File', value: 128 },
       ],
     }
   },

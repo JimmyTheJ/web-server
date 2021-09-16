@@ -127,8 +127,6 @@ const actions = {
       )
       return await Promise.reject(e.response)
     }
-
-    commit(types.BROWSER_FILE_DELETE, context)
   },
   async deleteFile({ commit }, context) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting a file')

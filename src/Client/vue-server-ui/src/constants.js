@@ -40,6 +40,17 @@ export const Delay = {
   '12': 3000,
 }
 
+export const DirectoryAccessFlags = {
+  ReadFile: 1,
+  ReadFolder: 2,
+  UploadFile: 4,
+  DeleteFile: 8,
+  CreateFolder: 16,
+  DeleteFolder: 32,
+  MoveFolder: 64,
+  MoveFile: 128,
+}
+
 export const ApiEndpoints = {
   Signout: 'api/account/logout',
   RefreshToken: 'api/account/refresh-jwt',

@@ -113,11 +113,20 @@ namespace VueServer.Controllers
 
         [HttpPut]
         [Authorize(Roles = ROLES_ALL)]
-        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.EDIT_ID)]
+        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
         [Route(Route.Directory.RenameFile)]
-        public async Task<IActionResult> RenameFile([FromBody] RenameFileRequest model)
+        public async Task<IActionResult> RenameFile([FromBody] MoveFileRequest model)
         {
             return _codeFactory.GetStatusCode(await _service.RenameFile(model));
+        }
+
+        [HttpPut]
+        [Authorize(Roles = ROLES_ALL)]
+        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
+        [Route(Route.Directory.RenameFolder)]
+        public async Task<IActionResult> RenameFolder([FromBody] MoveFileRequest model)
+        {
+            return _codeFactory.GetStatusCode(await _service.RenameFolder(model));
         }
 
         [HttpGet]

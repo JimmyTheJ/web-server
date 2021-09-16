@@ -1,6 +1,6 @@
 ﻿namespace VueServer.Models.Request
 {
-    public class RenameFileRequest : FileModel
+    public class MoveFileRequest : FileModel
     {
         public string NewName { get; set; }
     }

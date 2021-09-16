@@ -14,15 +14,15 @@
       :title="deleteTitle"
       :open="deleteDialog"
       :maxWidth="800"
-      @dialog-close="closeDeleteConfirmation"
+      @dialog-close="deleteDialog = false"
     >
-      <v-card v-if="fileToDelete !== null">
+      <v-card v-if="activeContextMenu > -1">
         <v-card-text>
           <v-layout row wrap>
             <v-flex xs12>
               <span class="body-1">Are you sure you want to delete: </span>
               <span class="body-1" style="font-weight: bold">
-                {{ fileToDelete.title }}
+                {{ contents[activeContextMenu].title }}
               </span>
             </v-flex>
             <v-flex xs12 class="text-center mt-3">
@@ -140,7 +140,7 @@
         <v-list-item-content
           @click.left.exact="open(item)"
           @click.right.exact="activeContextMenu = i"
-          @contextmenu.prevent="openRenameMenu"
+          @contextmenu.prevent="openContextMenu"
           :class="{
             'hide-extra': $vuetify.breakpoint.xsOnly ? true : false,
             'pointer-arrow': true,
@@ -156,7 +156,30 @@
             <v-list>
               <v-list-item>
                 <v-list-item-title>
-                  <v-btn @click="renameFileDialog = true">Rename </v-btn>
+                  <v-btn
+                    :disabled="!canRename(item)"
+                    @click="renameFileDialog = true"
+                    >Rename</v-btn
+                  >
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title>
+                  <v-btn :disabled="true">Move</v-btn>
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title>
+                  <v-btn
+                    :disabled="!canDelete(item)"
+                    @click="deleteDialog = true"
+                    >Delete</v-btn
+                  >
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-title>
+                  <v-btn :disabled="true">Properties</v-btn>
                 </v-list-item-title>
               </v-list-item>
             </v-list>
@@ -167,11 +190,11 @@
           {{ getFileSize(item.size) }}
         </v-list-item-action>
         <!-- Ensure admin and not a folder for delete -->
-        <v-list-item-action v-if="features.delete">
+        <!-- <v-list-item-action v-if="features.delete">
           <v-btn icon @click="openDeleteConfirmation(item)"
             ><fa-icon size="lg" icon="window-close"
           /></v-btn>
-        </v-list-item-action>
+        </v-list-item-action> -->
       </v-list-item>
 
       <v-layout row justify-center class="loading-container">
@@ -198,6 +221,7 @@ import GenericDialog from './generic-dialog.vue'
 import Auth from '../../mixins/authentication'
 
 import { getSubdirectoryString } from '../../helpers/browser'
+import { DirectoryAccessFlags } from '@/constants.js'
 
 let path = process.env.VUE_APP_API_URL
 const FN = 'FILE EXPLORER'
@@ -223,13 +247,12 @@ export default {
       createFolderDialog: false,
       renameFileDialog: false,
 
-      fileToDelete: null,
-
       features: {
         upload: false,
         delete: false,
         viewing: false,
         create: false,
+        move: false,
       },
     }
   },
@@ -292,7 +315,10 @@ export default {
       return this.$route.params.folder !== this.selectedDirectory
     },
     deleteTitle() {
-      if (this.fileToDelete !== null && this.fileToDelete.isFolder) {
+      if (
+        this.activeContextMenu > -1 &&
+        this.contents[this.activeContextMenu].isFolder
+      ) {
         return 'Delete Folder'
       } else {
         return 'Delete File'
@@ -361,6 +387,13 @@ export default {
         )
       )
         this.features.create = true
+
+      if (
+        browserObj.userModuleFeatures.some(
+          x => x.moduleFeatureId === 'browser-move'
+        )
+      )
+        this.features.move = true
     },
     getDirectoryFromRoute() {
       this.changing = true
@@ -420,9 +453,9 @@ export default {
         }
       }
     },
-    openRenameMenu(e) {
+    openContextMenu(e) {
       this.$_console_log(
-        '[file-explorer] openRenameMenu: Opening Rename Menu by right clicking!'
+        '[file-explorer] openContextMenu: Opening Rename Menu by right clicking!'
       )
 
       // TODO
@@ -449,6 +482,50 @@ export default {
         .catch(() => {
           this.renameFileError = 'Failed to rename file'
         })
+    },
+    canDelete(item) {
+      if (!this.features.delete) {
+        return false
+      }
+
+      let dir = this.folders.find(x => x.name === this.selectedDirectory)
+      if (dir === undefined) {
+        return false
+      }
+
+      if (item.isFolder) {
+        if (dir.accessFlags & DirectoryAccessFlags.DeleteFolder) {
+          return true
+        }
+      } else {
+        if (dir.accessFlags & DirectoryAccessFlags.DeleteFile) {
+          return true
+        }
+      }
+
+      return false
+    },
+    canRename(item) {
+      if (!this.features.move) {
+        return false
+      }
+
+      let dir = this.folders.find(x => x.name === this.selectedDirectory)
+      if (dir === undefined) {
+        return false
+      }
+
+      if (item.isFolder) {
+        if (dir.accessFlags & DirectoryAccessFlags.MoveFolder) {
+          return true
+        }
+      } else {
+        if (dir.accessFlags & DirectoryAccessFlags.MoveFile) {
+          return true
+        }
+      }
+
+      return false
     },
     goBack() {
       let path = ''
@@ -509,25 +586,6 @@ export default {
       }
     },
 
-    closeDeleteConfirmation() {
-      this.fileToDelete = null
-      this.deleteDialog = false
-    },
-
-    openDeleteConfirmation(file) {
-      if (this.deleteEnabled === false) {
-        return this.$_console_log(
-          'You must have the appropriate permission to delete'
-        )
-      }
-
-      if (typeof file === 'undefined' || file === null || file === '')
-        return this.$_console_log("Invalid file info, can't delete")
-
-      this.fileToDelete = file
-      this.deleteDialog = true
-    },
-
     createFolder() {
       if (this.contents.findIndex(x => x.title === this.newFolderName) > -1) {
         this.$_console_log(`Can't create a folder that already exists`)
@@ -555,13 +613,7 @@ export default {
     },
 
     async deleteItem() {
-      if (this.deleteEnabled === false) {
-        return this.$_console_log(
-          'You must have the appropriate permission to delete'
-        )
-      }
-
-      const file = this.fileToDelete
+      const file = this.contents[this.activeContextMenu]
       if (typeof file === 'undefined' || file === null || file === '')
         return this.$_console_log("Invalid file info, can't delete")
 
@@ -580,7 +632,6 @@ export default {
         .catch(() => this.$_console_log('Error deleting the item in upload'))
         .then(() => {
           this.deleteDialog = false
-          this.fileToDelete = null
         })
     },
   },
