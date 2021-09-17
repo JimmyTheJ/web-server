@@ -8,6 +8,7 @@ const DeleteUploadUrl = `api/directory/delete`
 const UploadFilesUrl = `api/directory/upload`
 const CreateFolderUrl = `api/directory/create-folder`
 const RenameFileUrl = `api/directory/rename-file`
+const RenameFolderurl = `api/directory/rename-folder`
 
 export default {
   loadDirectory(dir, subDir) {
@@ -39,9 +40,9 @@ export default {
       },
     })
   },
-  renameFile(oldName, newName, folder, subFolder) {
+  renameFile(oldName, newName, folder, subFolder, isFolder) {
     return axios.request({
-      url: RenameFileUrl,
+      url: isFolder === true ? RenameFolderurl : RenameFileUrl,
       method: 'PUT',
       data: {
         Name: oldName,

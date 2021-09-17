@@ -111,7 +111,8 @@ const actions = {
           context.oldName,
           context.newName,
           context.dir,
-          context.subDir
+          context.subDir,
+          context.isFolder
         )
         commit(types.BROWSER_FILE_RENAME, {
           name: context.oldName,

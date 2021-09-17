@@ -558,6 +558,7 @@ export default {
           newName: this.fileActionFieldValue,
           dir: this.directory,
           subDir: getSubdirectoryString(this.subDirectories),
+          isFolder: this.contents[this.fileActionIndex].isFolder
         })
         .then(resp => {
           this.fileActionDialog = false
