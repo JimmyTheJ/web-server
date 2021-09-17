@@ -353,17 +353,15 @@ export default {
               return 'Folder to Delete'
           }
         } else {
-          if (this.contents[this.fileActionIndex].isFolder) {
-            switch (this.fileActionActive) {
-              case this.operationType.move:
-                return 'New File Path'
-              case this.operationType.copy:
-                return 'Copy File Location'
-              case this.operationType.rename:
-                return 'New File Name'
-              case this.operationType.delete:
-                return 'File To Delete'
-            }
+          switch (this.fileActionActive) {
+            case this.operationType.move:
+              return 'New File Path'
+            case this.operationType.copy:
+              return 'Copy File Location'
+            case this.operationType.rename:
+              return 'New File Name'
+            case this.operationType.delete:
+              return 'File To Delete'
           }
         }
       }
@@ -558,7 +556,7 @@ export default {
           newName: this.fileActionFieldValue,
           dir: this.directory,
           subDir: getSubdirectoryString(this.subDirectories),
-          isFolder: this.contents[this.fileActionIndex].isFolder
+          isFolder: this.contents[this.fileActionIndex].isFolder,
         })
         .then(resp => {
           this.fileActionDialog = false
