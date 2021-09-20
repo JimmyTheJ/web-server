@@ -48,8 +48,19 @@ Additional modules include:
 
 	`dotnet run --urls https://localhost:7757`
 
-3. To build everything on windows 10 x64 and publish the app run `powershell .\build.ps1`. 
-This will place the output in the `.\build` folder.
+3. Initialize database:
+
+	- If running in dev mode and your plan is to use database migrations run the following commands in `./src/Server/VueServer` folder. These migrations will be places in the `./Migrations` folder from this relative path.
+	
+		1. dotnet ef migrations add InitialCreate --context [Insert Context Type here. See below]
+		
+		2. dotnet ef database update --context [Insert Context Type here. See below]
+	
+	- If running in production and you just want to setup the database once:
+	
+		1. ... Coming soon!
+
+4. To build everything on windows 10 x64 and publish the app run `powershell .\build.ps1`. This will place the output in the `.\build` folder.
 
 #### Required Software:
 
@@ -67,4 +78,10 @@ This will place the output in the `.\build` folder.
 
 2. Currently FFMpeg is packaged with VueServer.Services project, but not included in the repo. You will need to download this from https://www.ffmpeg.org/download.html and put ffmpeg.exe and ffprobe.exe in the base level of VueServer.Services project folder.
 
-3. Application has to be run in development for you to be able to register accounts. This feature is disabled in production for now for security reasons.
+3. System will be created with a default Adminstrator account called `admin`. The password can be found in: `./src/Server/Domain/Common/DomainConstants.cs` under variable `DEFAULT_PASSWORD`
+
+4. Context Types:
+
+	- `SqliteWSContext`
+	- `SQLServerWSContext`
+	- `MySqlWSContext`
