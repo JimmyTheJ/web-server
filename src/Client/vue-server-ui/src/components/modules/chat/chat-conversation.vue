@@ -129,6 +129,7 @@
             :key="index"
             @mouseover="setMessageHover(message, true)"
             @mouseleave="setMessageHover(message, false)"
+            v-show="shouldShowMessage(index)"
           >
             <chat-bubble
               :colorMap="colorMap"
@@ -185,6 +186,8 @@ export default {
   name: 'chat-conversation',
   data() {
     return {
+      reloadCounter: 10,
+      hideCounter: -1,
       newMessage: null,
       changeUserColorDialog: false,
       deleteConversationDialog: false,
@@ -194,7 +197,6 @@ export default {
       newTitle: null,
       moreInfo: {},
       chatWindow: null,
-      scrollHeight: 0,
       bodyContainerHeight: 0,
       othersLastReadMessage: -1,
       colorList: [
@@ -294,6 +296,11 @@ export default {
         else return f
       }
     },
+    conversationLength() {
+      if (this.conversation === null || this.conversation.messages === null)
+        return 0
+      else return this.conversation.messages.length
+    },
   },
   watch: {
     editingTitle(newValue) {
@@ -310,7 +317,16 @@ export default {
           .then(resp => {
             this.updateContainerHeight(true)
             this.updateReadReceiptMarker()
+
+            const numMsgs =
+              this.conversation.messages !== null
+                ? this.conversation.messages.length
+                : 0
+
+            this.hideCounter = numMsgs <= 10 ? 0 : numMsgs - 10
           })
+      } else {
+        this.hideCounter = -1
       }
     },
     scrollHeight(newValue) {
@@ -334,8 +350,13 @@ export default {
   },
   methods: {
     windowScroll(event) {
-      this.$_console_log('Scroll event', event)
-      this.scrollHeight = event.target.scrollTop
+      //this.$_console_log('Scroll event', event.target.scrollTop)
+
+      // TODO: Handle case of more than 10 items visible at start, and thus no way to
+      // hit the top part of the scroll bar to initiate more messages to show
+      if (this.hideCounter > 0 && event.target.scrollTop < 1) {
+        this.hideCounter -= this.reloadCounter
+      }
     },
     resizeWindow(event) {
       this.updateContainerHeight()
@@ -697,6 +718,9 @@ export default {
     },
     getUserColor(message) {
       return this.colorMap[this.friend.userId]
+    },
+    shouldShowMessage(index) {
+      return index > this.hideCounter
     },
   },
 }
