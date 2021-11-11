@@ -133,9 +133,8 @@
             <chat-bubble
               :colorMap="colorMap"
               :message="message"
-              :currentTime="time"
-              :owner="isOwner(message)"
               :isGroup="isGroupConversation"
+              :currentTime="currentTime"
               @moreInfo="openMoreInfo"
               @deleteMessage="deleteMessage"
             >
@@ -186,6 +185,7 @@ export default {
   data() {
     return {
       newMessage: null,
+      currentTime: Math.trunc(new Date().getTime() / 1000),
       changeUserColorDialog: false,
       deleteConversationDialog: false,
       moreInfoDialog: false,
@@ -220,10 +220,6 @@ export default {
       type: Object,
       required: true,
     },
-    time: {
-      type: Number,
-      required: true,
-    },
     show: {
       type: Boolean,
       required: true,
@@ -242,6 +238,7 @@ export default {
   mounted() {
     this.chatWindow = this.$refs.chatBodyContainer
     this.chatWindow.addEventListener('scroll', this.windowScroll)
+    this.countTime()
   },
   beforeDestroy() {
     this.$chatHub.$off('message-received', this.onMessageReceived)
@@ -451,13 +448,6 @@ export default {
 
       this.newMessage = { text: '' }
       this.$refs.newMessage.focus()
-    },
-    isOwner(message) {
-      if (this.user.id === message.userId) {
-        return true
-      } else {
-        return false
-      }
     },
     getTextPosition(message) {
       if (message.userId === this.user.id) {
@@ -697,6 +687,11 @@ export default {
     },
     getUserColor(message) {
       return this.colorMap[this.friend.userId]
+    },
+    countTime() {
+      setInterval(() => {
+        this.currentTime = Math.trunc(new Date().getTime() / 1000)
+      }, 5000)
     },
   },
 }

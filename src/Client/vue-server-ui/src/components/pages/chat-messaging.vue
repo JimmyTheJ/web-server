@@ -64,7 +64,6 @@
           <chat-conversation
             :key="i"
             :conversation="conversation"
-            :time="currentTime"
             :show="shouldShowConversation(conversation)"
             :mobile="isMobile"
             @goBack="closeConversation"
@@ -91,7 +90,6 @@ export default {
       selectedConversation: null,
       search: null,
       isLoading: false,
-      currentTime: 0,
       hideMobile: false,
       dialogOpen: false,
       dialogTitle: 'Conversation Starter',
@@ -102,9 +100,6 @@ export default {
     ChatBadge,
     ChatStarter,
     GenericDialog,
-  },
-  mounted() {
-    this.countTime()
   },
   computed: {
     ...mapState({
@@ -136,13 +131,6 @@ export default {
     },
   },
   methods: {
-    countTime() {
-      this.currentTime = Math.trunc(new Date().getTime() / 1000)
-
-      setTimeout(() => {
-        this.countTime()
-      }, 1000)
-    },
     closeConversation() {
       this.selectedConversation = null
     },

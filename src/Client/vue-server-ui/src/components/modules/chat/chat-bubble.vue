@@ -77,14 +77,6 @@ export default {
       type: Object,
       required: true,
     },
-    currentTime: {
-      type: Number,
-      required: false,
-    },
-    owner: {
-      type: Boolean,
-      default: false,
-    },
     lastMessage: {
       type: Boolean,
       default: false,
@@ -92,6 +84,10 @@ export default {
     isGroup: {
       type: Boolean,
       default: false,
+    },
+    currentTime: {
+      type: Number,
+      required: true,
     },
   },
   computed: {
@@ -171,6 +167,13 @@ export default {
 
           return color
         }
+      }
+    },
+    owner() {
+      if (this.user.id === this.message.userId) {
+        return true
+      } else {
+        return false
       }
     },
   },
