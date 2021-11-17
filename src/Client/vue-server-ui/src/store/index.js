@@ -11,6 +11,7 @@ import * as getters from './getters'
  */
 import auth from './modules/auth'
 import chat from './modules/chat'
+import general from './modules/general'
 import library from './modules/library'
 import notifications from './modules/notifications'
 import fileExplorer from './modules/file-explorer'
@@ -25,6 +26,7 @@ export default new Vuex.Store({
   modules: {
     auth,
     chat,
+    general,
     library,
     notifications,
     fileExplorer,

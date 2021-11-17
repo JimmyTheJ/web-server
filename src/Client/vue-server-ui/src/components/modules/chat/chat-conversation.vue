@@ -134,22 +134,13 @@
               :colorMap="colorMap"
               :message="message"
               :isGroup="isGroupConversation"
-              :currentTime="currentTime"
               @moreInfo="openMoreInfo"
               @deleteMessage="deleteMessage"
-            >
-              <template v-slot:lastReadIcon v-if="isLastReadMessage(message)">
-                <chat-avatar
-                  :avatar="getUserAvatarFromMessage(message)"
-                  :text="getUserAvatarTextFromMessage(message)"
-                  :color="getUserColor(message)"
-                  size="16"
-                ></chat-avatar>
-              </template>
-            </chat-bubble>
+            />
           </v-col>
         </v-row>
       </div>
+
       <div class="chat-message-textfield" ref="chatTextfield">
         <v-text-field
           v-model="newMessage.text"
@@ -185,7 +176,6 @@ export default {
   data() {
     return {
       newMessage: null,
-      currentTime: Math.trunc(new Date().getTime() / 1000),
       changeUserColorDialog: false,
       deleteConversationDialog: false,
       moreInfoDialog: false,
@@ -197,6 +187,7 @@ export default {
       scrollHeight: 0,
       bodyContainerHeight: 0,
       othersLastReadMessage: -1,
+      colorMap: {},
       colorList: [
         'indigo',
         'purple',
@@ -238,7 +229,8 @@ export default {
   mounted() {
     this.chatWindow = this.$refs.chatBodyContainer
     this.chatWindow.addEventListener('scroll', this.windowScroll)
-    this.countTime()
+
+    this.getColorMap()
   },
   beforeDestroy() {
     this.$chatHub.$off('message-received', this.onMessageReceived)
@@ -267,14 +259,6 @@ export default {
     },
     canChangeUserColor() {
       return this.conversation.conversationUsers.length == 2
-    },
-    colorMap() {
-      let map = {}
-      this.conversation.conversationUsers.forEach((element, index) => {
-        map[element.userId] = element.color
-      })
-
-      return map
     },
     isGroupConversation() {
       return this.conversation.conversationUsers.length > 2
@@ -327,6 +311,12 @@ export default {
           this.readAllMessages()
         }
       }
+    },
+    'conversation.messages': {
+      handler(newValue, oldValue) {
+        console.log('message changes')
+      },
+      deep: true,
     },
   },
   methods: {
@@ -455,6 +445,11 @@ export default {
       } else {
         return 'text-left'
       }
+    },
+    getColorMap() {
+      this.conversation.conversationUsers.forEach((element, index) => {
+        this.colorMap[element.userId] = element.color
+      })
     },
     deleteConversation() {
       this.$store
@@ -593,15 +588,6 @@ export default {
         })
       }
     },
-    isLastReadMessage(message) {
-      if (
-        this.othersLastReadMessage > -1 &&
-        message.id === this.conversation.messages[this.othersLastReadMessage].id
-      )
-        return true
-
-      return false
-    },
     updateReadReceiptMarker() {
       // If 2 person converation, show where the usre last read to
       if (this.conversation.conversationUsers.length === 2) {
@@ -658,40 +644,6 @@ export default {
         .then(() => {
           this.changeUserColorDialog = false
         })
-    },
-    getUserAvatarFromMessage(message) {
-      if (this.isGroupConversation) {
-        // TODO: Handle how to show icons at bottom of messages for group chats
-      } else if (this.friend !== null) {
-        // if (
-        //   typeof this.userMap[this.friend.userId] !== 'undefined' &&
-        //   typeof this.userMap[this.friend.userId].avatar !== 'undefined'
-        // )
-        //   return this.userMap[this.friend.userId].avatar
-      }
-
-      return null
-    },
-    getUserAvatarTextFromMessage(message) {
-      if (this.isGroupConversation) {
-        // TODO: Handle how to show icons at bottom of messages for group chats
-      } else if (this.friend !== null) {
-        // if (
-        //   typeof this.userMap[this.friend.userId] !== 'undefined' &&
-        //   typeof this.userMap[this.friend.userId].avatar === 'undefined'
-        // )
-        //   return this.userMap[this.friend.userId].displayName.charAt(0)
-      }
-
-      return null
-    },
-    getUserColor(message) {
-      return this.colorMap[this.friend.userId]
-    },
-    countTime() {
-      setInterval(() => {
-        this.currentTime = Math.trunc(new Date().getTime() / 1000)
-      }, 5000)
     },
   },
 }

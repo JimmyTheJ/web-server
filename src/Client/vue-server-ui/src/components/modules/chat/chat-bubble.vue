@@ -45,13 +45,21 @@
           {{ userMap[message.userId].displayName }}
         </div>
         <div class="text-body-1">{{ message.text }}</div>
-        <div class="text-caption text-right">{{ timeSince }}</div>
+        <div class="text-caption text-right">{{ time }}</div>
         <div class="bubble-id" style="display: none">{{ message.id }}</div>
       </div>
     </div>
 
+    <!-- TODO: Add back later. Causing massive performance issue. -->
     <div :class="['bubble-last-read', getFlexDirection, 'pr-2']">
-      <slot name="lastReadIcon"></slot>
+      <!-- TODO: Add back later. Causing massive performance issue. -->
+      <chat-avatar
+        v-if="isLastReadMessage(message)"
+        :avatar="getUserAvatarFromMessage(message)"
+        :text="getUserAvatarTextFromMessage(message)"
+        :color="getUserColor(message)"
+        size="16"
+      ></chat-avatar>
     </div>
   </div>
 </template>
@@ -66,7 +74,9 @@ export default {
     'chat-avatar': ChatAvatar,
   },
   data() {
-    return {}
+    return {
+      time: '0s',
+    }
   },
   props: {
     colorMap: {
@@ -85,46 +95,14 @@ export default {
       type: Boolean,
       default: false,
     },
-    currentTime: {
-      type: Number,
-      required: true,
-    },
   },
   computed: {
     ...mapState({
       user: state => state.auth.user,
       userMap: state => state.auth.userMap,
       activeModules: state => state.auth.activeModules,
+      currentTime: state => state.general.currentTime,
     }),
-    timeSince() {
-      if (
-        typeof this.currentTime !== 'number' ||
-        typeof this.message.timestamp !== 'number'
-      ) {
-        return ''
-      }
-
-      let seconds = this.currentTime - this.message.timestamp
-      if (seconds < 0) {
-        return ''
-      }
-      if (seconds < 60) {
-        return `${Math.trunc(seconds)}s`
-      }
-
-      let minutes = seconds / 60
-      if (minutes < 60) {
-        return `${Math.trunc(minutes)}m`
-      }
-
-      let hours = minutes / 60
-      if (hours < 24) {
-        return `${Math.trunc(hours)}h`
-      }
-
-      let days = hours / 24
-      return `${Math.trunc(days)}d`
-    },
     isMessageDeletable() {
       if (this.owner === true) {
         const chatModule = this.activeModules.find(x => x.id === 'chat')
@@ -193,6 +171,15 @@ export default {
       },
       deep: true,
     },
+    currentTime: {
+      handler(newValue) {
+        let t = this.timeSince(newValue)
+
+        if (this.time !== t) {
+          this.time = t
+        }
+      },
+    },
   },
   methods: {
     deleteMessage() {
@@ -236,6 +223,70 @@ export default {
         conversationId: this.message.conversationId,
         messageId: this.message.id,
       })
+    },
+    isLastReadMessage() {
+      if (
+        this.othersLastReadMessage > -1 &&
+        message.id === this.conversation.messages[this.othersLastReadMessage].id
+      )
+        return true
+
+      return false
+    },
+    getUserAvatarFromMessage() {
+      if (this.isGroupConversation) {
+        // TODO: Handle how to show icons at bottom of messages for group chats
+      } else if (this.friend !== null) {
+        // if (
+        //   typeof this.userMap[this.friend.userId] !== 'undefined' &&
+        //   typeof this.userMap[this.friend.userId].avatar !== 'undefined'
+        // )
+        //   return this.userMap[this.friend.userId].avatar
+      }
+
+      return null
+    },
+    getUserAvatarTextFromMessage() {
+      if (this.isGroupConversation) {
+        // TODO: Handle how to show icons at bottom of messages for group chats
+      } else if (this.friend !== null) {
+        // if (
+        //   typeof this.userMap[this.friend.userId] !== 'undefined' &&
+        //   typeof this.userMap[this.friend.userId].avatar === 'undefined'
+        // )
+        //   return this.userMap[this.friend.userId].displayName.charAt(0)
+      }
+
+      return null
+    },
+    getUserColor() {
+      return this.colorMap[this.friend.userId]
+    },
+    timeSince(t) {
+      if (typeof t !== 'number' || typeof this.message.timestamp !== 'number') {
+        return ''
+      }
+
+      let seconds = t - this.message.timestamp
+      if (seconds < 0) {
+        return ''
+      }
+      if (seconds < 60) {
+        return `${Math.trunc(seconds)}s`
+      }
+
+      let minutes = seconds / 60
+      if (minutes < 60) {
+        return `${Math.trunc(minutes)}m`
+      }
+
+      let hours = minutes / 60
+      if (hours < 24) {
+        return `${Math.trunc(hours)}h`
+      }
+
+      let days = hours / 24
+      return `${Math.trunc(days)}d`
     },
   },
 }

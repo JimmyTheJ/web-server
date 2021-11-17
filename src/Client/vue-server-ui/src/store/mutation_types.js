@@ -1,4 +1,9 @@
 /*
+ * General
+ */
+export const GENERAL_UPDATE_TIME = 'GENERAL_UPDATE_TIME'
+
+/*
  * Authentication
  */
 

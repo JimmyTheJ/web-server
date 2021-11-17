@@ -93,6 +93,8 @@ export default {
       hideMobile: false,
       dialogOpen: false,
       dialogTitle: 'Conversation Starter',
+      timer: null,
+      //currentTime: Math.trunc(new Date().getTime() / 1000),
     }
   },
   components: {
@@ -129,6 +131,14 @@ export default {
       },
       deep: true,
     },
+  },
+  mounted() {
+    this.timer = setInterval(() => {
+      this.$store.dispatch('getCurrentTime')
+    }, 5000)
+  },
+  beforeDestroy() {
+    this.timer = null
   },
   methods: {
     closeConversation() {
