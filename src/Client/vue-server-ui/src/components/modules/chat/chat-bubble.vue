@@ -2,7 +2,7 @@
   <div class="chat-container">
     <div :class="['bubble-container', getFlexDirection]">
       <v-menu absolute offset-y>
-        <template v-slot:activator="{ on, attr }">
+        <template v-slot:activator="{ on }">
           <div v-on="on" class="order-2">
             <span
               v-show="message.hover"
@@ -50,9 +50,7 @@
       </div>
     </div>
 
-    <!-- TODO: Add back later. Causing massive performance issue. -->
     <div :class="['bubble-last-read', getFlexDirection, 'pr-2']">
-      <!-- TODO: Add back later. Causing massive performance issue. -->
       <chat-avatar
         v-if="isLastReadMessage(message)"
         :avatar="getUserAvatarFromMessage(message)"
