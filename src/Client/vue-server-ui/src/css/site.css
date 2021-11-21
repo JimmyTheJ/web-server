@@ -2,3 +2,7 @@
   min-width: 36px !important;
   min-height: 36px !important;
 }
+
+.wrap {
+  word-wrap: break-word;
+}

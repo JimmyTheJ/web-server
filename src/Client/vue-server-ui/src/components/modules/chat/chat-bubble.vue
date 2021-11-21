@@ -40,7 +40,7 @@
           >
             {{ userMap[message.userId].displayName }}
           </div>
-          <div class="text-body-1">{{ message.text }}</div>
+          <div class="text-body-1 wrap">{{ message.text }}</div>
           <div class="text-caption text-right">{{ time }}</div>
           <div class="bubble-id" style="display: none">{{ message.id }}</div>
         </div>
