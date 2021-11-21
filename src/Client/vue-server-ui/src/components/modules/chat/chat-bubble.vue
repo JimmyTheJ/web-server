@@ -1,54 +1,51 @@
 <template>
   <div class="chat-container">
-    <div :class="['bubble-container', getFlexDirection]">
-      <v-menu absolute offset-y>
-        <template v-slot:activator="{ on }">
-          <div v-on="on" class="order-2">
-            <span
-              v-show="message.hover"
-              class="pa-1"
-              style="height: 100%; margin: 0 auto"
-              >...</span
-            >
-          </div>
-        </template>
-        <v-list>
-          <v-list-item @click="moreInfo">
-            <v-list-item-title> More info </v-list-item-title>
-          </v-list-item>
-          <v-list-item v-if="isMessageDeletable" @click="deleteMessage">
-            <v-list-item-title> Delete Message </v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+    <v-hover v-slot="{ hover }" open-delay="200">
+      <div :class="['bubble-container', getFlexDirection]">
+        <v-menu absolute offset-y>
+          <template v-slot:activator="{ on }">
+            <div v-on="on" class="order-2">
+              <span v-if="hover" class="px-1">...</span>
+            </div>
+          </template>
+          <v-list>
+            <v-list-item @click="moreInfo">
+              <v-list-item-title> More info </v-list-item-title>
+            </v-list-item>
+            <v-list-item v-if="isMessageDeletable" @click="deleteMessage">
+              <v-list-item-title> Delete Message </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
 
-      <div
-        v-if="isGroup && user.id !== message.userId"
-        style="align-self: end;"
-      >
-        <chat-avatar
-          :avatar="userMap[message.userId].avatar"
-          :text="userMap[message.userId].displayName.charAt(0)"
-          :color="colorMap[message.userId]"
-          size="32"
-        />
-      </div>
-
-      <div
-        :class="['bubble-body-container', getColor, 'pa-2', 'order-1']"
-        @click="readMessage()"
-      >
         <div
-          class="text-header-1 font-weight-bold"
           v-if="isGroup && user.id !== message.userId"
+          style="align-self: end;"
         >
-          {{ userMap[message.userId].displayName }}
+          <chat-avatar
+            :avatar="userMap[message.userId].avatar"
+            :text="userMap[message.userId].displayName.charAt(0)"
+            :color="colorMap[message.userId]"
+            size="32"
+          />
         </div>
-        <div class="text-body-1">{{ message.text }}</div>
-        <div class="text-caption text-right">{{ time }}</div>
-        <div class="bubble-id" style="display: none">{{ message.id }}</div>
+
+        <div
+          :class="['bubble-body-container', getColor, 'pa-2', 'order-1']"
+          @click="readMessage()"
+        >
+          <div
+            class="text-header-1 font-weight-bold"
+            v-if="isGroup && user.id !== message.userId"
+          >
+            {{ userMap[message.userId].displayName }}
+          </div>
+          <div class="text-body-1">{{ message.text }}</div>
+          <div class="text-caption text-right">{{ time }}</div>
+          <div class="bubble-id" style="display: none">{{ message.id }}</div>
+        </div>
       </div>
-    </div>
+    </v-hover>
 
     <div :class="['bubble-last-read', getFlexDirection, 'pr-2']">
       <chat-avatar

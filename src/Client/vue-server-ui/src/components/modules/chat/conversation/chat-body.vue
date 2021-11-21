@@ -27,8 +27,6 @@
           class="py-1"
           v-for="(message, index) in conversation.messages"
           :key="index"
-          @mouseover="setMessageHover(message, true)"
-          @mouseleave="setMessageHover(message, false)"
         >
           <chat-bubble
             :colorMap="colorMap"
@@ -170,21 +168,6 @@ export default {
         .then(() => {
           this.$_console_log('Receipt successfully added to message. Show')
         })
-    },
-    setMessageHover(message, on) {
-      if (on) {
-        this.$store.dispatch('setMessageHover', {
-          messageId: message.id,
-          conversationId: message.conversationId,
-          on: true,
-        })
-      } else {
-        this.$store.dispatch('setMessageHover', {
-          messageId: message.id,
-          conversationId: message.conversationId,
-          on: false,
-        })
-      }
     },
     openMoreInfo(message) {
       this.moreInfo.text = message.text
