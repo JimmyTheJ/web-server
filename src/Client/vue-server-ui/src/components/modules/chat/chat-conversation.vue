@@ -1,5 +1,5 @@
 <template>
-  <div v-show="show">
+  <div v-if="show">
     <div id="chat-container">
       <chat-toolbar :conversation="conversation" @goBack="goBack" />
       <chat-body

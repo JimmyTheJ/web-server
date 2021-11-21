@@ -215,6 +215,7 @@ export default {
       return false
     },
     scrollToBottom() {
+      this.$_console_log('Scroll to Bottom activated')
       this.$nextTick(() => {
         this.chatWindow.scrollTo(0, this.chatWindow.scrollHeight)
         this.readAllMessages()
