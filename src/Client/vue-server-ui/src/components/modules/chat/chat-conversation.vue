@@ -2,11 +2,7 @@
   <div v-if="show">
     <div id="chat-container">
       <chat-toolbar :conversation="conversation" @goBack="goBack" />
-      <chat-body
-        :conversation="conversation"
-        :show="show"
-        :colorMap="colorMap"
-      />
+      <chat-body :conversation="conversation" :colorMap="colorMap" />
       <chat-text-field :conversationId="conversation.id" />
     </div>
   </div>

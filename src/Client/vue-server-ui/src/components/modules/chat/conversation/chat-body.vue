@@ -74,10 +74,6 @@ export default {
       type: Object,
       required: true,
     },
-    show: {
-      type: Boolean,
-      required: true,
-    },
   },
   computed: {
     ...mapState({
@@ -86,21 +82,19 @@ export default {
   },
   watch: {
     scrollHeight(newValue) {
-      if (this.show) {
-        // This here is a way to make sure we trigger a read of all messages when we get to the bottom of the scrollbar
-        // The plus one at the end is a way to make it compatible with most browsers. For some reason Edge as an example
-        // has the scroll height over by about 0.4 pixels when you add the scroll value to the client height of the chat window.
-        // It seems like the scroll value can't necessarily get to the maximum value it's supposed to. Look into a safer way to
-        // handle this in the future
-        if (
-          this.chatWindow.scrollHeight <=
-          newValue + this.chatWindow.clientHeight + 1
-        ) {
-          this.$_console_log(
-            "Max scroll reached. You're at the bottom, reading all messages."
-          )
-          this.readAllMessages()
-        }
+      // This here is a way to make sure we trigger a read of all messages when we get to the bottom of the scrollbar
+      // The plus one at the end is a way to make it compatible with most browsers. For some reason Edge as an example
+      // has the scroll height over by about 0.4 pixels when you add the scroll value to the client height of the chat window.
+      // It seems like the scroll value can't necessarily get to the maximum value it's supposed to. Look into a safer way to
+      // handle this in the future
+      if (
+        this.chatWindow.scrollHeight <=
+        newValue + this.chatWindow.clientHeight + 1
+      ) {
+        this.$_console_log(
+          "Max scroll reached. You're at the bottom, reading all messages."
+        )
+        this.readAllMessages()
       }
     },
   },
