@@ -40,10 +40,14 @@
     </generic-dialog>
 
     <v-toolbar>
-      <v-btn text @click="goBack" v-show="mobile">
+      <v-btn text @click="goBack" v-show="mobile" class="small-btn pa-0 ma-0">
         <fa-icon icon="reply"></fa-icon>
       </v-btn>
-      <v-btn text @click="editingTitle = !editingTitle">
+      <v-btn
+        text
+        @click="editingTitle = !editingTitle"
+        class="small-btn pa-0 my-0 ml-0 mr-2"
+      >
         <v-icon>mdi-account-edit</v-icon>
       </v-btn>
       <v-toolbar-title v-if="!editingTitle">

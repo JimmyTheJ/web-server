@@ -1,5 +1,5 @@
 <template>
-  <v-container class="py-0">
+  <v-container class="pa-0">
     <generic-dialog
       :title="dialogTitle"
       :open="dialogOpen"
@@ -11,9 +11,7 @@
       </v-card>
     </generic-dialog>
 
-    <div class="headline">Chat System</div>
-
-    <div v-show="(isMobile && !hideMobile) || !isMobile">
+    <!-- <div v-show="(isMobile && !hideMobile) || !isMobile">
       <v-row no-gutters align="center">
         <v-col cols="12" class="text-center">
           <v-btn @click="dialogOpen = true" class="mb-2"
@@ -21,7 +19,7 @@
           >
         </v-col>
       </v-row>
-    </div>
+    </div> -->
 
     <v-row no-gutters>
       <v-col
@@ -31,6 +29,17 @@
         class="px-0"
         v-show="(isMobile && !hideMobile) || !isMobile"
       >
+        <v-list shaped>
+          <v-list-item @click="dialogOpen = true">
+            <v-list-item-icon>
+              <chat-badge :unreadMessages="0" />
+            </v-list-item-icon>
+            <v-list-item-content>
+              Start new
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+
         <template
           v-if="Array.isArray(conversations) && conversations.length > 0"
         >
@@ -42,7 +51,11 @@
                 @click="selectedConversation = convo"
               >
                 <v-list-item-icon>
-                  <chat-badge :conversation="convo" />
+                  <chat-badge
+                    :avatar="convo.avatar"
+                    :unreadMessages="convo.unreadMessages"
+                    :users="convo.conversationUsers"
+                  />
                 </v-list-item-icon>
                 <v-list-item-content>
                   {{ convo.title }}
@@ -65,7 +78,6 @@
             :key="i"
             :conversation="conversation"
             :show="shouldShowConversation(conversation)"
-            :mobile="isMobile"
             @goBack="closeConversation"
           />
         </template>
@@ -86,6 +98,14 @@ export default {
   name: 'chat-messaging',
   data() {
     return {
+      startNewConversation: {
+        avatar: null,
+        conversationUsers: null,
+        id: -1,
+        messages: null,
+        title: 'Start New',
+        unreadMessages: 0,
+      },
       selectedConversationId: -1,
       selectedConversation: null,
       search: null,
@@ -94,7 +114,6 @@ export default {
       dialogOpen: false,
       dialogTitle: 'Conversation Starter',
       timer: null,
-      //currentTime: Math.trunc(new Date().getTime() / 1000),
     }
   },
   components: {

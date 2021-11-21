@@ -1,33 +1,26 @@
 <template>
   <div>
-    <v-badge
-      :content="conversation.unreadMessages"
-      v-if="conversation.unreadMessages > 0"
-    >
-      <template v-if="conversation.conversationUsers.length > 2">
+    <v-badge :content="unreadMessages" v-if="unreadMessages > 0">
+      <template v-if="!Array.isArray(users)">
+        <fa-icon icon="plus" size="2x" />
+      </template>
+      <template v-else-if="Array.isArray(users) && users.length > 2">
         <fa-icon icon="users" size="2x" />
       </template>
       <template v-else>
-        <chat-avatar
-          :avatar="conversation.avatar"
-          :text="text"
-          :color="color"
-          size="48"
-        />
+        <chat-avatar :avatar="avatar" :text="text" :color="color" size="48" />
       </template>
     </v-badge>
 
     <template v-else>
-      <template v-if="conversation.conversationUsers.length > 2">
+      <template v-if="!Array.isArray(users)">
+        <fa-icon icon="plus" size="2x" />
+      </template>
+      <template v-else-if="Array.isArray(users) && users.length > 2">
         <fa-icon icon="users" size="2x" />
       </template>
       <template v-else>
-        <chat-avatar
-          :avatar="conversation.avatar"
-          :text="text"
-          :color="color"
-          size="48"
-        />
+        <chat-avatar :avatar="avatar" :text="text" :color="color" size="48" />
       </template>
     </template>
   </div>
@@ -40,17 +33,23 @@ import ChatAvatar from './chat-avatar.vue'
 export default {
   name: 'chat-badge',
   data() {
-    return {
-      avatar: null,
-    }
+    return {}
   },
   components: {
     'chat-avatar': ChatAvatar,
   },
   props: {
-    conversation: {
-      type: Object,
-      required: true,
+    unreadMessages: {
+      type: Number,
+      required: false,
+    },
+    users: {
+      type: Array,
+      required: false,
+    },
+    avatar: {
+      type: String,
+      required: false,
     },
   },
   computed: {
@@ -58,17 +57,15 @@ export default {
       user: state => state.auth.user,
     }),
     text() {
-      if (!Array.isArray(this.conversation.conversationUsers)) {
+      if (!Array.isArray(this.users)) {
         return null
       }
 
-      if (this.conversation.conversationUsers.length > 2) {
+      if (this.users.length > 2) {
         return null
       } else {
         // For one on one conversation use the non-active users image
-        var friend = this.conversation.conversationUsers.find(
-          x => x.userId !== this.user.id
-        )
+        var friend = this.users.find(x => x.userId !== this.user.id)
 
         if (
           typeof friend === 'undefined' ||
@@ -77,21 +74,21 @@ export default {
           return null
         }
 
-        return friend.userDisplayName.charAt(0)
+        if (friend.userDisplayName !== null)
+          return friend.userDisplayName.charAt(0)
+        else return friend.userId.charAt(0)
       }
     },
     color() {
-      if (!Array.isArray(this.conversation.conversationUsers)) {
+      if (!Array.isArray(this.users)) {
         return null
       }
 
-      if (this.conversation.conversationUsers.length > 2) {
+      if (this.users.length > 2) {
         return null
       } else {
         // For one on one conversation use the non-active users image
-        var friend = this.conversation.conversationUsers.find(
-          x => x.userId !== this.user.id
-        )
+        var friend = this.users.find(x => x.userId !== this.user.id)
 
         if (
           typeof friend === 'undefined' ||

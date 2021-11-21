@@ -51,6 +51,11 @@ export default {
     show(newValue) {
       if (newValue === true) {
         this.$store.dispatch('getMessagesForConversation', this.conversation.id)
+      } else {
+        this.$store.dispatch(
+          'clearMessagesForConversation',
+          this.conversation.id
+        )
       }
     },
   },

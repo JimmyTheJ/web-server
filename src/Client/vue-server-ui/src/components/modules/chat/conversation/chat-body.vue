@@ -334,7 +334,6 @@ export default {
 .chat-body-container {
   overflow-y: scroll;
   overflow-x: hidden;
-  height: 70vh;
-  max-height: 80vh;
+  height: calc(100vh - 64px - 64px - 54px - 5px);
 }
 </style>

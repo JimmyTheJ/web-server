@@ -211,6 +211,13 @@ const actions = {
       return await Promise.reject(e.response)
     }
   },
+  async clearMessagesForConversation({ commit }, context) {
+    ConMsgs.methods.$_console_log(
+      '[Vuex][Actions] Clear messages for conversation'
+    )
+
+    commit(types.CHAT_CONVERSATION_CLEAR_MESSAGES, context)
+  },
   async incrementConversationUnreadMessageCount({ commit }, context) {
     ConMsgs.methods.$_console_log(
       "[Vuex][Actions] Increment conversation's unread chat message count"
@@ -439,6 +446,14 @@ const mutations = {
     }
 
     conversation.messages = data.messages
+  },
+  [types.CHAT_CONVERSATION_CLEAR_MESSAGES](state, data) {
+    ConMsgs.methods.$_console_log(
+      '[Vuex][Mutations] Mutating clear message list'
+    )
+
+    const convo = state.conversations.find(x => x.id === data)
+    convo.messages = null
   },
   [types.CHAT_CONVERSATION_UNREAD_MESSAGES_INCREMENT](state, data) {
     ConMsgs.methods.$_console_log(
