@@ -15,6 +15,8 @@
             ><v-flex xs8 class="caption py-2">{{ moreInfo.timestamp }}</v-flex>
             <v-flex xs4 class="body-1 py-2">User:</v-flex
             ><v-flex xs8 class="caption py-2">{{ moreInfo.username }}</v-flex>
+            <v-flex xs4 class="body-1 py-2">Read By:</v-flex
+            ><v-flex xs8 class="caption py-2">{{ moreInfo.readByList }}</v-flex>
           </v-layout>
         </v-card-text>
       </v-card>
@@ -173,6 +175,15 @@ export default {
       this.moreInfo.text = message.text
       this.moreInfo.timestamp = message.timestamp
       this.moreInfo.username = message.userId
+      this.moreInfo.readByList = ''
+      if (Array.isArray(message.readReceipts)) {
+        for (let i = 0; i < message.readReceipts.length; i++) {
+          this.moreInfo.readByList += message.readReceipts[i].userId
+          if (i + 1 < message.readReceipts.length) {
+            this.moreInfo.readByList += ', '
+          }
+        }
+      }
 
       this.moreInfoDialog = true
     },

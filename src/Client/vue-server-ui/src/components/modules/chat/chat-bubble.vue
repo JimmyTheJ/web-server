@@ -176,6 +176,9 @@ export default {
       },
     },
   },
+  created() {
+    this.time = this.timeSince(this.currentTime)
+  },
   methods: {
     deleteMessage() {
       this.$emit('deleteMessage', this.message.id)
