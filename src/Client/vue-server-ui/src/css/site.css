@@ -3,6 +3,7 @@
   min-height: 36px !important;
 }
 
-.wrap {
+.bubble-wrap {
   word-wrap: break-word;
+  white-space: pre-wrap;
 }

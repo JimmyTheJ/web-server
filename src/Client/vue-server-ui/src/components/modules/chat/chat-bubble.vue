@@ -41,7 +41,7 @@
             {{ userMap[message.userId].displayName }}
           </div>
           <template v-for="(line, i) in textLines">
-            <div class="text-body-1 wrap" :key="i">{{ line }}</div>
+            <div class="text-body-1 bubble-wrap" :key="i">{{ line }}</div>
           </template>
           <div class="text-caption text-right">{{ time }}</div>
           <div class="bubble-id" style="display: none">{{ message.id }}</div>
@@ -189,12 +189,17 @@ export default {
         i + 1 < this.message.text.length &&
         this.message.text[i + 1] === '\n'
       ) {
-        this.textLines.push(line)
+        if (line === '') this.textLines.push(' ')
+        else this.textLines.push(line)
         line = ''
         i++
+        continue
       } else if (this.message.text[i] === '\n') {
-        this.textLines.push(line)
+        if (line === '') this.textLines.push(' ')
+        else this.textLines.push(line)
+
         line = ''
+        continue
       }
 
       line += this.message.text[i]
