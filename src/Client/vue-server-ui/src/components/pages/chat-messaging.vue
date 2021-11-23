@@ -11,16 +11,6 @@
       </v-card>
     </generic-dialog>
 
-    <!-- <div v-show="(isMobile && !hideMobile) || !isMobile">
-      <v-row no-gutters align="center">
-        <v-col cols="12" class="text-center">
-          <v-btn @click="dialogOpen = true" class="mb-2"
-            >Start a new Conversation</v-btn
-          >
-        </v-col>
-      </v-row>
-    </div> -->
-
     <v-row no-gutters>
       <v-col
         cols="12"

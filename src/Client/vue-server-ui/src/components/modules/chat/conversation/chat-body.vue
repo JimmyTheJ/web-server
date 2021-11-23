@@ -22,7 +22,7 @@
       </v-card>
     </generic-dialog>
 
-    <div class="chat-body-container" ref="chatBodyContainer">
+    <div id="chat-body-container" ref="chatBodyContainer">
       <v-row class="px-0">
         <v-col
           cols="12"
@@ -49,6 +49,8 @@ import GenericDialog from '@/components/modules/generic-dialog.vue'
 
 import { mapState } from 'vuex'
 
+const heightPrefix = 'height: '
+
 export default {
   name: 'chat-body',
   components: {
@@ -74,6 +76,10 @@ export default {
       type: Object,
       required: true,
     },
+    textFieldHeight: {
+      type: Number,
+      required: false,
+    },
   },
   computed: {
     ...mapState({
@@ -96,6 +102,23 @@ export default {
         )
         this.readAllMessages()
       }
+    },
+    'conversation.loaded': {
+      handler(newValue) {
+        if (newValue) {
+          this.scrollToLastReadMessage()
+        }
+      },
+      deep: true,
+    },
+    textFieldHeight(newValue) {
+      this.$_console_log('Text Field Height: ' + newValue)
+      document
+        .getElementById('chat-body-container')
+        .style.setProperty(
+          'height',
+          `calc(100vh - 64px - 64px - 54px - ${newValue}px - 5px)`
+        )
     },
   },
   created() {
@@ -209,54 +232,77 @@ export default {
         this.readAllMessages()
       })
     },
-    // scrollToLastReadMessage() {
-    //   if (!this.show) {
-    //     return
-    //   }
+    scrollToLastReadMessage() {
+      let lastMessage = this.conversation.messages.find(
+        x =>
+          this.user.id !== x.userId &&
+          (x.readReceipts.length === 0 ||
+            typeof x.readReceipts.find(y => y.userId !== this.user.id) !==
+              'undefined')
+      )
 
-    //   let lastMessage = this.conversation.messages.find(
-    //     x =>
-    //       this.user.id !== x.userId &&
-    //       (x.readReceipts.length === 0 ||
-    //         typeof x.readReceipts.find(y => y.userId !== this.user.id) !==
-    //           'undefined')
-    //   )
+      if (typeof lastMessage !== 'undefined') {
+        this.$nextTick(() => {
+          const ids = document.getElementsByClassName('bubble-id')
 
-    //   if (typeof lastMessage !== 'undefined') {
-    //     this.$nextTick(() => {
-    //       const ids = document.getElementsByClassName('bubble-id')
+          let correctElement = null
+          let height = 0
+          for (let i = 0; i < ids.length; i++) {
+            height += ids[i].parentNode.offsetHeight
+            if (parseInt(ids[i].innerText, 10) === lastMessage.id) {
+              correctElement = ids[i]
+              break
+            }
+          }
 
-    //       let correctElement = null
-    //       let height = 0
-    //       for (let i = 0; i < ids.length; i++) {
-    //         height += ids[i].parentNode.offsetHeight
-    //         if (parseInt(ids[i].innerText, 10) === lastMessage.id) {
-    //           correctElement = ids[i]
-    //           break
+          if (correctElement !== null)
+            this.chatWindow.scrollTo(0, height - this.chatWindow.offsetTop)
+
+          //   this.$store.dispatch('highlightMessage', {
+          //     messageId: lastMessage.id,
+          //     conversationId: lastMessage.conversationId,
+          //     on: true,
+          //   })
+          //   setTimeout(() => {
+          //     this.$store.dispatch('highlightMessage', {
+          //       messageId: lastMessage.id,
+          //       conversationId: lastMessage.conversationId,
+          //       on: false,
+          //     })
+          //   }, 3000)
+          // }
+        })
+      } else {
+        this.$_console_log('ScrollToLastReadMessage: All messages are read.')
+        this.scrollToBottom()
+      }
+    },
+    // async updateContainerHeight(attemptScroll) {
+    //   this.$nextTick(() => {
+    //     if (attemptScroll === true) {
+    //       if (
+    //         Array.isArray(this.conversation.messages) &&
+    //         this.conversation.messages.length > 0
+    //       ) {
+    //         this.$_console_log(
+    //           'Heights: ',
+    //           this.bodyContainerHeight,
+    //           this.chatWindow.scrollHeight
+    //         )
+    //         if (this.bodyContainerHeight >= this.chatWindow.scrollHeight) {
+    //           this.$_console_log(
+    //             'Show watcher: No scrollbar exists. Reading all messages'
+    //           )
+    //           this.scrollToBottom()
+    //         } else {
+    //           this.$_console_log(
+    //             'Show watcher: Message length is greater than 0. Scrolling to last read message'
+    //           )
+    //           this.scrollToLastReadMessage()
     //         }
     //       }
-
-    //       if (correctElement !== null) {
-    //         this.chatWindow.scrollTo(0, height - this.chatWindow.offsetTop)
-
-    //         this.$store.dispatch('highlightMessage', {
-    //           messageId: lastMessage.id,
-    //           conversationId: lastMessage.conversationId,
-    //           on: true,
-    //         })
-    //         setTimeout(() => {
-    //           this.$store.dispatch('highlightMessage', {
-    //             messageId: lastMessage.id,
-    //             conversationId: lastMessage.conversationId,
-    //             on: false,
-    //           })
-    //         }, 3000)
-    //       }
-    //     })
-    //   } else {
-    //     this.$_console_log('ScrollToLastReadMessage: All messages are read.')
-    //     this.scrollToBottom()
-    //   }
+    //     }
+    //   })
     // },
     readAllMessages() {
       if (!Array.isArray(this.conversation.messages)) {
@@ -320,9 +366,9 @@ export default {
 </script>
 
 <style>
-.chat-body-container {
+#chat-body-container {
   overflow-y: scroll;
   overflow-x: hidden;
-  height: calc(100vh - 64px - 64px - 54px - 5px);
+  height: calc(100vh - 64px - 64px - 86px - 5px);
 }
 </style>

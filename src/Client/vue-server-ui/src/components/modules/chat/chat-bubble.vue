@@ -40,7 +40,9 @@
           >
             {{ userMap[message.userId].displayName }}
           </div>
-          <div class="text-body-1 wrap">{{ message.text }}</div>
+          <template v-for="(line, i) in textLines">
+            <div class="text-body-1 wrap" :key="i">{{ line }}</div>
+          </template>
           <div class="text-caption text-right">{{ time }}</div>
           <div class="bubble-id" style="display: none">{{ message.id }}</div>
         </div>
@@ -71,6 +73,7 @@ export default {
   data() {
     return {
       time: '0s',
+      textLines: [],
     }
   },
   props: {
@@ -178,6 +181,28 @@ export default {
   },
   created() {
     this.time = this.timeSince(this.currentTime)
+
+    let line = ''
+    for (let i = 0; i < this.message.text.length; i++) {
+      if (
+        this.message.text[i] === '\r' &&
+        i + 1 < this.message.text.length &&
+        this.message.text[i + 1] === '\n'
+      ) {
+        this.textLines.push(line)
+        line = ''
+        i++
+      } else if (this.message.text[i] === '\n') {
+        this.textLines.push(line)
+        line = ''
+      }
+
+      line += this.message.text[i]
+    }
+
+    if (line !== '') {
+      this.textLines.push(line)
+    }
   },
   methods: {
     deleteMessage() {

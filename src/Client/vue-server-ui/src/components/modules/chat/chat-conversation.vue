@@ -2,8 +2,15 @@
   <div v-if="show">
     <div id="chat-container">
       <chat-toolbar :conversation="conversation" @goBack="goBack" />
-      <chat-body :conversation="conversation" :colorMap="colorMap" />
-      <chat-text-field :conversationId="conversation.id" />
+      <chat-body
+        :conversation="conversation"
+        :colorMap="colorMap"
+        :textFieldHeight="chatFieldHeight"
+      />
+      <chat-text-field
+        :conversationId="conversation.id"
+        @updateHeight="updateHeight"
+      />
     </div>
   </div>
 </template>
@@ -23,6 +30,7 @@ export default {
       bodyContainerHeight: 0,
       othersLastReadMessage: -1,
       colorMap: {},
+      chatFieldHeight: -1,
     }
   },
   components: {
@@ -64,55 +72,11 @@ export default {
         this.colorMap[element.userId] = element.color
       })
     },
-    // resizeWindow(event) {
-    //   this.updateContainerHeight()
-    // },
-    // async updateContainerHeight(attemptScroll) {
-    //   this.$nextTick(() => {
-    //     let bodyContainer = this.$refs.chatBodyContainer
-    //     let chatMessageTextfield = this.$refs.chatTextfield
-    //     this.bodyContainerHeight =
-    //       window.innerHeight -
-    //       bodyContainer.offsetTop -
-    //       chatMessageTextfield.clientHeight -
-    //       4
-
-    //     this.$_console_log(
-    //       'Containers',
-    //       bodyContainer,
-    //       chatMessageTextfield,
-    //       'Window Height',
-    //       window.innerHeight,
-    //       this.bodyContainerHeight
-    //     )
-
-    //     if (attemptScroll === true) {
-    //       if (
-    //         Array.isArray(this.conversation.messages) &&
-    //         this.conversation.messages.length > 0
-    //       ) {
-    //         this.$_console_log(
-    //           'Heights: ',
-    //           this.bodyContainerHeight,
-    //           this.chatWindow.scrollHeight
-    //         )
-    //         if (this.bodyContainerHeight >= this.chatWindow.scrollHeight) {
-    //           this.$_console_log(
-    //             'Show watcher: No scrollbar exists. Reading all messages'
-    //           )
-    //           this.scrollToBottom()
-    //         } else {
-    //           this.$_console_log(
-    //             'Show watcher: Message length is greater than 0. Scrolling to last read message'
-    //           )
-    //           this.scrollToLastReadMessage()
-    //         }
-    //       }
-    //     }
-    //   })
-    // },
     goBack() {
       this.$emit('goBack', true)
+    },
+    updateHeight(height) {
+      this.chatFieldHeight = height
     },
   },
 }

@@ -355,6 +355,7 @@ const mutations = {
     if (Array.isArray(data.list)) {
       data.list.forEach(element => {
         element.title = getConversationTitle(element, data.userId)
+        element.loaded = false
         state.conversations.push(element)
       })
     }
@@ -442,6 +443,7 @@ const mutations = {
     }
 
     conversation.messages = data.messages
+    conversation.loaded = true
   },
   [types.CHAT_CONVERSATION_CLEAR_MESSAGES](state, data) {
     ConMsgs.methods.$_console_log(
@@ -450,6 +452,7 @@ const mutations = {
 
     const convo = state.conversations.find(x => x.id === data)
     convo.messages = null
+    convo.loaded = false
   },
   [types.CHAT_CONVERSATION_UNREAD_MESSAGES_INCREMENT](state, data) {
     ConMsgs.methods.$_console_log(

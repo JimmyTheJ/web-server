@@ -1,12 +1,17 @@
 <template>
-  <div class="chat-message-textfield" ref="chatTextfield">
-    <v-text-field
+  <div>
+    <v-textarea
       v-model="message.text"
-      autofocus
+      ref="msgTextArea"
+      id="msgTextArea"
+      counter
+      filled
+      auto-grow
       label="Message"
-      ref="msgField"
-      @keyup.shift.enter.stop.prevent="message.text += '\r\n'"
+      rows="1"
       @keyup.enter.exact.prevent="sendMessage"
+      @keyup.shift.enter.exact.prevent="getChatAreaHeight()"
+      @input="getChatAreaHeight()"
       class="py-0 pr-0 pl-2"
     >
       <template v-slot:append-outer>
@@ -14,7 +19,7 @@
           ><fa-icon size="lg" icon="paper-plane"></fa-icon
         ></v-btn>
       </template>
-    </v-text-field>
+    </v-textarea>
   </div>
 </template>
 
@@ -30,6 +35,8 @@ export default {
       message: {
         text: '',
       },
+      chatMsgField: null,
+      chatAreaHeight: 0,
     }
   },
   props: {
@@ -43,6 +50,9 @@ export default {
       user: state => state.auth.user,
     }),
   },
+  mounted() {
+    this.chatMsgField = document.getElementById('msgTextArea')
+  },
   methods: {
     async sendMessage() {
       this.message.id = 0
@@ -52,7 +62,16 @@ export default {
       await service.sendMessage(this.message)
 
       this.message = { text: '' }
-      this.$refs.msgField.focus()
+      this.$nextTick(() => {
+        this.$refs.msgTextArea.focus()
+        setTimeout(() => {
+          this.getChatAreaHeight()
+        }, 100)
+      })
+    },
+    getChatAreaHeight() {
+      this.chatAreaHeight = document.getElementById('msgTextArea').clientHeight
+      this.$nextTick(() => this.$emit('updateHeight', this.chatAreaHeight))
     },
   },
 }
