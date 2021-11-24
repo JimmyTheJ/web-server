@@ -297,6 +297,11 @@ namespace VueServer.Services.Concrete
                 return new Result<IEnumerable<ChatMessage>>(null, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
+            foreach (var msg in conversation.Messages)
+            {
+                msg.Conversation = null;
+            }
+
             return new Result<IEnumerable<ChatMessage>>(conversation.Messages, Domain.Enums.StatusCode.OK);
         }
 
