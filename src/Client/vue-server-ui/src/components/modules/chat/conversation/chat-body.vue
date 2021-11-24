@@ -51,6 +51,8 @@ import GenericDialog from '@/components/modules/generic-dialog.vue'
 
 import { mapState } from 'vuex'
 
+import { NotificationTypes } from '@/constants'
+
 const heightPrefix = 'height: '
 
 export default {
@@ -69,6 +71,7 @@ export default {
       chatWindow: null,
       scrollHeight: 0,
       friend: null,
+      readingInProgress: false,
     }
   },
   props: {
@@ -105,7 +108,6 @@ export default {
           "Max scroll reached. You're at the bottom, reading all messages."
         )
         this.readAllMessages()
-      } else {
       }
     },
     'conversation.loaded': {
@@ -118,6 +120,15 @@ export default {
 
           this.$nextTick(() => {
             this.scrollToLastReadMessage()
+            this.$nextTick(() => {
+              // Trick to get the conversation to read all messages if there is no scroll bar
+              if (this.chatWindow.scrollTop === 0) {
+                this.$_console_log(
+                  'Reading all chat message messages on Chat Body Mount because there is no scrollbar'
+                )
+                this.readAllMessages()
+              }
+            })
           })
         }
       },
@@ -358,10 +369,23 @@ export default {
       }
 
       this.$_console_log(newMessages)
-      this.$store.dispatch('readChatMessageList', {
-        conversationId: this.conversation.id,
-        messageIds: newMessages.map(x => x.id),
-      })
+      if (!this.readingInProgress) {
+        this.readingInProgress = true
+        this.$store
+          .dispatch('readChatMessageList', {
+            conversationId: this.conversation.id,
+            messageIds: newMessages.map(x => x.id),
+          })
+          .then(() => {
+            this.$store.dispatch('clearSpecificNotification', {
+              type: NotificationTypes.Chat,
+              value: this.conversation.id,
+            })
+          })
+          .finally(() => {
+            this.readingInProgress = false
+          })
+      }
     },
     updateReadReceiptMarker() {
       // If 2 person converation, show where the user last read to

@@ -11,6 +11,7 @@ import Menu from '@/components/modules/menu'
 import NotificationBar from '@/components/modules/notification-bar'
 
 import { mapState } from 'vuex'
+import { NotificationActions, NotificationTypes } from '@/constants'
 
 export default {
   data() {
@@ -64,8 +65,11 @@ export default {
       )
       this.$store.dispatch('pushNotification', {
         text: `You have new messages from ${conversation.title}`,
-        type: 1,
-        group: { type: 'chat', value: conversation.title },
+        action: NotificationActions.Info,
+        group: {
+          type: NotificationTypes.Chat,
+          value: conversation.id,
+        },
       })
     },
     async getUserConversations() {
@@ -91,10 +95,10 @@ export default {
           // There are new messages
           const obj = {
             text: `You have new messages from ${value.title}`,
-            type: 1,
+            action: NotificationActions.Info,
             group: {
-              type: 'chat',
-              value: value.title,
+              type: NotificationTypes.Chat,
+              value: value.id,
             },
           }
 

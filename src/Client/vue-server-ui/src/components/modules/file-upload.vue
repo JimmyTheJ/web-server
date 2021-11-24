@@ -44,6 +44,8 @@ import { getSubdirectoryString } from '../../helpers/browser'
 
 import service from '../../services/file-explorer'
 
+import { NotificationActions, NotificationTypes } from '@/constants'
+
 export default {
   name: 'file-upload',
   data() {
@@ -103,7 +105,11 @@ export default {
           this.$store.dispatch('addFile', resp.data)
           this.$store.dispatch('pushNotification', {
             text: `Successfully uploaded file ${file.name}`,
-            type: 0,
+            action: NotificationActions.Success,
+            group: {
+              type: NotificationTypes.Upload,
+              value: NotificationActions.Success,
+            },
           })
         })
         .catch(() => {
@@ -111,7 +117,11 @@ export default {
 
           this.$store.dispatch('pushNotification', {
             text: `Failed uploading file ${file.name}`,
-            type: 2,
+            action: NotificationActions.Failed,
+            group: {
+              type: NotificationTypes.Upload,
+              value: NotificationActions.Failed,
+            },
           })
         })
     },

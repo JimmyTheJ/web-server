@@ -66,3 +66,17 @@ export const RouterEndpoints = {
   Register: '/account/register',
   Logout: '/account/logout',
 }
+
+export const NotificationActions = {
+  Success: 0,
+  Info: 1,
+  Failed: 2,
+}
+
+export const NotificationTypes = {
+  General: 0,
+  Chat: 1,
+  Browser: 3,
+  Upload: 2,
+  LibraryBook: 4,
+}

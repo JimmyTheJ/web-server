@@ -22,8 +22,12 @@ import FileViewer from '@/components/modules/viewers/file-viewer'
 import GenericDialog from '@/components/modules/generic-dialog.vue'
 
 import { getFileType } from '@/helpers/browser'
-import { MediaTypes, Delay } from '@/constants'
-
+import {
+  MediaTypes,
+  Delay,
+  NotificationActions,
+  NotificationTypes,
+} from '@/constants'
 import store from '@/store/index'
 import router from '@/router'
 import ConMsgs from '@/mixins/console'
@@ -46,8 +50,8 @@ export default {
     if (!success) {
       store.dispatch('pushNotification', {
         text: `Failed to change route to this location (${to.fullPath}). It must not exist.`,
-        type: 2,
-        group: { type: 'browser', value: 'pathFail' },
+        action: NotificationActions.Failed,
+        group: { type: NotificationTypes.Browser, value: 'pathFail' },
       })
       router.push({ name: 'browser' })
     } else {
@@ -59,8 +63,8 @@ export default {
     if (!success) {
       store.dispatch('pushNotification', {
         text: `Failed to change route to this location (${to.fullPath}). It must not exist.`,
-        type: 2,
-        group: { type: 'browser', value: 'pathFail' },
+        action: NotificationActions.Failed,
+        group: { type: NotificationTypes.Browser, value: 'pathFail' },
       })
       router.push({ name: 'browser' })
     } else {

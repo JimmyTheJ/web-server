@@ -323,6 +323,8 @@ import * as Helper from '../../../helpers'
 import { mapState } from 'vuex'
 import genericDialog from '../generic-dialog.vue'
 
+import { NotificationActions, NotificationTypes } from '@/constants'
+
 function getRequest(book) {
   const bookRequest = {
     book: {
@@ -758,16 +760,16 @@ export default {
           .then(resp => {
             this.$store.dispatch('pushNotification', {
               text: 'Successfully updated the book in the list',
-              type: 0,
-              group: { type: 'library-book', value: 'update' },
+              action: NotificationActions.Success,
+              group: { type: NotificationTypes.LibraryBook, value: 'update' },
             })
             this.activeBook = getNewBook()
           })
           .catch(() => {
             this.$store.dispatch('pushNotification', {
               text: 'Failed to update the book in the list',
-              type: 2,
-              group: { type: 'library-book', value: 'update' },
+              action: NotificationActions.Failed,
+              group: { type: NotificationTypes.LibraryBook, value: 'update' },
             })
           })
           .then(() => {
@@ -783,16 +785,16 @@ export default {
           .then(resp => {
             this.$store.dispatch('pushNotification', {
               text: 'Successfully added a new book to the list',
-              type: 0,
-              group: { type: 'library-book', value: 'add' },
+              action: NotificationActions.Success,
+              group: { type: NotificationTypes.LibraryBook, value: 'add' },
             })
             this.activeBook = getNewBook()
           })
           .catch(() => {
             this.$store.dispatch('pushNotification', {
               text: 'Failed to add a new book to the list',
-              type: 2,
-              group: { type: 'library-book', value: 'add' },
+              action: NotificationActions.Failed,
+              group: { type: NotificationTypes.LibraryBook, value: 'add' },
             })
           })
           .then(() => {

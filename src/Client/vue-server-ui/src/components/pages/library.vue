@@ -136,6 +136,8 @@ import { mapState } from 'vuex'
 
 import { padTwo } from '../../helpers'
 
+import { NotificationActions, NotificationTypes } from '@/constants'
+
 export default {
   components: {
     'book-dialog': bookDialog,
@@ -337,15 +339,15 @@ export default {
         .then(resp => {
           this.$store.dispatch('pushNotification', {
             text: 'Successfully deleted the book from the list',
-            type: 0,
-            group: { type: 'library-book', value: 'delete' },
+            action: NotificationActions.Success,
+            group: { type: NotificationTypes.LibraryBook, value: 'delete' },
           })
         })
         .catch(() => {
           this.$store.dispatch('pushNotification', {
             text: 'Failed to delete the book from the list',
-            type: 2,
-            group: { type: 'library-book', value: 'delete' },
+            action: NotificationActions.Failed,
+            group: { type: NotificationTypes.LibraryBook, value: 'delete' },
           })
         })
     },

@@ -1,5 +1,6 @@
 import * as types from '../mutation_types'
 import ConMsgs from '@/mixins/console'
+import { NotificationActions, NotificationTypes } from '@/constants'
 
 let staticId = 1
 
@@ -7,14 +8,14 @@ function createMessage(obj) {
   let message = {
     id: staticId++,
     text: '',
-    type: 1,
+    action: NotificationActions.Info,
     group: null,
     read: false,
   }
 
   if (typeof obj.text !== 'undefined') message.text = obj.text
 
-  if (typeof obj.type !== 'undefined') message.type = obj.type
+  if (typeof obj.action !== 'undefined') message.action = obj.action
 
   if (typeof obj.read !== 'undefined') message.read = obj.read
 
@@ -45,6 +46,13 @@ const actions = {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Clearing notifications')
 
     commit(types.MESSAGE_CLEAR)
+  },
+  clearSpecificNotification({ commit }, context) {
+    ConMsgs.methods.$_console_log(
+      '[Vuex][Actions] Clearing a specific notification'
+    )
+
+    commit(types.MESSAGE_SPECIFIC_CLEAR, context)
   },
   async openNotifications({ commit }, context) {
     ConMsgs.methods.$_console_log(
@@ -102,6 +110,25 @@ const mutations = {
     state.numNewMessages = 0
     state.opened = false
   },
+  [types.MESSAGE_SPECIFIC_CLEAR](state, data) {
+    ConMsgs.methods.$_console_log(
+      '[Vuex][Mutations] Clearing a specific notification'
+    )
+
+    let index = state.messages.findIndex(
+      x =>
+        typeof x.group !== 'undefined' &&
+        x.group !== null &&
+        x.group.type === data.type &&
+        x.group.value === data.value
+    )
+
+    if (index > -1) {
+      state.messages = state.messages.splice(index, 1)
+      state.numMessages--
+      if (!state.messages[index].read) state.numNewMessages--
+    }
+  },
   [types.MESSAGE_OPEN_DRAWER](state) {
     ConMsgs.methods.$_console_log('[Vuex][Mutations] Open / Close message list')
 
@@ -142,13 +169,13 @@ const mutations = {
       state.messages.push(
         createMessage({
           text: data.text,
-          type: data.type,
+          action: data.action,
           group: { type: data.group.type, value: data.group.value },
         })
       )
     else
       state.messages.push(
-        createMessage({ text: data.text, type: data.type, group: null })
+        createMessage({ text: data.text, action: data.action, group: null })
       )
 
     state.numMessages++
