@@ -23,7 +23,11 @@
           style="align-self: end;"
         >
           <chat-avatar
-            :avatar="userMap[message.userId].avatar"
+            :avatar="
+              typeof userMap[message.userId].avatar !== 'undefined'
+                ? userMap[message.userId].avatar
+                : null
+            "
             :text="userMap[message.userId].displayName.charAt(0)"
             :color="colorMap[message.userId]"
             size="32"

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <template v-if="avatar !== null">
+    <template v-if="typeof avatar !== undefined && avatar !== null">
       <v-avatar :size="maxSize">
         <v-img :src="avatarPath"></v-img>
       </v-avatar>

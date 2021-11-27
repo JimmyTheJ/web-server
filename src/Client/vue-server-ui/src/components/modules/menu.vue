@@ -122,9 +122,8 @@ export default {
     ...mapState({
       modules: state => state.auth.modules,
       user: state => state.auth.user,
-      numMessages: state => state.notifications.numMessages,
-      numNewMessages: state => state.notifications.numNewMessages,
       conversations: state => state.chat.conversations,
+      notificationMsgs: state => state.notifications.messages,
     }),
     getDrawerHeight() {
       return 16 + this.menuItems * 48
@@ -142,6 +141,9 @@ export default {
     },
     avatarPath() {
       return `${process.env.VUE_APP_API_URL}/public/${this.user.avatar}`
+    },
+    numNewMessages() {
+      return this.$store.getters.numNewMsgs
     },
   },
   created() {

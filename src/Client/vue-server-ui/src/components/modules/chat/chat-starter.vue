@@ -14,8 +14,10 @@
 
     <v-list v-show="users.length > 0">
       <v-list-item v-for="(user, i) in users" :key="i" @click="addUser(user)">
-        <v-list-item-icon v-if="user.avatar !== undefined">
-          <v-img :src="user.avatar" />
+        <v-list-item-icon
+          v-if="user.avatar !== undefined && user.avatar !== null"
+        >
+          <chat-avatar :avatar="user.avatar" />
         </v-list-item-icon>
         <v-list-item-icon v-else>
           <v-avatar :color="getColor(i)" size="48">
@@ -41,8 +43,13 @@ const FN = 'ChatStarter'
 import Dispatcher from '@/services/ws-dispatcher'
 import service from '@/services/auth'
 
+import ChatAvatar from './chat-avatar.vue'
+
 export default {
   name: 'chat-starter',
+  components: {
+    ChatAvatar,
+  },
   data() {
     return {
       isLoading: false,

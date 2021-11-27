@@ -34,12 +34,12 @@ function createMessage(obj) {
 
 const state = {
   messages: [],
-  numMessages: 0,
-  numNewMessages: 0,
   opened: false,
 }
 
-const getters = {}
+const getters = {
+  numNewMsgs: state => state.messages.filter(x => !x.read).length,
+}
 
 const actions = {
   async clearNotifications({ commit }) {
@@ -106,8 +106,6 @@ const mutations = {
     ConMsgs.methods.$_console_log('[Vuex][Mutations] Clearing notifications')
 
     state.messages = []
-    state.numMessages = 0
-    state.numNewMessages = 0
     state.opened = false
   },
   [types.MESSAGE_SPECIFIC_CLEAR](state, data) {
@@ -123,10 +121,9 @@ const mutations = {
         x.group.value === data.value
     )
 
+    ConMsgs.methods.$_console_log('[Vuex][Mutations] Index: ' + index)
     if (index > -1) {
-      state.messages = state.messages.splice(index, 1)
-      state.numMessages--
-      if (!state.messages[index].read) state.numNewMessages--
+      state.messages[index].read = true
     }
   },
   [types.MESSAGE_OPEN_DRAWER](state) {
@@ -148,7 +145,6 @@ const mutations = {
     if (index !== -1) {
       if (state.messages[index].read === false) {
         state.messages[index].read = true
-        state.numNewMessages--
 
         if (state.messages[index].group !== null) {
           state.messages[index].group.num = 0
@@ -177,9 +173,6 @@ const mutations = {
       state.messages.push(
         createMessage({ text: data.text, action: data.action, group: null })
       )
-
-    state.numMessages++
-    state.numNewMessages++
   },
   [types.MESSAGE_UPDATE](state, data) {
     ConMsgs.methods.$_console_log(
@@ -188,11 +181,6 @@ const mutations = {
 
     let oldMsgId = state.messages.findIndex(x => x.id === data.oldMsg.id)
     if (oldMsgId > -1) {
-      if (state.messages[oldMsgId].read === true) {
-        state.numMessages++
-        state.numNewMessages++
-      }
-
       state.messages[oldMsgId].text = data.newMsg.text
       state.messages[oldMsgId].read = false
       state.messages[oldMsgId].group.num++
@@ -214,7 +202,6 @@ const mutations = {
         const item = state.messages[index]
 
         state.messages.splice(index, 1)
-        state.numMessages--
 
         return item
       } else {
