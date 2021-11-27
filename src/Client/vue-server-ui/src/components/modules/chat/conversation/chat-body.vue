@@ -32,9 +32,9 @@
           v-show="shouldShowMessage(index)"
         >
           <chat-bubble
-            :colorMap="colorMap"
             :message="message"
             :isGroup="isGroupConversation"
+            :color="getColor(message.userId)"
             @moreInfo="openMoreInfo"
             @deleteMessage="deleteMessage"
             v-if="shouldShowMessage(index)"
@@ -421,6 +421,23 @@ export default {
         }
       } else {
         // If user count is > 2 than we need to find a solution on how to show the read receipt icon of the user
+      }
+    },
+    getColor(id) {
+      if (id === this.user.id) {
+        return 'grey'
+      } else {
+        // const color = this.$store.getters.getConversationUserColor(
+        //   this.message.conversation.id,
+        //   this.message.userId
+        // )
+
+        let color = this.colorMap[id]
+        if (typeof color === 'undefined' || color === null || color === '') {
+          return 'indigo'
+        }
+
+        return color
       }
     },
   },

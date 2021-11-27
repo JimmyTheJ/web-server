@@ -35,7 +35,7 @@
         </div>
 
         <div
-          :class="['bubble-body-container', getColor, 'pa-2', 'order-1']"
+          :class="['bubble-body-container', color, 'pa-2', 'order-1']"
           @click="readMessage()"
         >
           <div
@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'vuex'
 import ChatAvatar from './chat-avatar.vue'
 
 export default {
@@ -81,8 +81,8 @@ export default {
     }
   },
   props: {
-    colorMap: {
-      type: Object,
+    color: {
+      type: String,
       required: true,
     },
     message: {
@@ -127,28 +127,6 @@ export default {
         return 'flex-left'
       }
     },
-    getColor() {
-      if (this.message.highlighted === true) {
-        return 'highlight'
-      } else {
-        if (this.message.userId === this.user.id) {
-          return 'grey'
-        } else {
-          // const color = this.$store.getters.getConversationUserColor(
-          //   this.message.conversation.id,
-          //   this.message.userId
-          // )
-
-          let color = this.colorMap[this.message.userId]
-
-          if (typeof color === 'undefined' || color === null || color === '') {
-            return 'indigo'
-          }
-
-          return color
-        }
-      }
-    },
     owner() {
       if (this.user.id === this.message.userId) {
         return true
@@ -186,32 +164,7 @@ export default {
   created() {
     this.time = this.timeSince(this.currentTime)
 
-    let line = ''
-    for (let i = 0; i < this.message.text.length; i++) {
-      if (
-        this.message.text[i] === '\r' &&
-        i + 1 < this.message.text.length &&
-        this.message.text[i + 1] === '\n'
-      ) {
-        if (line === '') this.textLines.push(' ')
-        else this.textLines.push(line)
-        line = ''
-        i++
-        continue
-      } else if (this.message.text[i] === '\n') {
-        if (line === '') this.textLines.push(' ')
-        else this.textLines.push(line)
-
-        line = ''
-        continue
-      }
-
-      line += this.message.text[i]
-    }
-
-    if (line !== '') {
-      this.textLines.push(line)
-    }
+    this.setLines()
   },
   methods: {
     deleteMessage() {
@@ -221,6 +174,34 @@ export default {
     moreInfo() {
       this.$emit('moreInfo', this.message)
       this.optionDialog = false
+    },
+    setLines() {
+      let line = ''
+      for (let i = 0; i < this.message.text.length; i++) {
+        if (
+          this.message.text[i] === '\r' &&
+          i + 1 < this.message.text.length &&
+          this.message.text[i + 1] === '\n'
+        ) {
+          if (line === '') this.textLines.push(' ')
+          else this.textLines.push(line)
+          line = ''
+          i++
+          continue
+        } else if (this.message.text[i] === '\n') {
+          if (line === '') this.textLines.push(' ')
+          else this.textLines.push(line)
+
+          line = ''
+          continue
+        }
+
+        line += this.message.text[i]
+      }
+
+      if (line !== '') {
+        this.textLines.push(line)
+      }
     },
     isMessageReadable() {
       // Not self
@@ -269,11 +250,11 @@ export default {
       if (this.isGroupConversation) {
         // TODO: Handle how to show icons at bottom of messages for group chats
       } else if (this.friend !== null) {
-        // if (
-        //   typeof this.userMap[this.friend.userId] !== 'undefined' &&
-        //   typeof this.userMap[this.friend.userId].avatar !== 'undefined'
-        // )
-        //   return this.userMap[this.friend.userId].avatar
+        if (
+          typeof this.userMap[this.friend.userId] !== 'undefined' &&
+          typeof this.userMap[this.friend.userId].avatar !== 'undefined'
+        )
+          return this.userMap[this.friend.userId].avatar
       }
 
       return null
@@ -282,11 +263,11 @@ export default {
       if (this.isGroupConversation) {
         // TODO: Handle how to show icons at bottom of messages for group chats
       } else if (this.friend !== null) {
-        // if (
-        //   typeof this.userMap[this.friend.userId] !== 'undefined' &&
-        //   typeof this.userMap[this.friend.userId].avatar === 'undefined'
-        // )
-        //   return this.userMap[this.friend.userId].displayName.charAt(0)
+        if (
+          typeof this.userMap[this.friend.userId] !== 'undefined' &&
+          typeof this.userMap[this.friend.userId].avatar === 'undefined'
+        )
+          return this.userMap[this.friend.userId].displayName.charAt(0)
       }
 
       return null

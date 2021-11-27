@@ -29,7 +29,6 @@ export default {
     return {
       bodyContainerHeight: 0,
       othersLastReadMessage: -1,
-      colorMap: {},
       chatFieldHeight: -1,
     }
   },
@@ -51,6 +50,15 @@ export default {
       required: true,
     },
   },
+  computed: {
+    colorMap() {
+      let colorMap = {}
+      this.conversation.conversationUsers.forEach(element => {
+        colorMap[element.userId] = element.color
+      })
+      return colorMap
+    },
+  },
   watch: {
     show(newValue) {
       if (newValue === true) {
@@ -63,15 +71,7 @@ export default {
       }
     },
   },
-  mounted() {
-    this.getColorMap()
-  },
   methods: {
-    getColorMap() {
-      this.conversation.conversationUsers.forEach((element, index) => {
-        this.colorMap[element.userId] = element.color
-      })
-    },
     goBack() {
       this.$emit('goBack', true)
     },
