@@ -509,6 +509,12 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model)
         {
+            if (model == null || model.File == null)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: File upload attempt by " + _user.Id + " @ " + _user.IP + "failed because the model passed to the controller was null.");
+                return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
+            }
+
             var dirList = await GetSingleDirectoryList(_user.Id);
             var dir = dirList.Where(x => x.Name == model.Directory).FirstOrDefault();
             if (dir == null)

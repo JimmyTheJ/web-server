@@ -1,9 +1,9 @@
 <template>
   <div>
-    <v-container grid-list-xl v-show="uploadFiles.length > 0">
+    <!-- <v-container grid-list-xl v-show="uploadingFiles.length > 0">
       <div class="text-xs-center">Files being uploaded...</div>
       <v-list>
-        <template v-for="(file, i) in uploadFiles">
+        <template v-for="(file, i) in uploadingFiles">
           <v-list-item :key="i">
             <v-list-item-content>
               {{ file.name }}
@@ -11,28 +11,19 @@
           </v-list-item>
         </template>
       </v-list>
-    </v-container>
+    </v-container> -->
 
-    <v-container mt-1 class="upload-area">
-      <v-form enctype="multipart/form-data">
-        <v-layout row wrap>
-          <v-flex xs12>
-            <label id="upload-button" for="upload-files" class="upload-button"
-              >UPLOAD FILES</label
-            >
-          </v-flex>
-          <input
-            ref="fUpload"
-            type="file"
-            name="upload-files"
-            id="upload-files"
-            class="file-upload"
-            multiple
-            @change="setFiles"
-            hidden
-          />
-        </v-layout>
-      </v-form>
+    <v-container mt-1>
+      <v-file-input
+        v-model="files"
+        counter
+        multiple
+        show-size
+        truncate-length="15"
+        ref="fUpload"
+        :disabled="copying"
+        @change="uploadMultipleFiles"
+      ></v-file-input>
     </v-container>
   </div>
 </template>
@@ -51,7 +42,9 @@ export default {
   data() {
     return {
       // Upload
-      uploadFiles: [],
+      files: [],
+      copying: false,
+      numFilesCopying: 0,
     }
   },
   computed: {
@@ -60,46 +53,121 @@ export default {
       subDirectories: state => state.fileExplorer.subDirectories,
     }),
   },
-  methods: {
-    // Upload
-    setFiles(e) {
-      this.$_console_log(e.target.files)
-      for (let i = 0; i < e.target.files.length; i++) {
-        this.uploadFiles.push(e.target.files[i])
+  watch: {
+    numFilesCopying(newValue, oldValue) {
+      if (newValue === 0 && oldValue > 0) {
+        this.copying = false
+        this.files = []
       }
-      this.uploadMultipleFiles()
     },
-    async uploadMultipleFiles() {
-      for (let i = 0; i < this.uploadFiles.length; i++) {
-        this.$_console_log(this.uploadFiles[i].name)
-
-        await this.sendFile(this.uploadFiles[i])
-          .then(resp => {
-            this.$_console_log('File sent!')
-          })
-          .catch(() => {
-            this.$_console_log('Failed to upload file')
-          })
+  },
+  methods: {
+    async uploadMultipleFiles(files) {
+      if (
+        typeof files === 'undefined' ||
+        !Array.isArray(files) ||
+        files === null
+      ) {
+        this.$_console_log('File list is null or empty')
+        return
       }
 
-      // Clean the list
-      this.uploadFiles = []
-      this.$refs.fUpload.value = ''
-      this.$_console_log('Finished sending all files')
+      if (files.length === 0) {
+        this.$_console_log('File list is empty')
+        return
+      }
+
+      this.copying = true
+      this.numFilesCopying = files.length
+      let self = this
+      for (let i = 0; i < files.length; i++) {
+        let formData = new FormData()
+        formData.append('file', files[i])
+        formData.append('name', files[i].name)
+        formData.append('directory', self.directory)
+
+        let subDirs = getSubdirectoryString(self.subDirectories)
+        self.$_console_log('SubDirs: ', subDirs)
+        if (subDirs !== '') formData.append('subDirectory', subDirs)
+
+        self.$_console_log(
+          'Form Data:',
+          formData.get('file'),
+          formData.get('name'),
+          formData.get('directory'),
+          formData.get('subDirs')
+        )
+
+        await service
+          .uploadFile(formData)
+          .then(function(resp) {
+            self.$_console_log('Successfully uploaded file')
+
+            self.$store.dispatch('addFile', resp.data)
+            self.$store.dispatch('pushNotification', {
+              text: `Successfully uploaded file ${files[i].name}`,
+              action: NotificationActions.Success,
+              group: {
+                type: NotificationTypes.Upload,
+                value: NotificationActions.Success,
+              },
+            })
+          })
+          .catch(function(err) {
+            self.$_console_log('Error uploading files', err)
+
+            self.$store.dispatch('pushNotification', {
+              text: `Failed uploading file ${files[i].name}`,
+              action: NotificationActions.Failed,
+              group: {
+                type: NotificationTypes.Upload,
+                value: NotificationActions.Failed,
+              },
+            })
+          })
+          .finally(function() {
+            self.numFilesCopying--
+          })
+      }
     },
     async sendFile(file) {
       let formData = new FormData()
-      formData.append('File', file)
-      formData.append('Name', file.name)
-      formData.append('Directory', this.directory)
+      formData.append('file', file)
+      formData.append('name', file.name)
+      formData.append('directory', this.directory)
 
       let subDirs = getSubdirectoryString(this.subDirectories)
       this.$_console_log('SubDirs: ', subDirs)
-      if (subDirs !== '') formData.append('SubDirectory', subDirs)
+      if (subDirs !== '') formData.append('subDirectory', subDirs)
 
-      await service
+      this.$_console_log(
+        'Form Data:',
+        formData.get('file'),
+        formData.get('name'),
+        formData.get('directory'),
+        formData.get('subDirs')
+      )
+
+      // try {
+      //   let resp = await service.uploadFile(formData)
+      //   this.$_console_log('Successfully uploaded file')
+
+      //   this.$store.dispatch('addFile', resp.data)
+      //   this.$store.dispatch('pushNotification', {
+      //     text: `Successfully uploaded file ${file.name}`,
+      //     action: NotificationActions.Success,
+      //     group: {
+      //       type: NotificationTypes.Upload,
+      //       value: NotificationActions.Success,
+      //     },
+      //   })
+      // } catch (e) {
+      //   this.$_console_log('Error uploading files', e)
+      // }
+
+      return await service
         .uploadFile(formData)
-        .then(resp => {
+        .then(function(resp) {
           this.$_console_log('Successfully uploaded file')
 
           this.$store.dispatch('addFile', resp.data)
@@ -112,8 +180,8 @@ export default {
             },
           })
         })
-        .catch(() => {
-          this.$_console_log('Error uploading files')
+        .catch(function(err) {
+          this.$_console_log('Error uploading files', err)
 
           this.$store.dispatch('pushNotification', {
             text: `Failed uploading file ${file.name}`,

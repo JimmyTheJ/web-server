@@ -150,6 +150,8 @@ namespace VueServer.Controllers
 
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
+        [DisableRequestSizeLimit]
+        [RequestFormLimits(MultipartBodyLengthLimit = 3000000000)]
         [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.UPLOAD_ID)]
         [Route(Route.Directory.Upload)]
         public async Task<IActionResult> UploadAsync([FromForm] UploadDirectoryFileRequest model)

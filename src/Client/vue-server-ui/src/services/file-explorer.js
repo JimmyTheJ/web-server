@@ -72,7 +72,7 @@ export default {
         'Content-Type': false,
         'Process-Data': false,
       },
-      timeout: 60000,
+      timeout: 600000,
     })
   },
 }
