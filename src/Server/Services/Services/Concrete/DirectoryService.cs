@@ -603,12 +603,6 @@ namespace VueServer.Services.Concrete
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
             }
 
-            if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.DeleteFile))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unable to delete folder. User: " + _user.Id + " @ " + _user.IP + " doesn't have permission to delete this folder.");
-                return new Result<bool>(false, StatusCode.UNAUTHORIZED);
-            }
-
             FileInfo fi = null;
             try
             {
@@ -620,13 +614,34 @@ namespace VueServer.Services.Concrete
                 return new Result<bool>(false, StatusCode.UNAUTHORIZED);
             }
 
+            bool isDir = false;
+            if (fi.Attributes.HasFlag(FileAttributes.Directory))
+            {
+                if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.DeleteFolder))
+                {
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unable to delete folder. User: " + _user.Id + " @ " + _user.IP + " doesn't have permission to delete this folder.");
+                    return new Result<bool>(false, StatusCode.UNAUTHORIZED);
+                }
+                isDir = true;
+            }
+            else
+            {
+                if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.DeleteFile))
+                {
+                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unable to delete file. User: " + _user.Id + " @ " + _user.IP + " doesn't have permission to delete this file.");
+                    return new Result<bool>(false, StatusCode.UNAUTHORIZED);
+                }
+            }
+
             if (!fi.Directory.FullName.StartsWith(dir.Path))
             {
                 _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Path escalation attack attempted by {_user.Id} @ {_user.IP} - Filename={fi.Directory.FullName.ToString()}{Path.DirectorySeparatorChar}{model.Name}!");
                 return new Result<bool>(false, StatusCode.FORBIDDEN);
             }
 
-            if (fi.Exists)
+
+            // File Delete
+            if (!isDir && fi.Exists)
             {
                 try
                 {
@@ -647,6 +662,35 @@ namespace VueServer.Services.Concrete
                     _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: IO exception in protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                     return new Result<bool>(false, StatusCode.BAD_REQUEST);
                 }
+            }
+            // Directory Delete
+            else if (isDir)
+            {
+                var di = new DirectoryInfo(fi.FullName);
+                try
+                {
+                    di.Delete();
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unauthorized protected folder deletion attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + model.Name);
+                    return new Result<bool>(false, StatusCode.UNAUTHORIZED);
+                }
+                catch (SecurityException)
+                {
+                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Security exception in protected folder deletion attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + model.Name);
+                    return new Result<bool>(false, StatusCode.UNAUTHORIZED);
+                }
+                catch (IOException)
+                {
+                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: IO exception in protected folder deletion attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + model.Name);
+                    return new Result<bool>(false, StatusCode.BAD_REQUEST);
+                }
+            }
+            // File doesn't exist
+            else
+            {
+                return new Result<bool>(true, StatusCode.NO_CONTENT);
             }
 
 

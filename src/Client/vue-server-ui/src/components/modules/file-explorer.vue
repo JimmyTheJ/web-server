@@ -62,23 +62,33 @@
 
     <file-upload v-if="features.upload === true"></file-upload>
 
-    <!-- <v-card v-if="features.create">
-      <v-container class="text-center py-4">
-        <v-layout row wrap>
-          <v-flex xs12>
-            <v-btn
-              @click="
-                fileActionDialog = true
-                fileActionActive = operationType.createFolder
-              "
-              color="green"
-            >
-              Create New Folder
-            </v-btn>
-          </v-flex>
-        </v-layout>
-      </v-container>
-    </v-card> -->
+    <v-menu
+      v-model="showMenu"
+      :position-x="contextMenuX"
+      :position-y="contextMenuY"
+      offset-y
+      absolute
+    >
+      <v-list>
+        <template v-for="(contextMenuItem, i) in contextMenuMap">
+          <v-list-item
+            :key="i"
+            :disabled="!contextMenuItem.disabled(selectedMenuItem)"
+            :class="{
+              'clickable-context-menu-item': contextMenuItem.disabled(
+                selectedMenuItem
+              ),
+            }"
+          >
+            <v-list-item-title>
+              <div @click="clickContextMenuItem(contextMenuItem)">
+                {{ contextMenuItem.title }}
+              </div>
+            </v-list-item-title>
+          </v-list-item>
+        </template>
+      </v-list>
+    </v-menu>
 
     <v-container>
       <v-form v-if="selectable">
@@ -113,7 +123,10 @@
         <v-list-item
           v-for="(item, i) in updatedContents"
           :key="i"
-          @click.right.exact="fileActionIndex = i"
+          @click.right.exact="
+            fileActionIndex = i
+            selectedMenuItem = item
+          "
           @contextmenu.prevent="openContextMenu"
         >
           <v-list-item-action>
@@ -138,30 +151,6 @@
               'pointer-arrow': item.isFolder !== null,
             }"
           >
-            <v-menu
-              v-model="showMenu"
-              :position-x="contextMenuX"
-              :position-y="contextMenuY"
-              offset-y
-              absolute
-            >
-              <v-list>
-                <v-list-item
-                  v-for="(menuItem, i) in contextMenuMap"
-                  :key="i"
-                  :disabled="!menuItem.disabled(menuItem)"
-                  :class="{
-                    'clickable-context-menu-item': menuItem.disabled(menuItem),
-                  }"
-                >
-                  <v-list-item-title>
-                    <div @click="clickContextMenuItem(menuItem)">
-                      {{ menuItem.title }}
-                    </div>
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
             <tooltip :value="item.title"></tooltip>
           </v-list-item-content>
           <v-list-item-action v-if="item.size > 0" class="hidden-xs-only">
@@ -219,6 +208,8 @@ export default {
       fileActionIndex: -1,
       fileActionActive: -1,
 
+      selectedMenuItem: null,
+
       showMenu: null,
       contextMenuX: 0,
       contextMenuY: 0,
@@ -239,7 +230,7 @@ export default {
       contextMenuMap: [
         {
           title: 'New Folder',
-          disabled: () => this.canMakeFolder(),
+          disabled: item => this.canMakeFolder(),
           action: opType.createFolder,
         },
         {
@@ -638,6 +629,7 @@ export default {
       return false
     },
     canRename(item) {
+      console.log(item)
       if (!this.features.move || item == null || item.isFolder == null) {
         return false
       }
