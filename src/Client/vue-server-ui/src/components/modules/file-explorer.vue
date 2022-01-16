@@ -135,17 +135,18 @@
             absolute
           >
             <v-list>
-              <v-list-item v-for="(menuItem, i) in contextMenuMap" :key="i">
+              <v-list-item
+                v-for="(menuItem, i) in contextMenuMap"
+                :key="i"
+                :disabled="!menuItem.disabled(menuItem)"
+                :class="{
+                  'clickable-context-menu-item': menuItem.disabled(menuItem),
+                }"
+              >
                 <v-list-item-title>
-                  <v-btn
-                    :disabled="!menuItem.disabled(menuItem)"
-                    @click="
-                      fileActionActive = menuItem.action
-                      fileActionDialog = true
-                      preloadItemName()
-                    "
-                    >{{ menuItem.title }}</v-btn
-                  >
+                  <div @click="clickContextMenuItem(menuItem)">
+                    {{ menuItem.title }}
+                  </div>
                 </v-list-item-title>
               </v-list-item>
             </v-list>
@@ -507,9 +508,18 @@ export default {
       this.contextMenuX = e.clientX
       this.contextMenuY = e.clientY
     },
-
+    clickContextMenuItem(item) {
+      this.$_console_log(item)
+      if (!item.disabled) return false
+      else {
+        this.fileActionActive = item.action
+        this.fileActionDialog = true
+        this.preloadItemName()
+      }
+    },
     preloadItemName() {
       this.$nextTick(() => {
+        this.$_console_log(this.fileActionIndex)
         if (this.fileActionIndex > -1)
           this.fileActionFieldValue = this.contents[this.fileActionIndex].title
       })
@@ -731,5 +741,17 @@ export default {
 
 .pointer-arrow {
   cursor: pointer;
+}
+
+.clickable-context-menu-item {
+  cursor: pointer;
+}
+
+.clickable-context-menu-item:hover {
+  background: #444;
+}
+
+.v-list-item {
+  min-height: 36px;
 }
 </style>
