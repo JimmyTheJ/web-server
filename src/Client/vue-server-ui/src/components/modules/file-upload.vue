@@ -15,6 +15,7 @@
 
     <v-container mt-1>
       <v-file-input
+        label="Upload Files"
         v-model="files"
         counter
         multiple

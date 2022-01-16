@@ -62,7 +62,7 @@
 
     <file-upload v-if="features.upload === true"></file-upload>
 
-    <v-card v-if="features.create">
+    <!-- <v-card v-if="features.create">
       <v-container class="text-center py-4">
         <v-layout row wrap>
           <v-flex xs12>
@@ -78,7 +78,7 @@
           </v-flex>
         </v-layout>
       </v-container>
-    </v-card>
+    </v-card> -->
 
     <v-container>
       <v-form v-if="selectable">
@@ -109,54 +109,66 @@
         </v-container>
       </v-card>
 
-      <v-list-item v-for="(item, i) in contents" :key="i">
-        <v-list-item-action>
-          <a :href="getDownloadPath(item)" download
-            ><fa-icon icon="download"
-          /></a>
-        </v-list-item-action>
-        <v-list-item-avatar>
-          <fa-icon :icon="getIcon(item)" size="2x" style="color: gray" />
-        </v-list-item-avatar>
-        <v-list-item-content
-          @click.left.exact="open(item)"
+      <v-list>
+        <v-list-item
+          v-for="(item, i) in updatedContents"
+          :key="i"
           @click.right.exact="fileActionIndex = i"
           @contextmenu.prevent="openContextMenu"
-          :class="{
-            'hide-extra': $vuetify.breakpoint.xsOnly ? true : false,
-            'pointer-arrow': true,
-          }"
         >
-          <v-menu
-            v-model="showMenu"
-            :position-x="contextMenuX"
-            :position-y="contextMenuY"
-            offset-y
-            absolute
+          <v-list-item-action>
+            <a v-if="item.title !== null" :href="getDownloadPath(item)" download
+              ><fa-icon icon="download"
+            /></a>
+          </v-list-item-action>
+          <v-list-item-avatar
+            v-if="item.title !== null"
+            @click.left.exact="open(item)"
+            :class="{
+              'hide-extra': $vuetify.breakpoint.xsOnly ? true : false,
+              'pointer-arrow': true,
+            }"
           >
-            <v-list>
-              <v-list-item
-                v-for="(menuItem, i) in contextMenuMap"
-                :key="i"
-                :disabled="!menuItem.disabled(menuItem)"
-                :class="{
-                  'clickable-context-menu-item': menuItem.disabled(menuItem),
-                }"
-              >
-                <v-list-item-title>
-                  <div @click="clickContextMenuItem(menuItem)">
-                    {{ menuItem.title }}
-                  </div>
-                </v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-          <tooltip :value="item.title"></tooltip>
-        </v-list-item-content>
-        <v-list-item-action v-if="item.size > 0" class="hidden-xs-only">
-          {{ getFileSize(item.size) }}
-        </v-list-item-action>
-      </v-list-item>
+            <fa-icon :icon="getIcon(item)" size="2x" style="color: gray" />
+          </v-list-item-avatar>
+          <v-list-item-content
+            @click.left.exact="open(item)"
+            :class="{
+              'hide-extra': $vuetify.breakpoint.xsOnly ? true : false,
+              'pointer-arrow': item.isFolder !== null,
+            }"
+          >
+            <v-menu
+              v-model="showMenu"
+              :position-x="contextMenuX"
+              :position-y="contextMenuY"
+              offset-y
+              absolute
+            >
+              <v-list>
+                <v-list-item
+                  v-for="(menuItem, i) in contextMenuMap"
+                  :key="i"
+                  :disabled="!menuItem.disabled(menuItem)"
+                  :class="{
+                    'clickable-context-menu-item': menuItem.disabled(menuItem),
+                  }"
+                >
+                  <v-list-item-title>
+                    <div @click="clickContextMenuItem(menuItem)">
+                      {{ menuItem.title }}
+                    </div>
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+            <tooltip :value="item.title"></tooltip>
+          </v-list-item-content>
+          <v-list-item-action v-if="item.size > 0" class="hidden-xs-only">
+            {{ getFileSize(item.size) }}
+          </v-list-item-action>
+        </v-list-item>
+      </v-list>
 
       <v-layout row justify-center class="loading-container">
         <v-progress-circular
@@ -226,6 +238,11 @@ export default {
 
       contextMenuMap: [
         {
+          title: 'New Folder',
+          disabled: () => this.canMakeFolder(),
+          action: opType.createFolder,
+        },
+        {
           title: 'Rename',
           disabled: item => this.canRename(item),
           action: opType.rename,
@@ -285,6 +302,21 @@ export default {
       loadingContents: state => state.fileExplorer.loadingContents,
       activeModules: state => state.auth.activeModules,
     }),
+    updatedContents() {
+      if (this.contents.length === 0) {
+        return [
+          {
+            active: false,
+            extension: null,
+            isFolder: null,
+            size: null,
+            title: null,
+          },
+        ]
+      } else {
+        return this.contents
+      }
+    },
     fullPath() {
       if (typeof this.directory !== 'undefined' && this.directory !== null) {
         if (
@@ -308,7 +340,7 @@ export default {
     },
     fileActionTitle() {
       if (this.fileActionActive > -1 && this.fileActionIndex > -1) {
-        if (this.contents[this.fileActionIndex].isFolder) {
+        if (this.updatedContents[this.fileActionIndex].isFolder) {
           switch (this.fileActionActive) {
             case this.operationType.move:
               return 'Move Folder'
@@ -342,7 +374,7 @@ export default {
     },
     fileActionFieldLabel() {
       if (this.fileActionActive > -1 && this.fileActionIndex > -1) {
-        if (this.contents[this.fileActionIndex].isFolder) {
+        if (this.updatedContents[this.fileActionIndex].isFolder) {
           switch (this.fileActionActive) {
             case this.operationType.move:
               return 'New Folder Path'
@@ -474,6 +506,10 @@ export default {
     },
 
     open(item) {
+      if (item.isFolder === null) {
+        return
+      }
+
       if (item.isFolder) {
         let path = ''
         if (this.$route.params.folder === 'undefined') {
@@ -514,14 +550,18 @@ export default {
       else {
         this.fileActionActive = item.action
         this.fileActionDialog = true
-        this.preloadItemName()
+
+        if (item.action !== opType.createFolder) this.preloadItemName()
+        else this.fileActionFieldValue = ''
       }
     },
     preloadItemName() {
       this.$nextTick(() => {
         this.$_console_log(this.fileActionIndex)
         if (this.fileActionIndex > -1)
-          this.fileActionFieldValue = this.contents[this.fileActionIndex].title
+          this.fileActionFieldValue = this.updatedContents[
+            this.fileActionIndex
+          ].title
       })
     },
 
@@ -562,11 +602,11 @@ export default {
     renameFile() {
       this.$store
         .dispatch('renameFile', {
-          oldName: this.contents[this.fileActionIndex].title,
+          oldName: this.updatedContents[this.fileActionIndex].title,
           newName: this.fileActionFieldValue,
           dir: this.directory,
           subDir: getSubdirectoryString(this.subDirectories),
-          isFolder: this.contents[this.fileActionIndex].isFolder,
+          isFolder: this.updatedContents[this.fileActionIndex].isFolder,
         })
         .then(resp => {
           this.fileActionDialog = false
@@ -576,7 +616,7 @@ export default {
         })
     },
     canDelete(item) {
-      if (!this.features.delete) {
+      if (!this.features.delete || item == null || item.isFolder == null) {
         return false
       }
 
@@ -598,7 +638,7 @@ export default {
       return false
     },
     canRename(item) {
-      if (!this.features.move) {
+      if (!this.features.move || item == null || item.isFolder == null) {
         return false
       }
 
@@ -618,6 +658,9 @@ export default {
       }
 
       return false
+    },
+    canMakeFolder() {
+      return this.features.create
     },
     goBack() {
       let path = ''
@@ -640,6 +683,10 @@ export default {
     },
 
     getDownloadPath(item) {
+      if (item.title === null) {
+        return
+      }
+
       return `${path}/api/directory/download/file/${encodeURI(
         this.fullPath
       )}/${encodeURIComponent(item.title)}?token=${
@@ -679,7 +726,9 @@ export default {
     },
 
     createFolder() {
-      if (this.contents.findIndex(x => x.title === this.newFolderName) > -1) {
+      if (
+        this.updatedContents.findIndex(x => x.title === this.newFolderName) > -1
+      ) {
         this.$_console_log(`Can't create a folder that already exists`)
         this.createFolderError = 'Folder already exists'
         return
@@ -702,7 +751,7 @@ export default {
     },
 
     async deleteFile() {
-      const file = this.contents[this.fileActionIndex]
+      const file = this.updatedContents[this.fileActionIndex]
       if (typeof file === 'undefined' || file === null || file === '')
         return this.$_console_log("Invalid file info, can't delete")
 
