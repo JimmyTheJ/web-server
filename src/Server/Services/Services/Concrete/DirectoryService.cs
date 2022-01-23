@@ -21,6 +21,7 @@ using VueServer.Models.Request;
 using VueServer.Models.Response;
 using VueServer.Models.User;
 using VueServer.Services.Interface;
+using VueServer.Services.Models;
 using Xabe.FFmpeg;
 using Xabe.FFmpeg.Enums;
 using static VueServer.Domain.DomainConstants.Authentication;
@@ -29,6 +30,10 @@ namespace VueServer.Services.Concrete
 {
     public class DirectoryService : IDirectoryService
     {
+        private const string FileString = "File";
+        private const string FolderString = "Folder";
+        private const string CopyString = " - Copy";
+
         private readonly ILogger _logger;
         private readonly IUserService _user;
         private readonly IWebHostEnvironment _env;
@@ -592,97 +597,38 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<bool>> CopyFile(FileModel source, FileModel destination)
         {
-            var dirList = await GetSingleDirectoryList(_user.Id);
-            var sourceDir = dirList.Where(x => x.Name == source.Directory).FirstOrDefault();
-            var destinationDir = dirList.Where(x => x.Name == destination.Directory).FirstOrDefault();
-
-            if (sourceDir == null)
+            var result = await CopyOrMoveValidation(source, destination, true, DirectoryAccessFlags.MoveFile, FileString);
+            if (result.Code != StatusCode.OK)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid source folder name provided. Folder rename attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + sourceDir.Name);
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            if (destinationDir == null)
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid destination folder name provided. Folder rename attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + destinationDir.Name);
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            if (!sourceDir.AccessFlags.HasFlag(DirectoryAccessFlags.MoveFile))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to move a file from a source folder that doesn't allow file moving");
-                return new Result<bool>(false, StatusCode.UNAUTHORIZED);
-            }
-
-            if (!destinationDir.AccessFlags.HasFlag(DirectoryAccessFlags.MoveFile))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to move a file into a destination folder that doesn't allow file moving");
-                return new Result<bool>(false, StatusCode.UNAUTHORIZED);
-            }
-
-            if (source.Name != destination.Name)
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Cannot rename a file when copying");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            string oldBasePath = string.IsNullOrWhiteSpace(source.SubDirectory) ? sourceDir.Path : Path.Combine(sourceDir.Path, source.SubDirectory);
-            string oldFullPath = Path.Combine(oldBasePath, source.Name);
-
-            string newBasePath = string.IsNullOrWhiteSpace(destination.SubDirectory) ? destinationDir.Path : Path.Combine(destinationDir.Path, destination.SubDirectory);
-            string newFullPath = Path.Combine(newBasePath, destination.Name);
-
-            // Ensure the base directory of the destination actually exists
-            if (!Directory.Exists(newBasePath))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Destination folder selected doesn't exist. Can't move a file to a non-existant folder name of {newBasePath}");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            // Use the platform specific set of invalid characters to ensure the new file name will be valid
-            var invalidCharacters = Path.GetInvalidPathChars();
-            if (invalidCharacters.Any(x => newFullPath.Contains(x)))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New file contains invalid characters");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            // Check for path escalation, and that the source and destination folders start with folder paths that are accessible to this user
-            if (IsPathEscalation(newFullPath) || !oldFullPath.StartsWith(sourceDir.Path) || !newFullPath.StartsWith(destinationDir.Path))
-            {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Looks like a path escalation attack from user ({_user.Id}) for source path: {oldFullPath} and destination path: {newFullPath}");
-                return new Result<bool>(false, StatusCode.FORBIDDEN);
+                return new Result<bool>(false, result.Code);
             }
 
             // Ensure the original file is valid
-            FileInfo oldFileInfo = null;
+            FileInfo oldFileInfo;
             try
             {
-                oldFileInfo = new FileInfo(oldFullPath);
+                oldFileInfo = new FileInfo(result.SourceFullPath);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo on the source file ({oldFullPath}). Something must have gone wrong. Possible attack vector");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo on the source file ({result.SourceFullPath}). Something must have gone wrong. Possible attack vector");
                 return new Result<bool>(false, StatusCode.SERVER_ERROR);
             }
 
-            int increment = 0;
-            if (source.Directory == destination.Directory && source.SubDirectory == destination.SubDirectory)
+            // Handle the case where the destination has the same named file in it. We want to still be able to copy here so we append - Copy, and count upwards with ([num]) at the end if additional copies exist
+            var newCopyString = HandleSameNameCopy(result, oldFileInfo);
+            if (newCopyString != null)
             {
-                //var end = oldFileInfo.Name.Length > 3 ? oldFileInfo.Name.Substring(oldFileInfo.Name.Length - 4) : oldFileInfo.Name;
-                var fn = oldFileInfo.Name;
-
-                //_logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New folder and old folder are the same. Can't move a file into the same folder");
-                //return new Result<bool>(false, StatusCode.BAD_REQUEST);
+                result.DestinationFullPath = Path.Combine(result.DestinationBasePath, newCopyString);
             }
 
             try
             {
-                File.Copy(oldFullPath, newFullPath);
+                File.Copy(result.SourceFullPath, result.DestinationFullPath);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying file {oldFullPath} to {newFullPath}");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying file {result.SourceFullPath} to {result.DestinationFullPath}");
                 return new Result<bool>(false, StatusCode.SERVER_ERROR);
             }
 
@@ -691,96 +637,40 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<bool>> CopyFolder(FileModel source, FileModel destination)
         {
-            var dirList = await GetSingleDirectoryList(_user.Id);
-            var sourceDir = dirList.Where(x => x.Name == source.Directory).FirstOrDefault();
-            var destinationDir = dirList.Where(x => x.Name == destination.Directory).FirstOrDefault();
-
-            if (sourceDir == null)
+            var result = await CopyOrMoveValidation(source, destination, true, DirectoryAccessFlags.MoveFolder, FolderString);
+            if (result.Code != StatusCode.OK)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid source folder name provided. Folder move attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + sourceDir.Name);
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            if (destinationDir == null)
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid destination folder name provided. Folder move attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + destinationDir.Name);
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            if (!sourceDir.AccessFlags.HasFlag(DirectoryAccessFlags.MoveFolder))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to move a source folder that doesn't allow folder moving");
-                return new Result<bool>(false, StatusCode.UNAUTHORIZED);
-            }
-
-            if (!destinationDir.AccessFlags.HasFlag(DirectoryAccessFlags.MoveFolder))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to move a folder into a destination that doesn't allow folder moving");
-                return new Result<bool>(false, StatusCode.UNAUTHORIZED);
-            }
-
-            // Folder name cannot change during a move operation. It's name must stay the same, otherwise it's a rename
-            if (source.Name != destination.Name)
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Cannot rename a folder when copying");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            // If the source directory is the same as the destination directory, this is an invalid move operation. You can't move a folder to the same folder
-            if (source.Directory == destination.Directory && source.SubDirectory == destination.SubDirectory)
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New folder and old folder are the same. Can't move a folder into the same folder");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            string oldBasePath = string.IsNullOrWhiteSpace(source.SubDirectory) ? sourceDir.Path : Path.Combine(sourceDir.Path, source.SubDirectory);
-            string oldFullPath = Path.Combine(oldBasePath, source.Name);
-
-            string newBasePath = string.IsNullOrWhiteSpace(destination.SubDirectory) ? destinationDir.Path : Path.Combine(destinationDir.Path, destination.SubDirectory);
-            string newFullPath = Path.Combine(newBasePath, destination.Name);
-
-            // Ensure the base directory of the destination actually exists
-            if (!Directory.Exists(newBasePath))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Destination folder selected doesn't exist. Can't move a folder to a non-existant folder name of {newBasePath}");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            // Use the platform specific set of invalid characters to ensure the new folder name will be valid
-            var invalidCharacters = Path.GetInvalidPathChars();
-            if (invalidCharacters.Any(x => newFullPath.Contains(x)))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New folder contains invalid characters");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            // Check for path escalation, and that the source and destination folders start with folder paths that are accessible to this user
-            if (IsPathEscalation(newFullPath) || !oldFullPath.StartsWith(sourceDir.Path) || !newFullPath.StartsWith(destinationDir.Path))
-            {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Looks like a path escalation attack from user ({_user.Id}) for source path: {oldFullPath} and destination path: {newFullPath}");
-                return new Result<bool>(false, StatusCode.FORBIDDEN);
+                return new Result<bool>(false, result.Code);
             }
 
             // Ensure the original folder is valid
-            DirectoryInfo oldFolderInfo = null;
+            FileInfo oldFileInfo;
             try
             {
-                oldFolderInfo = new DirectoryInfo(oldFullPath);
+                var oldFolderInfo = new DirectoryInfo(result.SourceFullPath);
+                oldFileInfo = new FileInfo(result.SourceFullPath);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get DirectoryInfo on the source folder ({oldFullPath}). Something must have gone wrong. Possible attack vector");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get DirectoryInfo on the source folder ({result.SourceFullPath}). Something must have gone wrong. Possible attack vector");
                 return new Result<bool>(false, StatusCode.SERVER_ERROR);
             }
 
+            // Handle the case where the destination has the same named file in it. We want to still be able to copy here so we append - Copy, and count upwards with ([num]) at the end if additional copies exist
+            var newCopyString = HandleSameNameCopy(result, oldFileInfo);
+            if (newCopyString != null)
+            {
+                result.DestinationFullPath = Path.Combine(result.DestinationBasePath, newCopyString);
+            }
+
+            // Recursively copy folder and subfolders
             try
             {
-                var folders = Directory.EnumerateDirectories(oldFullPath);
-
+                CopyDirectory(result.SourceFullPath, result.DestinationFullPath);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying folder {oldFullPath} to {newFullPath}");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying folder {result.SourceFullPath} to {result.DestinationFullPath}");
                 return new Result<bool>(false, StatusCode.SERVER_ERROR);
             }
 
@@ -789,95 +679,33 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<bool>> MoveFile(FileModel source, FileModel destination)
         {
-            var dirList = await GetSingleDirectoryList(_user.Id);
-            var sourceDir = dirList.Where(x => x.Name == source.Directory).FirstOrDefault();
-            var destinationDir = dirList.Where(x => x.Name == destination.Directory).FirstOrDefault();
-
-            if (sourceDir == null)
+            var result = await CopyOrMoveValidation(source, destination, false, DirectoryAccessFlags.MoveFile, FileString);
+            if (result.Code != StatusCode.OK)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid source folder name provided. Folder move attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + sourceDir.Name);
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            if (destinationDir == null)
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid destination folder name provided. Folder move attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + destinationDir.Name);
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            if (!sourceDir.AccessFlags.HasFlag(DirectoryAccessFlags.MoveFile))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to move a file from a source folder that doesn't allow file moving");
-                return new Result<bool>(false, StatusCode.UNAUTHORIZED);
-            }
-
-            if (!destinationDir.AccessFlags.HasFlag(DirectoryAccessFlags.MoveFile))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to move a file into a destination folder that doesn't allow file moving");
-                return new Result<bool>(false, StatusCode.UNAUTHORIZED);
-            }
-
-            if (source.Name != destination.Name)
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Cannot rename a file when moving");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            if (source.Directory == destination.Directory && source.SubDirectory == destination.SubDirectory)
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New folder and old folder are the same. Can't move a file into the same folder");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            string oldBasePath = string.IsNullOrWhiteSpace(source.SubDirectory) ? sourceDir.Path : Path.Combine(sourceDir.Path, source.SubDirectory);
-            string oldFullPath = Path.Combine(oldBasePath, source.Name);
-
-            string newBasePath = string.IsNullOrWhiteSpace(destination.SubDirectory) ? destinationDir.Path : Path.Combine(destinationDir.Path, destination.SubDirectory);
-            string newFullPath = Path.Combine(newBasePath, destination.Name);
-
-            // Ensure the base directory of the destination actually exists
-            if (!Directory.Exists(newBasePath))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Destination folder selected doesn't exist. Can't move a file to a non-existant folder name of {newBasePath}");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            // Use the platform specific set of invalid characters to ensure the new file name will be valid
-            var invalidCharacters = Path.GetInvalidPathChars();
-            if (invalidCharacters.Any(x => newFullPath.Contains(x)))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New file contains invalid characters");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            // Check for path escalation, and that the source and destination folders start with folder paths that are accessible to this user
-            if (IsPathEscalation(newFullPath) || !oldFullPath.StartsWith(sourceDir.Path) || !newFullPath.StartsWith(destinationDir.Path))
-            {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Looks like a path escalation attack from user ({_user.Id}) for source path: {oldFullPath} and destination path: {newFullPath}");
-                return new Result<bool>(false, StatusCode.FORBIDDEN);
+                return new Result<bool>(false, result.Code);
             }
 
             // Ensure the original file is valid
-            FileInfo oldFileInfo = null;
             try
             {
-                oldFileInfo = new FileInfo(oldFullPath);
+                var oldFileInfo = new FileInfo(result.SourceFullPath);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo on the source file ({oldFullPath}). Something must have gone wrong. Possible attack vector");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo on the source file ({result.SourceFullPath}). Something must have gone wrong. Possible attack vector");
                 return new Result<bool>(false, StatusCode.SERVER_ERROR);
             }
 
-            if (!(new FileInfo(newFullPath).Exists))
+            // Ensure file doesn't exist at destination
+            if (!(new FileInfo(result.DestinationFullPath).Exists))
             {
                 try
                 {
-                    File.Move(oldFullPath, newFullPath);
+                    File.Move(result.SourceFullPath, result.DestinationFullPath);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying file {oldFullPath} to {newFullPath}");
+                    _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying file {result.SourceFullPath} to {result.DestinationFullPath}");
                     return new Result<bool>(false, StatusCode.SERVER_ERROR);
                 }
             }
@@ -892,95 +720,31 @@ namespace VueServer.Services.Concrete
 
         public async Task<IResult<bool>> MoveFolder(FileModel source, FileModel destination)
         {
-            var dirList = await GetSingleDirectoryList(_user.Id);
-            var sourceDir = dirList.Where(x => x.Name == source.Directory).FirstOrDefault();
-            var destinationDir = dirList.Where(x => x.Name == destination.Directory).FirstOrDefault();
-
-            if (sourceDir == null)
+            var result = await CopyOrMoveValidation(source, destination, false, DirectoryAccessFlags.MoveFolder, FolderString);
+            if (result.Code != StatusCode.OK)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid source folder name provided. Folder move attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + sourceDir.Name);
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            if (destinationDir == null)
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid destination folder name provided. Folder move attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + destinationDir.Name);
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            if (!sourceDir.AccessFlags.HasFlag(DirectoryAccessFlags.MoveFolder))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to move a source folder that doesn't allow folder moving");
-                return new Result<bool>(false, StatusCode.UNAUTHORIZED);
-            }
-
-            if (!destinationDir.AccessFlags.HasFlag(DirectoryAccessFlags.MoveFolder))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to move a folder into a destination that doesn't allow folder moving");
-                return new Result<bool>(false, StatusCode.UNAUTHORIZED);
-            }
-
-            // Folder name cannot change during a move operation. It's name must stay the same, otherwise it's a rename
-            if (source.Name != destination.Name)
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Cannot rename a folder when copying");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            // If the source directory is the same as the destination directory, this is an invalid move operation. You can't move a folder to the same folder
-            if (source.Directory == destination.Directory && source.SubDirectory == destination.SubDirectory)
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New folder and old folder are the same. Can't move a folder into the same folder");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            string oldBasePath = string.IsNullOrWhiteSpace(source.SubDirectory) ? sourceDir.Path : Path.Combine(sourceDir.Path, source.SubDirectory);
-            string oldFullPath = Path.Combine(oldBasePath, source.Name);
-
-            string newBasePath = string.IsNullOrWhiteSpace(destination.SubDirectory) ? destinationDir.Path : Path.Combine(destinationDir.Path, destination.SubDirectory);
-            string newFullPath = Path.Combine(newBasePath, destination.Name);
-
-            // Ensure the base directory of the destination actually exists
-            if (!Directory.Exists(newBasePath))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Destination folder selected doesn't exist. Can't move a folder to a non-existant folder name of {newBasePath}");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            // Use the platform specific set of invalid characters to ensure the new folder name will be valid
-            var invalidCharacters = Path.GetInvalidPathChars();
-            if (invalidCharacters.Any(x => newFullPath.Contains(x)))
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New folder contains invalid characters");
-                return new Result<bool>(false, StatusCode.BAD_REQUEST);
-            }
-
-            // Check for path escalation, and that the source and destination folders start with folder paths that are accessible to this user
-            if (IsPathEscalation(newFullPath) || !oldFullPath.StartsWith(sourceDir.Path) || !newFullPath.StartsWith(destinationDir.Path))
-            {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Looks like a path escalation attack from user ({_user.Id}) for source path: {oldFullPath} and destination path: {newFullPath}");
-                return new Result<bool>(false, StatusCode.FORBIDDEN);
+                return new Result<bool>(false, result.Code);
             }
 
             // Ensure the original folder is valid
-            DirectoryInfo oldFolderInfo = null;
+            DirectoryInfo oldFolderInfo;
             try
             {
-                oldFolderInfo = new DirectoryInfo(oldFullPath);
+                oldFolderInfo = new DirectoryInfo(result.SourceFullPath);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get DirectoryInfo on the source folder ({oldFullPath}). Something must have gone wrong. Possible attack vector");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get DirectoryInfo on the source folder ({result.SourceFullPath}). Something must have gone wrong. Possible attack vector");
                 return new Result<bool>(false, StatusCode.SERVER_ERROR);
             }
 
             try
             {
-                oldFolderInfo.MoveTo(newFullPath);
+                oldFolderInfo.MoveTo(result.DestinationFullPath);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying folder {oldFullPath} to {newFullPath}");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying folder {result.SourceFullPath} to {result.DestinationFullPath}");
                 return new Result<bool>(false, StatusCode.SERVER_ERROR);
             }
 
@@ -1173,6 +937,211 @@ namespace VueServer.Services.Concrete
                 return null;
 
             return Path.Combine(dir, filename);
+        }
+
+        private void CopyDirectory(string sourceDir, string destinationDir)
+        {
+            // Get information about the source directory
+            var dir = new DirectoryInfo(sourceDir);
+
+            // Check if the source directory exists
+            if (!dir.Exists)
+                throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
+
+            // Cache directories before we start copying
+            DirectoryInfo[] dirs = dir.GetDirectories();
+
+            // Create the destination directory
+            Directory.CreateDirectory(destinationDir);
+
+            // Get the files in the source directory and copy to the destination directory
+            foreach (FileInfo file in dir.GetFiles())
+            {
+                string targetFilePath = Path.Combine(destinationDir, file.Name);
+                file.CopyTo(targetFilePath);
+            }
+
+            foreach (DirectoryInfo subDir in dirs)
+            {
+                string newDestinationDir = Path.Combine(destinationDir, subDir.Name);
+                CopyDirectory(subDir.FullName, newDestinationDir);
+            }
+        }
+
+        private async Task<CopyResult> CopyOrMoveValidation(FileModel source, FileModel destination, bool isCopy, DirectoryAccessFlags flag, string type)
+        {
+            var dirList = await GetSingleDirectoryList(_user.Id);
+            var sourceDir = dirList.Where(x => x.Name == source.Directory).FirstOrDefault();
+            var destinationDir = dirList.Where(x => x.Name == destination.Directory).FirstOrDefault();
+
+            var result = new CopyResult();
+
+            if (sourceDir == null)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid source folder name provided. {type} move attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + sourceDir.Name);
+                result.Code = StatusCode.BAD_REQUEST;
+                return result;
+            }
+
+            if (destinationDir == null)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid destination folder name provided. {type} move attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + destinationDir.Name);
+                result.Code = StatusCode.BAD_REQUEST;
+                return result;
+            }
+
+            if (!sourceDir.AccessFlags.HasFlag(flag))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to move a source {type} that doesn't allow {type} moving");
+                result.Code = StatusCode.UNAUTHORIZED;
+                return result;
+            }
+
+            if (!destinationDir.AccessFlags.HasFlag(flag))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to move a {type} into a destination that doesn't allow {type} moving");
+                result.Code = StatusCode.UNAUTHORIZED;
+                return result;
+            }
+
+            // Folder name cannot change during a move operation. It's name must stay the same, otherwise it's a rename
+            if (source.Name != destination.Name)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Cannot rename a {type} when copying");
+                result.Code = StatusCode.BAD_REQUEST;
+                return result;
+            }
+
+            // If the source directory is the same as the destination directory, this is an invalid move operation. You can't move a folder to the same folder
+            // If this is a copy operation, then we can append an underscore and a number to it and place it in the same directory
+            if (!isCopy && source.Directory == destination.Directory && source.SubDirectory == destination.SubDirectory)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New {type} and old {type} are the same. Can't move a {type} into the same {type}");
+                result.Code = StatusCode.BAD_REQUEST;
+                return result;
+            }
+
+            result.SourceBasePath = string.IsNullOrWhiteSpace(source.SubDirectory) ? sourceDir.Path : Path.Combine(sourceDir.Path, source.SubDirectory);
+            result.SourceFullPath = Path.Combine(result.SourceBasePath, source.Name);
+
+            result.DestinationBasePath = string.IsNullOrWhiteSpace(destination.SubDirectory) ? destinationDir.Path : Path.Combine(destinationDir.Path, destination.SubDirectory);
+            result.DestinationFullPath = Path.Combine(result.DestinationBasePath, destination.Name);
+
+            // Ensure the base directory of the destination actually exists
+            if (!Directory.Exists(result.DestinationBasePath))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Destination folder selected doesn't exist. Can't move a {type} to a non-existant folder name of {result.DestinationBasePath}");
+                result.Code = StatusCode.BAD_REQUEST;
+                return result;
+            }
+
+            // Use the platform specific set of invalid characters to ensure the new name will be valid
+            var invalidCharacters = Path.GetInvalidPathChars();
+            if (invalidCharacters.Any(x => result.DestinationFullPath.Contains(x)))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New {type} contains invalid characters");
+                result.Code = StatusCode.BAD_REQUEST;
+                return result;
+            }
+
+            // Check for path escalation, and that the source and destination folders start with folder paths that are accessible to this user
+            if (IsPathEscalation(result.DestinationFullPath) || !result.SourceFullPath.StartsWith(sourceDir.Path) || !result.DestinationFullPath.StartsWith(destinationDir.Path))
+            {
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Looks like a path escalation attack from user ({_user.Id}) for source path: {result.SourceFullPath} and destination path: {result.DestinationFullPath}");
+                result.Code = StatusCode.FORBIDDEN;
+                return result;
+            }
+
+            result.Code = StatusCode.OK;
+            return result;
+        }
+
+        private string HandleSameNameCopy(CopyResult result, FileInfo oldFileInfo)
+        {
+            string newCopyString = null;
+            if (new FileInfo(result.DestinationFullPath).Exists || new DirectoryInfo(result.DestinationFullPath).Exists)
+            {
+                var fn = oldFileInfo.Name.Substring(0, oldFileInfo.Name.Length - oldFileInfo.Extension.Length);
+                var newFn = (fn + " - Copy");
+                newCopyString = newFn + oldFileInfo.Extension;
+                var fileExists = true;
+                var increment = 1;
+                while (fileExists)
+                {
+                    if (new FileInfo(Path.Combine(result.DestinationBasePath, newCopyString)).Exists || new DirectoryInfo(Path.Combine(result.DestinationBasePath, newCopyString)).Exists)
+                    {
+                        if (increment == 1)
+                        {
+                            newFn += $" ({++increment})";
+                            newCopyString = newFn + oldFileInfo.Extension;
+                        }
+                        else
+                        {
+                            newCopyString = newCopyString.Replace($" - Copy ({increment++})", $" - Copy ({increment})");
+                        }
+                    }
+                    else
+                    {
+                        fileExists = false;
+                    }
+                }
+            }
+
+            return newCopyString;
+        }
+
+        // TODO: Re-evaluate whether to use something like this
+        private void IntelligentCopy()
+        {
+            //if (Regex.IsMatch(fn, $".*({CopyString}).*"))
+            //{
+            //    var end = fn.Substring(fn.LastIndexOf(CopyString) + CopyString.Length);
+            //    if (end.Length == 0)
+            //    {
+            //        // This means there is only 1 copy so far, so we need to add the numbering
+            //        var newFn = (fn + " - Copy");
+            //        newCopyString = newFn + oldFileInfo.Extension;
+
+            //        var fileExists = true;
+            //        var increment = 1;
+            //        while (fileExists)
+            //        {
+            //            if (new FileInfo(Path.Combine(result.DestinationBasePath, newCopyString)).Exists)
+            //            {
+            //                if (increment == 1)
+            //                {
+            //                    newFn += $" ({++increment})";
+            //                    newCopyString = newFn + oldFileInfo.Extension;
+            //                }
+            //                else
+            //                {
+            //                    newCopyString = newCopyString.Replace($" - Copy ({increment++})", $" - Copy ({increment})");
+            //                }
+            //            }
+            //            else
+            //            {
+            //                fileExists = false;
+            //            }
+            //        }
+            //    }
+            //    else
+            //    {
+            //        if (Regex.IsMatch(end, @" \([0-9]*\)"))
+            //        {
+            //            var openBraceIndex = end.IndexOf('(');
+            //            var closeBraceIndex = end.IndexOf(')');
+            //            var numStr = end.Substring(openBraceIndex + 1, closeBraceIndex - openBraceIndex - 1);
+            //            if (int.TryParse(numStr, out int number))
+            //            {
+            //                var incremented = number++;
+            //                var newEnd = end.Replace(numStr, incremented.ToString());
+
+            //                var baseStr = fn.Substring(0, fn.LastIndexOf(" ("));
+            //                newCopyString = baseStr + newEnd + oldFileInfo.Extension;
+            //            }
+            //        }
+            //    }
+            //}
         }
 
         private async Task<IEnumerable<ServerUserDirectory>> GetServerUserDirectoryList(WSUser user)

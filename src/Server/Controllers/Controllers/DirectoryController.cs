@@ -111,7 +111,7 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _service.CreateFolder(model.Directory, model.SubDirectory, model.Name));
         }
 
-        [HttpPut]
+        [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
         [Route(Route.Directory.CopyFile)]
@@ -120,7 +120,7 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _service.CopyFile(model.Source, model.Destination));
         }
 
-        [HttpPut]
+        [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
         [Route(Route.Directory.CopyFolder)]
@@ -129,7 +129,7 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _service.CopyFolder(model.Source, model.Destination));
         }
 
-        [HttpPut]
+        [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
         [Route(Route.Directory.MoveFile)]
@@ -138,7 +138,7 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _service.MoveFile(model.Source, model.Destination));
         }
 
-        [HttpPut]
+        [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
         [Route(Route.Directory.MoveFolder)]
@@ -147,7 +147,7 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _service.MoveFolder(model.Source, model.Destination));
         }
 
-        [HttpPut]
+        [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
         [Route(Route.Directory.RenameFile)]
@@ -156,7 +156,7 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _service.RenameFile(model));
         }
 
-        [HttpPut]
+        [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
         [Route(Route.Directory.RenameFolder)]
