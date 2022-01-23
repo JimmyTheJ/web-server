@@ -80,6 +80,10 @@
                 internal const string CreateFolder = "create-folder";
                 internal const string RenameFile = "rename-file";
                 internal const string RenameFolder = "rename-folder";
+                internal const string MoveFile = "move-file";
+                internal const string MoveFolder = "move-folder";
+                internal const string CopyFile = "copy-file";
+                internal const string CopyFolder = "copy-folder";
             }
 
             internal static class Chat

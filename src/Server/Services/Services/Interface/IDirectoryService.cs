@@ -18,6 +18,10 @@ namespace VueServer.Services.Interface
         Task<IResult<WebServerFile>> RenameFile(MoveFileRequest model);
         Task<IResult<WebServerFile>> RenameFolder(MoveFileRequest model);
         Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model);
+        Task<IResult<bool>> CopyFile(FileModel source, FileModel destination);
+        Task<IResult<bool>> CopyFolder(FileModel source, FileModel destination);
+        Task<IResult<bool>> MoveFile(FileModel source, FileModel destination);
+        Task<IResult<bool>> MoveFolder(FileModel source, FileModel destination);
         Task<IResult<bool>> Delete(FileModel model);
     }
 }

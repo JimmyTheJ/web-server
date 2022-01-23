@@ -114,6 +114,42 @@ namespace VueServer.Controllers
         [HttpPut]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
+        [Route(Route.Directory.CopyFile)]
+        public async Task<IActionResult> CopyFile([FromBody] CopyRequest model)
+        {
+            return _codeFactory.GetStatusCode(await _service.CopyFile(model.Source, model.Destination));
+        }
+
+        [HttpPut]
+        [Authorize(Roles = ROLES_ALL)]
+        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
+        [Route(Route.Directory.CopyFolder)]
+        public async Task<IActionResult> CopyFolder([FromBody] CopyRequest model)
+        {
+            return _codeFactory.GetStatusCode(await _service.CopyFolder(model.Source, model.Destination));
+        }
+
+        [HttpPut]
+        [Authorize(Roles = ROLES_ALL)]
+        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
+        [Route(Route.Directory.MoveFile)]
+        public async Task<IActionResult> MoveFile([FromBody] CopyRequest model)
+        {
+            return _codeFactory.GetStatusCode(await _service.MoveFile(model.Source, model.Destination));
+        }
+
+        [HttpPut]
+        [Authorize(Roles = ROLES_ALL)]
+        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
+        [Route(Route.Directory.MoveFolder)]
+        public async Task<IActionResult> MoveFolder([FromBody] CopyRequest model)
+        {
+            return _codeFactory.GetStatusCode(await _service.MoveFolder(model.Source, model.Destination));
+        }
+
+        [HttpPut]
+        [Authorize(Roles = ROLES_ALL)]
+        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
         [Route(Route.Directory.RenameFile)]
         public async Task<IActionResult> RenameFile([FromBody] MoveFileRequest model)
         {
