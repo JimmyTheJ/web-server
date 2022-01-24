@@ -595,12 +595,12 @@ namespace VueServer.Services.Concrete
             }
         }
 
-        public async Task<IResult<bool>> CopyFile(FileModel source, FileModel destination)
+        public async Task<IResult<WebServerFile>> CopyFile(FileModel source, FileModel destination)
         {
             var result = await CopyOrMoveValidation(source, destination, true, DirectoryAccessFlags.MoveFile, FileString);
             if (result.Code != StatusCode.OK)
             {
-                return new Result<bool>(false, result.Code);
+                return new Result<WebServerFile>(null, result.Code);
             }
 
             // Ensure the original file is valid
@@ -612,7 +612,7 @@ namespace VueServer.Services.Concrete
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo on the source file ({result.SourceFullPath}). Something must have gone wrong. Possible attack vector");
-                return new Result<bool>(false, StatusCode.SERVER_ERROR);
+                return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
             // Handle the case where the destination has the same named file in it. We want to still be able to copy here so we append - Copy, and count upwards with ([num]) at the end if additional copies exist
@@ -629,18 +629,29 @@ namespace VueServer.Services.Concrete
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying file {result.SourceFullPath} to {result.DestinationFullPath}");
-                return new Result<bool>(false, StatusCode.SERVER_ERROR);
+                return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
-            return new Result<bool>(true);
+            FileInfo newFileInfo;
+            try
+            {
+                newFileInfo = new FileInfo(result.DestinationFullPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo on the newly copied file. Something must have gone wrong.");
+                return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
+            }
+
+            return new Result<WebServerFile>(new WebServerFile(newFileInfo), StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> CopyFolder(FileModel source, FileModel destination)
+        public async Task<IResult<WebServerFile>> CopyFolder(FileModel source, FileModel destination)
         {
             var result = await CopyOrMoveValidation(source, destination, true, DirectoryAccessFlags.MoveFolder, FolderString);
             if (result.Code != StatusCode.OK)
             {
-                return new Result<bool>(false, result.Code);
+                return new Result<WebServerFile>(null, result.Code);
             }
 
             // Ensure the original folder is valid
@@ -653,7 +664,7 @@ namespace VueServer.Services.Concrete
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get DirectoryInfo on the source folder ({result.SourceFullPath}). Something must have gone wrong. Possible attack vector");
-                return new Result<bool>(false, StatusCode.SERVER_ERROR);
+                return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
             // Handle the case where the destination has the same named file in it. We want to still be able to copy here so we append - Copy, and count upwards with ([num]) at the end if additional copies exist
@@ -671,10 +682,21 @@ namespace VueServer.Services.Concrete
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying folder {result.SourceFullPath} to {result.DestinationFullPath}");
-                return new Result<bool>(false, StatusCode.SERVER_ERROR);
+                return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
-            return new Result<bool>(true);
+            DirectoryInfo newDirectoryInfo;
+            try
+            {
+                newDirectoryInfo = new DirectoryInfo(result.DestinationFullPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get DirectoryInfo on the newly copied folder. Something must have gone wrong.");
+                return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
+            }
+
+            return new Result<WebServerFile>(new WebServerFile(newDirectoryInfo), StatusCode.OK);
         }
 
         public async Task<IResult<bool>> MoveFile(FileModel source, FileModel destination)

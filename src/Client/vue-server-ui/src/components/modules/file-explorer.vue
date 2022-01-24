@@ -23,7 +23,6 @@
             wrap
             v-if="
               fileActionActive === operationType.move ||
-                fileActionActive === operationType.copy ||
                 fileActionActive === operationType.rename ||
                 fileActionActive === operationType.createFolder
             "
@@ -81,7 +80,7 @@
             }"
           >
             <v-list-item-title>
-              <div @click="clickContextMenuItem(contextMenuItem)">
+              <div @click="contextMenuItem.action(selectedMenuItem)">
                 {{ contextMenuItem.title }}
               </div>
             </v-list-item-title>
@@ -184,17 +183,21 @@ import Auth from '../../mixins/authentication'
 
 import { getSubdirectoryString } from '../../helpers/browser'
 import { DirectoryAccessFlags } from '@/constants.js'
+import { faTemperatureLow } from '@fortawesome/free-solid-svg-icons'
 
 let path = process.env.VUE_APP_API_URL
 const FN = 'FILE EXPLORER'
 
+let count = 0
 const opType = {
-  move: 1,
-  rename: 2,
-  copy: 3,
-  delete: 4,
-  properties: 5,
-  createFolder: 6,
+  move: ++count,
+  rename: ++count,
+  copy: ++count,
+  paste: ++count,
+  move: ++count,
+  delete: ++count,
+  properties: ++count,
+  createFolder: ++count,
 }
 
 export default {
@@ -231,27 +234,39 @@ export default {
         {
           title: 'New Folder',
           disabled: item => this.canMakeFolder(),
-          action: opType.createFolder,
+          action: item => this.newFolderItem(item),
         },
         {
           title: 'Rename',
           disabled: item => this.canRename(item),
-          action: opType.rename,
+          action: item => this.renameItem(item),
+        },
+        {
+          title: 'Copy',
+          disabled: item => this.canCopy(item),
+          action: item => this.copyPasteItem(item, 'copy'),
+        },
+        {
+          title: 'Paste',
+          disabled: item => this.canPaste(item),
+          action: item => this.copyPasteItem(item, 'paste'),
         },
         {
           title: 'Move',
-          disabled: item => false,
-          action: opType.move,
+          disabled: item => false, // TODO: Add this back in \\ this.canMove(item),
+          action: item => this.moveItem(item),
         },
         {
           title: 'Delete',
           disabled: item => this.canDelete(item),
-          action: opType.delete,
+          action: item => this.deleteItem(item),
         },
         {
           title: 'Properties',
           disabled: item => false,
-          action: opType.properties,
+          action: item => () => {
+            console.log('Properties not implemented yet')
+          },
         },
       ],
     }
@@ -291,6 +306,7 @@ export default {
       directory: state => state.fileExplorer.directory,
       subDirectories: state => state.fileExplorer.subDirectories,
       loadingContents: state => state.fileExplorer.loadingContents,
+      copied: state => state.fileExplorer.copied,
       activeModules: state => state.auth.activeModules,
     }),
     updatedContents() {
@@ -335,8 +351,6 @@ export default {
           switch (this.fileActionActive) {
             case this.operationType.move:
               return 'Move Folder'
-            case this.operationType.copy:
-              return 'Copy Folder'
             case this.operationType.rename:
               return 'Rename Folder'
             case this.operationType.delete:
@@ -348,8 +362,6 @@ export default {
           switch (this.fileActionActive) {
             case this.operationType.move:
               return 'Move File'
-            case this.operationType.copy:
-              return 'Copy File'
             case this.operationType.rename:
               return 'Rename File'
             case this.operationType.delete:
@@ -535,16 +547,45 @@ export default {
       this.contextMenuX = e.clientX
       this.contextMenuY = e.clientY
     },
-    clickContextMenuItem(item) {
-      this.$_console_log(item)
-      if (!item.disabled) return false
-      else {
-        this.fileActionActive = item.action
-        this.fileActionDialog = true
+    renameItem(item) {
+      this.$_console_log('Rename Item:', item)
 
-        if (item.action !== opType.createFolder) this.preloadItemName()
-        else this.fileActionFieldValue = ''
+      this.fileActionActive = this.operationType.rename
+      this.fileActionDialog = faTemperatureLow
+      this.preloadItemName()
+    },
+    deleteItem(item) {
+      this.$_console_log('Delete Item:', item)
+
+      this.fileActionActive = this.operationType.delete
+      this.fileActionDialog = true
+      this.preloadItemName()
+    },
+    moveItem(item) {
+      this.$_console_log('Move Item:', item)
+
+      this.fileActionActive = this.operationType.move
+      this.fileActionDialog = true
+      this.preloadItemName()
+    },
+    newFolderItem(item) {
+      this.$_console_log('Create New Folder:', item)
+
+      this.fileActionActive = this.operationType.createFolder
+      this.fileActionDialog = true
+      this.fileActionFieldValue = ''
+    },
+    copyPasteItem(item, type) {
+      this.$_console_log(`${type}:`, item)
+
+      let obj = {
+        name: type === 'copy' ? item.title : this.copied.name,
+        directory: this.directory,
+        subDirectory: getSubdirectoryString(this.subDirectories),
+        isFolder: type === 'copy' ? item.isFolder : this.copied.isFolder,
       }
+
+      this.$store.dispatch(`${type}File`, obj)
     },
     preloadItemName() {
       this.$nextTick(() => {
@@ -566,11 +607,6 @@ export default {
         case this.operationType.move:
           this.$_console_log(
             `fileMoficiationAction: Move operation doesn't exist yet`
-          )
-          break
-        case this.operationType.copy:
-          this.$_console_log(
-            `fileMoficiationAction: Copy operation doesn't exist yet`
           )
           break
         case this.operationType.rename:
@@ -629,6 +665,79 @@ export default {
       return false
     },
     canRename(item) {
+      console.log(item)
+      if (!this.features.move || item == null || item.isFolder == null) {
+        return false
+      }
+
+      let dir = this.folders.find(x => x.name === this.selectedDirectory)
+      if (dir === undefined) {
+        return false
+      }
+
+      if (item.isFolder) {
+        if (dir.accessFlags & DirectoryAccessFlags.MoveFolder) {
+          return true
+        }
+      } else {
+        if (dir.accessFlags & DirectoryAccessFlags.MoveFile) {
+          return true
+        }
+      }
+
+      return false
+    },
+    canCopy(item) {
+      console.log(item)
+      if (!this.features.move || item == null || item.isFolder == null) {
+        return false
+      }
+
+      let dir = this.folders.find(x => x.name === this.selectedDirectory)
+      if (dir === undefined) {
+        return false
+      }
+
+      if (item.isFolder) {
+        if (dir.accessFlags & DirectoryAccessFlags.MoveFolder) {
+          return true
+        }
+      } else {
+        if (dir.accessFlags & DirectoryAccessFlags.MoveFile) {
+          return true
+        }
+      }
+
+      return false
+    },
+    canPaste(item) {
+      if (!this.features.move || item == null || item.isFolder == null) {
+        return false
+      }
+
+      let dir = this.folders.find(x => x.name === this.selectedDirectory)
+      if (dir === undefined) {
+        return false
+      }
+
+      if (this.copied == null) {
+        this.$_console_log(`Can't paste if you haven't copied anything.`)
+        return false
+      }
+
+      if (item.isFolder) {
+        if (dir.accessFlags & DirectoryAccessFlags.MoveFolder) {
+          return true
+        }
+      } else {
+        if (dir.accessFlags & DirectoryAccessFlags.MoveFile) {
+          return true
+        }
+      }
+
+      return false
+    },
+    canMove(item) {
       console.log(item)
       if (!this.features.move || item == null || item.isFolder == null) {
         return false

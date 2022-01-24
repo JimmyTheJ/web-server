@@ -74,20 +74,20 @@ export default {
       },
     })
   },
-  copyFile(source, destination, isFolder) {
+  copyFile(source, destination) {
     return axios.request({
-      url: isFolder === true ? CopyFolderurl : CopyFileUrl,
+      url: source.isFolder === true ? CopyFolderurl : CopyFileUrl,
       method: 'POST',
       data: {
         Source: {
           Name: source.name,
-          Directory: source.folder,
-          SubDirectory: source.subFolder,
+          Directory: source.directory,
+          SubDirectory: source.subDirectory,
         },
         Destination: {
           Name: destination.name,
-          Directory: destination.folder,
-          SubDirectory: destination.subFolder,
+          Directory: destination.directory,
+          SubDirectory: destination.subDirectory,
         },
       },
     })
@@ -95,7 +95,7 @@ export default {
   deleteFile(file, folder, subFolder) {
     return axios.request({
       url: DeleteUploadUrl,
-      method: 'POST',
+      method: 'DELETE',
       data: {
         Name: file,
         Directory: folder,

@@ -174,7 +174,7 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _service.GetDirectories());
         }
 
-        [HttpPost]
+        [HttpDelete]
         [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.DELETE_ID)]
         [Route(Route.Generic.Delete)]

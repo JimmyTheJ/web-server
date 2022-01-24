@@ -12,6 +12,7 @@ const state = {
   subDirectories: [],
   loadingContents: false,
   file: null,
+  copied: null,
 }
 
 const getters = {}
@@ -134,6 +135,41 @@ const actions = {
 
     commit(types.BROWSER_FILE_DELETE, context)
   },
+  async copyFile({ commit }, context) {
+    ConMsgs.methods.$_console_log('[Vuex][Actions] Copying file to memory')
+
+    commit(types.BROWSER_FILE_COPY, context)
+  },
+  async pasteFile({ commit, state }, context) {
+    ConMsgs.methods.$_console_log(
+      '[Vuex][Actions] Pasting file to new location'
+    )
+
+    try {
+      await Dispatcher.request(async () => {
+        const res = await fileAPI.copyFile(state.copied, context)
+
+        // If we are copying into the same folder (active) then we should update the UI with the new result
+        if (
+          state.copied.directory === context.directory &&
+          state.copied.subDirectory === context.subDirectory
+        ) {
+          commit(types.BROWSER_FILE_ADD, res.data)
+        }
+
+        return await Promise.resolve(res.data)
+      })
+    } catch (e) {
+      ConMsgs.methods.$_console_group(
+        '[Vuex][Actions] Error copying file',
+        e.response
+      )
+      return await Promise.reject(e.response)
+    }
+  },
+  async moveFile({ commit }, context) {
+    ConMsgs.methods.$_console_log('[Vuex][Actions] Moving file to new location')
+  },
   async loadFile({ commit }, context) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Loading file into viewer')
 
@@ -157,6 +193,7 @@ const mutations = {
     state.folders = []
     state.directory = ''
     state.subDirectories = []
+    state.copied = null
   },
   [types.BROWSER_GET_FOLDERS](state, data) {
     ConMsgs.methods.$_console_log('[Vuex][Mutations] Getting folder list')
@@ -256,6 +293,11 @@ const mutations = {
     if (filteredIndex > -1) {
       state.filteredFiles.splice(filteredIndex, 1)
     }
+  },
+  [types.BROWSER_FILE_COPY](state, data) {
+    ConMsgs.methods.$_console_log('[Vuex][Mutations] Copying a file')
+
+    state.copied = data
   },
   [types.BROWSER_LOADING_CONTENTS](state, data) {
     ConMsgs.methods.$_console_log(
