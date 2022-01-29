@@ -220,6 +220,8 @@ export default {
       loading: false,
       changing: false,
 
+      moveMode: false,
+
       features: {
         upload: false,
         delete: false,
@@ -265,7 +267,7 @@ export default {
           title: 'Properties',
           disabled: item => false,
           action: item => () => {
-            console.log('Properties not implemented yet')
+            this.$_console_log('Properties not implemented yet')
           },
         },
       ],
@@ -665,7 +667,6 @@ export default {
       return false
     },
     canRename(item) {
-      console.log(item)
       if (!this.features.move || item == null || item.isFolder == null) {
         return false
       }
@@ -688,7 +689,6 @@ export default {
       return false
     },
     canCopy(item) {
-      console.log(item)
       if (!this.features.move || item == null || item.isFolder == null) {
         return false
       }
@@ -738,7 +738,6 @@ export default {
       return false
     },
     canMove(item) {
-      console.log(item)
       if (!this.features.move || item == null || item.isFolder == null) {
         return false
       }
