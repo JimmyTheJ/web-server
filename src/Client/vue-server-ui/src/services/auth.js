@@ -9,6 +9,7 @@ import axios from '@/axios'
 const signinUrl = `api/account/login`
 const signoutUrl = `api/account/logout`
 const refreshTokenUrl = `api/account/refresh-jwt`
+const validateTokenUrl = `api/account/validate-tokens`
 const registerUrl = `api/account/register`
 const userChangePasswordUrl = `api/account/user/change-password`
 const getUserProfileUrl = `api/account/user/profile/get`
@@ -58,6 +59,11 @@ export default {
   },
   refreshToken(token) {
     return axios.post(`${refreshTokenUrl}`, `'${token}'`, {
+      withCredentials: true,
+    })
+  },
+  validateToken(token) {
+    return axios.post(`${validateTokenUrl}`, `'${token}'`, {
       withCredentials: true,
     })
   },

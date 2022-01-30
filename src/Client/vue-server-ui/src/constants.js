@@ -15,6 +15,13 @@ export const Roles = {
   },
 }
 
+export const TokenValidation = {
+  Valid: 0,
+  MissingRefreshToken: 1,
+  InvalidRefreshToken: 2,
+  RequiresNewJwt: 3,
+}
+
 export const MediaTypes = {
   Video: 1,
   Image: 2,

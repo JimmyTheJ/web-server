@@ -27,10 +27,10 @@ export default {
       setInterval(this.getRefreshToken, CONST.Admin.RefreshTokenTimer)
     },
     getRefreshToken() {
-      this.$_console_log(
-        `[${FN}]: Checking if we need to refresh our JWT token`
-      )
       if (this.$store.state.auth.isAuthorize) {
+        this.$_console_log(
+          `[${FN}]: Checking if we need to refresh our JWT token`
+        )
         if (requiresRefresh(this.$store.state.auth.accessToken)) {
           this.$store
             .dispatch('refreshToken')

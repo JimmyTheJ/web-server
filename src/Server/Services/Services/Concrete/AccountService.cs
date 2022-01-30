@@ -25,6 +25,7 @@ using VueServer.Models.Context;
 using VueServer.Models.Directory;
 using VueServer.Models.Response;
 using VueServer.Models.User;
+using VueServer.Services.Enums;
 using VueServer.Services.Interface;
 using static VueServer.Core.Extensions;
 
@@ -338,6 +339,39 @@ namespace VueServer.Services.Concrete
             }
         }
 
+        public async Task<IResult<TokenValidation>> ValidateToken(string token, IRequestCookieCollection cookies)
+        {
+            var isJwtValid = ValidateTokenAndGetName(token);
+            if (isJwtValid.Obj == null)
+            {
+                var cookie = cookies.Where(x => x.Key == DomainConstants.Authentication.REFRESH_TOKEN_COOKIE_KEY).Select(x => x.Value).FirstOrDefault();
+                if (cookie == null)
+                {
+                    return new Result<TokenValidation>(TokenValidation.MissingRefreshToken, Domain.Enums.StatusCode.OK);
+                }
+                else
+                {
+                    var principal = GetPrincipalFromExpiredToken(token);
+                    var username = principal.Claims.Where(x => x.Type == JwtRegisteredClaimNames.Sub).Select(x => x.Value).Single();
+
+                    var clientId = cookies.Where(x => x.Key == DomainConstants.Authentication.CLIENT_COOKIE_KEY).Select(x => x.Value).FirstOrDefault();
+                    var refreshToken = await CheckRefreshToken(username, token, clientId);
+                    if (refreshToken == null)
+                    {
+                        return new Result<TokenValidation>(TokenValidation.InvalidRefreshToken, Domain.Enums.StatusCode.OK);
+                    }
+                    else
+                    {
+                        return new Result<TokenValidation>(TokenValidation.RequiresNewJwt, Domain.Enums.StatusCode.OK);
+                    }
+                }
+            }
+            else
+            {
+                return new Result<TokenValidation>(TokenValidation.Valid, Domain.Enums.StatusCode.OK);
+            }
+        }
+
         public IResult<string> ValidateTokenAndGetName(string token)
         {
             var tokenValidationParameters = new TokenValidationParameters
@@ -346,7 +380,7 @@ namespace VueServer.Services.Concrete
                 ValidateIssuer = false,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:SigningKey"])),
-                ValidateLifetime = true //here we are saying that we don't care about the token's expiration date
+                ValidateLifetime = true //here we are saying that we do care about the token's expiration date
             };
 
             try

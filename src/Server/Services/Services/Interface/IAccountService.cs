@@ -6,6 +6,7 @@ using VueServer.Domain.Interface;
 using VueServer.Models.Account;
 using VueServer.Models.Response;
 using VueServer.Models.User;
+using VueServer.Services.Enums;
 
 namespace VueServer.Services.Interface
 {
@@ -18,6 +19,7 @@ namespace VueServer.Services.Interface
 
         IResult<string> GetCsrfToken(HttpContext context);
         IResult<string> ValidateTokenAndGetName(string token);
+        Task<IResult<TokenValidation>> ValidateToken(string token, IRequestCookieCollection cookies);
         Task<IResult<string>> RefreshJwtToken(string token, IRequestCookieCollection cookies);
 
         Task<IResult<IEnumerable<WSUser>>> GetUsers();

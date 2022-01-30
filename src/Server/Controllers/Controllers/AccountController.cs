@@ -104,6 +104,18 @@ namespace VueServer.Controllers
         }
 
         /// <summary>
+        /// Validate JWT and see whether a new JWT is required or not or if the refresh token exists or is expired
+        /// /// </summary>
+        /// <param name="accessToken">Old token to be validated</param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route(Route.Account.ValidateToken)]
+        public async Task<IActionResult> ValidateToken([FromBody] string token)
+        {
+            return _codeFactory.GetStatusCode(await _service.ValidateToken(token, HttpContext.Request.Cookies));
+        }
+
+        /// <summary>
         /// Get all user objects
         /// </summary>
         /// <returns></returns>

@@ -111,6 +111,7 @@
                 internal const string Login = "login";
                 internal const string Logout = "logout";
                 internal const string RefreshJwt = "refresh-jwt";
+                internal const string ValidateToken = "validate-tokens";
 
                 internal const string UserChangePassword = "user/change-password";
                 internal const string GetUserProfile = "user/profile/get/{id}";

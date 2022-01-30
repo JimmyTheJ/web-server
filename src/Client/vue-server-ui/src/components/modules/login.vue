@@ -31,7 +31,12 @@
 </template>
 
 <script>
-import Auth from '../../mixins/authentication'
+import { mapState } from 'vuex'
+
+import { TokenValidation } from '@/constants.js'
+import Auth from '@/mixins/authentication'
+import Dispatcher from '@/services/ws-dispatcher.js'
+import service from '@/services/auth.js'
 
 export default {
   data() {
@@ -53,11 +58,18 @@ export default {
     }
   },
   mixins: [Auth],
+  computed: {
+    ...mapState({
+      auth: state => state.auth,
+    }),
+  },
   beforeDestroy() {
     window.removeEventListener('keyup', this.enterKeyListener)
   },
   mounted() {
     window.addEventListener('keyup', this.enterKeyListener)
+
+    this.shouldContinueToHome()
   },
   methods: {
     enterKeyListener(e) {
@@ -75,6 +87,38 @@ export default {
           this.error = true
         })
         .then(() => (this.btnClicked = false))
+    },
+    shouldContinueToHome() {
+      if (this.auth.isAuthorize) {
+        Dispatcher.request(() => {
+          service
+            .validateToken(this.auth.accessToken)
+            .then(res => {
+              this.$_console_log('Successfully validated token.', res)
+              switch (res.data) {
+                case TokenValidation.Valid:
+                  this.$router.push({ name: 'home' })
+                  break
+                case TokenValidation.RequiresNewJwt:
+                  this.$store
+                    .dispatch('refreshToken')
+                    .then(() => {
+                      this.$router.push({ name: 'home' })
+                    })
+                    .catch(e => {
+                      // Eat it
+                    })
+                  break
+                case TokenValidation.MissingRefreshToken:
+                case TokenValidation.InvalidRefreshToken:
+                default:
+                  this.$store.dispatch('signout')
+                  break
+              }
+            })
+            .catch(e => {})
+        })
+      }
     },
   },
 }
