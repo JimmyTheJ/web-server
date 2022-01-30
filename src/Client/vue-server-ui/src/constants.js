@@ -22,7 +22,7 @@ export const MediaTypes = {
 }
 
 export const Admin = {
-  RefreshTokenTimer: 30 * 1000,
+  RefreshTokenTimer: 60 * 1000,
 }
 
 export const Delay = {

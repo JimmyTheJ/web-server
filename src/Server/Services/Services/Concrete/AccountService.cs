@@ -35,7 +35,7 @@ namespace VueServer.Services.Concrete
         /// <summary>Number of failed login attempts allowed before the requestor's IP is blocked</summary>
         const int MAX_FAILED_LOGINS = 6;
         /// <summary>Duration in minutes between JWT refresh requests necessary from Client</summary>
-        const double JWT_REFRESH_TIME = 1;
+        const double JWT_REFRESH_TIME = 30;
         /// <summary>Duration in days that a client secret is valid on the Server</summary>
         const double REFRESH_EXPIRE_TIME = 30;
 
