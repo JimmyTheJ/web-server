@@ -87,3 +87,11 @@ export const NotificationTypes = {
   Upload: 2,
   LibraryBook: 4,
 }
+
+export const Modules = {
+  Browser: 'browser',
+  Chat: 'chat',
+  Library: 'library',
+  Notes: 'notes',
+  Weight: 'weight',
+}

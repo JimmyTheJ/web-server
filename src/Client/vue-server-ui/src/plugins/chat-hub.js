@@ -1,6 +1,9 @@
 'use strict'
 
 import { HubConnectionBuilder, LogLevel } from '@aspnet/signalr'
+import store from '../store/index.js'
+import { Modules } from '../constants.js'
+const DELAY = 5000
 
 export default {
   install(Vue) {
@@ -23,19 +26,34 @@ export default {
 
     let startedPromise = null
     function start() {
-      startedPromise = connection.start().catch(err => {
-        console.error('Failed to connect with hub', err)
+      let isAuthorize = store.state.auth.isAuthorize
+      let modules = store.state.auth.activeModules
+      // Only try to connect if we are authorized and have the chat module is our list of features
+      if (isAuthorize && modules.findIndex(x => x.id === Modules.Chat) > -1) {
+        startedPromise = connection.start().catch(err => {
+          console.error('Failed to connect with hub', err)
+          return new Promise((resolve, reject) =>
+            setTimeout(
+              () =>
+                start()
+                  .then(resolve)
+                  .catch(reject),
+              DELAY
+            )
+          )
+        })
+        return startedPromise
+      } else {
         return new Promise((resolve, reject) =>
           setTimeout(
             () =>
               start()
                 .then(resolve)
                 .catch(reject),
-            5000
+            DELAY
           )
         )
-      })
-      return startedPromise
+      }
     }
     connection.onclose(() => start())
 
