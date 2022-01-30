@@ -113,7 +113,7 @@ namespace VueServer.Classes.Extensions
         {
             services.AddSession(options =>
             {
-                options.Cookie.Name = "WebServer.session";
+                options.Cookie.Name = "VueServer.session";
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                 options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
@@ -311,7 +311,7 @@ namespace VueServer.Classes.Extensions
         /// <param name="logger"></param>
         public static void UsePublicFiles(this IApplicationBuilder app, IWebHostEnvironment env, ILogger logger)
         {
-            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"public"), "StartupExtensions: Error creating dist folder")) return;
+            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"public"), "StartupExtensions: Error creating public folder")) return;
 
             app.UseStaticFiles(new StaticFileOptions()
             {

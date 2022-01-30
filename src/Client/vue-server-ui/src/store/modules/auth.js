@@ -11,7 +11,6 @@ const state = {
   role: localStorage.getItem('userRole') || '',
 
   accessToken: localStorage.getItem('accessToken') || '',
-  codeChallenge: localStorage.getItem('codeChallenge') || '',
 
   activeModules: JSON.parse(localStorage.getItem('activeModules')) || [],
   userMap: JSON.parse(localStorage.getItem('userMap')) || {},
@@ -26,10 +25,7 @@ const actions = {
     try {
       ConMsgs.methods.$_console_log('Getting refresh token')
 
-      const res = await authAPI.refreshToken(
-        state.accessToken,
-        state.codeChallenge
-      )
+      const res = await authAPI.refreshToken(state.accessToken)
       commit(types.JWT_TOKEN_CREATE, res.data)
       return await Promise.resolve(res.data)
     } catch (e) {
@@ -45,9 +41,7 @@ const actions = {
       ConMsgs.methods.$_console_log('Signing in')
 
       // Get code challenge to send to server
-      let challenge = getCodeChallenge()
-      commit(types.CODE_CHALLENGE_CREATE, challenge)
-      context.codeChallenge = challenge
+      context.codeChallenge = getCodeChallenge()
 
       const res = await authAPI.signin(context)
       commit(types.LOGIN_SUCCESS, res.data)
@@ -234,16 +228,6 @@ const mutations = {
     state.accessToken = ''
     localStorage.removeItem('accessToken')
   },
-  [types.CODE_CHALLENGE_CREATE](state, data) {
-    ConMsgs.methods.$_console_log('Mutating code challenge create')
-    state.codeChallenge = data
-    localStorage.setItem('codeChallenge', data)
-  },
-  [types.CODE_CHALLENGE_DESTROY](state) {
-    ConMsgs.methods.$_console_log('Mutating code challenge destroy')
-    state.codeChallenge = ''
-    localStorage.removeItem('codeChallenge')
-  },
   [types.LOGIN_SUCCESS](state, data) {
     ConMsgs.methods.$_console_log('Mutating login success')
     let role = data.roles[0].toString()
@@ -264,7 +248,6 @@ const mutations = {
     state.user = {}
     state.role = ''
     state.accessToken = ''
-    state.codeChallenge = ''
     state.isAuthorize = false
     state.activeModules = []
     state.userMap = {}
@@ -273,7 +256,6 @@ const mutations = {
     localStorage.removeItem('user')
     localStorage.removeItem('userRole')
     localStorage.removeItem('accessToken')
-    localStorage.removeItem('codeChallenge')
     localStorage.removeItem('isAuthorize')
     localStorage.removeItem('activeModules')
     localStorage.removeItem('userMap')

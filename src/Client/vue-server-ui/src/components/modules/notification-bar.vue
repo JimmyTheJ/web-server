@@ -60,9 +60,9 @@ export default {
       this.isLoading = true
       this.sheet = newValue
 
-      setTimeout(() => {
+      this.$nextTick(() => {
         this.isLoading = false
-      }, 5)
+      })
     },
     sheet(newValue) {
       if (!this.isLoading) this.$store.dispatch('openNotifications', newValue)

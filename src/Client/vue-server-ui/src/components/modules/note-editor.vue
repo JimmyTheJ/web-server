@@ -76,18 +76,18 @@ export default {
   },
   methods: {
     updateText() {
-      setTimeout(() => {
+      this.$nextTick(() => {
         this.$_console_log('Text: ' + this.$refs.note.innerText)
         this.note.text = this.$refs.note.innerText
         this.$emit('updateObj', this.note)
-      }, 1)
+      })
     },
     updateTitle() {
-      setTimeout(() => {
+      this.$nextTick(() => {
         this.$_console_log('Title: ' + this.$refs.title.innerText)
         this.note.title = this.$refs.title.innerText
         this.$emit('updateObj', this.note)
-      }, 1)
+      })
     },
     deleteNote() {
       this.$emit('delete', this.note)
@@ -107,10 +107,6 @@ export default {
   width: 100%;
   padding: 3px;
   text-align: center;
-}
-
-.nav-header.center {
-  /*text-align: center;*/
 }
 
 .nav-header.left {

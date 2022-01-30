@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using VueServer.Core.Status;
+using VueServer.Domain;
 using VueServer.Models.Account;
 using VueServer.Models.Request;
 using VueServer.Services.Interface;
@@ -59,7 +60,20 @@ namespace VueServer.Controllers
         [Route(Route.Account.Login)]
         public async Task<IActionResult> Login([FromBody] LoginRequest model)
         {
-            return _codeFactory.GetStatusCode(await _service.Login(HttpContext, model));
+            var result = await _service.Login(HttpContext, model);
+            if (result.Obj == null)
+            {
+                if (HttpContext.Request.Cookies.ContainsKey(DomainConstants.Authentication.REFRESH_TOKEN_COOKIE_KEY))
+                    HttpContext.Response.Cookies.Delete(DomainConstants.Authentication.REFRESH_TOKEN_COOKIE_KEY);
+            }
+            else
+            {
+                HttpContext.Response.Cookies.Append(result.Obj.RefreshCookie.Key, result.Obj.RefreshCookie.Value, result.Obj.RefreshCookie.Options);
+                if (result.Obj.ClientIdCookie != null)
+                    HttpContext.Response.Cookies.Append(result.Obj.ClientIdCookie.Key, result.Obj.ClientIdCookie.Value, result.Obj.ClientIdCookie.Options);
+            }
+
+            return _codeFactory.GetStatusCode(result);
         }
 
         /// <summary>
@@ -73,6 +87,7 @@ namespace VueServer.Controllers
         [Route(Route.Account.Logout)]
         public async Task<IActionResult> Logout([FromBody] string username)
         {
+            HttpContext.Response.Cookies.Delete(DomainConstants.Authentication.REFRESH_TOKEN_COOKIE_KEY);
             return _codeFactory.GetStatusCode(await _service.Logout(HttpContext, username));
         }
 
@@ -83,9 +98,9 @@ namespace VueServer.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route(Route.Account.RefreshJwt)]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest model)
+        public async Task<IActionResult> RefreshToken([FromBody] string token)
         {
-            return _codeFactory.GetStatusCode(await _service.RefreshJwtToken(model));
+            return _codeFactory.GetStatusCode(await _service.RefreshJwtToken(token, HttpContext.Request.Cookies));
         }
 
         /// <summary>

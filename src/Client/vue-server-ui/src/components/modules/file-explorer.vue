@@ -480,7 +480,7 @@ export default {
     getDirectoryFromRoute() {
       this.changing = true
 
-      setTimeout(() => {
+      this.$nextTick(() => {
         if (typeof this.$route.params.folder !== 'undefined') {
           this.$_console_log(
             '[file-explorer] getDirectoryFromRoute: Params.folder is not null, getting base path from url',
@@ -504,10 +504,10 @@ export default {
           }
         }
 
-        setTimeout(() => {
+        this.$nextTick(() => {
           this.changing = false
-        }, 5)
-      }, 25)
+        })
+      })
     },
 
     open(item) {

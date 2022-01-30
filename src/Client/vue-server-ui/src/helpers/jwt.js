@@ -18,7 +18,7 @@ export const requiresRefresh = function(token) {
 }
 
 export const parse = function(token) {
-  return JSON.parse(atob(token.split('.')[1]))
+  return JSON.parse(Buffer.from(token.split('.')[1], 'base64'))
 }
 
 export const getCodeChallenge = function(len) {

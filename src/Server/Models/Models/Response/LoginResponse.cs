@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace VueServer.Models.Response
 {
@@ -12,6 +14,12 @@ namespace VueServer.Models.Response
 
         public IList<string> Roles { get; set; }
 
+        [JsonIgnore]
+        public VueCookie RefreshCookie { get; set; } = new VueCookie();
+
+        [JsonIgnore]
+        public VueCookie ClientIdCookie { get; set; }
+
         public LoginResponse() { }
 
         public LoginResponse(string token, WSUserResponse user, IList<string> roles)
@@ -20,5 +28,12 @@ namespace VueServer.Models.Response
             User = user;
             Roles = roles;
         }
+    }
+
+    public class VueCookie
+    {
+        public CookieOptions Options { get; set; } = new CookieOptions();
+        public string Key { get; set; }
+        public string Value { get; set; }
     }
 }

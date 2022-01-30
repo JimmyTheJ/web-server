@@ -69,7 +69,7 @@ namespace VueServer.Controllers
         [HttpDelete]
         [Authorize(Roles = ADMINISTRATOR_STRING)]
         [Route(Route.Admin.DeleteServerSetting)]
-        public async Task<IActionResult> SetServerSetting(string key)
+        public async Task<IActionResult> DeleteServerSetting(string key)
         {
             return _codeFactory.GetStatusCode(await _adminService.DeleteServerSetting(key));
         }

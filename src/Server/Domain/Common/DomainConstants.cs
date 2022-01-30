@@ -9,6 +9,9 @@
             public const int MAX_USERNAME_LENGTH = 64;
             public const string DEFAULT_PASSWORD = "SimplePa$$word420-69_777";
 
+            public const string REFRESH_TOKEN_COOKIE_KEY = "VueServer.Auth.RefreshToken";
+            public const string CLIENT_COOKIE_KEY = "VueServer.ClientId";
+
             public const string INVALID_STRING = "INVALID";
 
             public const string USER_STRING = "User";

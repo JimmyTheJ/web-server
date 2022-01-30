@@ -64,9 +64,9 @@ export default {
       this.message = { text: '' }
       this.$nextTick(() => {
         this.$refs.msgTextArea.focus()
-        setTimeout(() => {
+        this.$nextTick(() => {
           this.getChatAreaHeight()
-        }, 100)
+        })
       })
     },
     getChatAreaHeight() {

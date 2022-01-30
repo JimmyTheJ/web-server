@@ -28,11 +28,15 @@ const adminGetRolesUrl = `api/admin/roles/get-all`
  */
 export default {
   signin(data) {
-    return axios.post(signinUrl, {
-      username: data.username,
-      password: data.password,
-      codeChallenge: data.codeChallenge,
-    })
+    return axios.post(
+      signinUrl,
+      {
+        username: data.username,
+        password: data.password,
+        codeChallenge: data.codeChallenge,
+      },
+      { withCredentials: true }
+    )
   },
   signout(username) {
     return axios.post(signoutUrl, `"${username}"`)
@@ -52,10 +56,9 @@ export default {
       })
     }
   },
-  refreshToken(token, codeChallenge) {
-    return axios.post(`${refreshTokenUrl}`, {
-      token: token,
-      codeChallenge: codeChallenge,
+  refreshToken(token) {
+    return axios.post(`${refreshTokenUrl}`, `'${token}'`, {
+      withCredentials: true,
     })
   },
   register(data) {

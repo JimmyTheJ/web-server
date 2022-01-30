@@ -7,9 +7,9 @@
 </template>
 
 <script>
+const FN = 'App'
 import * as CONST from '@/constants'
-import { setTimeout } from 'core-js'
-import { parse as parseJwt } from '@/helpers/jwt'
+import { parse as parseJwt, requiresRefresh } from '@/helpers/jwt'
 import AuthenticationMixin from '@/mixins/authentication.js'
 
 export default {
@@ -24,27 +24,22 @@ export default {
   mixins: [AuthenticationMixin],
   methods: {
     refreshTokenJob() {
-      setTimeout(() => {
-        //getRefreshToken
-        if (this.$store.state.auth.isAuthorize) {
-          const token = parseJwt(this.$store.state.auth.accessToken)
-          let time = new Date().getTime() / 1000
-          // If the refresh token is going to expire before the next loop happens we should refresh it
-          if (time + CONST.Admin.RefreshTokenTimer / 1000 >= token.exp) {
-            this.$_console_log(
-              'Token timeout is about to be reached. Getting new token'
+      setInterval(this.getRefreshToken, CONST.Admin.RefreshTokenTimer)
+    },
+    getRefreshToken() {
+      this.$_console_log(
+        `[${FN}]: Checking if we need to refresh our JWT token`
+      )
+      if (this.$store.state.auth.isAuthorize) {
+        if (requiresRefresh(this.$store.state.auth.accessToken)) {
+          this.$store
+            .dispatch('refreshToken')
+            .then(() => {})
+            .catch(() =>
+              this.$_console_log(`[${FN}]: Failed to get refreshed JWT token`)
             )
-            this.$store
-              .dispatch('refreshToken')
-              .then(() => {})
-              .catch(() =>
-                this.$_console_log('Failed to get time released refresh token')
-              )
-          }
         }
-
-        this.refreshTokenJob()
-      }, CONST.Admin.RefreshTokenTimer)
+      }
     },
   },
 }

@@ -56,6 +56,11 @@ namespace VueServer
                 options.PayloadSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             });
 
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                options.CheckConsentNeeded = context => false;
+                options.MinimumSameSitePolicy = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+            });
             services.AddCustomSession();
 
             //services.AddDataProtection(options => options.ApplicationDiscriminator = "VueServer")

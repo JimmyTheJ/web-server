@@ -309,12 +309,12 @@ export default {
         const self = this
         this.loadingBook = true
 
-        setTimeout(() => {
+        this.$nextTick(() => {
           self.setActiveBook(obj)
-          setTimeout(() => {
+          this.$nextTick(() => {
             self.loadingBook = false
-          }, 15)
-        }, 5)
+          })
+        })
       }
 
       this.bookDialogOpen = true

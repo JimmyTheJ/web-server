@@ -37,7 +37,6 @@
 import noteService from '@/services/note'
 import Dispatcher from '@/services/ws-dispatcher'
 import NoteEditor from '@/components/modules/note-editor'
-import { setTimeout } from 'core-js'
 
 function initializeNewNote(id) {
   return {
@@ -136,10 +135,10 @@ export default {
               else {
                 this.newNotes.splice(index, 1)
               }
-              setTimeout(() => {
+              this.$nextTick(() => {
                 if (this.newNotes.length === 0)
                   this.newNotes.push(initializeNewNote(this.idCount--))
-              }, 10)
+              })
             })
             .catch(() => this.$_console_log('[Notes] Error creating note'))
         })

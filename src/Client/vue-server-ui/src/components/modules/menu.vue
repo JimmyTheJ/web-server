@@ -97,7 +97,6 @@ import { mapState } from 'vuex'
 import Auth from '../../mixins/authentication'
 import Module from '../../mixins/module'
 import { Roles } from '../../constants'
-import { setTimeout } from 'core-js'
 
 export default {
   data() {

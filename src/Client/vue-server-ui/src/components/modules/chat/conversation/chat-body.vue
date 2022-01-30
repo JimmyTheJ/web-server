@@ -306,20 +306,6 @@ export default {
 
           if (correctElement !== null)
             this.chatWindow.scrollTo(0, height - this.chatWindow.offsetTop)
-
-          //   this.$store.dispatch('highlightMessage', {
-          //     messageId: lastMessage.id,
-          //     conversationId: lastMessage.conversationId,
-          //     on: true,
-          //   })
-          //   setTimeout(() => {
-          //     this.$store.dispatch('highlightMessage', {
-          //       messageId: lastMessage.id,
-          //       conversationId: lastMessage.conversationId,
-          //       on: false,
-          //     })
-          //   }, 3000)
-          // }
         })
       } else {
         this.$_console_log('ScrollToLastReadMessage: All messages are read.')

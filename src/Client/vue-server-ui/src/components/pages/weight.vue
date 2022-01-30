@@ -175,7 +175,6 @@
 
 <script>
 import { mapState } from 'vuex'
-import { setTimeout } from 'core-js'
 import weightService from '@/services/weight'
 import Dispatcher from '@/services/ws-dispatcher'
 import genericDialog from '@/components/modules/generic-dialog.vue'

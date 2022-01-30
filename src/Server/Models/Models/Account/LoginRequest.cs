@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace VueServer.Models.Account
 {
@@ -19,7 +16,10 @@ namespace VueServer.Models.Account
 
         public string CodeChallenge { get; set; }
 
-        public LoginRequest (string username, string password, string codeChallenge = null)
+        [JsonIgnore]
+        public string ClientId { get; set; }
+
+        public LoginRequest(string username, string password, string codeChallenge = null)
         {
             Username = username;
             Password = password;

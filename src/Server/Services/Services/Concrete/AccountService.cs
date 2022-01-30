@@ -32,8 +32,12 @@ namespace VueServer.Services.Concrete
 {
     public class AccountService : IAccountService
     {
+        /// <summary>Number of failed login attempts allowed before the requestor's IP is blocked</summary>
         const int MAX_FAILED_LOGINS = 6;
-        const double REFRESH_TIME = 30;
+        /// <summary>Duration in minutes between JWT refresh requests necessary from Client</summary>
+        const double JWT_REFRESH_TIME = 1;
+        /// <summary>Duration in days that a client secret is valid on the Server</summary>
+        const double REFRESH_EXPIRE_TIME = 30;
 
         /// <summary>  Used to manage the user sign in process, which is all part of the Identity Framework </summary>
         private readonly SignInManager<WSUser> _signInManager;
@@ -154,8 +158,18 @@ namespace VueServer.Services.Concrete
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
-            // Try and sign in with the username and password
-            var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, true, false);
+            // Get WSUser object
+            var user = await _userManager.FindByNameAsync(model.Username);
+            if (user == null)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User not found");
+
+                await Signout(context, model.Username);
+                return new Result<LoginResponse>(null, Domain.Enums.StatusCode.SERVER_ERROR);
+            }
+
+            // See if sign in credentials are valid with the username and password passed in
+            var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
 
             // If login was unsuccessful redirect back to view
             if (!result.Succeeded)
@@ -172,14 +186,6 @@ namespace VueServer.Services.Concrete
             _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successful login of " + model.Username + " @ " + _user.IP);
 
             //set user role to session
-            var user = await _userManager.FindByNameAsync(model.Username);
-            if (user == null)
-            {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User not found");
-
-                await Signout(context, model.Username);
-                return new Result<LoginResponse>(null, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
 
             var roles = await _userManager.GetRolesAsync(user);
             if (roles == null || roles.Count == 0)
@@ -195,7 +201,7 @@ namespace VueServer.Services.Concrete
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.Jti, GenerateRefreshToken()),
+                new Claim(JwtRegisteredClaimNames.Jti, GenerateBase64RandomNumber()),
                 new Claim(JwtRegisteredClaimNames.Iat, now.ToUniversalTime().ToString(), ClaimValueTypes.Integer64),
                 new Claim(ClaimTypes.Role, roles[0])
             };
@@ -203,7 +209,45 @@ namespace VueServer.Services.Concrete
             //claimsIdentity.AddClaims(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
             var token = GenerateJwtToken(claims);
-            if (!(await SaveRefreshToken(user.Id, model.CodeChallenge, _user.IP)))
+
+            var resp = new LoginResponse()
+            {
+                Token = token,
+                Roles = roles
+            };
+
+            // Ensure user has a ClientId. If not, create one and send it back so a cookie can be created
+            if (!context.Request.Cookies.ContainsKey(DomainConstants.Authentication.CLIENT_COOKIE_KEY))
+            {
+                model.ClientId = Guid.NewGuid().ToString();
+                resp.ClientIdCookie = new VueCookie()
+                {
+                    Key = DomainConstants.Authentication.CLIENT_COOKIE_KEY,
+                    Value = model.ClientId,
+                    Options = new CookieOptions()
+                    {
+                        HttpOnly = true,
+                        Path = "/",
+                        SameSite = SameSiteMode.Lax,
+                        Secure = false,
+                        Expires = DateTime.Now + TimeSpan.FromDays(365 * 10)
+                    }
+                };
+            }
+            else
+            {
+                model.ClientId = context.Request.Cookies.Where(x => x.Key == DomainConstants.Authentication.CLIENT_COOKIE_KEY).Select(x => x.Value).FirstOrDefault();
+            }
+
+            // Generate refresh token
+            var sha256 = CalculateSHA256(model.CodeChallenge);
+            var salt = GenerateBase64RandomBytes();
+            var saltNHash = new byte[sha256.Length + salt.Length];
+            sha256.CopyTo(saltNHash, 0);
+            salt.CopyTo(saltNHash, sha256.Length);
+            var refreshToken = Convert.ToBase64String(saltNHash);
+
+            if (!(await SaveRefreshToken(user.Id, refreshToken, model.ClientId, _user.IP)))
             {
                 await Signout(context, model.Username);
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.SERVER_ERROR);
@@ -231,8 +275,17 @@ namespace VueServer.Services.Concrete
             {
                 userResponse.ChangePassword = true;
             }
+            resp.User = userResponse;
 
-            var resp = new LoginResponse(token, userResponse, roles);
+            // Build Secure cookie
+            resp.RefreshCookie.Key = DomainConstants.Authentication.REFRESH_TOKEN_COOKIE_KEY;
+            resp.RefreshCookie.Value = refreshToken;
+            resp.RefreshCookie.Options.Expires = DateTime.Now + TimeSpan.FromDays(REFRESH_EXPIRE_TIME);
+            resp.RefreshCookie.Options.HttpOnly = true;
+            resp.RefreshCookie.Options.SameSite = SameSiteMode.Strict;
+            resp.RefreshCookie.Options.Path = "/";
+            resp.RefreshCookie.Options.Secure = true;
+
             return new Result<LoginResponse>(resp, Domain.Enums.StatusCode.OK);
         }
 
@@ -310,31 +363,29 @@ namespace VueServer.Services.Concrete
             }
         }
 
-        public async Task<IResult<string>> RefreshJwtToken(RefreshTokenRequest model)
+        public async Task<IResult<string>> RefreshJwtToken(string token, IRequestCookieCollection cookies)
         {
-            if (model == null)
+            if (string.IsNullOrWhiteSpace(token))
             {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Token is null or empty");
                 return new Result<string>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
-            var principal = GetPrincipalFromExpiredToken(model.Token);
+            var principal = GetPrincipalFromExpiredToken(token);
             var username = principal.Claims.Where(x => x.Type == JwtRegisteredClaimNames.Sub).Select(x => x.Value).Single();
 
-            var validToken = await CheckRefreshToken(username, model.CodeChallenge);
+            var refreshToken = cookies.Where(x => x.Key == DomainConstants.Authentication.REFRESH_TOKEN_COOKIE_KEY).Select(x => x.Value).FirstOrDefault();
+            var clientId = cookies.Where(x => x.Key == DomainConstants.Authentication.CLIENT_COOKIE_KEY).Select(x => x.Value).FirstOrDefault();
+            var validToken = await CheckRefreshToken(username, refreshToken, clientId);
             if (validToken == null)
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No valid token");
                 return new Result<string>(null, Domain.Enums.StatusCode.UNAUTHORIZED);
             }
 
-            if (!await SaveRefreshToken(username, model.CodeChallenge, _user.IP))
-            {
-                return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
-            }
-
             // Update unique value
             var jti = principal.Claims.Where(x => x.Type == JwtRegisteredClaimNames.Jti).Single();
-            jti = new Claim(JwtRegisteredClaimNames.Jti, GenerateRefreshToken());
+            jti = new Claim(JwtRegisteredClaimNames.Jti, GenerateBase64RandomNumber());
 
             // Generate new token to return to client
             var newJwtToken = GenerateJwtToken(principal.Claims);
@@ -631,8 +682,8 @@ namespace VueServer.Services.Concrete
                 await InvalidateRefreshToken(token);
             }
 
-            // Sign me out
-            await _signInManager.SignOutAsync();
+            // Sign me out (This shouldn't be required, as we never really "sign in"
+            //await _signInManager.SignOutAsync();
             context.Session.Clear();
         }
 
@@ -647,7 +698,7 @@ namespace VueServer.Services.Concrete
         /// <param name="id"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async Task<WSUserTokens> CheckRefreshToken(string id, string token, string ip = null)
+        private async Task<WSUserTokens> CheckRefreshToken(string id, string token, string clientId, string ip = null)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -661,40 +712,38 @@ namespace VueServer.Services.Concrete
                 return null;
             }
 
-            var tokenQuery = _context.UserTokens.AsQueryable();
-            tokenQuery = tokenQuery.Where(x => x.UserId == id);
-            if (ip != null)
+            if (string.IsNullOrWhiteSpace(clientId))
             {
-                tokenQuery = tokenQuery.Where(x => x.IPAddress == ip);
-            }
-
-            var tokens = await tokenQuery.ToListAsync();
-            if (tokens == null)
-            {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) does not have any refresh tokens in the data store");
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) has a potentially valid token, but no associated clientId");
                 return null;
             }
 
-            var matchedToken = tokens.Where(x => x.Token == token).SingleOrDefault();
-            if (matchedToken == null)
+            var returnedToken = _context.UserTokens.Where(x => x.UserId == id && x.ClientId == clientId).FirstOrDefault();
+            if (returnedToken == null)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) does not have any refresh tokens in the data store for this client Id ({clientId})");
+                return null;
+            }
+
+            if (returnedToken.Token != token)
             {
                 _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) does not have a refresh token that matches the passed in token value in the data store. This could potentially mean someone is trying to impersonate the user. Invalidating all refresh tokens for user.");
                 return null;
             }
 
-            if (!matchedToken.Valid)
+            if (!returnedToken.Valid)
             {
                 _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) does have a refresh token that matches the passed in token value in the data store, but it has been previously invalidated. This could potentially mean someone has gained access to a user's device and is trying to pass iligitimate information to the server.");
                 return null;
             }
 
-            if (IsRefreshTokenExpired(matchedToken.Issued))
+            if (IsRefreshTokenExpired(returnedToken.Issued))
             {
                 _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) does have a refresh token that matches the passed in token value in the data store, but it has expired.");
                 return null;
             }
 
-            return matchedToken;
+            return returnedToken;
         }
 
         private bool IsRefreshTokenExpired(DateTime value)
@@ -767,13 +816,19 @@ namespace VueServer.Services.Concrete
         /// Save the newly created and validated refresh token to the data store
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="token"></param>
+        /// <param name="refreshToken"></param>
         /// <returns></returns>
-        private async Task<bool> SaveRefreshToken(string id, string token, string ip)
+        private async Task<bool> SaveRefreshToken(string id, string refreshToken, string clientId, string ip)
         {
-            if (string.IsNullOrWhiteSpace(token))
+            if (string.IsNullOrWhiteSpace(refreshToken))
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Token is null or empty");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(clientId))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Client Id is null or empty");
                 return false;
             }
 
@@ -784,24 +839,26 @@ namespace VueServer.Services.Concrete
             }
 
             var now = DateTime.UtcNow;
-            var tokenIP = await _context.UserTokens.Where(x => x.IPAddress == ip && x.UserId == id).SingleOrDefaultAsync();
+            var tokenIP = await _context.UserTokens.Where(x => x.UserId == id && x.ClientId == clientId).SingleOrDefaultAsync();
             if (tokenIP == null)
             {
                 var newTok = new WSUserTokens
                 {
                     Issued = now,
-                    Token = token,
+                    Token = refreshToken,
                     UserId = id,
                     Valid = true,
-                    IPAddress = ip
+                    IPAddress = ip,
+                    ClientId = clientId
                 };
                 _context.UserTokens.Add(newTok);
             }
             else
             {
                 tokenIP.Issued = now;
-                tokenIP.Token = token;
+                tokenIP.Token = refreshToken;
                 tokenIP.Valid = true;
+                tokenIP.IPAddress = ip;
             }
 
             try
@@ -810,7 +867,7 @@ namespace VueServer.Services.Concrete
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after creating the refresh token: '{token}' token from IP: {ip}");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after creating the refresh token: '{refreshToken}' token from IP: {ip}");
                 return false;
             }
 
@@ -854,10 +911,9 @@ namespace VueServer.Services.Concrete
                 audience: _config["Jwt:Audience"],
                 claims: claims,
                 notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddMinutes(REFRESH_TIME),
+                expires: DateTime.UtcNow.AddMinutes(JWT_REFRESH_TIME),
                 signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:SigningKey"])), SecurityAlgorithms.HmacSha256)
             );
-
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
@@ -878,7 +934,7 @@ namespace VueServer.Services.Concrete
         /// Secure way to build a random 256 bit key
         /// </summary>
         /// <returns></returns>
-        private string GenerateRefreshToken()
+        private string GenerateBase64RandomNumber()
         {
             var randomNumber = new byte[32];
             using (var rng = RandomNumberGenerator.Create())
@@ -887,6 +943,27 @@ namespace VueServer.Services.Concrete
                 return Convert.ToBase64String(randomNumber);
             }
         }
+
+        private byte[] GenerateBase64RandomBytes()
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+                return randomNumber;
+            }
+        }
+
+        private byte[] CalculateSHA256(string str)
+        {
+            SHA256 sha256 = SHA256Managed.Create();
+            byte[] hashValue;
+            UTF8Encoding objUtf8 = new UTF8Encoding();
+            hashValue = sha256.ComputeHash(objUtf8.GetBytes(str));
+
+            return hashValue;
+        }
+
 
         private async Task<bool> CreateUserProfile(string userId)
         {

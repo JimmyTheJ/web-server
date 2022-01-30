@@ -136,21 +136,21 @@ export default {
     },
   },
   watch: {
-    message: {
-      handler(newValue) {
-        if (typeof newValue !== 'undefined' && newValue.highlighted === true) {
-          this.$_console_log('Message.Highlighted watcher: highlight = true')
-          setTimeout(() => {
-            this.$store.dispatch('highlightMessage', {
-              messageId: newValue.id,
-              conversationId: newValue.conversationId,
-              on: false,
-            })
-          }, 6000)
-        }
-      },
-      deep: true,
-    },
+    // message: {
+    //   handler(newValue) {
+    //     if (typeof newValue !== 'undefined' && newValue.highlighted === true) {
+    //       this.$_console_log('Message.Highlighted watcher: highlight = true')
+    //       setTimeout(() => {
+    //         this.$store.dispatch('highlightMessage', {
+    //           messageId: newValue.id,
+    //           conversationId: newValue.conversationId,
+    //           on: false,
+    //         })
+    //       }, 6000)
+    //     }
+    //   },
+    //   deep: true,
+    // },
     currentTime: {
       handler(newValue) {
         let t = this.timeSince(newValue)

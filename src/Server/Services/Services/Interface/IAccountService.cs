@@ -18,7 +18,7 @@ namespace VueServer.Services.Interface
 
         IResult<string> GetCsrfToken(HttpContext context);
         IResult<string> ValidateTokenAndGetName(string token);
-        Task<IResult<string>> RefreshJwtToken(RefreshTokenRequest token);
+        Task<IResult<string>> RefreshJwtToken(string token, IRequestCookieCollection cookies);
 
         Task<IResult<IEnumerable<WSUser>>> GetUsers();
         Task<IResult<WSUserProfile>> GetUserProfile(string userId);

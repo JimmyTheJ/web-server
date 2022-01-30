@@ -24,6 +24,8 @@ namespace VueServer.Models.User
         [Required]
         public string UserId { get; set; }
 
+        public string ClientId { get; set; }
+
         public WSUser User { get; set; }
     }
 }
