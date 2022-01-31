@@ -40,6 +40,7 @@ export default {
   },
   methods: {
     onMessageReceived(message) {
+      this.$_console_log('Ding ding ding. Message received', message)
       if (typeof message !== 'object' || message === null) {
         return
       }

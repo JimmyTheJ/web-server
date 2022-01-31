@@ -21,5 +21,7 @@ namespace VueServer.Services.Hubs
                 await Clients.All.ReadMessage(receipt);
             }
         }
+
+        public Task GetConnectionId() => Task.FromResult(Context.ConnectionId);
     }
 }

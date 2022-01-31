@@ -7,5 +7,6 @@ namespace VueServer.Services.Hubs
     {
         Task SendMessage(ChatMessage message);
         Task ReadMessage(ReadReceipt receipt);
+        Task GetConnectionId();
     }
 }

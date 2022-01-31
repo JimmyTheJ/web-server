@@ -33,6 +33,13 @@ export default {
 
           this.$_auth_addRoutes()
           this.$_auth_checkLogin(error)
+
+          setTimeout(() => {
+            console.log(this.$chatHub)
+            this.$chatHub.invoke('getconnectionid').then(data => {
+              //commit(types.CHAT_GET_CONNECTION_ID, data)
+            })
+          }, 5000)
         })
         .catch(ex => {
           ConMsgs.methods.$_console_log('Error logging in', ex)

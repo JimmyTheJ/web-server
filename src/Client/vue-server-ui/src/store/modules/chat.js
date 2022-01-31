@@ -5,8 +5,8 @@ import ConMsgs from '@/mixins/console'
 import Dispatcher from '@/services/ws-dispatcher'
 
 const state = {
+  connectionId: '',
   conversations: [],
-  //selectedConversation: {},
 }
 
 const getters = {
@@ -34,6 +34,16 @@ const actions = {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Clearing chat')
 
     commit(types.CHAT_CLEAR)
+  },
+  async getChatHubConnectionId({ commit }) {
+    ConMsgs.methods.$_console_log(
+      '[Vuex][Actions] Getting Chat Hub Connection Id'
+    )
+
+    ConMsgs.methods.$_console_log('This is: ', this)
+    // this.$chatHub.invoke('getconnectionid').then(data => {
+    //   commit(types.CHAT_GET_CONNECTION_ID, data)
+    // })
   },
   async getNewConversationNotifications({ commit }) {
     ConMsgs.methods.$_console_log(
@@ -326,7 +336,11 @@ const mutations = {
   [types.CHAT_CLEAR](state) {
     ConMsgs.methods.$_console_log('[Vuex][Mutations] Mutating clearing chat')
 
+    state.connectionId = ''
     state.conversations = []
+  },
+  [types.CHAT_GET_CONNECTION_ID](state, data) {
+    state.connectionId = data
   },
   [types.CHAT_CONVERSATION_UPDATE_NEW_MESSAGE_COUNT](state, data) {
     ConMsgs.methods.$_console_log(

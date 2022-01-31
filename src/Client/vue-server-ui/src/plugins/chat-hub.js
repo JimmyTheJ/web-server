@@ -44,6 +44,10 @@ export default {
         })
         return startedPromise
       } else {
+        console.log('Chat Hub State')
+        console.log(connection.state)
+        connection.onclose(() => console.log('Closed')) // eat it
+        connection.stop().catch(err => console.error(err))
         return new Promise((resolve, reject) =>
           setTimeout(
             () =>
@@ -55,7 +59,9 @@ export default {
         )
       }
     }
-    connection.onclose(() => start())
+    connection.onclose(() => {
+      if (connection.status === 0) start()
+    })
 
     start()
 
