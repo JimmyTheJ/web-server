@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 using VueServer.Models.Context;
 using VueServer.Models.User;
 
-namespace VueServer.Models.Identity
+namespace VueServer.Services.Identity
 {
     public class ServerUserStore : IUserStore<WSUser>, IUserRoleStore<WSUser>, IUserPasswordStore<WSUser>, IQueryableUserStore<WSUser>
     {
-        private IWSContext context;
+        private readonly IWSContext context;
 
         public ServerUserStore(IWSContext context)
         {
@@ -130,7 +130,10 @@ namespace VueServer.Models.Identity
             {
                 WSRole role = context.Roles.Where(o => o.NormalizedName == roleName).FirstOrDefault();
 
-                if (role == null) throw new ArgumentException($"Not a valid role name ('{roleName}')");
+                if (role == null)
+                {
+                    throw new ArgumentException($"Not a valid role name ('{roleName}')");
+                }
 
                 context.UserRoles.Add(new WSUserInRoles(user.Id, role.Id));
             }

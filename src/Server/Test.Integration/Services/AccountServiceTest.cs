@@ -1,11 +1,11 @@
 ﻿using Moq;
-using VueServer.Services.Concrete;
+using VueServer.Services.Account;
 
 namespace VueServer.Test.Integration.Services
 {
     public class AccountServiceTest
     {
-        private Mock<AccountService> AccountService;
+        private readonly Mock<AccountService> AccountService;
 
         public AccountServiceTest()
         {

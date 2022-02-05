@@ -3,7 +3,9 @@ import authAPI from '@/services/auth'
 import moduleAPI from '@/services/modules'
 import ConMsgs from '@/mixins/console'
 import Dispatcher from '@/services/ws-dispatcher'
+import ChatHub from '@/plugins/chat-hub'
 import { getCodeChallenge } from '@/helpers/jwt'
+import { Modules } from '@/constants.js'
 
 const state = {
   isAuthorize: Boolean(localStorage.getItem('isAuthorize')) || false,
@@ -45,6 +47,7 @@ const actions = {
 
       const res = await authAPI.signin(context)
       commit(types.LOGIN_SUCCESS, res.data)
+
       return await Promise.resolve(res.data)
     } catch (e) {
       ConMsgs.methods.$_console_group(
@@ -57,6 +60,7 @@ const actions = {
   },
   async signout({ commit, dispatch }) {
     try {
+      ChatHub.stop()
       const res = await authAPI.signout(state.user.id)
 
       // Clear all store values from other modules
@@ -142,6 +146,7 @@ const actions = {
         const res = await moduleAPI.getModulesForUser()
         ConMsgs.methods.$_console_log(res.data)
         commit(types.GET_MODULES, res.data)
+
         return await Promise.resolve(res)
       })
     } catch (e) {

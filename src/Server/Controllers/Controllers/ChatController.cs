@@ -5,7 +5,7 @@ using VueServer.Controllers.Filters;
 using VueServer.Core.Status;
 using VueServer.Models.Chat;
 using VueServer.Models.Request;
-using VueServer.Services.Interface;
+using VueServer.Services.Chat;
 using AddOns = VueServer.Domain.DomainConstants.Models.ModuleAddOns;
 using Features = VueServer.Domain.DomainConstants.Models.ModuleFeatures;
 using Route = VueServer.Controllers.Constants.API_ENDPOINTS;

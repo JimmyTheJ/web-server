@@ -6,7 +6,7 @@ using VueServer.Core.Status;
 using VueServer.Domain;
 using VueServer.Models.Account;
 using VueServer.Models.Request;
-using VueServer.Services.Interface;
+using VueServer.Services.Account;
 using static VueServer.Domain.DomainConstants.Authentication;
 using Route = VueServer.Controllers.Constants.API_ENDPOINTS;
 
@@ -64,13 +64,17 @@ namespace VueServer.Controllers
             if (result.Obj == null)
             {
                 if (HttpContext.Request.Cookies.ContainsKey(DomainConstants.Authentication.REFRESH_TOKEN_COOKIE_KEY))
+                {
                     HttpContext.Response.Cookies.Delete(DomainConstants.Authentication.REFRESH_TOKEN_COOKIE_KEY);
+                }
             }
             else
             {
                 HttpContext.Response.Cookies.Append(result.Obj.RefreshCookie.Key, result.Obj.RefreshCookie.Value, result.Obj.RefreshCookie.Options);
                 if (result.Obj.ClientIdCookie != null)
+                {
                     HttpContext.Response.Cookies.Append(result.Obj.ClientIdCookie.Key, result.Obj.ClientIdCookie.Value, result.Obj.ClientIdCookie.Options);
+                }
             }
 
             return _codeFactory.GetStatusCode(result);

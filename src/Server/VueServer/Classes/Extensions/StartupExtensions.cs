@@ -27,10 +27,17 @@ using VueServer.Core.Helper;
 using VueServer.Core.Status;
 using VueServer.Domain.Enums;
 using VueServer.Models.Context;
-using VueServer.Models.Identity;
 using VueServer.Models.User;
-using VueServer.Services.Concrete;
-using VueServer.Services.Interface;
+using VueServer.Services.Account;
+using VueServer.Services.Admin;
+using VueServer.Services.Chat;
+using VueServer.Services.DirectoryBrowser;
+using VueServer.Services.Identity;
+using VueServer.Services.Library;
+using VueServer.Services.Module;
+using VueServer.Services.Note;
+using VueServer.Services.User;
+using VueServer.Services.Weight;
 
 namespace VueServer.Classes.Extensions
 {
@@ -45,11 +52,17 @@ namespace VueServer.Classes.Extensions
         {
             DatabaseTypes dbType = (DatabaseTypes)config.GetSection("Options").GetValue<int>("DatabaseType");
             if (dbType == DatabaseTypes.MSSQLSERVER)
+            {
                 services.AddTransient<IWSContext, SqlServerWSContext>();
+            }
             else if (dbType == DatabaseTypes.SQLITE)
+            {
                 services.AddTransient<IWSContext, SqliteWSContext>();
+            }
             else if (dbType == DatabaseTypes.MYSQL)
+            {
                 services.AddTransient<IWSContext, MySqlWSContext>();
+            }
 
             // Setup the custom identity framework dependencies.
             services.AddTransient<IUserStore<WSUser>, ServerUserStore>();
@@ -256,9 +269,20 @@ namespace VueServer.Classes.Extensions
         /// <param name="logger"></param>
         public static void UseWebpackFiles(this IApplicationBuilder app, IWebHostEnvironment env, ILogger logger)
         {
-            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"js"), "StartupExtensions: Error creating js folder")) return;
-            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"css"), "StartupExtensions: Error creating css folder")) return;
-            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"fonts"), "StartupExtensions: Error creating fonts folder")) return;
+            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"js"), "StartupExtensions: Error creating js folder"))
+            {
+                return;
+            }
+
+            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"css"), "StartupExtensions: Error creating css folder"))
+            {
+                return;
+            }
+
+            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"fonts"), "StartupExtensions: Error creating fonts folder"))
+            {
+                return;
+            }
 
             app.UseStaticFiles(new StaticFileOptions()
             {
@@ -311,7 +335,10 @@ namespace VueServer.Classes.Extensions
         /// <param name="logger"></param>
         public static void UsePublicFiles(this IApplicationBuilder app, IWebHostEnvironment env, ILogger logger)
         {
-            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"public"), "StartupExtensions: Error creating public folder")) return;
+            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @"public"), "StartupExtensions: Error creating public folder"))
+            {
+                return;
+            }
 
             app.UseStaticFiles(new StaticFileOptions()
             {
@@ -336,7 +363,10 @@ namespace VueServer.Classes.Extensions
         /// <param name="logger"></param>
         public static void UseAutoAuthorizerStaticFiles(this IApplicationBuilder app, IWebHostEnvironment env, ILogger logger)
         {
-            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @".well-known"), "StartupExtensions: Error creating auto authorizer folder")) return;
+            if (!FolderBuilder.CreateFolder(Path.Combine(env.WebRootPath, @".well-known"), "StartupExtensions: Error creating auto authorizer folder"))
+            {
+                return;
+            }
 
             app.UseStaticFiles(new StaticFileOptions()
             {

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using VueServer.Controllers.Filters;
 using VueServer.Core.Status;
 using VueServer.Models;
-using VueServer.Services.Interface;
+using VueServer.Services.Weight;
 using static VueServer.Domain.DomainConstants.Authentication;
 using AddOns = VueServer.Domain.DomainConstants.Models.ModuleAddOns;
 using Route = VueServer.Controllers.Constants.API_ENDPOINTS;
@@ -39,7 +39,7 @@ namespace VueServer.Controllers
         [HttpPost]
         [ModuleAuthFilterFactory(Module = AddOns.Weight.Id)]
         [Route(Route.Generic.Add)]
-        public async Task<IActionResult> AddWeight([FromBody] Weight weight)
+        public async Task<IActionResult> AddWeight([FromBody] Weights weight)
         {
             return _codeFactory.GetStatusCode(await _service.AddWeight(weight));
         }
@@ -47,7 +47,7 @@ namespace VueServer.Controllers
         [HttpPost]
         [ModuleAuthFilterFactory(Module = AddOns.Weight.Id)]
         [Route(Route.Generic.Edit)]
-        public async Task<IActionResult> EditWeight([FromBody] Weight weight)
+        public async Task<IActionResult> EditWeight([FromBody] Weights weight)
         {
             return _codeFactory.GetStatusCode(await _service.EditWeight(weight));
         }

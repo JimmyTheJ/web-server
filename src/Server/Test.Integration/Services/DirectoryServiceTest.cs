@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
 using VueServer.Models.Context;
-using VueServer.Services.Concrete;
-using VueServer.Services.Interface;
+using VueServer.Services.DirectoryBrowser;
+using VueServer.Services.User;
 using Xunit;
 using static VueServer.Domain.DomainConstants.Authentication;
 
@@ -16,17 +16,17 @@ namespace VueServer.Test.Integration.Services
 {
     public class DirectoryServiceTest
     {
-        private HttpContext HttpContext;
+        private readonly HttpContext HttpContext;
 
-        private Mock<ILoggerFactory> LoggerFactory;
+        private readonly Mock<ILoggerFactory> LoggerFactory;
 
-        private Mock<ILogger<DirectoryService>> Logger;
+        private readonly Mock<ILogger<DirectoryService>> Logger;
 
-        private Mock<IUserService> User;
+        private readonly Mock<IUserService> User;
 
-        private Mock<IWebHostEnvironment> Env;
+        private readonly Mock<IWebHostEnvironment> Env;
 
-        private IConfigurationRoot Config;
+        private readonly IConfigurationRoot Config;
 
         public IWSContext Context { get; set; }
 

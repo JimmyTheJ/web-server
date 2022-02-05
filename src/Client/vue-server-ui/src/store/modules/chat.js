@@ -3,6 +3,7 @@ import chatAPI from '@/services/chat'
 import authAPI from '@/services/auth'
 import ConMsgs from '@/mixins/console'
 import Dispatcher from '@/services/ws-dispatcher'
+import ChatHub from '@/plugins/chat-hub'
 
 const state = {
   connectionId: '',
@@ -40,10 +41,19 @@ const actions = {
       '[Vuex][Actions] Getting Chat Hub Connection Id'
     )
 
-    ConMsgs.methods.$_console_log('This is: ', this)
-    // this.$chatHub.invoke('getconnectionid').then(data => {
-    //   commit(types.CHAT_GET_CONNECTION_ID, data)
-    // })
+    ConMsgs.methods.$_console_log('ChatHub connection is: ', ChatHub.connection)
+    try {
+      let res = await ChatHub.connection.invoke('getconnectionid')
+      commit(types.CHAT_GET_CONNECTION_ID, res.data)
+
+      return await Promise.resolve(res)
+    } catch (e) {
+      ConMsgs.methods.$_console_group(
+        '[Vuex][Actions] Error from getting chat hub connection id',
+        e.response
+      )
+      return await Promise.reject(e.response)
+    }
   },
   async getNewConversationNotifications({ commit }) {
     ConMsgs.methods.$_console_log(

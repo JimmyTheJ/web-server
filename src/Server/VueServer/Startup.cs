@@ -14,7 +14,7 @@ using VueServer.Classes;
 using VueServer.Classes.Extensions;
 using VueServer.Core.Cache;
 using VueServer.Core.Helper;
-using VueServer.Services.Hubs;
+using VueServer.Services.Chat.Hubs;
 
 namespace VueServer
 {
@@ -104,7 +104,10 @@ namespace VueServer
             }
 
             if (Configuration.GetSection("Options").GetValue<bool>("Https"))
+            {
                 services.AddCustomHttpsRedirection(Environment, Configuration);
+            }
+
             services.AddCustomCompression();
         }
 
@@ -168,7 +171,9 @@ namespace VueServer
 
             // Necessary for CertifyTheWeb to automatically re-authorize the webserver's TLS cert
             if (Configuration.GetSection("Options").GetValue<bool>("Well-Known"))
+            {
                 app.UseAutoAuthorizerStaticFiles(env, logger);
+            }
 
             app.Use(async (context, next) =>
             {

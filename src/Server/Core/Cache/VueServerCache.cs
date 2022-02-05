@@ -135,7 +135,7 @@ namespace VueServer.Core.Cache
                 Cache[CacheMap.BlockedIP] = null;
             }
 
-            Cache = null;
+            Cache.Clear();
         }
 
         protected virtual void Dispose(bool disposing)

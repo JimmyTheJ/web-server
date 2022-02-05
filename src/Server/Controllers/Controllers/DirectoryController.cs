@@ -6,7 +6,9 @@ using VueServer.Controllers.Filters;
 using VueServer.Core.Status;
 using VueServer.Models;
 using VueServer.Models.Request;
-using VueServer.Services.Interface;
+using VueServer.Services.Account;
+using VueServer.Services.DirectoryBrowser;
+using VueServer.Services.Module;
 using static VueServer.Domain.DomainConstants.Authentication;
 using AddOns = VueServer.Domain.DomainConstants.Models.ModuleAddOns;
 using DomainModules = VueServer.Domain.DomainConstants.Models;
@@ -53,9 +55,13 @@ namespace VueServer.Controllers
 
             var file = await _service.Download(filename, validated.Obj);
             if (file == null || file.Obj == null)
+            {
                 return BadRequest();
+            }
             else
+            {
                 return PhysicalFile(file.Obj.Item1, file.Obj.Item2, file.Obj.Item3);
+            }
         }
 
         [HttpGet]

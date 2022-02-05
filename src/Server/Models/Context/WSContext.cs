@@ -106,7 +106,7 @@ namespace VueServer.Models.Context
 
         public DbSet<Notes> Notes { get; set; }
 
-        public DbSet<Weight> Weight { get; set; }
+        public DbSet<Weights> Weight { get; set; }
 
         #endregion
 

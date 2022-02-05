@@ -13,6 +13,9 @@ import NotificationBar from '@/components/modules/notification-bar'
 import { mapState } from 'vuex'
 import { NotificationActions, NotificationTypes } from '@/constants'
 
+import ChatHub from '@/plugins/chat-hub'
+import { Modules } from '@/constants'
+
 export default {
   data() {
     return {}
@@ -23,6 +26,7 @@ export default {
   },
   computed: {
     ...mapState({
+      modules: state => state.auth.activeModules,
       user: state => state.auth.user,
       conversations: state => state.chat.conversations,
     }),
@@ -33,10 +37,18 @@ export default {
     if (this.$route.fullPath === '/home') this.$router.push({ name: 'start' })
 
     this.getUserConversations()
-    this.$chatHub.$on('message-received', this.onMessageReceived)
+  },
+  async mounted() {
+    if (this.modules.findIndex(x => x.id === Modules.Chat) > -1) {
+      ChatHub.setup()
+      await ChatHub.start()
+
+      this.$chatHub.$on('message-received', this.onMessageReceived)
+    }
   },
   beforeDestroy() {
-    this.$chatHub.$off('message-received', this.onMessageReceived)
+    if (ChatHub.connection != null)
+      this.$chatHub.$off('message-received', this.onMessageReceived)
   },
   methods: {
     onMessageReceived(message) {

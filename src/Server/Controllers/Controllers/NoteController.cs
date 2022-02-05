@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using VueServer.Controllers.Filters;
 using VueServer.Core.Status;
 using VueServer.Models;
-using VueServer.Services.Interface;
+using VueServer.Services.Note;
 using static VueServer.Domain.DomainConstants.Authentication;
 using AddOns = VueServer.Domain.DomainConstants.Models.ModuleAddOns;
 using Route = VueServer.Controllers.Constants.API_ENDPOINTS;

@@ -22,7 +22,7 @@ namespace VueServer.Models.Context
 
         DbSet<Notes> Notes { get; set; }
 
-        DbSet<Weight> Weight { get; set; }
+        DbSet<Weights> Weight { get; set; }
 
         #endregion
 
