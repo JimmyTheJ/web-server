@@ -213,7 +213,7 @@ namespace VueServer.Services.Chat
             }
 
             // Block bad actors attempting to access or modify information from conversations they are not part of
-            var selfUser = await conversation.ConversationUsers.Where(x => x.UserId == _user.Id).SingleOrDefaultAsync();
+            var selfUser = conversation.ConversationUsers.Where(x => x.UserId == _user.Id).SingleOrDefault();
             if (selfUser == null)
             {
                 _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Conversation with id ({conversationId}) does not include user ({_user.Id}) as one of it's members. This is likely an escalation attack");
