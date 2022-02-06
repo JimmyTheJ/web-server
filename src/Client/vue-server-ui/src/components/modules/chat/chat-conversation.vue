@@ -62,7 +62,10 @@ export default {
   watch: {
     show(newValue) {
       if (newValue === true) {
-        this.$store.dispatch('getMessagesForConversation', this.conversation.id)
+        this.$store.dispatch('getMessagesForConversation', {
+          conversationId: this.conversation.id,
+          msgId: -2,
+        })
       } else {
         this.$store.dispatch(
           'clearMessagesForConversation',

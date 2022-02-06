@@ -6,7 +6,6 @@ import Dispatcher from '@/services/ws-dispatcher'
 import ChatHub from '@/plugins/chat-hub'
 
 const state = {
-  connectionId: '',
   conversations: [],
 }
 
@@ -35,25 +34,6 @@ const actions = {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Clearing chat')
 
     commit(types.CHAT_CLEAR)
-  },
-  async getChatHubConnectionId({ commit }) {
-    ConMsgs.methods.$_console_log(
-      '[Vuex][Actions] Getting Chat Hub Connection Id'
-    )
-
-    ConMsgs.methods.$_console_log('ChatHub connection is: ', ChatHub.connection)
-    try {
-      let res = await ChatHub.connection.invoke('getconnectionid')
-      commit(types.CHAT_GET_CONNECTION_ID, res.data)
-
-      return await Promise.resolve(res)
-    } catch (e) {
-      ConMsgs.methods.$_console_group(
-        '[Vuex][Actions] Error from getting chat hub connection id',
-        e.response
-      )
-      return await Promise.reject(e.response)
-    }
   },
   async getNewConversationNotifications({ commit }) {
     ConMsgs.methods.$_console_log(
@@ -219,8 +199,10 @@ const actions = {
         const res = await chatAPI.getMessagesForConversation(context)
         commit(types.CHAT_CONVERSATION_GET_MESSAGES, {
           messages: res.data,
-          conversationId: context,
+          conversationId: context.conversationId,
+          msgId: context.msgId,
         })
+
         return await Promise.resolve(res)
       })
     } catch (e) {
@@ -346,11 +328,7 @@ const mutations = {
   [types.CHAT_CLEAR](state) {
     ConMsgs.methods.$_console_log('[Vuex][Mutations] Mutating clearing chat')
 
-    state.connectionId = ''
     state.conversations = []
-  },
-  [types.CHAT_GET_CONNECTION_ID](state, data) {
-    state.connectionId = data
   },
   [types.CHAT_CONVERSATION_UPDATE_NEW_MESSAGE_COUNT](state, data) {
     ConMsgs.methods.$_console_log(
@@ -466,8 +444,34 @@ const mutations = {
       return
     }
 
-    conversation.messages = data.messages
-    conversation.loaded = true
+    if (data.messages == null || data.messages.length === 0) {
+      ConMsgs.methods.$_console_log(
+        '[Vuex][Actions] No messages returned from API. Setting allMsgs complete flag on conversation'
+      )
+      conversation.allMsgs = true
+      return
+    }
+
+    if (data.msgId === -2) {
+      conversation.messages = data.messages.reverse()
+      conversation.loaded = true
+    } else if (data.msgId === -1) {
+      conversation.messages = data.messages
+      conversation.loaded = true
+    } else {
+      if (
+        typeof conversation.messages !== 'undefined' &&
+        conversation.messages != null &&
+        Array.isArray(conversation.messages)
+      ) {
+        conversation.messages = data.messages
+          .reverse()
+          .concat(conversation.messages)
+      } else {
+        conversation.messages = data.messages.reverse()
+        conversation.loaded = true
+      }
+    }
   },
   [types.CHAT_CONVERSATION_CLEAR_MESSAGES](state, data) {
     ConMsgs.methods.$_console_log(
@@ -477,6 +481,7 @@ const mutations = {
     const convo = state.conversations.find(x => x.id === data)
     convo.messages = null
     convo.loaded = false
+    convo.allMsgs = false
   },
   [types.CHAT_CONVERSATION_UNREAD_MESSAGES_INCREMENT](state, data) {
     ConMsgs.methods.$_console_log(

@@ -25,6 +25,8 @@ namespace VueServer.Services.Chat
         private readonly IUserService _user;
         private readonly ILogger _logger;
 
+        private const int NUM_MESSAGES = 50;
+
         public ChatService(IWSContext context, IVueServerCache cache, IHubContext<ChatHub, IChatHub> chatHubContext, ILoggerFactory logger, IUserService user)
         {
             _context = context ?? throw new ArgumentNullException("WSContext is null");
@@ -311,19 +313,41 @@ namespace VueServer.Services.Chat
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(long id)
+        public async Task<IResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(long conversationId)
         {
-            var conversation = await _context.Conversations.Include(x => x.ConversationUsers).Include(x => x.Messages).ThenInclude(x => x.ReadReceipts).Where(x => x.Id == id).SingleOrDefaultAsync();
+            return await GetMessagesForConversation(conversationId, -1);
+        }
+
+        public async Task<IResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(long conversationId, long msgId)
+        {
+            var conversation = await _context.Conversations.Include(x => x.ConversationUsers).Where(x => x.Id == conversationId).SingleOrDefaultAsync();
             if (conversation == null)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unable to get conversation by id ({id})");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unable to get conversation by id ({conversationId})");
                 return new Result<IEnumerable<ChatMessage>>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             if (!conversation.ConversationUsers.Any(x => x.UserId == _user.Id))
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({_user.Id}) is not part of the conversation with id ({id}), cannot access this conversation");
+                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({_user.Id}) is not part of the conversation with id ({conversationId}), cannot access this conversation");
                 return new Result<IEnumerable<ChatMessage>>(null, Domain.Enums.StatusCode.FORBIDDEN);
+            }
+
+            // If we pass in -1, get all messages.
+            // If we pass in -2, get the last X messages
+            // If we pass in a valid message id, then get the next X number of messages that are lower than that Id.
+            // Front-end will need to invert this list to prepend it
+            if (msgId == -1)
+            {
+                conversation.Messages = await _context.Messages.Include(x => x.ReadReceipts).Where(x => x.ConversationId == conversationId).ToListAsync();
+            }
+            else if (msgId == -2)
+            {
+                conversation.Messages = await _context.Messages.Include(x => x.ReadReceipts).Where(x => x.ConversationId == conversationId).OrderByDescending(x => x.Id).Take(NUM_MESSAGES).ToListAsync();
+            }
+            else
+            {
+                conversation.Messages = await _context.Messages.Include(x => x.ReadReceipts).Where(x => x.ConversationId == conversationId && x.Id < msgId).OrderByDescending(x => x.Id).Take(NUM_MESSAGES).ToListAsync();
             }
 
             foreach (var msg in conversation.Messages)

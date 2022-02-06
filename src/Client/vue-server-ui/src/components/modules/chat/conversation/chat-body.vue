@@ -29,7 +29,6 @@
           class="py-1 chat-bubble-object"
           v-for="(message, index) in conversation.messages"
           :key="index"
-          v-show="shouldShowMessage(index)"
         >
           <chat-bubble
             :message="message"
@@ -37,7 +36,7 @@
             :color="getColor(message.userId)"
             @moreInfo="openMoreInfo"
             @deleteMessage="deleteMessage"
-            v-if="shouldShowMessage(index)"
+            :id="'bubble-' + message.id"
           />
         </v-col>
       </v-row>
@@ -63,8 +62,6 @@ export default {
   },
   data() {
     return {
-      reloadCounter: 40,
-      hideCounter: -1,
       moreInfoDialog: false,
       moreInfo: {},
       isGroupConversation: false,
@@ -113,11 +110,6 @@ export default {
     'conversation.loaded': {
       handler(newValue) {
         if (newValue) {
-          this.hideCounter =
-            this.conversation.messages.length <= this.reloadCounter
-              ? 0
-              : this.conversation.messages.length - this.reloadCounter
-
           this.$nextTick(() => {
             this.scrollToLastReadMessage()
             this.$nextTick(() => {
@@ -170,25 +162,31 @@ export default {
       //this.$_console_log('Scroll event', event)
       this.scrollHeight = event.target.scrollTop
 
-      if (this.hideCounter > 0 && event.target.scrollTop < 1) {
-        this.hideCounter -= this.reloadCounter
-
+      if (event.target.scrollTop < 1) {
         this.$nextTick(() => {
-          const chatContainer = document.getElementById('chat-body-container')
-          const bubbles = document.getElementsByClassName('chat-bubble-object')
+          if (this.conversation.allMsgs === true) {
+            this.$_console_log(
+              'No more messages in this conversation. No need to call API to get more'
+            )
+          } else {
+            const chatContainer = document.getElementById('chat-body-container')
+            const bubbles = document.getElementsByClassName(
+              'chat-bubble-object'
+            )
 
-          let bubbleHeight
-          if (this.hideCounter > 0)
-            bubbleHeight = bubbles[this.hideCounter + 1].clientHeight
-          else bubbleHeight = bubbles[0].clientHeight
-
-          if (this.hideCounter > 0)
-            chatContainer.scrollTo({
-              top: bubbleHeight * this.reloadCounter,
-            })
-          else {
-            let multiplier = this.hideCounter * -1
-            chatContainer.scrollTo({ top: bubbleHeight * multiplier })
+            // If no messages exist, get the last X, if we have messages already, then get the next X from the list
+            const msgId =
+              this.conversation.messages.length === 0
+                ? -2
+                : this.conversation.messages[0].id
+            this.$store
+              .dispatch('getMessagesForConversation', {
+                conversationId: this.conversation.id,
+                msgId: msgId,
+              })
+              .then(() => {
+                document.getElementById(`bubble-${msgId}`).scrollIntoView()
+              })
           }
         })
       }
@@ -270,9 +268,6 @@ export default {
       }
 
       return false
-    },
-    shouldShowMessage(index) {
-      return index > this.hideCounter
     },
     scrollToBottom() {
       this.$_console_log('Scroll to Bottom activated')

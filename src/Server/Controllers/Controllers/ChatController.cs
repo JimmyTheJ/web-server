@@ -89,6 +89,14 @@ namespace VueServer.Controllers
             return _codeFactory.GetStatusCode(await _chatService.GetMessagesForConversation(id));
         }
 
+        [Route(Route.Chat.GetPaginatedMessagesForConversation)]
+        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
+        [HttpGet]
+        public async Task<IActionResult> GetPaginatedMessagesForConversation(long conversationId, long msgId)
+        {
+            return _codeFactory.GetStatusCode(await _chatService.GetMessagesForConversation(conversationId, msgId));
+        }
+
         [Route(Route.Chat.DeleteMessage)]
         [ModuleAuthFilterFactory(Module = AddOns.Chat.Id, Feature = Features.Chat.DELETE_MESSAGE_ID)]
         [HttpDelete]

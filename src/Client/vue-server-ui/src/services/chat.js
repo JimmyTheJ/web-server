@@ -45,8 +45,10 @@ export default {
       method: 'delete',
     })
   },
-  getMessagesForConversation(conversationId) {
-    return axios.get(`${GetMessagesForConversation}/${conversationId}`)
+  getMessagesForConversation(obj) {
+    return axios.get(
+      `${GetMessagesForConversation}/${obj.conversationId}/${obj.msgId}`
+    )
   },
   deleteMessage(messageId) {
     return axios.request({

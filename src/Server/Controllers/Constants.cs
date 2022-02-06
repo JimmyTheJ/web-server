@@ -97,6 +97,7 @@
                 internal const string UpdateUserColor = "conversation/update-conversation-color/{conversationId}/{userId}";
                 internal const string DeleteConversation = "conversation/delete/{conversationId}";
                 internal const string GetMessagesForConversation = "conversation/get/messages/{id}";
+                internal const string GetPaginatedMessagesForConversation = "conversation/get/messages/{conversationId}/{msgId}";
                 internal const string DeleteMessage = "message/delete/{messageId}";
                 internal const string GetMessage = "message/get/{id}";
                 internal const string AddMessage = "message/send";
