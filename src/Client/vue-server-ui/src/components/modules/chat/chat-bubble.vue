@@ -277,12 +277,12 @@ export default {
     },
     timeSince(t) {
       if (typeof t !== 'number' || typeof this.message.timestamp !== 'number') {
-        return ''
+        return '0s'
       }
 
       let seconds = t - this.message.timestamp
       if (seconds < 0) {
-        return ''
+        return '0s'
       }
       if (seconds < 60) {
         return `${Math.trunc(seconds)}s`

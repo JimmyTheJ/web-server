@@ -54,6 +54,17 @@ import { NotificationTypes } from '@/constants'
 
 const heightPrefix = 'height: '
 
+function isInViewport(element) {
+  const rect = element.getBoundingClientRect()
+  return (
+    rect.top >= 0 &&
+    rect.left >= 0 &&
+    rect.bottom <=
+      (window.innerHeight || document.documentElement.clientHeight) &&
+    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+  )
+}
+
 export default {
   name: 'chat-body',
   components: {
@@ -207,13 +218,21 @@ export default {
           message: message,
         })
         .then(() => {
-          // Scroll to bottom when active user sends a message. This will ultimately cause all messages to be read,
-          // Also scroll to the bottom when there is no scrollbar yet.
-          if (
-            message.userId === this.user.id ||
-            this.chatWindow.clientHeight === this.chatWindow.scrollHeight
-          ) {
+          // Scroll to bottom when active user sends a message or when the last message
+          // is in the viewport when a message from another user comes in
+          if (message.userId === this.user.id) {
             this.scrollToBottom()
+          } else {
+            let lastBubble = this.conversation.messages[
+              this.conversation.messages.length - 1
+            ]
+            let msgInViewport = isInViewport(
+              document.getElementById(`bubble-${lastBubble.id}`)
+            )
+
+            if (msgInViewport) {
+              this.scrollToBottom()
+            }
           }
         })
     },
@@ -287,53 +306,13 @@ export default {
 
       if (typeof lastMessage !== 'undefined') {
         this.$nextTick(() => {
-          const ids = document.getElementsByClassName('bubble-id')
-
-          let correctElement = null
-          let height = 0
-          for (let i = 0; i < ids.length; i++) {
-            height += ids[i].parentNode.offsetHeight
-            if (parseInt(ids[i].innerText, 10) === lastMessage.id) {
-              correctElement = ids[i]
-              break
-            }
-          }
-
-          if (correctElement !== null)
-            this.chatWindow.scrollTo(0, height - this.chatWindow.offsetTop)
+          document.getElementById(`bubble-${lastMessage.id}`).scrollIntoView()
         })
       } else {
         this.$_console_log('ScrollToLastReadMessage: All messages are read.')
         this.scrollToBottom()
       }
     },
-    // async updateContainerHeight(attemptScroll) {
-    //   this.$nextTick(() => {
-    //     if (attemptScroll === true) {
-    //       if (
-    //         Array.isArray(this.conversation.messages) &&
-    //         this.conversation.messages.length > 0
-    //       ) {
-    //         this.$_console_log(
-    //           'Heights: ',
-    //           this.bodyContainerHeight,
-    //           this.chatWindow.scrollHeight
-    //         )
-    //         if (this.bodyContainerHeight >= this.chatWindow.scrollHeight) {
-    //           this.$_console_log(
-    //             'Show watcher: No scrollbar exists. Reading all messages'
-    //           )
-    //           this.scrollToBottom()
-    //         } else {
-    //           this.$_console_log(
-    //             'Show watcher: Message length is greater than 0. Scrolling to last read message'
-    //           )
-    //           this.scrollToLastReadMessage()
-    //         }
-    //       }
-    //     }
-    //   })
-    // },
     readAllMessages() {
       if (!Array.isArray(this.conversation.messages)) {
         return
