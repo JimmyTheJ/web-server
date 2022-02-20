@@ -19,7 +19,7 @@ namespace VueServer.Models
         {
             if (fsi == null)
             {
-                Console.WriteLine($"[{GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: fsi is null");
+                Console.WriteLine($"[{GetType().Name}] {nameof(BuildFileInfo)}: fsi is null");
                 return;
             }
 

@@ -103,7 +103,7 @@ namespace VueServer.Services.Account
             // If it does not succeed then fill error list and redirect back to view
             if (!result.Succeeded)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed to create user.");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Register)}: Failed to create user.");
                 return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -112,7 +112,7 @@ namespace VueServer.Services.Account
 
             if (!resultRole.Succeeded)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed to add user to the role.");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Register)}: Failed to add user to the role.");
                 return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -120,7 +120,7 @@ namespace VueServer.Services.Account
             var resultUpdate = await _userManager.UpdateAsync(newUser);
             if (!resultUpdate.Succeeded)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed to update user with new role.");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Register)}: Failed to update user with new role.");
                 return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -151,7 +151,7 @@ namespace VueServer.Services.Account
             // Cached security check for password sniffing bots
             if (_serverCache.GetSubDictionaryValue(CacheMap.BlockedIP, _user.IP, out bool isBlocked) && isBlocked)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Login attempt from {_user.IP}, which is a blocked IP address");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(Login)}: Login attempt from {_user.IP}, which is a blocked IP address");
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
@@ -159,7 +159,7 @@ namespace VueServer.Services.Account
             var guestLogin = _context.GuestLogin.Where(x => x.IPAddress == _user.IP).FirstOrDefault();
             if (guestLogin != null && guestLogin.Blocked)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Login attempt from {_user.IP}, which is a blocked IP address");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(Login)}: Login attempt from {_user.IP}, which is a blocked IP address");
                 _serverCache.SetSubDictionaryValue(CacheMap.BlockedIP, _user.IP, true);
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.FORBIDDEN);
             }
@@ -168,7 +168,7 @@ namespace VueServer.Services.Account
             var user = await _userManager.FindByNameAsync(model.Username);
             if (user == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User not found");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Login)}: User not found");
 
                 await Signout(context, model.Username);
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.SERVER_ERROR);
@@ -181,7 +181,7 @@ namespace VueServer.Services.Account
             if (!result.Succeeded)
             {
                 // TODO: We probably shouldn't log the plaintext password here
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed login from {_user.IP} with credentials: username={model.Username}, password={model.Password}");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(Login)}: Failed login from {_user.IP} with credentials: username={model.Username}, password={model.Password}");
 
                 await CreateUserLoginLog(model.Username);
                 await IncrementGuestLoginFailure(guestLogin);
@@ -189,14 +189,14 @@ namespace VueServer.Services.Account
                 await Signout(context, model.Username);
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.UNAUTHORIZED);
             }
-            _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Successful login of " + model.Username + " @ " + _user.IP);
+            _logger.LogInformation($"[{this.GetType().Name}] {nameof(Login)}: Successful login of " + model.Username + " @ " + _user.IP);
 
             //set user role to session
 
             var roles = await _userManager.GetRolesAsync(user);
             if (roles == null || roles.Count == 0)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Roles not found");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(Login)}: Roles not found");
 
                 await Signout(context, model.Username);
                 return new Result<LoginResponse>(null, Domain.Enums.StatusCode.SERVER_ERROR);
@@ -318,14 +318,14 @@ namespace VueServer.Services.Account
         {
             if (string.IsNullOrWhiteSpace(ip))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: IP is null or empty");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(UnblockGuestIP)}: IP is null or empty");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var blockedUser = _context.GuestLogin.Where(x => x.IPAddress == ip).FirstOrDefault();
             if (blockedUser == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: This IP address is not blocked");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(UnblockGuestIP)}: This IP address is not blocked");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -339,7 +339,7 @@ namespace VueServer.Services.Account
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after unblocking IP address '{_user.IP}'");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(UnblockGuestIP)}: Error saving after unblocking IP address '{_user.IP}'");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
         }
@@ -408,7 +408,7 @@ namespace VueServer.Services.Account
         {
             if (string.IsNullOrWhiteSpace(token))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Token is null or empty");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(RefreshJwtToken)}: Token is null or empty");
                 return new Result<string>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -420,7 +420,7 @@ namespace VueServer.Services.Account
             var validToken = await CheckRefreshToken(username, refreshToken, clientId);
             if (validToken == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No valid token");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(RefreshJwtToken)}: No valid token");
                 return new Result<string>(null, Domain.Enums.StatusCode.UNAUTHORIZED);
             }
 
@@ -485,14 +485,14 @@ namespace VueServer.Services.Account
         {
             if (file == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: File is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(UpdateUserAvatar)}: File is null");
                 return new Result<string>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var fileType = MimeTypeHelper.GetFileType(file.ContentType);
             if (fileType != Domain.Enums.MimeFileType.Photo)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: File {file.FileName} uploaded is not an image");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(UpdateUserAvatar)}: File {file.FileName} uploaded is not an image");
                 return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -505,7 +505,7 @@ namespace VueServer.Services.Account
                 }
                 else
                 {
-                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't create user profile for {_user.Id}");
+                    _logger.LogInformation($"[{this.GetType().Name}] {nameof(UpdateUserAvatar)}: Can't create user profile for {_user.Id}");
                     return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
                 }
             }
@@ -521,7 +521,7 @@ namespace VueServer.Services.Account
                 }
                 catch
                 {
-                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Cannot create directory {path}");
+                    _logger.LogError($"[{this.GetType().Name}] {nameof(UpdateUserAvatar)}: Cannot create directory {path}");
                     return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
                 }
             }
@@ -532,12 +532,12 @@ namespace VueServer.Services.Account
                 {
                     await file.CopyToAsync(fs);
                     fs.Flush();
-                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Upload success {filename}");
+                    _logger.LogInformation($"[{this.GetType().Name}] {nameof(UpdateUserAvatar)}: Upload success {filename}");
                 }
             }
             catch
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Upload FAILED {filename}");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(UpdateUserAvatar)}: Upload FAILED {filename}");
                 return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -548,7 +548,7 @@ namespace VueServer.Services.Account
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after updating profile user '{_user.Id}' avatar");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(UpdateUserAvatar)}: Error saving after updating profile user '{_user.Id}' avatar");
                 return new Result<string>(null, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -559,14 +559,14 @@ namespace VueServer.Services.Account
         {
             if (string.IsNullOrWhiteSpace(name))
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Must provide a new name, null or empty is not valid");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(UpdateDisplayName)}: Must provide a new name, null or empty is not valid");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var wsUser = await _context.Users.Where(x => x.Id == _user.Id).SingleOrDefaultAsync();
             if (wsUser == null)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User with user id ({_user.Id}) doesn't exist. This shouldn't be possible though.");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(UpdateDisplayName)}: User with user id ({_user.Id}) doesn't exist. This shouldn't be possible though.");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -578,7 +578,7 @@ namespace VueServer.Services.Account
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after updating profile user '{_user.Id}' avatar");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(UpdateDisplayName)}: Error saving after updating profile user '{_user.Id}' avatar");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
@@ -608,7 +608,7 @@ namespace VueServer.Services.Account
 
             if (roles.Contains(DomainConstants.Authentication.ADMINISTRATOR_STRING))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Administrators should use the /api/account/admin to change their password");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(ChangeUserPassword)}: Administrators should use the /api/account/admin to change their password");
                 return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
             }
 
@@ -616,14 +616,14 @@ namespace VueServer.Services.Account
 
             if (string.IsNullOrWhiteSpace(model.OldPassword))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Request requires an old password");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(ChangeUserPassword)}: Request requires an old password");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var passwordChange = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
             if (passwordChange.Succeeded)
             {
-                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User password for user '{user.DisplayName}' changed successfully");
+                _logger.LogDebug($"[{this.GetType().Name}] {nameof(ChangeUserPassword)}: User password for user '{user.DisplayName}' changed successfully");
 
                 if (user.PasswordExpired)
                 {
@@ -635,7 +635,7 @@ namespace VueServer.Services.Account
                     }
                     catch (Exception)
                     {
-                        _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after changing password for user '{_user.IP}'");
+                        _logger.LogWarning($"[{this.GetType().Name}] {nameof(ChangeUserPassword)}: Error saving after changing password for user '{_user.IP}'");
                         return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
                     }
                 }
@@ -644,7 +644,7 @@ namespace VueServer.Services.Account
             }
             else
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User password for user '{user.DisplayName}' failed to change password");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(ChangeUserPassword)}: User password for user '{user.DisplayName}' failed to change password");
                 return new Result<bool>(false, Domain.Enums.StatusCode.UNAUTHORIZED);
             }
         }
@@ -656,7 +656,7 @@ namespace VueServer.Services.Account
 
             if (!roles.Contains(DomainConstants.Authentication.ADMINISTRATOR_STRING))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Administrators should use the /api/account/admin to change their password");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(ChangeAdminPassword)}: Administrators should use the /api/account/admin to change their password");
                 return new Result<bool>(false, Domain.Enums.StatusCode.FORBIDDEN);
             }
             else
@@ -672,7 +672,7 @@ namespace VueServer.Services.Account
                 // Model doesn't have an old password, but we aren't the on a first time login, so the request in invalid
                 else if (string.IsNullOrWhiteSpace(model.OldPassword))
                 {
-                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Request requires an old password");
+                    _logger.LogInformation($"[{this.GetType().Name}] {nameof(ChangeAdminPassword)}: Request requires an old password");
                     return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
                 }
 
@@ -681,7 +681,7 @@ namespace VueServer.Services.Account
                     var passwordChange = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
                     if (passwordChange.Succeeded)
                     {
-                        _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Administrator password for user '{user.DisplayName}' changed successfully");
+                        _logger.LogDebug($"[{this.GetType().Name}] {nameof(ChangeAdminPassword)}: Administrator password for user '{user.DisplayName}' changed successfully");
 
                         if (user.PasswordExpired)
                         {
@@ -699,7 +699,7 @@ namespace VueServer.Services.Account
                             }
                             catch (Exception)
                             {
-                                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after changing password for user '{_user.IP}'");
+                                _logger.LogWarning($"[{this.GetType().Name}] {nameof(ChangeAdminPassword)}: Error saving after changing password for user '{_user.IP}'");
                                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
                             }
                         }
@@ -708,13 +708,13 @@ namespace VueServer.Services.Account
                     }
                     else
                     {
-                        _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Administrator password for user '{user.DisplayName}' failed to change password");
+                        _logger.LogInformation($"[{this.GetType().Name}] {nameof(ChangeAdminPassword)}: Administrator password for user '{user.DisplayName}' failed to change password");
                         return new Result<bool>(false, Domain.Enums.StatusCode.UNAUTHORIZED);
                     }
                 }
                 else
                 {
-                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Administrator hashed password for user '{user.DisplayName}' doesn't match old password");
+                    _logger.LogInformation($"[{this.GetType().Name}] {nameof(ChangeAdminPassword)}: Administrator hashed password for user '{user.DisplayName}' doesn't match old password");
                     return new Result<bool>(false, Domain.Enums.StatusCode.UNAUTHORIZED);
                 }
             }
@@ -748,44 +748,44 @@ namespace VueServer.Services.Account
         {
             if (string.IsNullOrWhiteSpace(id))
             {
-                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No user id present");
+                _logger.LogDebug($"[{this.GetType().Name}] {nameof(CheckRefreshToken)}: No user id present");
                 return null;
             }
 
             if (string.IsNullOrWhiteSpace(token))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) passed a null token. This is probably a client code bug of some sort.");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CheckRefreshToken)}: User ({id}) passed a null token. This is probably a client code bug of some sort.");
                 return null;
             }
 
             if (string.IsNullOrWhiteSpace(clientId))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) has a potentially valid token, but no associated clientId");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CheckRefreshToken)}: User ({id}) has a potentially valid token, but no associated clientId");
                 return null;
             }
 
             var returnedToken = _context.UserTokens.Where(x => x.UserId == id && x.ClientId == clientId).FirstOrDefault();
             if (returnedToken == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) does not have any refresh tokens in the data store for this client Id ({clientId})");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CheckRefreshToken)}: User ({id}) does not have any refresh tokens in the data store for this client Id ({clientId})");
                 return null;
             }
 
             if (returnedToken.Token != token)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) does not have a refresh token that matches the passed in token value in the data store. This could potentially mean someone is trying to impersonate the user. Invalidating all refresh tokens for user.");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(CheckRefreshToken)}: User ({id}) does not have a refresh token that matches the passed in token value in the data store. This could potentially mean someone is trying to impersonate the user. Invalidating all refresh tokens for user.");
                 return null;
             }
 
             if (!returnedToken.Valid)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) does have a refresh token that matches the passed in token value in the data store, but it has been previously invalidated. This could potentially mean someone has gained access to a user's device and is trying to pass iligitimate information to the server.");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(CheckRefreshToken)}: User ({id}) does have a refresh token that matches the passed in token value in the data store, but it has been previously invalidated. This could potentially mean someone has gained access to a user's device and is trying to pass iligitimate information to the server.");
                 return null;
             }
 
             if (IsRefreshTokenExpired(returnedToken.Issued))
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User ({id}) does have a refresh token that matches the passed in token value in the data store, but it has expired.");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(CheckRefreshToken)}: User ({id}) does have a refresh token that matches the passed in token value in the data store, but it has expired.");
                 return null;
             }
 
@@ -817,7 +817,7 @@ namespace VueServer.Services.Account
 
             if (tokens == null || tokens.Count == 0)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User '{id}' has no refresh tokens in the data store");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(InvalidateAllRefreshTokensForUser)}: User '{id}' has no refresh tokens in the data store");
                 return false;
             }
 
@@ -834,11 +834,11 @@ namespace VueServer.Services.Account
             {
                 if (source == null)
                 {
-                    _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after invalidating all of user: '{id}' refresh tokens");
+                    _logger.LogWarning($"[{this.GetType().Name}] {nameof(InvalidateAllRefreshTokensForUser)}: Error saving after invalidating all of user: '{id}' refresh tokens");
                 }
                 else
                 {
-                    _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after invalidating all of user: '{id}' refresh tokens from the current source: {source}");
+                    _logger.LogWarning($"[{this.GetType().Name}] {nameof(InvalidateAllRefreshTokensForUser)}: Error saving after invalidating all of user: '{id}' refresh tokens from the current source: {source}");
                 }
 
                 return false;
@@ -861,7 +861,7 @@ namespace VueServer.Services.Account
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after invalidating the user: '{token.UserId}' token from IP: {token.IPAddress}");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(InvalidateRefreshToken)}: Error saving after invalidating the user: '{token.UserId}' token from IP: {token.IPAddress}");
                 return false;
             }
             return true;
@@ -877,13 +877,13 @@ namespace VueServer.Services.Account
         {
             if (string.IsNullOrWhiteSpace(refreshToken))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Token is null or empty");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(SaveRefreshToken)}: Token is null or empty");
                 return false;
             }
 
             if (string.IsNullOrWhiteSpace(clientId))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Client Id is null or empty");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(SaveRefreshToken)}: Client Id is null or empty");
                 return false;
             }
 
@@ -922,7 +922,7 @@ namespace VueServer.Services.Account
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after creating the refresh token: '{refreshToken}' token from IP: {ip}");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(SaveRefreshToken)}: Error saving after creating the refresh token: '{refreshToken}' token from IP: {ip}");
                 return false;
             }
 
@@ -1028,7 +1028,7 @@ namespace VueServer.Services.Account
         {
             if (string.IsNullOrWhiteSpace(userId))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User id is null or empty");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CreateUserProfile)}: User id is null or empty");
                 return false;
             }
 
@@ -1044,7 +1044,7 @@ namespace VueServer.Services.Account
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after creating a profile for user '{userId}'");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(CreateUserProfile)}: Error saving after creating a profile for user '{userId}'");
                 return false;
             }
 
@@ -1143,7 +1143,7 @@ namespace VueServer.Services.Account
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving when creating default user directory");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: Error saving when creating default user directory");
                 return false;
             }
 
@@ -1167,7 +1167,7 @@ namespace VueServer.Services.Account
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving when creating login attempt for account: '{username}' from IP '{_user.IP}' with success status '{success}'");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(CreateUserLoginLog)}: Error saving when creating login attempt for account: '{username}' from IP '{_user.IP}' with success status '{success}'");
                 return null;
             }
 
@@ -1203,7 +1203,7 @@ namespace VueServer.Services.Account
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving when updating guest login from IP '{_user.IP}'");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(IncrementGuestLoginFailure)}: Error saving when updating guest login from IP '{_user.IP}'");
                 return false;
             }
         }
@@ -1223,7 +1223,7 @@ namespace VueServer.Services.Account
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving when creating guest login from IP '{_user.IP}'");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(CreateGuestLogin)}: Error saving when creating guest login from IP '{_user.IP}'");
                 return null;
             }
         }
@@ -1245,7 +1245,7 @@ namespace VueServer.Services.Account
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving when resettting guest login from IP '{_user.IP}' to an active state");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(ResetGuestLoginFailure)}: Error saving when resettting guest login from IP '{_user.IP}' to an active state");
                 return null;
             }
         }

@@ -43,7 +43,7 @@ namespace VueServer.Services.Weight
             }
             catch
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error getting list of weights");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(GetWeightList)}: Error getting list of weights");
                 return new Result<IEnumerable<Weights>>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -54,7 +54,7 @@ namespace VueServer.Services.Weight
         {
             if (weight == null)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Weight is null");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(AddWeight)}: Weight is null");
                 return new Result<Weights>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -68,7 +68,7 @@ namespace VueServer.Services.Weight
             }
             catch (Exception)
             {
-                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving changes");
+                _logger.LogError($"[{this.GetType().Name}] {nameof(AddWeight)}: Error saving changes");
                 return new Result<Weights>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -79,7 +79,7 @@ namespace VueServer.Services.Weight
         {
             if (weight == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Weight is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(EditWeight)}: Weight is null");
                 return new Result<Weights>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -87,7 +87,7 @@ namespace VueServer.Services.Weight
             var oldWeight = await _wsContext.Weight.Where(x => x.Id == weight.Id && x.UserId == _user.Id).FirstOrDefaultAsync();
             if (oldWeight == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No weight exists with the passed in Id for this user");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(EditWeight)}: No weight exists with the passed in Id for this user");
                 return new Result<Weights>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -101,7 +101,7 @@ namespace VueServer.Services.Weight
             }
             catch (Exception)
             {
-                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving changes");
+                _logger.LogError($"[{this.GetType().Name}] {nameof(EditWeight)}: Error saving changes");
                 return new Result<Weights>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -113,14 +113,14 @@ namespace VueServer.Services.Weight
         {
             if (id <= 0)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Id is <= 0");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(DeleteWeight)}: Id is <= 0");
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
             }
 
             var weight = await _wsContext.Weight.Where(x => x.Id == id).FirstOrDefaultAsync();
             if (weight == null)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No weight exists with id: {id}");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(DeleteWeight)}: No weight exists with id: {id}");
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
             }
             _wsContext.Weight.Remove(weight);
@@ -131,7 +131,7 @@ namespace VueServer.Services.Weight
             }
             catch (Exception)
             {
-                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving changes");
+                _logger.LogError($"[{this.GetType().Name}] {nameof(DeleteWeight)}: Error saving changes");
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
             }
 

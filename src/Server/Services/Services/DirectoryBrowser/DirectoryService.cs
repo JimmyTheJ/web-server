@@ -59,32 +59,32 @@ namespace VueServer.Services.DirectoryBrowser
         {
             if (string.IsNullOrWhiteSpace(filename))
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Filename passed is null or empty");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(Download)}: Filename passed is null or empty");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             var tuple = GetStrippedFilename(filename);
             if (tuple == null)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error stripping filename. Null Tuple object");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(Download)}: Error stripping filename. Null Tuple object");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             if (tuple.Item1 == null)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error stripping filename. Null Tuple.Item1");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(Download)}: Error stripping filename. Null Tuple.Item1");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             if (tuple.Item2 == null)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error stripping filename. Null Tuple.Item2");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(Download)}: Error stripping filename. Null Tuple.Item2");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             if (tuple.Item1.Count() == 0)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Filename contains no folders. Invalid filename");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(Download)}: Filename contains no folders. Invalid filename");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -94,19 +94,19 @@ namespace VueServer.Services.DirectoryBrowser
             var baseDirObj = list.Where(a => a.Name == folders[0]).FirstOrDefault();
             if (baseDirObj == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name: {folders[0]}");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Download)}: Invalid folder name: {folders[0]}");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             if (string.IsNullOrWhiteSpace(baseDirObj.Path))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Path of object is null");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Download)}: Path of object is null");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.BAD_REQUEST);
             }
 
             if (!baseDirObj.AccessFlags.HasFlag(DirectoryAccessFlags.ReadFile))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No read file access to files in this folder");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Download)}: No read file access to files in this folder");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.UNAUTHORIZED);
             }
 
@@ -130,7 +130,7 @@ namespace VueServer.Services.DirectoryBrowser
                     {
                         if (File.Exists(zipPath))
                         {
-                            _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Zip file already exists. Serving it as is instead of rebuilding the file.");
+                            _logger.LogInformation($"[{this.GetType().Name}] {nameof(Download)}: Zip file already exists. Serving it as is instead of rebuilding the file.");
                         }
                         else
                         {
@@ -141,37 +141,37 @@ namespace VueServer.Services.DirectoryBrowser
                     }
                     catch (ArgumentException)
                     {
-                        _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: ArgumentException");
+                        _logger.LogError($"[{this.GetType().Name}] {nameof(Download)}: ArgumentException");
                         return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
                     catch (PathTooLongException)
                     {
-                        _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: PathTooLongException");
+                        _logger.LogError($"[{this.GetType().Name}] {nameof(Download)}: PathTooLongException");
                         return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
                     catch (DirectoryNotFoundException)
                     {
-                        _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: DirectoryNotFoundException");
+                        _logger.LogError($"[{this.GetType().Name}] {nameof(Download)}: DirectoryNotFoundException");
                         return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
                     catch (IOException e)
                     {
-                        _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: IOException");
+                        _logger.LogError($"[{this.GetType().Name}] {nameof(Download)}: IOException");
                         _logger.LogError(e.StackTrace);
                         return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
                     catch (UnauthorizedAccessException)
                     {
-                        _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: UnauthorizedException");
+                        _logger.LogError($"[{this.GetType().Name}] {nameof(Download)}: UnauthorizedException");
                         return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
                     catch (NotSupportedException)
                     {
-                        _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: NotSupportedException");
+                        _logger.LogError($"[{this.GetType().Name}] {nameof(Download)}: NotSupportedException");
                         return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
                     }
 
-                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Private zip archive download begun by " + user + " @ " + _user.IP + " - name=" + filename);
+                    _logger.LogInformation($"[{this.GetType().Name}] {nameof(Download)}: Private zip archive download begun by " + user + " @ " + _user.IP + " - name=" + filename);
                     return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(zipPath, contentType, cleanFilename), StatusCode.OK);
                 }
                 //else
@@ -187,11 +187,11 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception)
             {
-                _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unknown exception accessing file");
+                _logger.LogError($"[{this.GetType().Name}] {nameof(Download)}: Unknown exception accessing file");
                 return new Result<Tuple<string, string, string>>(null, StatusCode.SERVER_ERROR);
             }
 
-            _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Private download begun by " + user + " @ " + _user.IP + " - name=" + filename);
+            _logger.LogInformation($"[{this.GetType().Name}] {nameof(Download)}: Private download begun by " + user + " @ " + _user.IP + " - name=" + filename);
             //if (!media)
             return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(Path.Combine(sourcePath, cleanFilename), contentType, cleanFilename), StatusCode.OK);
             //else
@@ -202,7 +202,7 @@ namespace VueServer.Services.DirectoryBrowser
         {
             if (string.IsNullOrWhiteSpace(directory))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Directory is null. Can't get list.");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Load)}: Directory is null. Can't get list.");
                 return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -210,14 +210,14 @@ namespace VueServer.Services.DirectoryBrowser
             var serverDirectory = list.Where(a => a.Name == directory).FirstOrDefault();
             if (serverDirectory == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name: {directory}");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Load)}: Invalid folder name: {directory}");
                 return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
             }
 
             var basePath = serverDirectory.Path;
             if (string.IsNullOrWhiteSpace(basePath))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Server directory has a null path");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Load)}: Server directory has a null path");
                 return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -228,7 +228,7 @@ namespace VueServer.Services.DirectoryBrowser
             {
                 if (!serverDirectory.AccessFlags.HasFlag(DirectoryAccessFlags.ReadFolder))
                 {
-                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Server directory has a null path");
+                    _logger.LogInformation($"[{this.GetType().Name}] {nameof(Load)}: Server directory has a null path");
                     return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.UNAUTHORIZED);
                 }
 
@@ -239,13 +239,13 @@ namespace VueServer.Services.DirectoryBrowser
                     uri = new Uri(fullPath);
                     if (!uri.AbsolutePath.ToLower().StartsWith(basePath.ToLower()) && !uri.LocalPath.ToLower().StartsWith(basePath.ToLower()))
                     {
-                        _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is trying to do a path escalation attack!");
+                        _logger.LogWarning($"[{this.GetType().Name}] {nameof(Load)}: {_user.Id} @ {_user.IP} is trying to do a path escalation attack!");
                         return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.FORBIDDEN);
                     }
                 }
                 catch
                 {
-                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} sent malformed URI path in sub directory.");
+                    _logger.LogInformation($"[{this.GetType().Name}] {nameof(Load)}: {_user.Id} @ {_user.IP} sent malformed URI path in sub directory.");
                     return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
                 }
             }
@@ -266,7 +266,7 @@ namespace VueServer.Services.DirectoryBrowser
                 dir = new DirectoryInfo(uri.LocalPath);
                 if (!dir.Exists)
                 {
-                    _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Directory ({basePath}) does not exist. User: {_user.Id} @ IP: {_user.IP}");
+                    _logger.LogWarning($"[{this.GetType().Name}] {nameof(Load)}: Directory ({basePath}) does not exist. User: {_user.Id} @ IP: {_user.IP}");
                     return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
                 }
 
@@ -274,7 +274,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error getting directory or file system info at: {basePath}");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(Load)}: Error getting directory or file system info at: {basePath}");
                 return new Result<IOrderedEnumerable<WebServerFile>>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -291,13 +291,13 @@ namespace VueServer.Services.DirectoryBrowser
         {
             if (directory == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Directory is null. Can't create folder if we don't know where it's located.");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CreateFolder)}: Directory is null. Can't create folder if we don't know where it's located.");
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
             if (newFolder == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New Folder is null. Can't create a folder without a name.");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CreateFolder)}: New Folder is null. Can't create a folder without a name.");
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -305,13 +305,13 @@ namespace VueServer.Services.DirectoryBrowser
             var serverDirectory = list.Where(a => a.Name == directory).FirstOrDefault();
             if (serverDirectory == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name: {directory}");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CreateFolder)}: Invalid folder name: {directory}");
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
             if (!serverDirectory.AccessFlags.HasFlag(DirectoryAccessFlags.CreateFolder))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: User doesn't have folder creation access for this folder: {directory}\\{subDir}");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CreateFolder)}: User doesn't have folder creation access for this folder: {directory}\\{subDir}");
                 return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
             }
 
@@ -327,7 +327,7 @@ namespace VueServer.Services.DirectoryBrowser
                 path = Path.Combine(serverDirectory.Path, subDir, newFolder);
                 if (!path.StartsWith(serverDirectory.Path))
                 {
-                    _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Looks like a path escalation attack from user ({_user.Id}) for path: {path}");
+                    _logger.LogWarning($"[{this.GetType().Name}] {nameof(CreateFolder)}: Looks like a path escalation attack from user ({_user.Id}) for path: {path}");
                     return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
                 }
             }
@@ -352,19 +352,19 @@ namespace VueServer.Services.DirectoryBrowser
 
             if (dir == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name provided. File rename attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(RenameFile)}: Invalid folder name provided. File rename attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
             if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.MoveFile))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to rename a file in a folder that doesn't allow file moving");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(RenameFile)}: {_user.Id} @ {_user.IP} is attempting to rename a file in a folder that doesn't allow file moving");
                 return new Result<WebServerFile>(null, StatusCode.UNAUTHORIZED);
             }
 
             if (model.Name == model.NewName)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New filename and old filename are the same. Can't rename a file to it's original name");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(RenameFile)}: New filename and old filename are the same. Can't rename a file to it's original name");
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -379,7 +379,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo on the old file ({oldFullPath}). Something must have gone wrong. Possible attack vector");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(RenameFile)}: Can't get FileInfo on the old file ({oldFullPath}). Something must have gone wrong. Possible attack vector");
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
@@ -389,19 +389,19 @@ namespace VueServer.Services.DirectoryBrowser
             var invalidCharacters = Path.GetInvalidPathChars();
             if (invalidCharacters.Any(x => newFullPath.Contains(x)))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New filename contains invalid characters");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(RenameFile)}: New filename contains invalid characters");
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
             if (IsPathEscalation(newFullPath) || !oldFullPath.StartsWith(dir.Path) || !newFullPath.StartsWith(dir.Path))
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Looks like a path escalation attack from user ({_user.Id}) for path: {newFullPath}");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(RenameFile)}: Looks like a path escalation attack from user ({_user.Id}) for path: {newFullPath}");
                 return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
             }
 
             if (File.Exists(newFullPath))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New filename selected already exists. Can't rename a file to an existing file name of {newFullPath}");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(RenameFile)}: New filename selected already exists. Can't rename a file to an existing file name of {newFullPath}");
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -411,7 +411,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying file {newFullPath}");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(RenameFile)}: Error copying file {newFullPath}");
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
@@ -422,7 +422,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo on the newly moved file. Something must have gone wrong.");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(RenameFile)}: Can't get FileInfo on the newly moved file. Something must have gone wrong.");
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
@@ -436,19 +436,19 @@ namespace VueServer.Services.DirectoryBrowser
 
             if (dir == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name provided. Folder rename attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + model.Name);
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(RenameFolder)}: Invalid folder name provided. Folder rename attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + model.Name);
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
             if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.MoveFolder))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to rename a folder that doesn't allow folder moving");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(RenameFolder)}: {_user.Id} @ {_user.IP} is attempting to rename a folder that doesn't allow folder moving");
                 return new Result<WebServerFile>(null, StatusCode.UNAUTHORIZED);
             }
 
             if (model.Name == model.NewName)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New folder and old folder are the same. Can't rename a folder to it's original name");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(RenameFolder)}: New folder and old folder are the same. Can't rename a folder to it's original name");
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -463,7 +463,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo / DirectoryInfo on the old file / folder ({oldFullPath}). Something must have gone wrong. Possible attack vector");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(RenameFolder)}: Can't get FileInfo / DirectoryInfo on the old file / folder ({oldFullPath}). Something must have gone wrong. Possible attack vector");
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
@@ -473,19 +473,19 @@ namespace VueServer.Services.DirectoryBrowser
             var invalidCharacters = Path.GetInvalidPathChars();
             if (invalidCharacters.Any(x => newFullPath.Contains(x)))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New folder contains invalid characters");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(RenameFolder)}: New folder contains invalid characters");
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
             if (IsPathEscalation(newFullPath) || !oldFullPath.StartsWith(dir.Path) || !newFullPath.StartsWith(dir.Path))
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Looks like a path escalation attack from user ({_user.Id}) for path: {newFullPath}");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(RenameFolder)}: Looks like a path escalation attack from user ({_user.Id}) for path: {newFullPath}");
                 return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
             }
 
             if (Directory.Exists(newFullPath))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New folder selected already exists. Can't rename a folder to an existing folder name of {newFullPath}");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(RenameFolder)}: New folder selected already exists. Can't rename a folder to an existing folder name of {newFullPath}");
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -495,7 +495,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying file {newFullPath}");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(RenameFolder)}: Error copying file {newFullPath}");
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
@@ -506,7 +506,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo on the newly moved file. Something must have gone wrong.");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(RenameFolder)}: Can't get FileInfo on the newly moved file. Something must have gone wrong.");
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
@@ -517,7 +517,7 @@ namespace VueServer.Services.DirectoryBrowser
         {
             if (model == null || model.File == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: File upload attempt by " + _user.Id + " @ " + _user.IP + "failed because the model passed to the controller was null.");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Upload)}: File upload attempt by " + _user.Id + " @ " + _user.IP + "failed because the model passed to the controller was null.");
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -525,13 +525,13 @@ namespace VueServer.Services.DirectoryBrowser
             var dir = dirList.Where(x => x.Name == model.Directory).FirstOrDefault();
             if (dir == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name provided. File upload attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Upload)}: Invalid folder name provided. File upload attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
             if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.UploadFile))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to upload to a folder that doesn't allow file uploading regardless of their permissions");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Upload)}: {_user.Id} @ {_user.IP} is attempting to upload to a folder that doesn't allow file uploading regardless of their permissions");
                 return new Result<WebServerFile>(null, StatusCode.UNAUTHORIZED);
             }
 
@@ -543,11 +543,11 @@ namespace VueServer.Services.DirectoryBrowser
                 saveDir += model.SubDirectory;
             }
 
-            _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Upload started from " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
+            _logger.LogInformation($"[{this.GetType().Name}] {nameof(Upload)}: Upload started from " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
 
             if (!Directory.Exists(saveDir))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to create a folder while uploading a file");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Upload)}: {_user.Id} @ {_user.IP} is attempting to create a folder while uploading a file");
                 return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
             }
 
@@ -556,13 +556,13 @@ namespace VueServer.Services.DirectoryBrowser
                 var uri = new Uri(saveDir);
                 if (!uri.LocalPath.StartsWith(baseSaveDir))
                 {
-                    _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is trying to do a path escalation attack!");
+                    _logger.LogWarning($"[{this.GetType().Name}] {nameof(Upload)}: {_user.Id} @ {_user.IP} is trying to do a path escalation attack!");
                     return new Result<WebServerFile>(null, StatusCode.FORBIDDEN);
                 }
             }
             catch
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} sent malformed URI path.");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Upload)}: {_user.Id} @ {_user.IP} sent malformed URI path.");
                 return new Result<WebServerFile>(null, StatusCode.BAD_REQUEST);
             }
 
@@ -572,13 +572,13 @@ namespace VueServer.Services.DirectoryBrowser
                 {
                     await model.File.CopyToAsync(fs);
                     fs.Flush();
-                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Upload SUCCESS from " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
+                    _logger.LogInformation($"[{this.GetType().Name}] {nameof(Upload)}: Upload SUCCESS from " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed to write file dir\n" + e.StackTrace);
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Upload FAILED from " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
+                Console.WriteLine($"[{this.GetType().Name}] {nameof(Upload)}: Failed to write file dir\n" + e.StackTrace);
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Upload)}: Upload FAILED from " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
@@ -590,8 +590,8 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception e)
             {
-                Console.WriteLine($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed to write file dir\n" + e.StackTrace);
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Failed to validate file exists after successful upload. " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
+                Console.WriteLine($"[{this.GetType().Name}] {nameof(Upload)}: Failed to write file dir\n" + e.StackTrace);
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Upload)}: Failed to validate file exists after successful upload. " + _user.Id + " @ " + _user.IP + " - Filename=" + model.File.FileName);
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
         }
@@ -612,7 +612,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo on the source file ({result.SourceFullPath}). Something must have gone wrong. Possible attack vector");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(CopyFile)}: Can't get FileInfo on the source file ({result.SourceFullPath}). Something must have gone wrong. Possible attack vector");
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
@@ -629,7 +629,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying file {result.SourceFullPath} to {result.DestinationFullPath}");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(CopyFile)}: Error copying file {result.SourceFullPath} to {result.DestinationFullPath}");
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
@@ -640,7 +640,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo on the newly copied file. Something must have gone wrong.");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(CopyFile)}: Can't get FileInfo on the newly copied file. Something must have gone wrong.");
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
@@ -664,7 +664,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get DirectoryInfo on the source folder ({result.SourceFullPath}). Something must have gone wrong. Possible attack vector");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(CopyFolder)}: Can't get DirectoryInfo on the source folder ({result.SourceFullPath}). Something must have gone wrong. Possible attack vector");
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
@@ -682,7 +682,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying folder {result.SourceFullPath} to {result.DestinationFullPath}");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(CopyFolder)}: Error copying folder {result.SourceFullPath} to {result.DestinationFullPath}");
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
@@ -693,7 +693,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get DirectoryInfo on the newly copied folder. Something must have gone wrong.");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(CopyFolder)}: Can't get DirectoryInfo on the newly copied folder. Something must have gone wrong.");
                 return new Result<WebServerFile>(null, StatusCode.SERVER_ERROR);
             }
 
@@ -715,7 +715,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get FileInfo on the source file ({result.SourceFullPath}). Something must have gone wrong. Possible attack vector");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(MoveFile)}: Can't get FileInfo on the source file ({result.SourceFullPath}). Something must have gone wrong. Possible attack vector");
                 return new Result<bool>(false, StatusCode.SERVER_ERROR);
             }
 
@@ -728,13 +728,13 @@ namespace VueServer.Services.DirectoryBrowser
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying file {result.SourceFullPath} to {result.DestinationFullPath}");
+                    _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(MoveFile)}: Error copying file {result.SourceFullPath} to {result.DestinationFullPath}");
                     return new Result<bool>(false, StatusCode.SERVER_ERROR);
                 }
             }
             else
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: The file already exists in the destination folder, can't move it there");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(MoveFile)}: The file already exists in the destination folder, can't move it there");
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
             }
 
@@ -757,7 +757,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Can't get DirectoryInfo on the source folder ({result.SourceFullPath}). Something must have gone wrong. Possible attack vector");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(MoveFolder)}: Can't get DirectoryInfo on the source folder ({result.SourceFullPath}). Something must have gone wrong. Possible attack vector");
                 return new Result<bool>(false, StatusCode.SERVER_ERROR);
             }
 
@@ -767,7 +767,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error copying folder {result.SourceFullPath} to {result.DestinationFullPath}");
+                _logger.LogError(ex, $"[{this.GetType().Name}] {nameof(MoveFolder)}: Error copying folder {result.SourceFullPath} to {result.DestinationFullPath}");
                 return new Result<bool>(false, StatusCode.SERVER_ERROR);
             }
 
@@ -785,7 +785,7 @@ namespace VueServer.Services.DirectoryBrowser
             var dir = dirList.Where(x => x.Name == model.Directory).FirstOrDefault();
             if (dir == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid folder name provided. Protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Delete)}: Invalid folder name provided. Protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                 return new Result<bool>(false, StatusCode.BAD_REQUEST);
             }
 
@@ -796,7 +796,7 @@ namespace VueServer.Services.DirectoryBrowser
             }
             catch
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid file provided. Protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(Delete)}: Invalid file provided. Protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                 return new Result<bool>(false, StatusCode.UNAUTHORIZED);
             }
 
@@ -805,7 +805,7 @@ namespace VueServer.Services.DirectoryBrowser
             {
                 if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.DeleteFolder))
                 {
-                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unable to delete folder. User: " + _user.Id + " @ " + _user.IP + " doesn't have permission to delete this folder.");
+                    _logger.LogInformation($"[{this.GetType().Name}] {nameof(Delete)}: Unable to delete folder. User: " + _user.Id + " @ " + _user.IP + " doesn't have permission to delete this folder.");
                     return new Result<bool>(false, StatusCode.UNAUTHORIZED);
                 }
                 isDir = true;
@@ -814,14 +814,14 @@ namespace VueServer.Services.DirectoryBrowser
             {
                 if (!dir.AccessFlags.HasFlag(DirectoryAccessFlags.DeleteFile))
                 {
-                    _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unable to delete file. User: " + _user.Id + " @ " + _user.IP + " doesn't have permission to delete this file.");
+                    _logger.LogInformation($"[{this.GetType().Name}] {nameof(Delete)}: Unable to delete file. User: " + _user.Id + " @ " + _user.IP + " doesn't have permission to delete this file.");
                     return new Result<bool>(false, StatusCode.UNAUTHORIZED);
                 }
             }
 
             if (!fi.Directory.FullName.StartsWith(dir.Path))
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Path escalation attack attempted by {_user.Id} @ {_user.IP} - Filename={fi.Directory.FullName.ToString()}{Path.DirectorySeparatorChar}{model.Name}!");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(Delete)}: Path escalation attack attempted by {_user.Id} @ {_user.IP} - Filename={fi.Directory.FullName.ToString()}{Path.DirectorySeparatorChar}{model.Name}!");
                 return new Result<bool>(false, StatusCode.FORBIDDEN);
             }
 
@@ -835,17 +835,17 @@ namespace VueServer.Services.DirectoryBrowser
                 }
                 catch (UnauthorizedAccessException)
                 {
-                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unauthorized protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
+                    _logger.LogError($"[{this.GetType().Name}] {nameof(Delete)}: Unauthorized protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                     return new Result<bool>(false, StatusCode.UNAUTHORIZED);
                 }
                 catch (SecurityException)
                 {
-                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Security exception in protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
+                    _logger.LogError($"[{this.GetType().Name}] {nameof(Delete)}: Security exception in protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                     return new Result<bool>(false, StatusCode.UNAUTHORIZED);
                 }
                 catch (IOException)
                 {
-                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: IO exception in protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
+                    _logger.LogError($"[{this.GetType().Name}] {nameof(Delete)}: IO exception in protected file deletion attempt by " + _user.Id + " @ " + _user.IP + " - Filename=" + model.Name);
                     return new Result<bool>(false, StatusCode.BAD_REQUEST);
                 }
             }
@@ -859,17 +859,17 @@ namespace VueServer.Services.DirectoryBrowser
                 }
                 catch (UnauthorizedAccessException)
                 {
-                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Unauthorized protected folder deletion attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + model.Name);
+                    _logger.LogError($"[{this.GetType().Name}] {nameof(Delete)}: Unauthorized protected folder deletion attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + model.Name);
                     return new Result<bool>(false, StatusCode.UNAUTHORIZED);
                 }
                 catch (SecurityException)
                 {
-                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Security exception in protected folder deletion attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + model.Name);
+                    _logger.LogError($"[{this.GetType().Name}] {nameof(Delete)}: Security exception in protected folder deletion attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + model.Name);
                     return new Result<bool>(false, StatusCode.UNAUTHORIZED);
                 }
                 catch (IOException)
                 {
-                    _logger.LogError($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: IO exception in protected folder deletion attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + model.Name);
+                    _logger.LogError($"[{this.GetType().Name}] {nameof(Delete)}: IO exception in protected folder deletion attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + model.Name);
                     return new Result<bool>(false, StatusCode.BAD_REQUEST);
                 }
             }
@@ -924,7 +924,7 @@ namespace VueServer.Services.DirectoryBrowser
 
                 if (cleaned.Length == index + 1)
                 {
-                    _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Filename ends with a slash. Invalid filename.");
+                    _logger.LogWarning($"[{this.GetType().Name}] {nameof(GetStrippedFilename)}: Filename ends with a slash. Invalid filename.");
                     return null;
                 }
                 folders.Add(cleaned.Substring(0, index));
@@ -1029,28 +1029,28 @@ namespace VueServer.Services.DirectoryBrowser
 
             if (sourceDir == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid source folder name provided. {type} move attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + sourceDir.Name);
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CopyOrMoveValidation)}: Invalid source folder name provided. {type} move attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + sourceDir.Name);
                 result.Code = StatusCode.BAD_REQUEST;
                 return result;
             }
 
             if (destinationDir == null)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Invalid destination folder name provided. {type} move attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + destinationDir.Name);
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CopyOrMoveValidation)}: Invalid destination folder name provided. {type} move attempt by " + _user.Id + " @ " + _user.IP + " - Foldername=" + destinationDir.Name);
                 result.Code = StatusCode.BAD_REQUEST;
                 return result;
             }
 
             if (!sourceDir.AccessFlags.HasFlag(flag))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to move a source {type} that doesn't allow {type} moving");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CopyOrMoveValidation)}: {_user.Id} @ {_user.IP} is attempting to move a source {type} that doesn't allow {type} moving");
                 result.Code = StatusCode.UNAUTHORIZED;
                 return result;
             }
 
             if (!destinationDir.AccessFlags.HasFlag(flag))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: {_user.Id} @ {_user.IP} is attempting to move a {type} into a destination that doesn't allow {type} moving");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CopyOrMoveValidation)}: {_user.Id} @ {_user.IP} is attempting to move a {type} into a destination that doesn't allow {type} moving");
                 result.Code = StatusCode.UNAUTHORIZED;
                 return result;
             }
@@ -1058,7 +1058,7 @@ namespace VueServer.Services.DirectoryBrowser
             // Folder name cannot change during a move operation. It's name must stay the same, otherwise it's a rename
             if (source.Name != destination.Name)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Cannot rename a {type} when copying");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CopyOrMoveValidation)}: Cannot rename a {type} when copying");
                 result.Code = StatusCode.BAD_REQUEST;
                 return result;
             }
@@ -1067,7 +1067,7 @@ namespace VueServer.Services.DirectoryBrowser
             // If this is a copy operation, then we can append an underscore and a number to it and place it in the same directory
             if (!isCopy && source.Directory == destination.Directory && source.SubDirectory == destination.SubDirectory)
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New {type} and old {type} are the same. Can't move a {type} into the same {type}");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CopyOrMoveValidation)}: New {type} and old {type} are the same. Can't move a {type} into the same {type}");
                 result.Code = StatusCode.BAD_REQUEST;
                 return result;
             }
@@ -1081,7 +1081,7 @@ namespace VueServer.Services.DirectoryBrowser
             // Ensure the base directory of the destination actually exists
             if (!Directory.Exists(result.DestinationBasePath))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Destination folder selected doesn't exist. Can't move a {type} to a non-existant folder name of {result.DestinationBasePath}");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CopyOrMoveValidation)}: Destination folder selected doesn't exist. Can't move a {type} to a non-existant folder name of {result.DestinationBasePath}");
                 result.Code = StatusCode.BAD_REQUEST;
                 return result;
             }
@@ -1090,7 +1090,7 @@ namespace VueServer.Services.DirectoryBrowser
             var invalidCharacters = Path.GetInvalidPathChars();
             if (invalidCharacters.Any(x => result.DestinationFullPath.Contains(x)))
             {
-                _logger.LogInformation($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: New {type} contains invalid characters");
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CopyOrMoveValidation)}: New {type} contains invalid characters");
                 result.Code = StatusCode.BAD_REQUEST;
                 return result;
             }
@@ -1098,7 +1098,7 @@ namespace VueServer.Services.DirectoryBrowser
             // Check for path escalation, and that the source and destination folders start with folder paths that are accessible to this user
             if (IsPathEscalation(result.DestinationFullPath) || !result.SourceFullPath.StartsWith(sourceDir.Path) || !result.DestinationFullPath.StartsWith(destinationDir.Path))
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Looks like a path escalation attack from user ({_user.Id}) for source path: {result.SourceFullPath} and destination path: {result.DestinationFullPath}");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(CopyOrMoveValidation)}: Looks like a path escalation attack from user ({_user.Id}) for source path: {result.SourceFullPath} and destination path: {result.DestinationFullPath}");
                 result.Code = StatusCode.FORBIDDEN;
                 return result;
             }
@@ -1306,7 +1306,7 @@ namespace VueServer.Services.DirectoryBrowser
             //Start conversion
             await conversion.Start();
 
-            await Console.Out.WriteLineAsync($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Finished converion file [{file.Name}]");
+            await Console.Out.WriteLineAsync($"[{this.GetType().Name}] {nameof(ConvertFile)}: Finished converion file [{file.Name}]");
             return new Tuple<string, string>(outputFileName, format);
         }
 

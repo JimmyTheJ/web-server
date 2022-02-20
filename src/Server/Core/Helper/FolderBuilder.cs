@@ -7,8 +7,15 @@ namespace VueServer.Core.Helper
     {
         public static bool CreateFolder(string name, string errMsg = "")
         {
-            if (string.IsNullOrWhiteSpace(name)) return false;
-            if (Directory.Exists(name)) return true;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return false;
+            }
+
+            if (Directory.Exists(name))
+            {
+                return true;
+            }
 
             try
             {
@@ -17,27 +24,27 @@ namespace VueServer.Core.Helper
             }
             catch (ArgumentException)
             {
-                Console.WriteLine($"{System.Reflection.MethodBase.GetCurrentMethod().Name}: ({errMsg}) Failed to create folder. Argument exception.");
+                Console.WriteLine($"{nameof(CreateFolder)}: ({errMsg}) Failed to create folder. Argument exception.");
             }
             catch (PathTooLongException)
             {
-                Console.WriteLine($"{System.Reflection.MethodBase.GetCurrentMethod().Name}: ({errMsg}) Failed to create folder. Path too long exception.");
+                Console.WriteLine($"{nameof(CreateFolder)}: ({errMsg}) Failed to create folder. Path too long exception.");
             }
             catch (DirectoryNotFoundException)
             {
-                Console.WriteLine($"{System.Reflection.MethodBase.GetCurrentMethod().Name}: ({errMsg}) Failed to create folder. Directory not found exception.");
+                Console.WriteLine($"{nameof(CreateFolder)}: ({errMsg}) Failed to create folder. Directory not found exception.");
             }
             catch (NotSupportedException)
             {
-                Console.WriteLine($"{System.Reflection.MethodBase.GetCurrentMethod().Name}: ({errMsg}) Failed to create folder. Not supported exception.");
+                Console.WriteLine($"{nameof(CreateFolder)}: ({errMsg}) Failed to create folder. Not supported exception.");
             }
             catch (UnauthorizedAccessException)
             {
-                Console.WriteLine($"{System.Reflection.MethodBase.GetCurrentMethod().Name}: ({errMsg}) Failed to create folder. Unauthorized access exception.");
+                Console.WriteLine($"{nameof(CreateFolder)}: ({errMsg}) Failed to create folder. Unauthorized access exception.");
             }
             catch (IOException)
             {
-                Console.WriteLine($"{System.Reflection.MethodBase.GetCurrentMethod().Name}: ({errMsg}) Failed to create folder. IO exception.");
+                Console.WriteLine($"{nameof(CreateFolder)}: ({errMsg}) Failed to create folder. IO exception.");
             }
 
             return false;

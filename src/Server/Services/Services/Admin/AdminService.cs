@@ -58,7 +58,7 @@ namespace VueServer.Services.Admin
             {
                 if (dbSetting.Value == setting.Value)
                 {
-                    _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Value matches. No need to save database with changes, returning true but doing nothing.");
+                    _logger.LogDebug($"[{this.GetType().Name}] {nameof(SetServerSetting)}: Value matches. No need to save database with changes, returning true but doing nothing.");
                     return new Result<bool>(true, Domain.Enums.StatusCode.OK);
                 }
 
@@ -72,7 +72,7 @@ namespace VueServer.Services.Admin
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after adding or editing a {nameof(ServerSettings)} with key: {setting.Key}");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(SetServerSetting)}: Error saving after adding or editing a {nameof(ServerSettings)} with key: {setting.Key}");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
         }
@@ -93,7 +93,7 @@ namespace VueServer.Services.Admin
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after deleting a {nameof(ServerSettings)} with key: {key}");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(DeleteServerSetting)}: Error saving after deleting a {nameof(ServerSettings)} with key: {key}");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
         }
@@ -114,7 +114,7 @@ namespace VueServer.Services.Admin
         {
             if (dir == null || dir.Id != 0)
             {
-                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Directory must exist and have an Id of 0 to be able to be created");
+                _logger.LogDebug($"[{this.GetType().Name}] {nameof(AddGroupDirectory)}: Directory must exist and have an Id of 0 to be able to be created");
                 return new Result<int>(0, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -126,7 +126,7 @@ namespace VueServer.Services.Admin
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after adding {nameof(ServerGroupDirectory)} with name: {dir.Name}");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(AddGroupDirectory)}: Error saving after adding {nameof(ServerGroupDirectory)} with name: {dir.Name}");
                 return new Result<int>(0, Domain.Enums.StatusCode.SERVER_ERROR);
             }
         }
@@ -135,7 +135,7 @@ namespace VueServer.Services.Admin
         {
             if (dir == null || dir.Id != 0)
             {
-                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Directory must exist and have an Id of 0 to be able to be created");
+                _logger.LogDebug($"[{this.GetType().Name}] {nameof(AddUserDirectory)}: Directory must exist and have an Id of 0 to be able to be created");
                 return new Result<long>(0, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -147,7 +147,7 @@ namespace VueServer.Services.Admin
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after adding {nameof(ServerUserDirectory)} with name: {dir.Name}");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(AddUserDirectory)}: Error saving after adding {nameof(ServerUserDirectory)} with name: {dir.Name}");
                 return new Result<long>(0, Domain.Enums.StatusCode.SERVER_ERROR);
             }
         }
@@ -156,14 +156,14 @@ namespace VueServer.Services.Admin
         {
             if (id < 1)
             {
-                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Id must be > 0 to be valid");
+                _logger.LogDebug($"[{this.GetType().Name}] {nameof(DeleteGroupDirectory)}: Id must be > 0 to be valid");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var item = await _context.ServerGroupDirectory.Where(x => x.Id == id).FirstOrDefaultAsync();
             if (item == null)
             {
-                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No {nameof(ServerGroupDirectory)} found with Id: {id}");
+                _logger.LogDebug($"[{this.GetType().Name}] {nameof(DeleteGroupDirectory)}: No {nameof(ServerGroupDirectory)} found with Id: {id}");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -175,7 +175,7 @@ namespace VueServer.Services.Admin
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after deleting {nameof(ServerGroupDirectory)} with id: {id}");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(DeleteGroupDirectory)}: Error saving after deleting {nameof(ServerGroupDirectory)} with id: {id}");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
         }
@@ -184,14 +184,14 @@ namespace VueServer.Services.Admin
         {
             if (id < 1)
             {
-                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Id must be > 0 to be valid");
+                _logger.LogDebug($"[{this.GetType().Name}] {nameof(DeleteUserDirectory)}: Id must be > 0 to be valid");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var item = await _context.ServerUserDirectory.Where(x => x.Id == id).FirstOrDefaultAsync();
             if (item == null)
             {
-                _logger.LogDebug($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: No {nameof(ServerUserDirectory)} found with Id: {id}");
+                _logger.LogDebug($"[{this.GetType().Name}] {nameof(DeleteUserDirectory)}: No {nameof(ServerUserDirectory)} found with Id: {id}");
                 return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
@@ -203,7 +203,7 @@ namespace VueServer.Services.Admin
             }
             catch (Exception)
             {
-                _logger.LogWarning($"[{this.GetType().Name}] {System.Reflection.MethodBase.GetCurrentMethod().Name}: Error saving after deleting {nameof(ServerUserDirectory)} with id: {id}");
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(DeleteUserDirectory)}: Error saving after deleting {nameof(ServerUserDirectory)} with id: {id}");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
         }

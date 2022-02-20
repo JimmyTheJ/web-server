@@ -9,7 +9,7 @@ namespace VueServer.Core.Helper
 {
     public static class MimeTypeHelper
     {
-        private static IReadOnlyDictionary<string, MimeFileType> FileTypeMappings = new Dictionary<string, MimeFileType>
+        private static readonly IReadOnlyDictionary<string, MimeFileType> FileTypeMappings = new Dictionary<string, MimeFileType>
         {
             {  MimeUtility.UnknownMimeType, MimeFileType.Other },
 
@@ -82,7 +82,7 @@ namespace VueServer.Core.Helper
             }
             catch (Exception)
             {
-                Console.WriteLine($"{System.Reflection.MethodBase.GetCurrentMethod().Name}: Error getting Mime-type, asumming it's a folder...");
+                Console.WriteLine($"{nameof(GetMimeType)}: Error getting Mime-type, asumming it's a folder...");
                 mimeType = MimeUtility.UnknownMimeType;
             }
             //}
@@ -92,7 +92,9 @@ namespace VueServer.Core.Helper
         public static MimeFileType GetFileType(string mimeType)
         {
             if (string.IsNullOrWhiteSpace(mimeType))
+            {
                 return MimeFileType.Other;
+            }
 
             if (FileTypeMappings.TryGetValue(mimeType, out MimeFileType value))
             {
