@@ -5,14 +5,19 @@
     </v-card-title>
     <v-card-text>
       <v-layout row>
-        <v-flex xs12 sm12 md4>
+        <v-flex xs12><v-text-field v-model="search" label="Search"/></v-flex>
+        <v-flex xs12 sm6 md4>
           <v-list-item-group v-model="selectedUserPosition">
-            <v-list-item v-for="(item, index) in userList" :key="index">
+            <v-list-item v-for="(item, index) in filteredList" :key="index">
               <v-list-item-content>
                 {{ item.displayName }}
               </v-list-item-content>
             </v-list-item>
           </v-list-item-group>
+          <v-divider
+            v-if="this.$vuetify.breakpoint.name === 'xs'"
+            class="mt-2 pt-2"
+          />
         </v-flex>
         <v-flex xs12 sm6 md4>
           <v-list-item-group v-model="selectedModulePosition">
@@ -28,6 +33,10 @@
               </v-list-item>
             </template>
           </v-list-item-group>
+          <v-divider
+            v-if="this.$vuetify.breakpoint.name === 'xs'"
+            class="mt-2 pt-2"
+          />
         </v-flex>
         <v-flex xs12 sm6 md4>
           <v-list
@@ -72,10 +81,13 @@ export default {
       usersHaveModuleList: [],
       selectedUserModuleList: [],
       selectedUserFeatureList: [],
+      filteredList: [],
+      search: null,
     }
   },
   mounted() {
     this.getData()
+    this.filteredList = this.userList
   },
   computed: {
     ...mapState({
@@ -109,8 +121,8 @@ export default {
       this.selectedModule = null
       this.selectedModulePosition = null
 
-      this.selectedUser = this.userList[newValue]
-      this.updateSelectedUserList(this.userList[newValue])
+      this.selectedUser = this.filteredList[newValue]
+      this.updateSelectedUserList(this.filteredList[newValue])
     },
     selectedModulePosition(newValue) {
       if (typeof newValue === 'undefined' || newValue === null) {
@@ -119,6 +131,31 @@ export default {
       }
 
       this.selectedModule = this.moduleList[newValue]
+    },
+    userList: {
+      handler(newValue) {
+        this.filteredList = newValue
+      },
+      deep: true,
+    },
+    search(newValue) {
+      if (
+        typeof newValue === 'undefined' ||
+        newValue == null ||
+        newValue === ''
+      ) {
+        this.filteredList = this.userList
+      } else {
+        let list = []
+        console.log('New Value: ' + newValue)
+        for (let i = 0; i < this.userList.length; i++) {
+          console.log(this.userList[i])
+          if (this.userList[i].id.includes(newValue)) {
+            list.push(this.userList[i])
+          }
+        }
+        this.filteredList = list
+      }
     },
   },
   methods: {

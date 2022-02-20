@@ -1,31 +1,35 @@
 <template>
-  <v-container>
-    <v-card>
-      <v-toolbar color="gray" dark flat>
-        <template>
-          <v-tabs v-model="tab" align-with-title>
-            <v-tabs-slider color="purple"></v-tabs-slider>
+  <div>
+    <template>
+      <v-tabs
+        v-model="tab"
+        :align-with-title="!isMobile"
+        :align-left="isMobile"
+        :vertical="isMobile"
+      >
+        <v-tabs-slider color="purple"></v-tabs-slider>
 
-            <v-tab v-for="item in tabs" :key="item">
-              {{ item }}
-            </v-tab>
-          </v-tabs>
-        </template>
-      </v-toolbar>
+        <v-tab v-for="item in tabs" :key="item.name">
+          <fa-icon :icon="item.icon" class="mx-2" />
+          {{ item.name }}
+        </v-tab>
+      </v-tabs>
+    </template>
 
-      <v-tabs-items v-model="tab">
-        <v-tab-item key="0">
-          <user-modules />
-        </v-tab-item>
-        <v-tab-item key="1">
-          <register-user />
-        </v-tab-item>
-        <v-tab-item key="2">
-          <guest-logins />
-        </v-tab-item>
-      </v-tabs-items>
-    </v-card>
-  </v-container>
+    <v-divider />
+
+    <v-tabs-items v-model="tab">
+      <v-tab-item key="0">
+        <user-modules />
+      </v-tab-item>
+      <v-tab-item key="1">
+        <register-user />
+      </v-tab-item>
+      <v-tab-item key="2">
+        <guest-logins />
+      </v-tab-item>
+    </v-tabs-items>
+  </div>
 </template>
 
 <script>
@@ -39,7 +43,11 @@ export default {
   data() {
     return {
       tab: null,
-      tabs: ['User Modules', 'Register Users', 'Guest Logins'],
+      tabs: [
+        { name: 'User Modules', icon: 'users' },
+        { name: 'Register Users', icon: 'user-plus' },
+        { name: 'Guest Logins', icon: 'door-open' },
+      ],
     }
   },
   components: {
@@ -47,7 +55,12 @@ export default {
     'guest-logins': GuestLogins,
     'register-user': RegisterUser,
   },
-  computed: {},
+  computed: {
+    isMobile() {
+      let val = this.$vuetify.breakpoint.name
+      return val === 'xs' || val === 'sm'
+    },
+  },
   beforeDestroy() {},
   created() {
     if (typeof this.$store.state.auth.admin === 'undefined')

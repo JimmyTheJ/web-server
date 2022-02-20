@@ -22,20 +22,41 @@
         <router-view />
       </v-flex>
     </v-layout>
-    <v-layout v-else row>
-      <v-flex xs12>
-        <v-toolbar flat tile dense>
-          <template v-for="(route, i) in routes">
-            <v-btn :to="route.path" class="mx-2" :key="i">
-              {{ route.meta.display }}
-            </v-btn>
-          </template>
-        </v-toolbar>
-      </v-flex>
-      <v-flex xs12>
-        <router-view />
-      </v-flex>
-    </v-layout>
+    <div v-else>
+      <v-layout row no-gutters>
+        <v-flex xs1>
+          <v-menu
+            :close-on-content-click="true"
+            :nudge-width="200"
+            v-model="menu"
+            offset-x
+          >
+            <template v-slot:activator="{ on }">
+              <v-btn v-on="on" icon><fa-icon icon="bars"></fa-icon></v-btn>
+            </template>
+            <v-card>
+              <v-list>
+                <template v-for="(route, i) in routes">
+                  <v-list-item :to="{ name: route.name }" :key="i">
+                    <v-list-item-title class="ml-2">
+                      {{ route.meta.display }}
+                    </v-list-item-title>
+                  </v-list-item>
+                </template>
+              </v-list>
+            </v-card>
+          </v-menu>
+        </v-flex>
+        <v-flex xs10>
+          <div class="text-center headline">
+            {{ $route.meta.display }}
+          </div>
+        </v-flex>
+        <v-flex xs12>
+          <router-view />
+        </v-flex>
+      </v-layout>
+    </div>
   </div>
 </template>
 
@@ -52,6 +73,7 @@ export default {
   data() {
     return {
       routes: [],
+      menu: null,
     }
   },
   components: {
@@ -79,6 +101,9 @@ export default {
     isMobile() {
       let val = this.$vuetify.breakpoint.name
       return val === 'xs' || val === 'sm'
+    },
+    getDrawerHeight() {
+      return 16 + this.menuItems * 48
     },
   },
   methods: {},
