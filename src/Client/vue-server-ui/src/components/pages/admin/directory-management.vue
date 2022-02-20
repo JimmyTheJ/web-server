@@ -1,5 +1,75 @@
 <template>
   <div>
+    <generic-dialog
+      :title="
+        newDirectoryType === dirTypes.Group
+          ? 'New Group Directory Rule'
+          : 'New User Directory Rule'
+      "
+      :open="createDirectoryDialog"
+      :maxWidth="1280"
+      @dialog-close="createDirectoryDialog = false"
+    >
+      <v-card v-if="newDirectoryObject != null">
+        <v-card-text>
+          <v-row>
+            <v-col cols="12">
+              <v-text-field
+                v-model="newDirectoryObject.name"
+                label="Folder Display Name"
+              />
+            </v-col>
+            <v-col cols="12">
+              <v-select
+                v-if="newDirectoryType === dirTypes.Group"
+                v-model="newDirectoryObject.role"
+                label="Role"
+                :items="roles"
+                item-value="id"
+                item-text="displayName"
+              />
+              <v-text-field
+                v-else
+                v-model="newDirectoryObject.userId"
+                label="Username"
+              />
+            </v-col>
+            <v-col cols="12">
+              <v-text-field v-model="newDirectoryObject.path" label="Path" />
+            </v-col>
+
+            <v-col cols="12">
+              <v-checkbox
+                v-model="newDirectoryObject.default"
+                label="Default"
+              />
+            </v-col>
+            <v-col cols="12">
+              <v-select
+                v-model="newDirectoryObject.selectedPermissions"
+                :items="permissions"
+                label="Permissions"
+                multiple
+                item-text="key"
+                item-value="value"
+              />
+            </v-col>
+
+            <v-col cols="12">
+              <v-btn
+                @click="
+                  newDirectoryType === dirTypes.Group
+                    ? saveNewGroupDirectory(newDirectoryObject)
+                    : saveNewUserDirectory(newDirectoryObject)
+                "
+                ><fa-icon icon="save" size="2x"
+              /></v-btn>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+    </generic-dialog>
+
     <v-card>
       <v-card-title
         >Directory Settings<v-btn icon @click="createNewSetting()"
@@ -26,236 +96,63 @@
         </v-layout>
       </v-card-text>
     </v-card>
+
     <v-card>
       <v-card-title
         >Group Directories
         <v-btn icon @click="createNewGroupDirectory()"
           ><fa-icon icon="plus" color="green"/></v-btn
-      ></v-card-title>
-      <v-card-text>
-        <div v-for="(dir, i) in groupDirectories" :key="i">
-          <v-layout row v-if="!isMobile" class="no-gutters">
-            <v-row>
-              <v-col cols="2">
-                <v-text-field
-                  v-model="dir.name"
-                  label="Name:"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-              <v-col cols="2">
-                <v-select
-                  v-model="dir.role"
-                  label="Role"
-                  :items="roles"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-              <v-col cols="4">
-                <v-text-field
-                  v-model="dir.path"
-                  label="Path"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-
-              <v-col cols="3">
-                <v-select
-                  v-model="dir.selectedPermissions"
-                  :items="permissions"
-                  label="Permissions"
-                  multiple
-                  item-text="key"
-                  item-value="value"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-
-              <v-col cols="1">
-                <v-btn v-if="dir.id > 0" @click="deleteGroupDirectory(dir.id)"
-                  ><fa-icon icon="window-close" size="2x"
-                /></v-btn>
-                <v-btn v-else @click="saveNewGroupDirectory(dir)"
-                  ><fa-icon icon="save" size="2x" />
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-layout>
-          <v-layout v-else row class="no-gutters">
-            <v-row>
-              <v-col cols="6">
-                <v-text-field
-                  v-model="dir.name"
-                  label="Name:"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-              <v-col cols="6">
-                <v-select
-                  v-model="dir.role"
-                  label="Role"
-                  :items="roles"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="dir.path"
-                  label="Path"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-
-              <v-col cols="10">
-                <v-select
-                  v-model="dir.selectedPermissions"
-                  :items="permissions"
-                  label="Permissions"
-                  multiple
-                  item-text="key"
-                  item-value="value"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-
-              <v-col cols="2">
-                <v-btn v-if="dir.id > 0" @click="deleteGroupDirectory(dir.id)"
-                  ><fa-icon icon="window-close" size="2x"
-                /></v-btn>
-                <v-btn v-else @click="saveNewGroupDirectory(dir)"
-                  ><fa-icon icon="save" size="2x" />
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-layout>
-          <v-divider class="ma-4"></v-divider>
-        </div>
-      </v-card-text>
+        ><v-spacer />
+        <v-text-field
+          v-model="groupDirectorySearch"
+          label="Search"
+          v-if="groupDirectories.length > 0"
+      /></v-card-title>
+      <v-data-table
+        v-if="groupDirectories.length > 0"
+        :headers="groupDirectoryHeaders"
+        :items="groupDirectories"
+        item-key="id"
+        class="elevation-1"
+        :search="groupDirectorySearch"
+      >
+        <template v-slot:[`item.actions`]="{ item }">
+          <!-- <v-icon small class="mr-2" @click="editItem(item)">
+            mdi-pencil
+          </v-icon> -->
+          <v-icon small @click="deleteGroupDirectory(item.id)">
+            mdi-delete
+          </v-icon>
+        </template>
+      </v-data-table>
     </v-card>
+
     <v-card>
       <v-card-title>
         User Directories
         <v-btn icon @click="createNewUserDirectory()"
-          ><fa-icon icon="plus" color="green"
-        /></v-btn>
-      </v-card-title>
-      <v-card-text>
+          ><fa-icon icon="plus" color="green"/></v-btn
+        ><v-spacer />
+
         <v-text-field
-          label="User Directory UserId Filter"
-          v-model="userDirectoryFilter"
-        />
-        <div v-for="(dir, i) in filteredUserDirectories" :key="i">
-          <v-layout row v-if="!isMobile" class="no-gutters">
-            <v-row>
-              <v-col cols="2">
-                <v-text-field
-                  v-model="dir.name"
-                  label="Name:"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-              <v-col cols="1">
-                <v-text-field
-                  v-model="dir.userId"
-                  label="Username"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-              <v-col cols="4">
-                <v-text-field
-                  v-model="dir.path"
-                  label="Path"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-
-              <v-col cols="1">
-                <v-checkbox
-                  v-model="dir.default"
-                  label="Default"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-
-              <v-col cols="3">
-                <v-select
-                  v-model="dir.selectedPermissions"
-                  :items="permissions"
-                  label="Permissions"
-                  multiple
-                  item-text="key"
-                  item-value="value"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-
-              <v-col cols="1">
-                <v-btn v-if="dir.id > 0" @click="deleteUserDirectory(dir.id)"
-                  ><fa-icon icon="window-close" size="2x"
-                /></v-btn>
-                <v-btn v-else @click="saveNewUserDirectory(dir)"
-                  ><fa-icon icon="save" size="2x"
-                /></v-btn>
-              </v-col>
-            </v-row>
-          </v-layout>
-          <v-layout v-else row class="no-gutters">
-            <v-row>
-              <v-col cols="6">
-                <v-text-field
-                  v-model="dir.name"
-                  label="Name:"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-              <v-col cols="6">
-                <v-text-field
-                  v-model="dir.userId"
-                  label="Username"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="dir.path"
-                  label="Path"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-
-              <v-col cols="2">
-                <v-checkbox
-                  v-model="dir.default"
-                  label="Default"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-
-              <v-col cols="8">
-                <v-select
-                  v-model="dir.selectedPermissions"
-                  :items="permissions"
-                  label="Permissions"
-                  multiple
-                  item-text="key"
-                  item-value="value"
-                  :readonly="dir.id !== 0"
-                />
-              </v-col>
-
-              <v-col cols="2">
-                <v-btn v-if="dir.id > 0" @click="deleteUserDirectory(dir.id)"
-                  ><fa-icon icon="window-close" size="2x"
-                /></v-btn>
-                <v-btn v-else @click="saveNewUserDirectory(dir)"
-                  ><fa-icon icon="save" size="2x"
-                /></v-btn>
-              </v-col>
-            </v-row>
-          </v-layout>
-          <v-divider class="ma-4"></v-divider>
-        </div>
-      </v-card-text>
+          v-model="userDirectorySearch"
+          label="Search"
+          v-if="userDirectories.length > 0"
+      /></v-card-title>
+      <v-data-table
+        v-if="userDirectories.length > 0"
+        :headers="userDirectoryHeaders"
+        :items="userDirectories"
+        item-key="id"
+        class="elevation-1"
+        :search="userDirectorySearch"
+      >
+        <template v-slot:[`item.actions`]="props">
+          <v-icon small @click="deleteUserDirectory(props.item.id)">
+            mdi-delete
+          </v-icon>
+        </template>
+      </v-data-table>
     </v-card>
   </div>
 </template>
@@ -271,6 +168,12 @@ import {
 } from '@/helpers.js'
 
 import { mapState } from 'vuex'
+import genericDialog from '@/components/modules/generic-dialog.vue'
+
+const DirectoryTypes = {
+  Group: 0,
+  User: 1,
+}
 
 function newGroupDirectory() {
   return {
@@ -303,9 +206,11 @@ function newSetting() {
 }
 
 export default {
+  components: { genericDialog },
   name: 'directory-management',
   data() {
     return {
+      dirTypes: DirectoryTypes,
       userDirectoryFilter: null,
       filteredUserDirectories: [],
       directorySettings: [],
@@ -321,6 +226,25 @@ export default {
         { key: 'Move Folder', value: 64 },
         { key: 'Move File', value: 128 },
       ],
+      groupDirectoryHeaders: [
+        { text: 'Role', align: 'start', sortable: true, value: 'role' },
+        { text: 'Name', value: 'name' },
+        { text: 'Path', value: 'path' },
+        { text: 'Permissions', value: 'accessFlags' },
+        { text: 'Actions', value: 'actions' },
+      ],
+      userDirectoryHeaders: [
+        { text: 'User Id', align: 'start', sortable: true, value: 'userId' },
+        { text: 'Name', value: 'name' },
+        { text: 'Path', value: 'path' },
+        { text: 'Permissions', value: 'accessFlags' },
+        { text: 'Actions', value: 'actions' },
+      ],
+      groupDirectorySearch: null,
+      userDirectorySearch: null,
+      createDirectoryDialog: false,
+      newDirectoryObject: null,
+      newDirectoryType: -1,
     }
   },
   computed: {
@@ -434,18 +358,14 @@ export default {
       this.directorySettings.push(newSetting())
     },
     createNewGroupDirectory() {
-      if (
-        this.groupDirectories.length === 0 ||
-        this.groupDirectories[this.groupDirectories.length - 1].id !== 0
-      )
-        this.groupDirectories.push(newGroupDirectory())
+      this.newDirectoryObject = newGroupDirectory()
+      this.newDirectoryType = DirectoryTypes.Group
+      this.createDirectoryDialog = true
     },
     createNewUserDirectory() {
-      if (
-        this.userDirectories.length === 0 ||
-        this.userDirectories[this.userDirectories.length - 1].id !== 0
-      )
-        this.userDirectories.push(newUserDirectory())
+      this.newDirectoryObject = newUserDirectory()
+      this.newDirectoryType = DirectoryTypes.User
+      this.createDirectoryDialog = true
     },
     saveSetting(setting) {
       Dispatcher.request(() => {
@@ -462,10 +382,9 @@ export default {
       Dispatcher.request(() => {
         service.addGroupDirectory(obj).then(resp => {
           if (resp.data > 0) {
-            let index = this.groupDirectories.findIndex(x => x.id === 0)
-            if (index > -1) {
-              this.groupDirectories[index].id = resp.data
-            }
+            obj.id = resp.data
+            this.groupDirectories.push(obj)
+            this.createDirectoryDialog = false
           }
         })
       })
@@ -477,10 +396,9 @@ export default {
       Dispatcher.request(() => {
         service.addUserDirectory(obj).then(resp => {
           if (resp.data > 0) {
-            let index = this.userDirectories.findIndex(x => x.id === 0)
-            if (index > -1) {
-              this.userDirectories[index].id = resp.data
-            }
+            obj.id = resp.data
+            this.userDirectories.push(obj)
+            this.createDirectoryDialog = false
           }
         })
       })
