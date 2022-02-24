@@ -70,31 +70,52 @@
       </v-card>
     </generic-dialog>
 
+    <generic-dialog
+      title="Directory Settings"
+      :open="directorySettingsDialog"
+      :maxWidth="960"
+      @dialog-close="directorySettingsDialog = false"
+    >
+      <v-card v-if="directorySetting != null">
+        <v-card-text>
+          <v-form v-model="directorySettingValid" ref="directorySettingForm">
+            <v-text-field
+              v-model="directorySetting.key"
+              label="Key"
+              :readonly="directorySettingType === 1 ? true : false"
+              :disabled="directorySettingType === 1 ? true : false"
+              :rules="directorySettingKeyRules"
+            />
+            <v-text-field v-model="directorySetting.value" label="Value" />
+            <v-btn @click="saveSetting(directorySetting)"
+              ><fa-icon icon="save" size="2x"
+            /></v-btn>
+          </v-form>
+        </v-card-text>
+      </v-card>
+    </generic-dialog>
+
     <v-card>
       <v-card-title
         >Directory Settings<v-btn icon @click="createNewSetting()"
           ><fa-icon icon="plus" color="green"/></v-btn
       ></v-card-title>
-      <v-card-text v-for="(setting, i) in directorySettings" :key="i">
-        <v-layout row class="no-gutters">
-          <v-col cols="4" class="px-1">
-            <v-text-field v-model="setting.key" label="Key:" />
-          </v-col>
-          <v-col cols="6" class="px-1">
-            <v-text-field v-model="setting.value" label="Value:" />
-          </v-col>
-          <v-col cols="1" class="px-1">
-            <v-btn @click="saveSetting(setting)"
-              ><fa-icon icon="save" size="2x"
-            /></v-btn>
-          </v-col>
-          <v-col cols="1" class="px-1">
-            <v-btn @click="deleteSetting(setting.key)"
-              ><fa-icon icon="window-close" size="2x"
-            /></v-btn>
-          </v-col>
-        </v-layout>
-      </v-card-text>
+      <v-data-table
+        v-if="directorySettings.length > 0"
+        :headers="directorySettingsHeaders"
+        :items="directorySettings"
+        item-key="id"
+        class="elevation-1"
+      >
+        <template v-slot:[`item.actions`]="{ item }">
+          <v-icon small class="mr-2" @click="editSetting(item)">
+            mdi-pencil
+          </v-icon>
+          <v-icon small @click="deleteSetting(item.key)">
+            mdi-delete
+          </v-icon>
+        </template>
+      </v-data-table>
     </v-card>
 
     <v-card>
@@ -240,11 +261,24 @@ export default {
         { text: 'Permissions', value: 'accessFlags' },
         { text: 'Actions', value: 'actions' },
       ],
+      directorySettingsHeaders: [
+        { text: 'Key', align: 'start', sortable: false, value: 'key' },
+        { text: 'Value', sortable: false, value: 'value' },
+        { text: 'Actions', value: 'actions' },
+      ],
       groupDirectorySearch: null,
       userDirectorySearch: null,
       createDirectoryDialog: false,
       newDirectoryObject: null,
       newDirectoryType: -1,
+      directorySettingsDialog: false,
+      directorySetting: null,
+      directorySettingType: 0,
+      directorySettingValid: false,
+      directorySettingKeyRules: [
+        v => !!v || 'Key must not be empty',
+        v => v.startsWith('Directory_') || 'Key must begin with Directory_',
+      ],
     }
   },
   computed: {
@@ -354,9 +388,6 @@ export default {
           )
       })
     },
-    createNewSetting() {
-      this.directorySettings.push(newSetting())
-    },
     createNewGroupDirectory() {
       this.newDirectoryObject = newGroupDirectory()
       this.newDirectoryType = DirectoryTypes.Group
@@ -367,9 +398,32 @@ export default {
       this.newDirectoryType = DirectoryTypes.User
       this.createDirectoryDialog = true
     },
+    createNewSetting() {
+      this.directorySetting = { key: '', value: '' }
+      this.directorySettingType = 0
+      this.directorySettingsDialog = true
+    },
     saveSetting(setting) {
+      const newSetting = Object.assign({}, setting)
+
+      this.$refs.directorySettingForm.validate()
+      if (!this.directorySettingValid) return
+
       Dispatcher.request(() => {
-        service.setServerSetting(setting)
+        service.setServerSetting(newSetting).then(() => {
+          // Edit
+          let index = this.directorySettings.findIndex(
+            x => x.key === newSetting.key
+          )
+          if (index > -1) {
+            this.directorySettings[index].value = newSetting.value
+          }
+          // New
+          else {
+            this.directorySettings.push(newSetting)
+          }
+          this.directorySettingsDialog = false
+        })
       })
     },
     saveNewGroupDirectory(group) {
@@ -402,6 +456,11 @@ export default {
           }
         })
       })
+    },
+    editSetting(obj) {
+      this.directorySetting = Object.assign({}, obj)
+      this.directorySettingType = 1
+      this.directorySettingsDialog = true
     },
     deleteSetting(key) {
       Dispatcher.request(() => {

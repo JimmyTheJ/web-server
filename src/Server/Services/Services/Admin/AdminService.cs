@@ -43,6 +43,18 @@ namespace VueServer.Services.Admin
 
         public async Task<IResult<bool>> SetServerSetting(ServerSettings setting)
         {
+            if (setting == null || string.IsNullOrWhiteSpace(setting.Key))
+            {
+                _logger.LogDebug($"[{this.GetType().Name}] {nameof(SetServerSetting)}: Setting is null or key is empty.");
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            if (string.IsNullOrWhiteSpace(setting.Value))
+            {
+                _logger.LogDebug($"[{this.GetType().Name}] {nameof(SetServerSetting)}: Setting value is empty.");
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
             var dbSetting = await _context.ServerSettings.Where(x => x.Key == setting.Key).FirstOrDefaultAsync();
             if (dbSetting == null)
             {

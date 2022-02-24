@@ -13,6 +13,7 @@ using Route = VueServer.Controllers.Constants.API_ENDPOINTS;
 
 namespace VueServer.Controllers
 {
+    [Authorize(Roles = ADMINISTRATOR_STRING)]
     [Route(Route.Admin.Controller)]
     public class AdminController
     {
@@ -34,7 +35,6 @@ namespace VueServer.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = ADMINISTRATOR_STRING)]
         [Route(Route.Admin.ChangePassword)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest model)
         {
@@ -42,17 +42,13 @@ namespace VueServer.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = ADMINISTRATOR_STRING)]
         [Route(Route.Admin.GetAllRoles)]
         public async Task<IActionResult> GetAllRoles()
         {
             return _codeFactory.GetStatusCode(await _accountService.GetRoles());
         }
 
-
-
         [HttpGet]
-        [Authorize(Roles = ADMINISTRATOR_STRING)]
         [Route(Route.Admin.Directory.GetDirectorySettings)]
         public async Task<IActionResult> GetDirectorySettings()
         {
@@ -60,7 +56,6 @@ namespace VueServer.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = ADMINISTRATOR_STRING)]
         [Route(Route.Admin.SetServerSetting)]
         public async Task<IActionResult> SetServerSetting([FromBody] ServerSettings setting)
         {
@@ -68,7 +63,6 @@ namespace VueServer.Controllers
         }
 
         [HttpDelete]
-        [Authorize(Roles = ADMINISTRATOR_STRING)]
         [Route(Route.Admin.DeleteServerSetting)]
         public async Task<IActionResult> DeleteServerSetting(string key)
         {
@@ -76,7 +70,6 @@ namespace VueServer.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = ADMINISTRATOR_STRING)]
         [Route(Route.Admin.Directory.GetGroupDirectories)]
         public async Task<IActionResult> GetGroupDirectories()
         {
@@ -84,7 +77,6 @@ namespace VueServer.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = ADMINISTRATOR_STRING)]
         [Route(Route.Admin.Directory.GetUserDirectories)]
         public async Task<IActionResult> GetUserDirectories()
         {
@@ -92,7 +84,6 @@ namespace VueServer.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = ADMINISTRATOR_STRING)]
         [Route(Route.Admin.Directory.AddGroupDirectory)]
         public async Task<IActionResult> AddGroupDirectory([FromBody] ServerGroupDirectory dir)
         {
@@ -100,7 +91,6 @@ namespace VueServer.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = ADMINISTRATOR_STRING)]
         [Route(Route.Admin.Directory.AddUserDirectory)]
         public async Task<IActionResult> AddUserDirectory([FromBody] ServerUserDirectory dir)
         {
@@ -108,7 +98,6 @@ namespace VueServer.Controllers
         }
 
         [HttpDelete]
-        [Authorize(Roles = ADMINISTRATOR_STRING)]
         [Route(Route.Admin.Directory.DeleteGroupDirectory)]
         public async Task<IActionResult> DeleteGroupDirectory(int id)
         {
@@ -116,7 +105,6 @@ namespace VueServer.Controllers
         }
 
         [HttpDelete]
-        [Authorize(Roles = ADMINISTRATOR_STRING)]
         [Route(Route.Admin.Directory.DeleteUserDirectory)]
         public async Task<IActionResult> DeleteUserDirectory(long id)
         {
