@@ -10,11 +10,12 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using VueServer.Classes;
 using VueServer.Classes.Extensions;
-using VueServer.Core.Cache;
 using VueServer.Core.Helper;
-using VueServer.Services.Chat.Hubs;
+using VueServer.Modules.Core.Cache;
 
 namespace VueServer
 {
@@ -109,6 +110,31 @@ namespace VueServer
             }
 
             services.AddCustomCompression();
+
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var assembly in assemblies.OrderByDescending(x => x.FullName))
+            {
+                var name = assembly.GetName().Name;
+                if (!name.StartsWith("VueServer.Modules"))
+                {
+                    continue;
+                }
+
+                if (name == "VueServer.Modules.Core")
+                {
+                    continue;
+                }
+
+                var startupClass = assembly.GetTypes().Where(x => x.IsClass && x.Name == "Startup").FirstOrDefault();
+                if (startupClass != null)
+                {
+                    ConstructorInfo ctor = startupClass.GetConstructor(Type.EmptyTypes);
+                    object startupClassObject = ctor.Invoke(new object[] { });
+
+                    MethodInfo method = startupClass.GetMethod("Load");
+                    object result = method.Invoke(startupClassObject, new object[] { services });
+                }
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -192,9 +218,33 @@ namespace VueServer
             {
                 endpoints.MapFallbackToController("Index", "Home");
                 endpoints.MapHealthChecks("/healthcheck");
-                endpoints.MapHub<ChatHub>("/chat-hub");
                 endpoints.MapControllers();
             });
+
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var assembly in assemblies.OrderByDescending(x => x.FullName))
+            {
+                var name = assembly.GetName().Name;
+                if (!name.StartsWith("VueServer.Modules"))
+                {
+                    continue;
+                }
+
+                if (name == "VueServer.Modules.Core")
+                {
+                    continue;
+                }
+
+                var startupClass = assembly.GetTypes().Where(x => x.IsClass && x.Name == "Startup").FirstOrDefault();
+                if (startupClass != null)
+                {
+                    ConstructorInfo ctor = startupClass.GetConstructor(Type.EmptyTypes);
+                    object startupClassObject = ctor.Invoke(new object[] { });
+
+                    MethodInfo method = startupClass.GetMethod("Create");
+                    object result = method.Invoke(startupClassObject, new object[] { app });
+                }
+            }
 
             BuildCache(serverCache);
 

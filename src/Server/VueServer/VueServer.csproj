@@ -25,27 +25,29 @@
     <None Remove="Migrations\WS\**" />
     <None Remove="Models\**" />
   </ItemGroup>
-  
-  <ItemGroup>
-	<ProjectReference Include="..\Controllers\VueServer.Controllers.csproj" />
-	<ProjectReference Include="..\Core\VueServer.Core.csproj" />
-	<ProjectReference Include="..\Services\VueServer.Services.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.13" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.13" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="5.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.14" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.14" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson" Version="5.0.14" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices" Version="3.1.22" />
-    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="5.0.13" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.13">
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="5.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.14">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.13" />      
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.14" />      
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.1.0" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.4" />
     <PackageReference Include="Serilog.Extensions.Logging.File" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VueServer.Modules.Chat\VueServer.Modules.Chat.csproj" />
+    <ProjectReference Include="..\VueServer.Modules.Core\VueServer.Modules.Core.csproj" />
+    <ProjectReference Include="..\VueServer.Modules.Directory\VueServer.Modules.Directory.csproj" />
+    <ProjectReference Include="..\VueServer.Modules.Library\VueServer.Modules.Library.csproj" />
+    <ProjectReference Include="..\VueServer.Modules.Weight\VueServer.Modules.Weight.csproj" />
   </ItemGroup>
     
   <ItemGroup>

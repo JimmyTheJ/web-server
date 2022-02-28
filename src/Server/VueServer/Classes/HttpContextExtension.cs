@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
-using VueServer.Models.User;
+using VueServer.Modules.Core.Models.User;
 
 namespace VueServer.Classes
 {
@@ -11,7 +11,9 @@ namespace VueServer.Classes
         public static async Task RefreshLoginAsync(this HttpContext context)
         {
             if (context.User == null)
+            {
                 return;
+            }
 
             var userManager = context.RequestServices
                 .GetRequiredService<UserManager<WSUser>>();

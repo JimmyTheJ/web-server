@@ -1,12 +1,12 @@
 ﻿using Microsoft.Data.Sqlite;
 using System;
-using VueServer.Models.Context;
+using VueServer.Modules.Core.Context;
 
 namespace VueServer.Test.Integration.Fixture
 {
     public class SqliteDBFixture : IDisposable
     {
-        private SqliteConnection connection;
+        private readonly SqliteConnection connection;
 
         public SqliteDBFixture()
         {

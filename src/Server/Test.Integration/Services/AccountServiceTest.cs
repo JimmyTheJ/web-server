@@ -1,5 +1,5 @@
 ﻿using Moq;
-using VueServer.Services.Account;
+using VueServer.Modules.Core.Services.Account;
 
 namespace VueServer.Test.Integration.Services
 {

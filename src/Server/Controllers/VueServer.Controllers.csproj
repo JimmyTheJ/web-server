@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\VueServer.Core.csproj" />
-    <ProjectReference Include="..\Services\VueServer.Services.csproj" />
   </ItemGroup>
   
 </Project>

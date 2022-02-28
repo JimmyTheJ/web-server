@@ -6,9 +6,9 @@ using Moq;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
-using VueServer.Models.Context;
-using VueServer.Services.DirectoryBrowser;
-using VueServer.Services.User;
+using VueServer.Modules.Core.Services.User;
+using VueServer.Modules.Directory.Context;
+using VueServer.Modules.Directory.Services;
 using Xunit;
 using static VueServer.Domain.DomainConstants.Authentication;
 
@@ -28,7 +28,7 @@ namespace VueServer.Test.Integration.Services
 
         private readonly IConfigurationRoot Config;
 
-        public IWSContext Context { get; set; }
+        public IDirectoryContext Context { get; set; }
 
         private const string MAIN_IP = "https://127.0.0.1";
         private const string USERNAME = "Jimmy";

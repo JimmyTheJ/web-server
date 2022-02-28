@@ -7,8 +7,8 @@ using System;
 using System.IO;
 using System.Net.Http;
 using VueServer.Core.Status;
-using VueServer.Models.Context;
-using VueServer.Services.Account;
+using VueServer.Modules.Core.Context;
+using VueServer.Modules.Core.Services.Account;
 
 namespace VueServer.Test.Integration
 {

@@ -21,23 +21,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VueServer.Classes.Scheduling;
-using VueServer.Controllers.Filters;
-using VueServer.Core.Cache;
 using VueServer.Core.Helper;
 using VueServer.Core.Status;
 using VueServer.Domain.Enums;
-using VueServer.Models.Context;
-using VueServer.Models.User;
-using VueServer.Services.Account;
-using VueServer.Services.Admin;
-using VueServer.Services.Chat;
-using VueServer.Services.DirectoryBrowser;
-using VueServer.Services.Identity;
-using VueServer.Services.Library;
-using VueServer.Services.Module;
-using VueServer.Services.Note;
-using VueServer.Services.User;
-using VueServer.Services.Weight;
+using VueServer.Modules.Core.Cache;
+using VueServer.Modules.Core.Context;
+using VueServer.Modules.Core.Controllers.Filters;
+using VueServer.Modules.Core.Models.User;
+using VueServer.Modules.Core.Services.Account;
+using VueServer.Modules.Core.Services.Admin;
+using VueServer.Modules.Core.Services.Identity;
+using VueServer.Modules.Core.Services.Module;
+using VueServer.Modules.Core.Services.Note;
+using VueServer.Modules.Core.Services.User;
 
 namespace VueServer.Classes.Extensions
 {
@@ -146,12 +142,8 @@ namespace VueServer.Classes.Extensions
 
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IAdminService, AdminService>();
-            services.AddScoped<IChatService, ChatService>();
             services.AddScoped<IModuleService, ModuleService>();
-            services.AddScoped<IDirectoryService, DirectoryService>();
             services.AddScoped<INoteService, NoteService>();
-            services.AddScoped<ILibraryService, LibraryService>();
-            services.AddScoped<IWeightService, WeightService>();
 
             services.AddScoped<ModuleAuthFilter>();
             services.AddTransient<IUserService, UserService>();
@@ -213,7 +205,7 @@ namespace VueServer.Classes.Extensions
                 }
 
                 services.AddEntityFrameworkMySql().AddDbContext<IWSContext, MySqlWSContext>
-                    (options => options.UseMySql(ConnectionStrings.WSCONTEXT, a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
+                    (options => options.UseMySql(ConnectionStrings.WSCONTEXT, ServerVersion.AutoDetect(ConnectionStrings.WSCONTEXT), a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
             }
         }
 
