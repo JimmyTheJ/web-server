@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using VueServer.Classes.Scheduling;
 using VueServer.Core.Helper;
 using VueServer.Core.Status;
+using VueServer.Domain;
 using VueServer.Domain.Enums;
 using VueServer.Modules.Core.Cache;
 using VueServer.Modules.Core.Context;
@@ -179,7 +180,7 @@ namespace VueServer.Classes.Extensions
                 }
 
                 services.AddEntityFrameworkSqlServer().AddDbContext<IWSContext, SqlServerWSContext>
-                    (options => options.UseSqlServer(ConnectionStrings.WSCONTEXT, a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
+                    (options => options.UseSqlServer(ConnectionStrings.WSCONTEXT, a => a.MigrationsAssembly(DomainConstants.MIGRATION_ASSEMBLY)), ServiceLifetime.Scoped);
             }
             else if (dbType == DatabaseTypes.SQLITE)
             {
@@ -192,7 +193,7 @@ namespace VueServer.Classes.Extensions
                 }
 
                 services.AddEntityFrameworkSqlite().AddDbContext<IWSContext, SqliteWSContext>
-                    (options => options.UseSqlite(ConnectionStrings.WSCONTEXT, a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
+                    (options => options.UseSqlite(ConnectionStrings.WSCONTEXT, a => a.MigrationsAssembly(DomainConstants.MIGRATION_ASSEMBLY)), ServiceLifetime.Scoped);
             }
             else if (dbType == DatabaseTypes.MYSQL)
             {
@@ -205,7 +206,7 @@ namespace VueServer.Classes.Extensions
                 }
 
                 services.AddEntityFrameworkMySql().AddDbContext<IWSContext, MySqlWSContext>
-                    (options => options.UseMySql(ConnectionStrings.WSCONTEXT, ServerVersion.AutoDetect(ConnectionStrings.WSCONTEXT), a => a.MigrationsAssembly("VueServer")), ServiceLifetime.Scoped);
+                    (options => options.UseMySql(ConnectionStrings.WSCONTEXT, ServerVersion.AutoDetect(ConnectionStrings.WSCONTEXT), a => a.MigrationsAssembly(DomainConstants.MIGRATION_ASSEMBLY)), ServiceLifetime.Scoped);
             }
         }
 

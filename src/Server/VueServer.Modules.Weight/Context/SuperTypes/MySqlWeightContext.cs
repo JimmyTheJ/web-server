@@ -1,13 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using VueServer.Domain;
+using VueServer.Modules.Core.Context;
 
-namespace VueServer.Modules.Core.Context
+namespace VueServer.Modules.Weight.Context
 {
-    public class MySqlWSContext : WSContext, IWSContext
+    public class MySqlWeightContext : WeightContext, IWeightContext
     {
-        public MySqlWSContext() : base() { }
+        public MySqlWeightContext() : base() { }
 
-        public MySqlWSContext(DbContextOptions<WSContext> options) : base(options) { }
+        public MySqlWeightContext(DbContextOptions<WSContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

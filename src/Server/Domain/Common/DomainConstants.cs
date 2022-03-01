@@ -3,7 +3,7 @@
     public class DomainConstants
     {
         public const string INVALID_FOLDER = "__NA__";
-
+        public const string MIGRATION_ASSEMBLY = "VueServer";
         public static class Authentication
         {
             public const int MAX_USERNAME_LENGTH = 64;

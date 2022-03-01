@@ -132,7 +132,7 @@ namespace VueServer
                     object startupClassObject = ctor.Invoke(new object[] { });
 
                     MethodInfo method = startupClass.GetMethod("Load");
-                    object result = method.Invoke(startupClassObject, new object[] { services });
+                    object result = method.Invoke(startupClassObject, new object[] { services, Configuration, Environment });
                 }
             }
         }

@@ -6,6 +6,9 @@ namespace VueServer.Modules.Library.Context
 {
     public class LibraryContext : WSContext, ILibraryContext
     {
+        public LibraryContext() : base() { }
+        public LibraryContext(DbContextOptions<WSContext> options) : base(options) { }
+
         public DbSet<Author> Authors { get; set; }
         public DbSet<Book> Books { get; set; }
         public DbSet<Bookcase> Bookcases { get; set; }

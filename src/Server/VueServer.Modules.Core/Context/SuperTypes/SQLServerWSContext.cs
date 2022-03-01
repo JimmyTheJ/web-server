@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using VueServer.Domain;
 
 namespace VueServer.Modules.Core.Context
 {
@@ -14,7 +15,7 @@ namespace VueServer.Modules.Core.Context
 
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(ConnectionStrings.WSCONTEXT, b => b.MigrationsAssembly("VueServer"));
+                optionsBuilder.UseSqlServer(ConnectionStrings.WSCONTEXT, b => b.MigrationsAssembly(DomainConstants.MIGRATION_ASSEMBLY));
             }
         }
     }

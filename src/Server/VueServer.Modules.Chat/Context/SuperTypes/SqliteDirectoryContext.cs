@@ -1,21 +1,22 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using VueServer.Domain;
+using VueServer.Modules.Core.Context;
 
-namespace VueServer.Modules.Core.Context
+namespace VueServer.Modules.Chat.Context
 {
-    public class SqliteWSContext : WSContext, IWSContext
+    public class SqliteChatContext : ChatContext, IChatContext
     {
         private readonly SqliteConnection _connection;
 
-        public SqliteWSContext() : base() { }
+        public SqliteChatContext() : base() { }
 
-        public SqliteWSContext(SqliteConnection connection) : base()
+        public SqliteChatContext(SqliteConnection connection) : base()
         {
             _connection = connection;
         }
 
-        public SqliteWSContext(DbContextOptions<WSContext> options) : base(options) { }
+        public SqliteChatContext(DbContextOptions<WSContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

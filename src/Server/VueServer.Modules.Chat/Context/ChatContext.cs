@@ -6,6 +6,9 @@ namespace VueServer.Modules.Chat.Context
 {
     public class ChatContext : WSContext, IChatContext
     {
+        public ChatContext() : base() { }
+        public ChatContext(DbContextOptions<WSContext> options) : base(options) { }
+
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<ConversationHasUser> ConversationHasUser { get; set; }
         public DbSet<ChatMessage> Messages { get; set; }

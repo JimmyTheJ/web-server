@@ -1,21 +1,22 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using VueServer.Domain;
+using VueServer.Modules.Core.Context;
 
-namespace VueServer.Modules.Core.Context
+namespace VueServer.Modules.Weight.Context
 {
-    public class SqliteWSContext : WSContext, IWSContext
+    public class SqliteWeightContext : WeightContext, IWeightContext
     {
         private readonly SqliteConnection _connection;
 
-        public SqliteWSContext() : base() { }
+        public SqliteWeightContext() : base() { }
 
-        public SqliteWSContext(SqliteConnection connection) : base()
+        public SqliteWeightContext(SqliteConnection connection) : base()
         {
             _connection = connection;
         }
 
-        public SqliteWSContext(DbContextOptions<WSContext> options) : base(options) { }
+        public SqliteWeightContext(DbContextOptions<WSContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

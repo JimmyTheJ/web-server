@@ -1,21 +1,22 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using VueServer.Domain;
+using VueServer.Modules.Core.Context;
 
-namespace VueServer.Modules.Core.Context
+namespace VueServer.Modules.Directory.Context
 {
-    public class SqliteWSContext : WSContext, IWSContext
+    public class SqliteDirectoryContext : DirectoryContext, IDirectoryContext
     {
         private readonly SqliteConnection _connection;
 
-        public SqliteWSContext() : base() { }
+        public SqliteDirectoryContext() : base() { }
 
-        public SqliteWSContext(SqliteConnection connection) : base()
+        public SqliteDirectoryContext(SqliteConnection connection) : base()
         {
             _connection = connection;
         }
 
-        public SqliteWSContext(DbContextOptions<WSContext> options) : base(options) { }
+        public SqliteDirectoryContext(DbContextOptions<WSContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

@@ -1,13 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using VueServer.Domain;
+using VueServer.Modules.Core.Context;
 
-namespace VueServer.Modules.Core.Context
+namespace VueServer.Modules.Directory.Context
 {
-    public class MySqlWSContext : WSContext, IWSContext
+    public class MySqlDirectoryContext : DirectoryContext, IDirectoryContext
     {
-        public MySqlWSContext() : base() { }
+        public MySqlDirectoryContext() : base() { }
 
-        public MySqlWSContext(DbContextOptions<WSContext> options) : base(options) { }
+        public MySqlDirectoryContext(DbContextOptions<WSContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
