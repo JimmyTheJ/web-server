@@ -4,11 +4,11 @@ using VueServer.Modules.Core.Context;
 
 namespace VueServer.Modules.Library.Context
 {
-    public class MySqlLibraryContext : LibraryContext, ILibraryContext
+    public sealed class MySqlLibraryContext : LibraryContext
     {
         public MySqlLibraryContext() : base() { }
 
-        public MySqlLibraryContext(DbContextOptions<WSContext> options) : base(options) { }
+        public MySqlLibraryContext(DbContextOptions<MySqlLibraryContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

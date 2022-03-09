@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
+using VueServer.Core;
 using VueServer.Domain;
 using VueServer.Modules.Core.Models;
 using VueServer.Modules.Core.Models.Modules;
@@ -8,9 +8,8 @@ using VueServer.Modules.Core.Models.User;
 
 namespace VueServer.Modules.Core.Context
 {
-    public class WSContext : DbContext, IWSContext
+    public class WSContext : BaseContext, IWSContext
     {
-        private IDbContextTransaction _transaction;
         private IPasswordHasher<WSUser> _passwordHasher;
 
         public WSContext()
@@ -18,7 +17,7 @@ namespace VueServer.Modules.Core.Context
             Initialize();
         }
 
-        public WSContext(DbContextOptions<WSContext> options) : base(options)
+        public WSContext(DbContextOptions options) : base(options)
         {
             Initialize();
         }
@@ -65,7 +64,6 @@ namespace VueServer.Modules.Core.Context
             SeedIdentity(modelBuilder);
             SeedModules(modelBuilder);
             SeedModuleFeatures(modelBuilder);
-            SeedWSSettings(modelBuilder);
         }
 
         #region -> Database tables
@@ -98,34 +96,6 @@ namespace VueServer.Modules.Core.Context
         public DbSet<WSGuestLogin> GuestLogin { get; set; }
 
         #endregion
-
-        #endregion
-
-        #region -> Public Functions
-
-        public void BeginTransaction()
-        {
-            _transaction = Database.BeginTransaction();
-        }
-
-        public void Commit()
-        {
-            try
-            {
-                SaveChanges();
-                _transaction.Commit();
-            }
-            finally
-            {
-                _transaction.Dispose();
-            }
-        }
-
-        public void Rollback()
-        {
-            _transaction.Rollback();
-            _transaction.Dispose();
-        }
 
         #endregion
 
@@ -197,12 +167,6 @@ namespace VueServer.Modules.Core.Context
 
             modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = DomainConstants.Models.ModuleFeatures.Chat.DELETE_MESSAGE_ID, Name = DomainConstants.Models.ModuleFeatures.Chat.DELETE_MESSAGE_NAME, ModuleAddOnId = DomainConstants.Models.ModuleAddOns.Chat.Id });
             modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = DomainConstants.Models.ModuleFeatures.Chat.DELETE_CONVERSATION_ID, Name = DomainConstants.Models.ModuleFeatures.Chat.DELETE_CONVERSATION_NAME, ModuleAddOnId = DomainConstants.Models.ModuleAddOns.Chat.Id });
-        }
-
-        private void SeedWSSettings(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<ServerSettings>().HasData(new ServerSettings() { Key = DomainConstants.ServerSettings.BaseKeys.Directory + DomainConstants.ServerSettings.Directory.ShouldUseDefaultPath, Value = "0" });
-            modelBuilder.Entity<ServerSettings>().HasData(new ServerSettings() { Key = DomainConstants.ServerSettings.BaseKeys.Directory + DomainConstants.ServerSettings.Directory.DefaultPathValue, Value = "" });
         }
 
         #endregion

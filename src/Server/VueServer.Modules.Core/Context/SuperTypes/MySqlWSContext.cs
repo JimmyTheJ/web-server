@@ -3,11 +3,11 @@ using VueServer.Domain;
 
 namespace VueServer.Modules.Core.Context
 {
-    public class MySqlWSContext : WSContext, IWSContext
+    public sealed class MySqlWSContext : WSContext
     {
         public MySqlWSContext() : base() { }
 
-        public MySqlWSContext(DbContextOptions<WSContext> options) : base(options) { }
+        public MySqlWSContext(DbContextOptions<MySqlWSContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

@@ -4,11 +4,11 @@ using VueServer.Modules.Core.Context;
 
 namespace VueServer.Modules.Directory.Context
 {
-    public class SqlServerDirectoryContext : DirectoryContext, IDirectoryContext
+    public sealed class SqlServerDirectoryContext : DirectoryContext
     {
         public SqlServerDirectoryContext() : base() { }
 
-        public SqlServerDirectoryContext(DbContextOptions<WSContext> options) : base(options) { }
+        public SqlServerDirectoryContext(DbContextOptions<MySqlDirectoryContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

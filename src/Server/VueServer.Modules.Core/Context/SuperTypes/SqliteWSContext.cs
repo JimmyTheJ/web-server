@@ -4,7 +4,7 @@ using VueServer.Domain;
 
 namespace VueServer.Modules.Core.Context
 {
-    public class SqliteWSContext : WSContext, IWSContext
+    public sealed class SqliteWSContext : WSContext
     {
         private readonly SqliteConnection _connection;
 
@@ -15,7 +15,7 @@ namespace VueServer.Modules.Core.Context
             _connection = connection;
         }
 
-        public SqliteWSContext(DbContextOptions<WSContext> options) : base(options) { }
+        public SqliteWSContext(DbContextOptions<SqliteWSContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

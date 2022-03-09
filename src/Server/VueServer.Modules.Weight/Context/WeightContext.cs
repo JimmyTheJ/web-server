@@ -8,7 +8,7 @@ namespace VueServer.Modules.Weight.Context
     {
         public WeightContext() : base() { }
 
-        public WeightContext(DbContextOptions<WSContext> options) : base(options) { }
+        public WeightContext(DbContextOptions options) : base(options) { }
 
         public DbSet<Weights> Weight { get; set; }
     }

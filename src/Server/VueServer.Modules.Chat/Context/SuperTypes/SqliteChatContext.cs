@@ -3,20 +3,20 @@ using Microsoft.EntityFrameworkCore;
 using VueServer.Domain;
 using VueServer.Modules.Core.Context;
 
-namespace VueServer.Modules.Library.Context
+namespace VueServer.Modules.Chat.Context
 {
-    public class SqliteLibraryContext : LibraryContext, ILibraryContext
+    public sealed class SqliteChatContext : ChatContext
     {
         private readonly SqliteConnection _connection;
 
-        public SqliteLibraryContext() : base() { }
+        public SqliteChatContext() : base() { }
 
-        public SqliteLibraryContext(SqliteConnection connection) : base()
+        public SqliteChatContext(SqliteConnection connection) : base()
         {
             _connection = connection;
         }
 
-        public SqliteLibraryContext(DbContextOptions<WSContext> options) : base(options) { }
+        public SqliteChatContext(DbContextOptions<MySqlChatContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

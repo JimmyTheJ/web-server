@@ -7,7 +7,7 @@ namespace VueServer.Modules.Chat.Context
     public class ChatContext : WSContext, IChatContext
     {
         public ChatContext() : base() { }
-        public ChatContext(DbContextOptions<WSContext> options) : base(options) { }
+        public ChatContext(DbContextOptions options) : base(options) { }
 
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<ConversationHasUser> ConversationHasUser { get; set; }
@@ -16,6 +16,8 @@ namespace VueServer.Modules.Chat.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             //// Conversation User many to many setup
             modelBuilder.Entity<ConversationHasUser>().HasKey(x => new { x.ConversationId, x.UserId });
             modelBuilder.Entity<ConversationHasUser>().HasOne(x => x.Conversation).WithMany(x => x.ConversationUsers).HasForeignKey(x => x.ConversationId);

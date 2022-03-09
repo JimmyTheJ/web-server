@@ -5,7 +5,7 @@ using VueServer.Modules.Core.Context;
 
 namespace VueServer.Modules.Directory.Context
 {
-    public class SqliteDirectoryContext : DirectoryContext, IDirectoryContext
+    public sealed class SqliteDirectoryContext : DirectoryContext
     {
         private readonly SqliteConnection _connection;
 
@@ -16,7 +16,7 @@ namespace VueServer.Modules.Directory.Context
             _connection = connection;
         }
 
-        public SqliteDirectoryContext(DbContextOptions<WSContext> options) : base(options) { }
+        public SqliteDirectoryContext(DbContextOptions<MySqlDirectoryContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

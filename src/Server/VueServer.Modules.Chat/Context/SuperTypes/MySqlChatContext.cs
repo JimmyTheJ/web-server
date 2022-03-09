@@ -4,11 +4,11 @@ using VueServer.Modules.Core.Context;
 
 namespace VueServer.Modules.Chat.Context
 {
-    public class MySqlChatContext : ChatContext, IChatContext
+    public sealed class MySqlChatContext : ChatContext
     {
         public MySqlChatContext() : base() { }
 
-        public MySqlChatContext(DbContextOptions<WSContext> options) : base(options) { }
+        public MySqlChatContext(DbContextOptions<MySqlChatContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

@@ -45,9 +45,6 @@
   <ItemGroup>
     <ProjectReference Include="..\VueServer.Modules.Chat\VueServer.Modules.Chat.csproj" />
     <ProjectReference Include="..\VueServer.Modules.Core\VueServer.Modules.Core.csproj" />
-    <ProjectReference Include="..\VueServer.Modules.Directory\VueServer.Modules.Directory.csproj" />
-    <ProjectReference Include="..\VueServer.Modules.Library\VueServer.Modules.Library.csproj" />
-    <ProjectReference Include="..\VueServer.Modules.Weight\VueServer.Modules.Weight.csproj" />
   </ItemGroup>
     
   <ItemGroup>

@@ -4,11 +4,11 @@ using VueServer.Modules.Core.Context;
 
 namespace VueServer.Modules.Weight.Context
 {
-    public class MySqlWeightContext : WeightContext, IWeightContext
+    public sealed class MySqlWeightContext : WeightContext
     {
         public MySqlWeightContext() : base() { }
 
-        public MySqlWeightContext(DbContextOptions<WSContext> options) : base(options) { }
+        public MySqlWeightContext(DbContextOptions<MySqlWeightContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

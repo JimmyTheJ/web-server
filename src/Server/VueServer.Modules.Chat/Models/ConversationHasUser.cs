@@ -7,11 +7,14 @@ namespace VueServer.Modules.Chat.Models
     public class ConversationHasUser
     {
         public long ConversationId { get; set; }
+
+        [ForeignKey("User")]
         public string UserId { get; set; }
 
         public bool Owner { get; set; }
 
         public Conversation Conversation { get; set; }
+
         public WSUser User { get; set; }
 
         [MaxLength(10)]

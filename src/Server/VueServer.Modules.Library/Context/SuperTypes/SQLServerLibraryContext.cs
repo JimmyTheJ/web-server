@@ -2,13 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using VueServer.Domain;
 using VueServer.Modules.Core.Context;
 
-namespace VueServer.Modules.Chat.Context
+namespace VueServer.Modules.Library.Context
 {
-    public class SqlServerChatContext : ChatContext, IChatContext
+    public sealed class SqlServerLibraryContext : LibraryContext
     {
-        public SqlServerChatContext() : base() { }
+        public SqlServerLibraryContext() : base() { }
 
-        public SqlServerChatContext(DbContextOptions<WSContext> options) : base(options) { }
+        public SqlServerLibraryContext(DbContextOptions<MySqlLibraryContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

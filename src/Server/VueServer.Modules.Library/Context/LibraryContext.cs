@@ -7,7 +7,7 @@ namespace VueServer.Modules.Library.Context
     public class LibraryContext : WSContext, ILibraryContext
     {
         public LibraryContext() : base() { }
-        public LibraryContext(DbContextOptions<WSContext> options) : base(options) { }
+        public LibraryContext(DbContextOptions options) : base(options) { }
 
         public DbSet<Author> Authors { get; set; }
         public DbSet<Book> Books { get; set; }
@@ -20,6 +20,8 @@ namespace VueServer.Modules.Library.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Book>().HasOne(x => x.Bookcase).WithMany(x => x.Books).HasForeignKey(x => x.BookcaseId).IsRequired(false);
             modelBuilder.Entity<Book>().HasOne(x => x.Series).WithMany(x => x.Books).HasForeignKey(x => x.SeriesId).IsRequired(false);
             modelBuilder.Entity<Book>().HasOne(x => x.Shelf).WithMany(x => x.Books).HasForeignKey(x => x.ShelfId).IsRequired(false);
