@@ -4,9 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using VueServer.Core;
+using VueServer.Core.Helper;
 using VueServer.Core.Objects;
+using VueServer.Domain;
 using VueServer.Domain.Interface;
 using VueServer.Modules.Core.Cache;
+using VueServer.Modules.Core.Models;
+using VueServer.Modules.Core.Models.User;
 using VueServer.Modules.Core.Services.User;
 using VueServer.Modules.Directory.Context;
 using VueServer.Modules.Directory.Models;
@@ -30,6 +35,12 @@ namespace VueServer.Modules.Directory.Services
             _context = context ?? throw new ArgumentNullException("Directory context is null");
             _serverCache = serverCache ?? throw new ArgumentNullException("Server cache is null");
             _logger = logger?.CreateLogger<DirectoryAdminService>() ?? throw new ArgumentNullException("Logger factory is null");
+        }
+
+        public async Task<IResult<IEnumerable<ServerSettings>>> GetDirectorySettings()
+        {
+            var directorySettings = await _context.ServerSettings.Where(x => x.Key.StartsWith(DomainConstants.ServerSettings.BaseKeys.Directory)).ToListAsync();
+            return new Result<IEnumerable<ServerSettings>>(directorySettings, Domain.Enums.StatusCode.OK);
         }
 
         public async Task<IResult<IEnumerable<ServerGroupDirectory>>> GetGroupDirectories()
@@ -140,6 +151,117 @@ namespace VueServer.Modules.Directory.Services
                 _logger.LogWarning($"[{this.GetType().Name}] {nameof(DeleteUserDirectory)}: Error saving after deleting {nameof(ServerUserDirectory)} with id: {id}");
                 return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
+        }
+
+        public async Task<bool> CreateDefaultFolder(string username)
+        {
+            var user = await _user.GetUserByIdAsync(username);
+            if (user == null)
+            {
+                _logger.LogTrace($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: User does not exist in database. Cannot create default folder");
+                return false;
+            }
+
+            var directorySettings = await _context.ServerSettings.Where(x => x.Key.StartsWith(DomainConstants.ServerSettings.BaseKeys.Directory)).ToListAsync();
+            if (directorySettings == null || directorySettings.Count == 0)
+            {
+                _logger.LogTrace($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: No directory settings exist. Will not create default folder");
+                return false;
+            }
+
+            var shouldCreate = directorySettings.Where(x => x.Key == DomainConstants.ServerSettings.BaseKeys.Directory + DomainConstants.ServerSettings.Directory.ShouldUseDefaultPath).Select(x => x.Value?.StringToBool() ?? null).FirstOrDefault();
+            if (!shouldCreate.HasValue || (shouldCreate.HasValue && shouldCreate.Value == false))
+            {
+                _logger.LogTrace($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: No {DomainConstants.ServerSettings.BaseKeys.Directory + DomainConstants.ServerSettings.Directory.ShouldUseDefaultPath} setting set. Will not create default folder");
+                return false;
+            }
+
+            var createPath = directorySettings.Where(x => x.Key == DomainConstants.ServerSettings.BaseKeys.Directory + DomainConstants.ServerSettings.Directory.DefaultPathValue).Select(x => x.Value).FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(createPath))
+            {
+                _logger.LogTrace($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: Default folder setting exists, but is null or empty. Will not create default folder");
+                return false;
+            }
+
+            var argError = false;
+            string arg = null;
+
+            // TODO: Support multiple parameters
+            for (int i = 0; i < createPath.Length; i++)
+            {
+                if (createPath[i] == '{')
+                {
+                    int start = i;
+                    while (true)
+                    {
+                        if (createPath[i] == '}')
+                        {
+                            arg = createPath.Substring(start, i - start + 1).ToLower();
+                            break;
+                        }
+
+                        if (i == createPath.Length)
+                        {
+                            argError = true;
+                            break;
+                        }
+
+                        i++;
+                    }
+                }
+
+                if (argError)
+                {
+                    break;
+                }
+            }
+
+            if (argError)
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: Error with an argument used");
+                return false;
+            }
+
+            if (arg != null)
+            {
+                if (arg.Contains(nameof(WSUser.Id).ToLower()))
+                {
+                    createPath = createPath.Replace(arg, user.Id, StringComparison.OrdinalIgnoreCase);
+                }
+                else if (arg.Contains(nameof(WSUser.Id).ToLower()))
+                {
+                    createPath = createPath.Replace(arg, user.Id);
+                }
+            }
+
+            if (!FolderBuilder.CreateFolder(createPath))
+            {
+                _logger.LogInformation($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: Failed to create folder {createPath}");
+                return false;
+            }
+
+            var userDirectory = new ServerUserDirectory()
+            {
+                Name = "User Files",
+                Path = createPath,
+                Default = true,
+                UserId = user.Id,
+                AccessFlags = DirectoryAccessFlags.CreateFolder | DirectoryAccessFlags.DeleteFile | DirectoryAccessFlags.DeleteFolder
+                    | DirectoryAccessFlags.ReadFile | DirectoryAccessFlags.ReadFolder | DirectoryAccessFlags.UploadFile
+            };
+            _context.ServerUserDirectory.Add(userDirectory);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                _logger.LogWarning($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: Error saving when creating default user directory");
+                return false;
+            }
+
+            return true;
         }
     }
 }

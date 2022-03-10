@@ -15,7 +15,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using VueServer.Core;
 using VueServer.Core.Helper;
 using VueServer.Core.Objects;
 using VueServer.Domain;
@@ -125,9 +124,6 @@ namespace VueServer.Modules.Core.Services.Account
 
             // Create profile for user
             await CreateUserProfile(newUser.Id);
-
-            // Create default folder if setup
-            await CreateDefaultFolder(newUser);
 
             // Creation of user was successful
             return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
@@ -1044,106 +1040,6 @@ namespace VueServer.Modules.Core.Services.Account
             catch (Exception)
             {
                 _logger.LogWarning($"[{this.GetType().Name}] {nameof(CreateUserProfile)}: Error saving after creating a profile for user '{userId}'");
-                return false;
-            }
-
-            return true;
-        }
-
-        private async Task<bool> CreateDefaultFolder(WSUser user)
-        {
-            var directorySettings = await _context.ServerSettings.Where(x => x.Key.StartsWith(DomainConstants.ServerSettings.BaseKeys.Directory)).ToListAsync();
-            if (directorySettings == null || directorySettings.Count == 0)
-            {
-                return false;
-            }
-
-            var shouldCreate = directorySettings.Where(x => x.Key == DomainConstants.ServerSettings.BaseKeys.Directory + DomainConstants.ServerSettings.Directory.ShouldUseDefaultPath).Select(x => x.Value?.StringToBool() ?? null).FirstOrDefault();
-            if (!shouldCreate.HasValue || (shouldCreate.HasValue && shouldCreate.Value == false))
-            {
-                return false;
-            }
-
-            var createPath = directorySettings.Where(x => x.Key == DomainConstants.ServerSettings.BaseKeys.Directory + DomainConstants.ServerSettings.Directory.DefaultPathValue).Select(x => x.Value).FirstOrDefault();
-            if (string.IsNullOrWhiteSpace(createPath))
-            {
-                return false;
-            }
-
-            var argError = false;
-            string arg = null;
-
-            // TODO: Support multiple parameters
-            for (int i = 0; i < createPath.Length; i++)
-            {
-                if (createPath[i] == '{')
-                {
-                    int start = i;
-                    while (true)
-                    {
-                        if (createPath[i] == '}')
-                        {
-                            arg = createPath.Substring(start, i - start + 1).ToLower();
-                            break;
-                        }
-
-                        if (i == createPath.Length)
-                        {
-                            argError = true;
-                            break;
-                        }
-
-                        i++;
-                    }
-                }
-
-                if (argError)
-                {
-                    break;
-                }
-            }
-
-            if (argError)
-            {
-                return false;
-            }
-
-            if (arg != null)
-            {
-                if (arg.Contains(nameof(WSUser.Id).ToLower()))
-                {
-                    createPath = createPath.Replace(arg, user.Id, StringComparison.OrdinalIgnoreCase);
-                }
-                else if (arg.Contains(nameof(WSUser.Id).ToLower()))
-                {
-                    createPath = createPath.Replace(arg, user.Id);
-                }
-            }
-
-            if (!FolderBuilder.CreateFolder(createPath))
-            {
-                return false;
-            }
-
-            // TODO: Add back in
-            //var userDirectory = new ServerUserDirectory()
-            //{
-            //    Name = "User Files",
-            //    Path = createPath,
-            //    Default = true,
-            //    UserId = user.Id,
-            //    AccessFlags = DirectoryAccessFlags.CreateFolder | DirectoryAccessFlags.DeleteFile | DirectoryAccessFlags.DeleteFolder
-            //        | DirectoryAccessFlags.ReadFile | DirectoryAccessFlags.ReadFolder | DirectoryAccessFlags.UploadFile
-            //};
-            //_context.ServerUserDirectory.Add(userDirectory);
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception)
-            {
-                _logger.LogWarning($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: Error saving when creating default user directory");
                 return false;
             }
 

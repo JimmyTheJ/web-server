@@ -33,6 +33,7 @@
                     public const string GetUserDirectories = "directory/user/get";
                     public const string AddUserDirectory = "directory/user/add";
                     public const string DeleteUserDirectory = "directory/user/delete/{id}";
+                    public const string CreateDefaultFolder = "directory/user/create-default-folder/{id}";
                 }
             }
 

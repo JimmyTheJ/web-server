@@ -1,11 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using VueServer.Core.Objects;
-using VueServer.Domain;
 using VueServer.Domain.Interface;
 using VueServer.Modules.Core.Cache;
 using VueServer.Modules.Core.Context;
@@ -31,12 +29,6 @@ namespace VueServer.Modules.Core.Services.Admin
             _context = context ?? throw new ArgumentNullException("User context is null");
             _serverCache = serverCache ?? throw new ArgumentNullException("Server cache is null");
             _logger = logger?.CreateLogger<AdminService>() ?? throw new ArgumentNullException("Logger factory is null");
-        }
-
-        public async Task<IResult<IEnumerable<ServerSettings>>> GetDirectorySettings()
-        {
-            var directorySettings = await _context.ServerSettings.Where(x => x.Key.StartsWith(DomainConstants.ServerSettings.BaseKeys.Directory)).ToListAsync();
-            return new Result<IEnumerable<ServerSettings>>(directorySettings, Domain.Enums.StatusCode.OK);
         }
 
         public async Task<IResult<bool>> SetServerSetting(ServerSettings setting)

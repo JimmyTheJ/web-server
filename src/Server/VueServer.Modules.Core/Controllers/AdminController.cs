@@ -47,13 +47,6 @@ namespace VueServer.Modules.Core.Controllers
             return _codeFactory.GetStatusCode(await _accountService.GetRoles());
         }
 
-        [HttpGet]
-        [Route(Route.Admin.Directory.GetDirectorySettings)]
-        public async Task<IActionResult> GetDirectorySettings()
-        {
-            return _codeFactory.GetStatusCode(await _adminService.GetDirectorySettings());
-        }
-
         [HttpPost]
         [Route(Route.Admin.SetServerSetting)]
         public async Task<IActionResult> SetServerSetting([FromBody] ServerSettings setting)

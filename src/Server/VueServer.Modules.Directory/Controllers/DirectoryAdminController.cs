@@ -23,6 +23,13 @@ namespace VueServer.Modules.Directory.Controllers
             _service = service ?? throw new ArgumentNullException("Directory service is null");
         }
 
+        [HttpGet]
+        [Route(Route.Admin.Directory.GetDirectorySettings)]
+        public async Task<IActionResult> GetDirectorySettings()
+        {
+            return _codeFactory.GetStatusCode(await _service.GetDirectorySettings());
+        }
+
         [HttpPost]
         [Route(Route.Admin.Directory.AddGroupDirectory)]
         public async Task<IActionResult> AddGroupDirectory([FromBody] ServerGroupDirectory dir)
@@ -63,6 +70,13 @@ namespace VueServer.Modules.Directory.Controllers
         public async Task<IActionResult> DeleteUserDirectory(long id)
         {
             return _codeFactory.GetStatusCode(await _service.DeleteUserDirectory(id));
+        }
+
+        [HttpPost]
+        [Route(Route.Admin.Directory.CreateDefaultFolder)]
+        public async Task<IActionResult> CreateDefaultFolder(string username)
+        {
+            return _codeFactory.GetStatusCode(await _service.CreateDefaultFolder(username));
         }
     }
 }
