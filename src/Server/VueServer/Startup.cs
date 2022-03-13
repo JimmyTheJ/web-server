@@ -114,13 +114,7 @@ namespace VueServer
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var assembly in assemblies.OrderByDescending(x => x.FullName))
             {
-                var name = assembly.GetName().Name;
-                if (!name.StartsWith("VueServer.Modules"))
-                {
-                    continue;
-                }
-
-                if (name == "VueServer.Modules.Core")
+                if (!ValidModuleAssembly(assembly))
                 {
                     continue;
                 }
@@ -208,8 +202,6 @@ namespace VueServer
                     context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate;");
                     context.Response.Headers.Add("Pragma", "no-cache");
                 }
-
-                await next();
             });
 
             app.UseRouting();
@@ -224,13 +216,7 @@ namespace VueServer
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var assembly in assemblies.OrderByDescending(x => x.FullName))
             {
-                var name = assembly.GetName().Name;
-                if (!name.StartsWith("VueServer.Modules"))
-                {
-                    continue;
-                }
-
-                if (name == "VueServer.Modules.Core")
+                if (!ValidModuleAssembly(assembly))
                 {
                     continue;
                 }
@@ -257,6 +243,22 @@ namespace VueServer
             serverCache.Update(CacheMap.Users);
             serverCache.Update(CacheMap.UserModuleAddOn);
             serverCache.Update(CacheMap.UserModuleFeature);
+        }
+
+        private bool ValidModuleAssembly(Assembly assembly)
+        {
+            var name = assembly.GetName().Name;
+            if (!name.StartsWith("VueServer.Modules"))
+            {
+                return false;
+            }
+
+            if (name == "VueServer.Modules.Core")
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

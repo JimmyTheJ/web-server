@@ -153,34 +153,34 @@ namespace VueServer.Modules.Directory.Services
             }
         }
 
-        public async Task<bool> CreateDefaultFolder(string username)
+        public async Task<IResult<bool>> CreateDefaultFolder(string username)
         {
             var user = await _user.GetUserByIdAsync(username);
             if (user == null)
             {
                 _logger.LogTrace($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: User does not exist in database. Cannot create default folder");
-                return false;
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var directorySettings = await _context.ServerSettings.Where(x => x.Key.StartsWith(DomainConstants.ServerSettings.BaseKeys.Directory)).ToListAsync();
             if (directorySettings == null || directorySettings.Count == 0)
             {
                 _logger.LogTrace($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: No directory settings exist. Will not create default folder");
-                return false;
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var shouldCreate = directorySettings.Where(x => x.Key == DomainConstants.ServerSettings.BaseKeys.Directory + DomainConstants.ServerSettings.Directory.ShouldUseDefaultPath).Select(x => x.Value?.StringToBool() ?? null).FirstOrDefault();
             if (!shouldCreate.HasValue || (shouldCreate.HasValue && shouldCreate.Value == false))
             {
                 _logger.LogTrace($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: No {DomainConstants.ServerSettings.BaseKeys.Directory + DomainConstants.ServerSettings.Directory.ShouldUseDefaultPath} setting set. Will not create default folder");
-                return false;
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var createPath = directorySettings.Where(x => x.Key == DomainConstants.ServerSettings.BaseKeys.Directory + DomainConstants.ServerSettings.Directory.DefaultPathValue).Select(x => x.Value).FirstOrDefault();
             if (string.IsNullOrWhiteSpace(createPath))
             {
                 _logger.LogTrace($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: Default folder setting exists, but is null or empty. Will not create default folder");
-                return false;
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             var argError = false;
@@ -219,7 +219,7 @@ namespace VueServer.Modules.Directory.Services
             if (argError)
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: Error with an argument used");
-                return false;
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
             if (arg != null)
@@ -237,7 +237,7 @@ namespace VueServer.Modules.Directory.Services
             if (!FolderBuilder.CreateFolder(createPath))
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: Failed to create folder {createPath}");
-                return false;
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
             var userDirectory = new ServerUserDirectory()
@@ -258,10 +258,10 @@ namespace VueServer.Modules.Directory.Services
             catch (Exception)
             {
                 _logger.LogWarning($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: Error saving when creating default user directory");
-                return false;
+                return new Result<bool>(false, Domain.Enums.StatusCode.SERVER_ERROR);
             }
 
-            return true;
+            return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
     }
 }

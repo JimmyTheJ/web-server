@@ -38,14 +38,15 @@ namespace VueServer.Modules.Directory
             }
 
             services.AddScoped<IDirectoryService, DirectoryService>();
+            services.AddScoped<IDirectoryAdminService, DirectoryAdminService>();
         }
 
         public void Create(IApplicationBuilder app)
         {
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            //app.UseEndpoints(endpoints =>
+            //{
+            //    endpoints.MapControllers();
+            //});
         }
     }
 }

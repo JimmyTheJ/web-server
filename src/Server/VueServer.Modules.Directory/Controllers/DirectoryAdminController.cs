@@ -10,8 +10,8 @@ using Route = VueServer.Modules.Core.Controllers.Constants.API_ENDPOINTS;
 
 namespace VueServer.Modules.Directory.Controllers
 {
-    [Route(Route.Admin.Controller)]
-    [Authorize(DomainConstants.Authentication.ADMINISTRATOR_STRING)]
+    [Authorize(Roles = DomainConstants.Authentication.ADMINISTRATOR_STRING)]
+    [Route(Route.Directory.Controller)]
     public class DirectoryAdminController : Controller
     {
         private readonly IStatusCodeFactory<IActionResult> _codeFactory;
@@ -24,56 +24,56 @@ namespace VueServer.Modules.Directory.Controllers
         }
 
         [HttpGet]
-        [Route(Route.Admin.Directory.GetDirectorySettings)]
+        [Route(Route.Directory.Admin.GetDirectorySettings)]
         public async Task<IActionResult> GetDirectorySettings()
         {
             return _codeFactory.GetStatusCode(await _service.GetDirectorySettings());
         }
 
         [HttpPost]
-        [Route(Route.Admin.Directory.AddGroupDirectory)]
+        [Route(Route.Directory.Admin.AddGroupDirectory)]
         public async Task<IActionResult> AddGroupDirectory([FromBody] ServerGroupDirectory dir)
         {
             return _codeFactory.GetStatusCode(await _service.AddGroupDirectory(dir));
         }
 
         [HttpPost]
-        [Route(Route.Admin.Directory.AddUserDirectory)]
+        [Route(Route.Directory.Admin.AddUserDirectory)]
         public async Task<IActionResult> AddUserDirectory([FromBody] ServerUserDirectory dir)
         {
             return _codeFactory.GetStatusCode(await _service.AddUserDirectory(dir));
         }
 
         [HttpGet]
-        [Route(Route.Admin.Directory.GetGroupDirectories)]
+        [Route(Route.Directory.Admin.GetGroupDirectories)]
         public async Task<IActionResult> GetGroupDirectories()
         {
             return _codeFactory.GetStatusCode(await _service.GetGroupDirectories());
         }
 
         [HttpGet]
-        [Route(Route.Admin.Directory.GetUserDirectories)]
+        [Route(Route.Directory.Admin.GetUserDirectories)]
         public async Task<IActionResult> GetUserDirectories()
         {
             return _codeFactory.GetStatusCode(await _service.GetUserDirectories());
         }
 
         [HttpDelete]
-        [Route(Route.Admin.Directory.DeleteGroupDirectory)]
+        [Route(Route.Directory.Admin.DeleteGroupDirectory)]
         public async Task<IActionResult> DeleteGroupDirectory(int id)
         {
             return _codeFactory.GetStatusCode(await _service.DeleteGroupDirectory(id));
         }
 
         [HttpDelete]
-        [Route(Route.Admin.Directory.DeleteUserDirectory)]
+        [Route(Route.Directory.Admin.DeleteUserDirectory)]
         public async Task<IActionResult> DeleteUserDirectory(long id)
         {
             return _codeFactory.GetStatusCode(await _service.DeleteUserDirectory(id));
         }
 
         [HttpPost]
-        [Route(Route.Admin.Directory.CreateDefaultFolder)]
+        [Route(Route.Directory.Admin.CreateDefaultFolder)]
         public async Task<IActionResult> CreateDefaultFolder(string username)
         {
             return _codeFactory.GetStatusCode(await _service.CreateDefaultFolder(username));

@@ -83,7 +83,7 @@ namespace VueServer.Modules.Core.Services.Account
 
         #region -> Public Functions 
 
-        public async Task<IResult> Register(RegisterRequest model)
+        public async Task<IResult<string>> Register(RegisterRequest model)
         {
             // Create a new identity user to pass to the registration method
             var newUser = new WSUser
@@ -102,7 +102,7 @@ namespace VueServer.Modules.Core.Services.Account
             if (!result.Succeeded)
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {nameof(Register)}: Failed to create user.");
-                return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<string>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             // Succeeded in making the new user apply the role to that user
@@ -111,7 +111,7 @@ namespace VueServer.Modules.Core.Services.Account
             if (!resultRole.Succeeded)
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {nameof(Register)}: Failed to add user to the role.");
-                return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<string>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             // Role applied successfully, update user
@@ -119,14 +119,14 @@ namespace VueServer.Modules.Core.Services.Account
             if (!resultUpdate.Succeeded)
             {
                 _logger.LogInformation($"[{this.GetType().Name}] {nameof(Register)}: Failed to update user with new role.");
-                return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<string>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             // Create profile for user
             await CreateUserProfile(newUser.Id);
 
             // Creation of user was successful
-            return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
+            return new Result<string>(newUser.Id, Domain.Enums.StatusCode.OK);
         }
 
         public async Task<IResult<bool>> ChangePassword(ChangePasswordRequest model, bool isAdmin)

@@ -43,10 +43,15 @@ namespace VueServer.Modules.Chat
 
         public void Create(IApplicationBuilder app)
         {
+            //app.UseEndpoints(endpoints =>
+            //{
+            //    endpoints.MapHub<ChatHub>("/chat-hub");
+            //    endpoints.MapControllers();
+            //});
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHub<ChatHub>("/chat-hub");
-                endpoints.MapControllers();
             });
         }
     }

@@ -23,18 +23,6 @@
                 public const string GetAllRoles = "roles/get-all";
                 public const string SetServerSetting = "settings/set";
                 public const string DeleteServerSetting = "settings/delete/{key}";
-
-                public static class Directory
-                {
-                    public const string GetDirectorySettings = "directory/settings/get";
-                    public const string GetGroupDirectories = "directory/group/get";
-                    public const string AddGroupDirectory = "directory/group/add";
-                    public const string DeleteGroupDirectory = "directory/group/delete/{id}";
-                    public const string GetUserDirectories = "directory/user/get";
-                    public const string AddUserDirectory = "directory/user/add";
-                    public const string DeleteUserDirectory = "directory/user/delete/{id}";
-                    public const string CreateDefaultFolder = "directory/user/create-default-folder/{id}";
-                }
             }
 
             public static class Weight
@@ -85,6 +73,19 @@
                 public const string MoveFolder = "move-folder";
                 public const string CopyFile = "copy-file";
                 public const string CopyFolder = "copy-folder";
+
+                public static class Admin
+                {
+                    public const string AdminString = "admin/";
+                    public const string GetDirectorySettings = AdminString + "settings/get";
+                    public const string GetGroupDirectories = AdminString + "group/get";
+                    public const string AddGroupDirectory = AdminString + "group/add";
+                    public const string DeleteGroupDirectory = AdminString + "group/delete/{id}";
+                    public const string GetUserDirectories = AdminString + "user/get";
+                    public const string AddUserDirectory = AdminString + "user/add";
+                    public const string DeleteUserDirectory = AdminString + "user/delete/{id}";
+                    public const string CreateDefaultFolder = AdminString + "user/create-default-folder/{id}";
+                }
             }
 
             public static class Chat

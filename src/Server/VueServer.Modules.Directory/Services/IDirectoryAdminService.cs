@@ -15,6 +15,6 @@ namespace VueServer.Modules.Directory.Services
         Task<IResult<long>> AddUserDirectory(ServerUserDirectory dir);
         Task<IResult<bool>> DeleteGroupDirectory(int id);
         Task<IResult<bool>> DeleteUserDirectory(long id);
-        Task<bool> CreateDefaultFolder(string username);
+        Task<IResult<bool>> CreateDefaultFolder(string username);
     }
 }

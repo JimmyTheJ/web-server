@@ -47,11 +47,12 @@ export default {
       )
       await this.$store
         .dispatch('register', data)
-        .then(() => {
+        .then(resp => {
           // Uncomment to auto login after registering (Make it a setting ?)
           //this.$_auth_login(data)
           //    .then(resp2 => ConMsgs.methods.$_console_log("success in login"))
           //    .catch(() => ConMsgs.methods.$_console_log("error in login"));
+          return Promise.resolve(resp.data)
         })
         .catch(() => {
           ConMsgs.methods.$_console_log('Error registering')

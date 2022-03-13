@@ -10,7 +10,7 @@ namespace VueServer.Modules.Core.Services.Account
 {
     public interface IAccountService
     {
-        Task<IResult> Register(RegisterRequest model);
+        Task<IResult<string>> Register(RegisterRequest model);
         Task<IResult<bool>> ChangePassword(ChangePasswordRequest model, bool isAdmin);
         Task<IResult<LoginResponse>> Login(HttpContext context, LoginRequest model);
         Task<IResult> Logout(HttpContext context, string username);

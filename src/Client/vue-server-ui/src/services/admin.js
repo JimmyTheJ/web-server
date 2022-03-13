@@ -6,15 +6,16 @@ import axios from '@/axios'
 /**
  * Declare Variable
  */
-const getDirectorySettingsUrl = `api/admin/directory/settings/get`
-const getGroupDirectoriesUrl = `api/admin/directory/group/get`
-const getUserDirectoriesUrl = `api/admin/directory/user/get`
+const getDirectorySettingsUrl = `api/directory/admin/settings/get`
+const getGroupDirectoriesUrl = `api/directory/admin/group/get`
+const getUserDirectoriesUrl = `api/directory/admin/user/get`
 const setServerSettingUrl = `api/admin/settings/set`
 const deleteServerSettingUrl = `api/admin/settings/delete`
-const addGroupDirectoryUrl = `api/admin/directory/group/add`
-const addUserDirectoryUrl = `api/admin/directory/user/add`
-const deleteGroupDirectoryUrl = `api/admin/directory/group/delete`
-const deleteUserDirectoryUrl = `api/admin/directory/user/delete`
+const addGroupDirectoryUrl = `api/directory/admin/group/add`
+const addUserDirectoryUrl = `api/directory/admin/user/add`
+const deleteGroupDirectoryUrl = `api/directory/admin/group/delete`
+const deleteUserDirectoryUrl = `api/directory/admin/user/delete`
+const createDefaultUserDirectoryUrl = `api/directory/admin/user/create-default-directory`
 
 /**
  * Export
@@ -55,5 +56,8 @@ export default {
       url: `${deleteUserDirectoryUrl}/${id}`,
       method: 'delete',
     })
+  },
+  createDefaultUserDirectory(id) {
+    return axios.post(`${createDefaultUserDirectoryUrl}/${id}`)
   },
 }

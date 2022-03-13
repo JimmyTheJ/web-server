@@ -57,6 +57,7 @@
 import { mapState } from 'vuex'
 import Auth from '@/mixins/authentication'
 import { Roles } from '@/constants'
+import adminService from '@/services/admin'
 
 function newForm() {
   return {
@@ -127,20 +128,24 @@ export default {
 
       if (this.valid) {
         this.$_auth_register(tempForm)
-          .then(() => {
+          .then(resp => {
             this.form = newForm()
             this.resetRole()
             this.error = false
             this.success = true
             this.$store.dispatch('addUserToMap', {
-              username: tempForm.username,
+              username: resp,
             })
+
+            adminService.createDefaultUserDirectory(resp)
           })
           .catch(() => {
             this.error = true
             this.success = false
           })
-          .then(() => (this.btnClicked = false))
+          .then(() => {
+            this.btnClicked = false
+          })
       } else {
         this.btnClicked = false
       }
