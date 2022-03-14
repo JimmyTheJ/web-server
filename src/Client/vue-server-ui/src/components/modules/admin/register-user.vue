@@ -134,10 +134,10 @@ export default {
             this.error = false
             this.success = true
             this.$store.dispatch('addUserToMap', {
-              username: resp,
+              username: tempForm.username,
             })
 
-            adminService.createDefaultUserDirectory(resp)
+            adminService.createDefaultUserDirectory(tempForm.username)
           })
           .catch(() => {
             this.error = true

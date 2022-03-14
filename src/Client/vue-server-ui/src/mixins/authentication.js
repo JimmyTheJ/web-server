@@ -52,7 +52,7 @@ export default {
           //this.$_auth_login(data)
           //    .then(resp2 => ConMsgs.methods.$_console_log("success in login"))
           //    .catch(() => ConMsgs.methods.$_console_log("error in login"));
-          return Promise.resolve(resp.data)
+          return Promise.resolve(resp)
         })
         .catch(() => {
           ConMsgs.methods.$_console_log('Error registering')

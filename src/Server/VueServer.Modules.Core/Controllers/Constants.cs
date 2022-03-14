@@ -84,7 +84,7 @@
                     public const string GetUserDirectories = AdminString + "user/get";
                     public const string AddUserDirectory = AdminString + "user/add";
                     public const string DeleteUserDirectory = AdminString + "user/delete/{id}";
-                    public const string CreateDefaultFolder = AdminString + "user/create-default-folder/{id}";
+                    public const string CreateDefaultFolder = AdminString + "user/create-default-directory/{id}";
                 }
             }
 

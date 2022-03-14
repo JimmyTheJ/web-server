@@ -5,7 +5,7 @@ export default {
      * @param {...String} messages - Spread array of message strings
      */
     $_console_log(...messages) {
-      if (typeof messages === 'undefined' || messages === null) {
+      if (typeof messages === 'undefined' || messages == null) {
         return false
       }
 
@@ -24,7 +24,7 @@ export default {
      * @param {...String} messages - Spread array of message strings
      */
     $_console_error(...messages) {
-      if (typeof messages === 'undefined' || messages === null) {
+      if (typeof messages === 'undefined' || messages == null) {
         return false
       }
 
@@ -44,7 +44,7 @@ export default {
      * @param {...String} messages - Spread array of message strings
      */
     $_console_group(header, ...messages) {
-      if (typeof messages === 'undefined' || messages === null) {
+      if (typeof messages === 'undefined' || messages == null) {
         return false
       }
 
