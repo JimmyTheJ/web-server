@@ -4,7 +4,7 @@ using VueServer.Domain.Interface;
 using VueServer.Modules.Chat.Models;
 using VueServer.Modules.Chat.Models.Request;
 
-namespace VueServer.Modules.Chat.Services.Chat
+namespace VueServer.Modules.Chat.Services
 {
     public interface IChatService
     {

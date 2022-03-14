@@ -15,7 +15,7 @@ using VueServer.Modules.Chat.Services.Hubs;
 using VueServer.Modules.Core.Cache;
 using VueServer.Modules.Core.Services.User;
 
-namespace VueServer.Modules.Chat.Services.Chat
+namespace VueServer.Modules.Chat.Services
 {
     public class ChatService : IChatService
     {
@@ -134,6 +134,15 @@ namespace VueServer.Modules.Chat.Services.Chat
             conversation.ConversationUsers = conversationUserList;
             conversation.Messages = new List<ChatMessage>();
             MapConversationMetaData(conversation);
+
+            foreach (var user in conversation.ConversationUsers)
+            {
+                var id = await _chatHubContext.Clients.User(user.UserId).GetConnectionId();
+                if (!string.IsNullOrWhiteSpace(id))
+                {
+                    await _chatHubContext.Groups.AddToGroupAsync(id, conversation.Id.ToString());
+                }
+            }
 
             return new Result<Conversation>(conversation, Domain.Enums.StatusCode.OK);
         }

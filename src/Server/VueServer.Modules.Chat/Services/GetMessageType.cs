@@ -1,4 +1,4 @@
-﻿namespace VueServer.Modules.Chat.Services.Chat
+﻿namespace VueServer.Modules.Chat.Services
 {
     public enum GetMessageType
     {

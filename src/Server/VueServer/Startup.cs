@@ -12,9 +12,9 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using VueServer.Classes;
 using VueServer.Classes.Extensions;
 using VueServer.Core.Helper;
+using VueServer.Modules.Core;
 using VueServer.Modules.Core.Cache;
 
 namespace VueServer
@@ -45,16 +45,6 @@ namespace VueServer
             {
                 options.ExpirationScanFrequency = TimeSpan.FromHours(8);
                 options.SizeLimit = 256 * 1024 * 1024;
-            });
-
-            services.AddSignalR(hubOptions =>
-            {
-                hubOptions.EnableDetailedErrors = true;
-                hubOptions.ClientTimeoutInterval = TimeSpan.FromMinutes(1);
-            }).AddNewtonsoftJsonProtocol(options =>
-            {
-                options.PayloadSerializerSettings.ContractResolver = new LowercaseContractResolver();
-                options.PayloadSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             });
 
             services.Configure<CookiePolicyOptions>(options =>
@@ -202,6 +192,8 @@ namespace VueServer
                     context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate;");
                     context.Response.Headers.Add("Pragma", "no-cache");
                 }
+
+                await next();
             });
 
             app.UseRouting();

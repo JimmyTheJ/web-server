@@ -3,11 +3,14 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+using System;
 using VueServer.Domain;
 using VueServer.Domain.Enums;
 using VueServer.Modules.Chat.Context;
-using VueServer.Modules.Chat.Services.Chat;
+using VueServer.Modules.Chat.Services;
 using VueServer.Modules.Chat.Services.Hubs;
+using VueServer.Modules.Core;
 using VueServer.Modules.Core.Context;
 
 namespace VueServer.Modules.Chat
@@ -18,6 +21,16 @@ namespace VueServer.Modules.Chat
 
         public void Load(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
         {
+            services.AddSignalR(hubOptions =>
+            {
+                hubOptions.EnableDetailedErrors = true;
+                hubOptions.ClientTimeoutInterval = TimeSpan.FromMinutes(1);
+            }).AddNewtonsoftJsonProtocol(options =>
+            {
+                options.PayloadSerializerSettings.ContractResolver = new LowercaseContractResolver();
+                options.PayloadSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            });
+
             DatabaseTypes dbType = (DatabaseTypes)config.GetSection("Options").GetValue<int>("DatabaseType");
             if (dbType == DatabaseTypes.MSSQLSERVER)
             {

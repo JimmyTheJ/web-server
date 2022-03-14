@@ -6,7 +6,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using VueServer.Modules.Chat.Models;
-using VueServer.Modules.Chat.Services.Chat;
 
 namespace VueServer.Modules.Chat.Services.Hubs
 {

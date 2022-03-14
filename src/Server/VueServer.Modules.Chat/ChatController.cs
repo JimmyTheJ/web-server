@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using VueServer.Core.Status;
 using VueServer.Modules.Chat.Models;
 using VueServer.Modules.Chat.Models.Request;
-using VueServer.Modules.Chat.Services.Chat;
+using VueServer.Modules.Chat.Services;
 using VueServer.Modules.Core.Controllers.Filters;
 using AddOns = VueServer.Domain.DomainConstants.Models.ModuleAddOns;
 using Features = VueServer.Domain.DomainConstants.Models.ModuleFeatures;
