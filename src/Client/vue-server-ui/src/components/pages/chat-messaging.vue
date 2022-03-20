@@ -80,6 +80,7 @@
 import ChatConversation from '../modules/chat/chat-conversation.vue'
 import ChatBadge from '../modules/chat/chat-badge.vue'
 import ChatStarter from '../modules/chat/chat-starter.vue'
+import ChatHub from '@/plugins/chat-hub'
 
 import { mapState } from 'vuex'
 import GenericDialog from '../modules/generic-dialog.vue'
@@ -138,7 +139,7 @@ export default {
   mounted() {
     this.timer = setInterval(() => {
       this.$store.dispatch('getCurrentTime')
-    }, 5000)
+    }, 15000)
   },
   beforeDestroy() {
     this.timer = null
@@ -163,6 +164,9 @@ export default {
     async startConversation(conversation) {
       this.$store
         .dispatch('startNewConversation', conversation)
+        .then(resp => {
+          ChatHub.connection.invoke('createConversation', resp.data)
+        })
         .finally(() => (this.dialogOpen = false))
     },
     shouldShowConversation(conversation) {

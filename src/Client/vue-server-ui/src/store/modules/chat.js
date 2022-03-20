@@ -103,6 +103,19 @@ const actions = {
       return await Promise.reject(e.response)
     }
   },
+  receiveNewConversation({ commit, rootState }, context) {
+    ConMsgs.methods.$_console_log('[Vuex][Actions] Receiving new conversation')
+    if (typeof context === 'object' && context != null) {
+      commit(types.CHAT_CONVERSATION_START_NEW, {
+        obj: context,
+        userId: rootState.auth.user.id,
+      })
+    } else {
+      ConMsgs.methods.$_console_group(
+        '[Vuex][Actions] Error from receiving new conversation. Invalid data passed to method'
+      )
+    }
+  },
   async deleteConversation({ commit }, context) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Deleting conversation')
     try {
@@ -124,6 +137,20 @@ const actions = {
         e.response
       )
       return await Promise.reject(e.response)
+    }
+  },
+  receiveDeleteConversation({ commit }, context) {
+    ConMsgs.methods.$_console_log(
+      '[Vuex][Actions] Receiving Delete conversation'
+    )
+    if (Number.isInteger(context) && context > 0) {
+      commit(types.CHAT_CONVERSATION_DELETE, context)
+      return true
+    } else {
+      ConMsgs.methods.$_console_group(
+        '[Vuex][Actions] Error from receiving delete conversation. API call succeeded but returned false.'
+      )
+      return false
     }
   },
   async updateConversationTitle({ commit }, context) {

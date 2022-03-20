@@ -103,6 +103,7 @@
 
 <script>
 import GenericDialog from '@/components/modules/generic-dialog.vue'
+import ChatHub from '@/plugins/chat-hub'
 
 import { mapState } from 'vuex'
 
@@ -179,7 +180,9 @@ export default {
     deleteConversation() {
       this.$store
         .dispatch('deleteConversation', this.conversation.id)
-        .then(() => {})
+        .then(() => {
+          ChatHub.connection.invoke('deleteConversation', this.conversation)
+        })
         .catch(() => {})
         .then(() => (this.deleteConversationDialog = false))
     },

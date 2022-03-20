@@ -40,17 +40,36 @@ export default {
   },
   async mounted() {
     if (this.modules.findIndex(x => x.id === Modules.Chat) > -1) {
-      ChatHub.setup()
-      await ChatHub.start()
+      if (ChatHub.connection == null) {
+        ChatHub.setup()
+        await ChatHub.start()
 
-      this.$chatHub.$on('message-received', this.onMessageReceived)
+        this.$chatHub.$on('message-received', this.onMessageReceived)
+        this.$chatHub.$on('conversation-created', this.onCreateConvoReceived)
+        this.$chatHub.$on('conversation-deleted', this.onDeleteConvoReceived)
+      }
     }
   },
   beforeDestroy() {
-    if (ChatHub.connection != null)
+    if (ChatHub.connection != null) {
       this.$chatHub.$off('message-received', this.onMessageReceived)
+      this.$chatHub.$off('conversation-created', this.onCreateConvoReceived)
+      this.$chatHub.$off('conversation-deleted', this.onDeleteConvoReceived)
+    }
   },
   methods: {
+    onCreateConvoReceived(conversation) {
+      this.$_console_log('New Conversation received: ', conversation)
+      this.$store
+        .dispatch('receiveNewConversation', conversation)
+        .then(resp => {})
+    },
+    onDeleteConvoReceived(conversationId) {
+      this.$_console_log('Delete Conversation received: ', conversationId)
+      this.$store
+        .dispatch('receiveDeleteConversation', conversationId)
+        .then(resp => {})
+    },
     onMessageReceived(message) {
       this.$_console_log('Ding ding ding. Message received', message)
       if (typeof message !== 'object' || message === null) {

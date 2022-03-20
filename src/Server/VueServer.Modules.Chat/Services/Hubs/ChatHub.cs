@@ -12,9 +12,8 @@ namespace VueServer.Modules.Chat.Services.Hubs
     [Authorize]
     public class ChatHub : Hub<IChatHub>
     {
-        //private static readonly ConnectionMapping<string> _connections = new ConnectionMapping<string>();
+        private static readonly UserConnectionMapping _userConnections = new UserConnectionMapping();
 
-        // TODO: Convert this to using the Caching system that will link each UserId to a list of ConversationIds
         private readonly IChatService _chatService;
         public ChatHub(IChatService chatService)
         {
@@ -23,7 +22,7 @@ namespace VueServer.Modules.Chat.Services.Hubs
 
         public async Task SendMessage(ChatMessage message)
         {
-            if (Clients != null)
+            if (message != null)
             {
                 await Clients.All.SendMessage(message);
             }
@@ -31,29 +30,75 @@ namespace VueServer.Modules.Chat.Services.Hubs
 
         public async Task ReadMessage(ReadReceipt receipt)
         {
-            if (Clients != null)
+            if (receipt != null)
             {
                 await Clients.All.ReadMessage(receipt);
+            }
+        }
+
+        public async Task ConversationCreated(Conversation conversation)
+        {
+            if (conversation != null)
+            {
+                await Clients.All.ConversationCreated(conversation);
+            }
+        }
+
+        public async Task ConversationDeleted(long conversationId)
+        {
+            if (conversationId > 0)
+            {
+                await Clients.All.ConversationDeleted(conversationId);
+            }
+        }
+
+        public async Task CreateConversation(Conversation conversation)
+        {
+            if (conversation != null)
+            {
+                var userIds = conversation.ConversationUsers.Select(x => x.UserId).ToList();
+                foreach (var conn in _userConnections.GetConnections(userIds))
+                {
+                    await Groups.AddToGroupAsync(conn, conversation.Id.ToString());
+                }
+                await Clients.Clients(_userConnections.GetConnections(userIds.Where(x => x != GetUserName(Context.User)))).ConversationCreated(conversation);
+            }
+        }
+
+        public async Task DeleteConversation(Conversation conversation)
+        {
+            if (conversation != null)
+            {
+                var userIds = conversation.ConversationUsers.Select(x => x.UserId).ToList();
+                foreach (var conn in _userConnections.GetConnections(userIds))
+                {
+                    await Groups.RemoveFromGroupAsync(conn, conversation.Id.ToString());
+                }
+                await Clients.Clients(_userConnections.GetConnections(userIds.Where(x => x != GetUserName(Context.User)))).ConversationDeleted(conversation.Id);
             }
         }
 
         public override async Task OnConnectedAsync()
         {
             string name = GetUserName(Context.User);
+            // TODO: Convert this to using the Caching system that will link each UserId to a list of ConversationIds
             var convos = await GetConversationsForUser(name);
             foreach (var convo in convos)
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, convo.Id.ToString());
+                _userConnections.Add(name, Context.ConnectionId);
             }
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
             string name = GetUserName(Context.User);
+            // TODO: Convert this to using the Caching system that will link each UserId to a list of ConversationIds
             var convos = await GetConversationsForUser(name);
             foreach (var convo in convos)
             {
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, convo.Id.ToString());
+                _userConnections.Remove(name, Context.ConnectionId);
             }
         }
 

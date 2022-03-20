@@ -47,10 +47,10 @@
 <script>
 import ChatBubble from '../chat-bubble.vue'
 import GenericDialog from '@/components/modules/generic-dialog.vue'
+import ChatHub from '@/plugins/chat-hub'
 
 import { mapState } from 'vuex'
-
-import { NotificationTypes } from '@/constants'
+import { Modules, NotificationTypes } from '@/constants'
 
 const heightPrefix = 'height: '
 
@@ -98,6 +98,7 @@ export default {
   },
   computed: {
     ...mapState({
+      modules: state => state.auth.activeModules,
       user: state => state.auth.user,
     }),
   },
@@ -147,10 +148,6 @@ export default {
         )
     },
   },
-  created() {
-    this.$chatHub.$on('message-received', this.onMessageReceived)
-    this.$chatHub.$on('read-receipt-received', this.onReadReceiptReceived)
-  },
   mounted() {
     this.isGroupConversation = this.conversation.conversationUsers.length > 2
     this.chatWindow = this.$refs.chatBodyContainer
@@ -162,11 +159,19 @@ export default {
             x => x.userId !== this.user.id
           )
         : null
+
+    if (this.modules.findIndex(x => x.id === Modules.Chat) > -1) {
+      if (ChatHub.connection != null) {
+        this.$chatHub.$on('message-received', this.onMessageReceived)
+        this.$chatHub.$on('read-receipt-received', this.onReadReceiptReceived)
+      }
+    }
   },
   beforeDestroy() {
-    this.$chatHub.$off('message-received', this.onMessageReceived)
-    this.$chatHub.$off('read-receipt-received', this.onReadReceiptReceived)
-    this.chatWindow.removeEventListener('scroll', this.windowScroll)
+    if (ChatHub.connection != null) {
+      this.$chatHub.$off('message-received', this.onMessageReceived)
+      this.$chatHub.$off('read-receipt-received', this.onReadReceiptReceived)
+    }
   },
   methods: {
     windowScroll(event) {

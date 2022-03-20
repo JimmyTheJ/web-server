@@ -135,15 +135,6 @@ namespace VueServer.Modules.Chat.Services
             conversation.Messages = new List<ChatMessage>();
             MapConversationMetaData(conversation);
 
-            foreach (var user in conversation.ConversationUsers)
-            {
-                var id = await _chatHubContext.Clients.User(user.UserId).GetConnectionId();
-                if (!string.IsNullOrWhiteSpace(id))
-                {
-                    await _chatHubContext.Groups.AddToGroupAsync(id, conversation.Id.ToString());
-                }
-            }
-
             return new Result<Conversation>(conversation, Domain.Enums.StatusCode.OK);
         }
 

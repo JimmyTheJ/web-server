@@ -34,12 +34,19 @@ class ChatHub {
     const chatHub = new Vue()
     // every component will use this.$chatHub to access the event bus
     Vue.prototype.$chatHub = chatHub
+
     // Forward server side SignalR events through $chatHub, where components will listen to them
     this.connection.on('SendMessage', message => {
       chatHub.$emit('message-received', message)
     })
     this.connection.on('ReadMessage', receipt => {
       chatHub.$emit('read-receipt-received', receipt)
+    })
+    this.connection.on('ConversationCreated', convo => {
+      chatHub.$emit('conversation-created', convo)
+    })
+    this.connection.on('ConversationDeleted', convoId => {
+      chatHub.$emit('conversation-deleted', convoId)
     })
   }
 
