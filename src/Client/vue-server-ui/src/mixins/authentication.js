@@ -3,6 +3,10 @@ import { defaultRoutes, adminRoutes, moduleRoutes } from '@/routes'
 import { Roles } from '@/constants'
 import ConMsgs from './console'
 
+import chat from '@/store/modules/chat'
+import library from '@/store/modules/library'
+import fileExplorer from '@/store/modules/file-explorer'
+
 export default {
   methods: {
     $_auth_checkLogin(err) {
@@ -31,6 +35,7 @@ export default {
               ConMsgs.methods.$_console_log('Failed to get user modules')
             )
 
+          this.$_auth_addModules()
           this.$_auth_addRoutes()
           this.$_auth_checkLogin(error)
         })
@@ -63,6 +68,8 @@ export default {
       ConMsgs.methods.$_console_log(
         '[Authentication mixin] $_auth_logout: Called'
       )
+
+      this.$_auth_removeModules()
       await this.$store
         .dispatch('signout')
         .then(() => {})
@@ -88,7 +95,7 @@ export default {
     },
     $_auth_addRoutes() {
       let self = this
-      let activeModules = this.$store.state.auth.activeModules
+      let activeModules = self.$store.state.auth.activeModules
 
       ConMsgs.methods.$_console_log(
         '[Authentication] addRoutes: Active modules: ',
@@ -96,11 +103,11 @@ export default {
       )
       ConMsgs.methods.$_console_log(
         '[Authentication] addRoutes: Old list of routes: ',
-        this.$router.getRoutes()
+        self.$router.getRoutes()
       )
 
       // If user if an admin we need to add the admin routes so they can start modifying module / feature permissions and creating accounts
-      if (this.$store.state.auth.role === Roles.Name.Admin) {
+      if (self.$store.state.auth.role === Roles.Name.Admin) {
         adminRoutes.forEach(item => {
           self.$router.addRoute('home', item)
         })
@@ -131,7 +138,7 @@ export default {
 
         if (
           foundItemByName !== undefined &&
-          this.$router.getRoutes().find(x => x.name === foundItemByName) ===
+          self.$router.getRoutes().find(x => x.name === foundItemByName) ===
             undefined
         ) {
           self.$router.addRoute('home', foundItemByName)
@@ -139,7 +146,7 @@ export default {
 
         if (
           foundItemByMeta !== undefined &&
-          this.$router.getRoutes().find(x => x.name === foundItemByMeta) ===
+          self.$router.getRoutes().find(x => x.name === foundItemByMeta) ===
             undefined
         ) {
           self.$router.addRoute('home', foundItemByMeta)
@@ -148,8 +155,70 @@ export default {
 
       ConMsgs.methods.$_console_log(
         '[Authentication] addRoutes: New list of routes: ',
-        this.$router.getRoutes()
+        self.$router.getRoutes()
       )
+    },
+    $_auth_addModules() {
+      let self = this
+      let activeModules = self.$store.state.auth.activeModules
+
+      ConMsgs.methods.$_console_log(
+        '[Authentication] addModules: Active modules: ',
+        activeModules
+      )
+
+      activeModules.forEach(module => {
+        switch (module.id) {
+          case 'browser':
+            if (!self.$store.hasModule('fileExplorer')) {
+              self.$store.registerModule('fileExplorer', fileExplorer)
+            }
+            break
+          case 'chat':
+            if (!self.$store.hasModule('chat')) {
+              self.$store.registerModule('chat', chat)
+            }
+            break
+          case 'library':
+            if (!self.$store.hasModule('library')) {
+              self.$store.registerModule('library', library)
+            }
+            break
+          default:
+            break
+        }
+      })
+    },
+    $_auth_removeModules() {
+      let self = this
+      let activeModules = self.$store.state.auth.activeModules
+
+      ConMsgs.methods.$_console_log(
+        '[Authentication] addModules: Active modules: ',
+        activeModules
+      )
+
+      activeModules.forEach(module => {
+        switch (module.id) {
+          case 'browser':
+            if (self.$store.hasModule('fileExplorer')) {
+              self.$store.unregisterModule('fileExplorer')
+            }
+            break
+          case 'chat':
+            if (self.$store.hasModule('chat')) {
+              self.$store.registerModule('chat')
+            }
+            break
+          case 'library':
+            if (self.$store.hasModule('library')) {
+              self.$store.registerModule('library')
+            }
+            break
+          default:
+            break
+        }
+      })
     },
   },
 }

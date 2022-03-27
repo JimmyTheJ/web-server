@@ -10,26 +10,21 @@ import * as getters from './getters'
  * Module Scope of VUEX
  */
 import auth from './modules/auth'
-import chat from './modules/chat'
 import general from './modules/general'
-import library from './modules/library'
 import notifications from './modules/notifications'
-import fileExplorer from './modules/file-explorer'
+
+// import chat from './modules/chat'
+// import library from './modules/library'
+// import fileExplorer from './modules/file-explorer'
 
 Vue.use(Vuex)
 
-/**
- * Export
- */
 export default new Vuex.Store({
   getters,
   modules: {
     auth,
-    chat,
     general,
-    library,
     notifications,
-    fileExplorer,
   },
-  strict: true,
+  strict: process.env.NODE_ENV !== 'production',
 })

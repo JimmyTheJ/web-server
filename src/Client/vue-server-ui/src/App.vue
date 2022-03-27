@@ -19,6 +19,7 @@ export default {
   created() {
     this.refreshTokenJob()
 
+    this.$_auth_addModules()
     this.$_auth_addRoutes()
   },
   mixins: [AuthenticationMixin],

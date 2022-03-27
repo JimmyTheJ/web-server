@@ -55,7 +55,7 @@ export default ax
 
 function getHeaders() {
   var headers = { 'Content-Type': 'application/json; charset=utf-8' }
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV !== 'production') {
     headers['Access-Control-Allow-Origin'] = '*'
   }
 

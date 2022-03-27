@@ -9,7 +9,7 @@ export default {
         return false
       }
 
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV !== 'production') {
         for (let i = 0; i < messages.length; i++) {
           console.log(messages[i])
         }
@@ -28,7 +28,7 @@ export default {
         return false
       }
 
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV !== 'production') {
         for (let i = 0; i < messages.length; i++) {
           console.error(messages[i])
         }
@@ -48,7 +48,7 @@ export default {
         return false
       }
 
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV !== 'production') {
         console.group(header)
         for (let i = 0; i < messages.length; i++) {
           console.log(messages[i])
