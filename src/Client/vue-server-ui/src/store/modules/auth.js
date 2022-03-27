@@ -58,9 +58,14 @@ const actions = {
       return await Promise.reject(e.response)
     }
   },
-  async signout({ commit, dispatch }) {
+  async signout({ commit, dispatch, state }) {
     try {
-      ChatHub.stop()
+      // SECTION: Module - Chat
+      // Turn off the chat hub if we have the chat module enabled for this user
+      if (state.activeModules.findIndex(x => x.id === Modules.Chat) > -1) {
+        ChatHub.stop()
+      }
+
       const res = await authAPI.signout(state.user.id)
 
       // Clear all store values from other modules
@@ -80,16 +85,29 @@ const actions = {
       return await Promise.reject(e.response)
     }
   },
-  async clearCredentials({ commit, dispatch }) {
+  async clearCredentials({ commit, dispatch, state }) {
     // Clear all store values from other modules
     ConMsgs.methods.$_console_log(
       '[Vuex][Actions] Calling clearCredentials. Clearing state.'
     )
 
-    dispatch('clearChat')
-    dispatch('clearNotifications')
-    dispatch('clearLibrary')
-    dispatch('clearFileExplorer')
+    // SECTION: Module - All
+    state.activeModules.forEach(item => {
+      switch (item.id) {
+        case Modules.Chat:
+          dispatch('clearChat')
+          break
+        case Modules.Library:
+          dispatch('clearLibrary')
+          break
+        case Modules.Browser:
+          dispatch('clearFileExplorer')
+          break
+        default:
+          break
+      }
+    })
+
     commit(types.LOGOUT)
 
     return await Promise.resolve(true)

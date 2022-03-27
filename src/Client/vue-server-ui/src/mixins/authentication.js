@@ -41,7 +41,7 @@ export default {
         })
         .catch(ex => {
           ConMsgs.methods.$_console_log('Error logging in', ex)
-          this.$store.dispatch('clearCredentials')
+          this.$store.dispatch('clearCredentials', new Array())
           error = true
         })
     },
