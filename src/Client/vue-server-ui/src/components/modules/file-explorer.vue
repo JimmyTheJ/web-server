@@ -303,12 +303,12 @@ export default {
   },
   computed: {
     ...mapState({
-      contents: state => state.fileExplorer.contents,
-      folders: state => state.fileExplorer.folders,
-      directory: state => state.fileExplorer.directory,
-      subDirectories: state => state.fileExplorer.subDirectories,
-      loadingContents: state => state.fileExplorer.loadingContents,
-      copied: state => state.fileExplorer.copied,
+      contents: state => state.directory.contents,
+      folders: state => state.directory.folders,
+      directory: state => state.directory.directory,
+      subDirectories: state => state.directory.subDirectories,
+      loadingContents: state => state.directory.loadingContents,
+      copied: state => state.directory.copied,
       activeModules: state => state.auth.activeModules,
     }),
     updatedContents() {

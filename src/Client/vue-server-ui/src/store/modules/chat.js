@@ -30,7 +30,7 @@ const getters = {
 }
 
 const actions = {
-  clearChat({ commit }) {
+  clearChatModule({ commit }) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Clearing chat')
 
     commit(types.CHAT_CLEAR)

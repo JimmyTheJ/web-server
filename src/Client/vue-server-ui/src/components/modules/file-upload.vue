@@ -50,8 +50,8 @@ export default {
   },
   computed: {
     ...mapState({
-      directory: state => state.fileExplorer.directory,
-      subDirectories: state => state.fileExplorer.subDirectories,
+      directory: state => state.directory.directory,
+      subDirectories: state => state.directory.subDirectories,
     }),
   },
   watch: {

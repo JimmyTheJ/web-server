@@ -15,7 +15,7 @@ import notifications from './modules/notifications'
 
 // import chat from './modules/chat'
 // import library from './modules/library'
-// import fileExplorer from './modules/file-explorer'
+// import directory from './modules/directory'
 
 Vue.use(Vuex)
 

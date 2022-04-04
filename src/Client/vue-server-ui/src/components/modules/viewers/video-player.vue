@@ -43,22 +43,22 @@ export default {
   computed: {
     ...mapState({
       accessToken: state => state.auth.accessToken,
-      fileExplorer: state => state.fileExplorer,
+      directory: state => state.directory,
     }),
     type: function() {
       if (
-        typeof this.fileExplorer.file === 'undefined' ||
-        this.fileExplorer.file === null
+        typeof this.directory.file === 'undefined' ||
+        this.directory.file === null
       ) {
         this.$_console_log(`[${FN}] type: File is undefined or null`)
         return null
-      } else if (this.fileExplorer.file.isFolder) {
+      } else if (this.directory.file.isFolder) {
         this.$_console_log(`[${FN}] type: File is a folder, it has no type`)
         return null
       }
 
       // TODO: Create exhaustive list of extensions
-      switch (this.fileExplorer.file.extension) {
+      switch (this.directory.file.extension) {
         case '.mkv':
         case '.avi':
         case '.mpeg':

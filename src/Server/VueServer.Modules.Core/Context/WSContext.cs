@@ -63,7 +63,6 @@ namespace VueServer.Modules.Core.Context
             // Data Seeding
             SeedIdentity(modelBuilder);
             SeedModules(modelBuilder);
-            SeedModuleFeatures(modelBuilder);
         }
 
         #region -> Database tables
@@ -149,24 +148,8 @@ namespace VueServer.Modules.Core.Context
         }
         private void SeedModules(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = DomainConstants.Models.ModuleAddOns.Browser.Id, Name = DomainConstants.Models.ModuleAddOns.Browser.Name });
-            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = DomainConstants.Models.ModuleAddOns.Chat.Id, Name = DomainConstants.Models.ModuleAddOns.Chat.Name });
             modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = DomainConstants.Models.ModuleAddOns.Documentation.Id, Name = DomainConstants.Models.ModuleAddOns.Documentation.Name });
-            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = DomainConstants.Models.ModuleAddOns.Library.Id, Name = DomainConstants.Models.ModuleAddOns.Library.Name });
             modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = DomainConstants.Models.ModuleAddOns.Notes.Id, Name = DomainConstants.Models.ModuleAddOns.Notes.Name });
-            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = DomainConstants.Models.ModuleAddOns.Weight.Id, Name = DomainConstants.Models.ModuleAddOns.Weight.Name });
-        }
-
-        private void SeedModuleFeatures(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = DomainConstants.Models.ModuleFeatures.Browser.DELETE_ID, Name = DomainConstants.Models.ModuleFeatures.Browser.DELETE_NAME, ModuleAddOnId = DomainConstants.Models.ModuleAddOns.Browser.Id });
-            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = DomainConstants.Models.ModuleFeatures.Browser.UPLOAD_ID, Name = DomainConstants.Models.ModuleFeatures.Browser.UPLOAD_NAME, ModuleAddOnId = DomainConstants.Models.ModuleAddOns.Browser.Id });
-            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = DomainConstants.Models.ModuleFeatures.Browser.VIEWER_ID, Name = DomainConstants.Models.ModuleFeatures.Browser.VIEWER_NAME, ModuleAddOnId = DomainConstants.Models.ModuleAddOns.Browser.Id });
-            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = DomainConstants.Models.ModuleFeatures.Browser.CREATE_ID, Name = DomainConstants.Models.ModuleFeatures.Browser.CREATE_NAME, ModuleAddOnId = DomainConstants.Models.ModuleAddOns.Browser.Id });
-            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = DomainConstants.Models.ModuleFeatures.Browser.MOVE_ID, Name = DomainConstants.Models.ModuleFeatures.Browser.MOVE_NAME, ModuleAddOnId = DomainConstants.Models.ModuleAddOns.Browser.Id });
-
-            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = DomainConstants.Models.ModuleFeatures.Chat.DELETE_MESSAGE_ID, Name = DomainConstants.Models.ModuleFeatures.Chat.DELETE_MESSAGE_NAME, ModuleAddOnId = DomainConstants.Models.ModuleAddOns.Chat.Id });
-            modelBuilder.Entity<ModuleFeature>().HasData(new ModuleFeature { Id = DomainConstants.Models.ModuleFeatures.Chat.DELETE_CONVERSATION_ID, Name = DomainConstants.Models.ModuleFeatures.Chat.DELETE_CONVERSATION_NAME, ModuleAddOnId = DomainConstants.Models.ModuleAddOns.Chat.Id });
         }
 
         #endregion

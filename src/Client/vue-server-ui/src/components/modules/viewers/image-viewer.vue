@@ -37,7 +37,7 @@ export default {
   computed: {
     ...mapState({
       accessToken: state => state.auth.accessToken,
-      fileExplorer: state => state.fileExplorer,
+      directory: state => state.directory,
     }),
     getMaxWidth() {
       return this.windowWidth * 0.8

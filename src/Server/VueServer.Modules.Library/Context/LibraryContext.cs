@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VueServer.Modules.Core.Context;
+using VueServer.Modules.Core.Models.Modules;
 using VueServer.Modules.Library.Models;
 
 namespace VueServer.Modules.Library.Context
@@ -38,6 +39,7 @@ namespace VueServer.Modules.Library.Context
 
             // Data Seeding
             SeedGenres(modelBuilder);
+            SeedModule(modelBuilder);
         }
 
         private void SeedGenres(ModelBuilder modelBuilder)
@@ -94,6 +96,11 @@ namespace VueServer.Modules.Library.Context
             modelBuilder.Entity<Genre>().HasData(new Genre { Id = id++, Fiction = true, Name = "Suspense" });
             modelBuilder.Entity<Genre>().HasData(new Genre { Id = id++, Fiction = true, Name = "Thriller" });
             modelBuilder.Entity<Genre>().HasData(new Genre { Id = id++, Fiction = true, Name = "Young adult" });
+        }
+
+        private void SeedModule(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ModuleAddOn>().HasData(new ModuleAddOn { Id = LibraryConstants.ModuleAddOn.Id, Name = LibraryConstants.ModuleAddOn.Name });
         }
     }
 }

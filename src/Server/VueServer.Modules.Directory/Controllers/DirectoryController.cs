@@ -10,14 +10,11 @@ using VueServer.Modules.Directory.Models;
 using VueServer.Modules.Directory.Models.Request;
 using VueServer.Modules.Directory.Services;
 using static VueServer.Domain.DomainConstants.Authentication;
-using AddOns = VueServer.Domain.DomainConstants.Models.ModuleAddOns;
-using DomainModules = VueServer.Domain.DomainConstants.Models;
-using Features = VueServer.Domain.DomainConstants.Models.ModuleFeatures;
 using Route = VueServer.Modules.Core.Controllers.Constants.API_ENDPOINTS;
 
 namespace VueServer.Modules.Directory.Controllers
 {
-    [Route(Route.Directory.Controller)]
+    [Route(DirectoryConstants.Controller.BasePath)]
     public class DirectoryController : Controller
     {
         private readonly IStatusCodeFactory<IActionResult> _codeFactory;
@@ -38,7 +35,7 @@ namespace VueServer.Modules.Directory.Controllers
         }
 
         [HttpGet]
-        [Route(Route.Directory.DownloadProtectedFile)]
+        [Route(DirectoryConstants.Controller.DownloadProtectedFile)]
         public async Task<IActionResult> DownloadProtectedFile(string filename, string token)
         {
             var validated = _accountService.ValidateTokenAndGetName(token);
@@ -47,7 +44,7 @@ namespace VueServer.Modules.Directory.Controllers
                 return Unauthorized();
             }
 
-            var userHasModule = await _moduleService.DoesUserHaveModule(validated.Obj, DomainModules.ModuleAddOns.Browser.Id);
+            var userHasModule = await _moduleService.DoesUserHaveModule(validated.Obj, DirectoryConstants.ModuleAddOn.Id);
             if (userHasModule.Obj == false)
             {
                 return Unauthorized();
@@ -65,7 +62,7 @@ namespace VueServer.Modules.Directory.Controllers
         }
 
         [HttpGet]
-        [Route(Route.Directory.ServeMedia)]
+        [Route(DirectoryConstants.Controller.ServeMedia)]
         public async Task<IActionResult> ServeMedia(string filename, string token)
         {
             var validated = _accountService.ValidateTokenAndGetName(token);
@@ -74,13 +71,13 @@ namespace VueServer.Modules.Directory.Controllers
                 return Unauthorized();
             }
 
-            var userHasModule = await _moduleService.DoesUserHaveModule(validated.Obj, DomainModules.ModuleAddOns.Browser.Id);
+            var userHasModule = await _moduleService.DoesUserHaveModule(validated.Obj, DirectoryConstants.ModuleAddOn.Id);
             if (userHasModule.Obj == false)
             {
                 return Unauthorized();
             }
 
-            var userHasFeature = await _moduleService.DoesUserHaveFeature(validated.Obj, DomainModules.ModuleFeatures.Browser.VIEWER_ID);
+            var userHasFeature = await _moduleService.DoesUserHaveFeature(validated.Obj, DirectoryConstants.ModuleFeatures.VIEWER_ID);
             if (userHasFeature.Obj == false)
             {
                 return Unauthorized();
@@ -101,8 +98,8 @@ namespace VueServer.Modules.Directory.Controllers
 
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
-        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id)]
-        [Route(Route.Directory.LoadDirectory)]
+        [ModuleAuthFilterFactory(Module = DirectoryConstants.ModuleAddOn.Id)]
+        [Route(DirectoryConstants.Controller.LoadDirectory)]
         public async Task<IActionResult> LoadDirectory(string directory, string dir = null)
         {
             return _codeFactory.GetStatusCode(await _service.Load(directory, dir));
@@ -110,8 +107,8 @@ namespace VueServer.Modules.Directory.Controllers
 
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
-        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.CREATE_ID)]
-        [Route(Route.Directory.CreateFolder)]
+        [ModuleAuthFilterFactory(Module = DirectoryConstants.ModuleAddOn.Id, Feature = DirectoryConstants.ModuleFeatures.CREATE_ID)]
+        [Route(DirectoryConstants.Controller.CreateFolder)]
         public async Task<IActionResult> CreateFolder([FromBody] FileModel model)
         {
             return _codeFactory.GetStatusCode(await _service.CreateFolder(model.Directory, model.SubDirectory, model.Name));
@@ -119,8 +116,8 @@ namespace VueServer.Modules.Directory.Controllers
 
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
-        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
-        [Route(Route.Directory.CopyFile)]
+        [ModuleAuthFilterFactory(Module = DirectoryConstants.ModuleAddOn.Id, Feature = DirectoryConstants.ModuleFeatures.MOVE_ID)]
+        [Route(DirectoryConstants.Controller.CopyFile)]
         public async Task<IActionResult> CopyFile([FromBody] CopyRequest model)
         {
             return _codeFactory.GetStatusCode(await _service.CopyFile(model.Source, model.Destination));
@@ -128,8 +125,8 @@ namespace VueServer.Modules.Directory.Controllers
 
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
-        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
-        [Route(Route.Directory.CopyFolder)]
+        [ModuleAuthFilterFactory(Module = DirectoryConstants.ModuleAddOn.Id, Feature = DirectoryConstants.ModuleFeatures.MOVE_ID)]
+        [Route(DirectoryConstants.Controller.CopyFolder)]
         public async Task<IActionResult> CopyFolder([FromBody] CopyRequest model)
         {
             return _codeFactory.GetStatusCode(await _service.CopyFolder(model.Source, model.Destination));
@@ -137,8 +134,8 @@ namespace VueServer.Modules.Directory.Controllers
 
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
-        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
-        [Route(Route.Directory.MoveFile)]
+        [ModuleAuthFilterFactory(Module = DirectoryConstants.ModuleAddOn.Id, Feature = DirectoryConstants.ModuleFeatures.MOVE_ID)]
+        [Route(DirectoryConstants.Controller.MoveFile)]
         public async Task<IActionResult> MoveFile([FromBody] CopyRequest model)
         {
             return _codeFactory.GetStatusCode(await _service.MoveFile(model.Source, model.Destination));
@@ -146,8 +143,8 @@ namespace VueServer.Modules.Directory.Controllers
 
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
-        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
-        [Route(Route.Directory.MoveFolder)]
+        [ModuleAuthFilterFactory(Module = DirectoryConstants.ModuleAddOn.Id, Feature = DirectoryConstants.ModuleFeatures.MOVE_ID)]
+        [Route(DirectoryConstants.Controller.MoveFolder)]
         public async Task<IActionResult> MoveFolder([FromBody] CopyRequest model)
         {
             return _codeFactory.GetStatusCode(await _service.MoveFolder(model.Source, model.Destination));
@@ -155,8 +152,8 @@ namespace VueServer.Modules.Directory.Controllers
 
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
-        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
-        [Route(Route.Directory.RenameFile)]
+        [ModuleAuthFilterFactory(Module = DirectoryConstants.ModuleAddOn.Id, Feature = DirectoryConstants.ModuleFeatures.MOVE_ID)]
+        [Route(DirectoryConstants.Controller.RenameFile)]
         public async Task<IActionResult> RenameFile([FromBody] MoveFileRequest model)
         {
             return _codeFactory.GetStatusCode(await _service.RenameFile(model));
@@ -164,8 +161,8 @@ namespace VueServer.Modules.Directory.Controllers
 
         [HttpPost]
         [Authorize(Roles = ROLES_ALL)]
-        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.MOVE_ID)]
-        [Route(Route.Directory.RenameFolder)]
+        [ModuleAuthFilterFactory(Module = DirectoryConstants.ModuleAddOn.Id, Feature = DirectoryConstants.ModuleFeatures.MOVE_ID)]
+        [Route(DirectoryConstants.Controller.RenameFolder)]
         public async Task<IActionResult> RenameFolder([FromBody] MoveFileRequest model)
         {
             return _codeFactory.GetStatusCode(await _service.RenameFolder(model));
@@ -173,7 +170,7 @@ namespace VueServer.Modules.Directory.Controllers
 
         [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
-        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id)]
+        [ModuleAuthFilterFactory(Module = DirectoryConstants.ModuleAddOn.Id)]
         [Route(Route.Generic.List)]
         public async Task<IActionResult> GetDirectoryList()
         {
@@ -182,7 +179,7 @@ namespace VueServer.Modules.Directory.Controllers
 
         [HttpDelete]
         [Authorize(Roles = ROLES_ALL)]
-        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.DELETE_ID)]
+        [ModuleAuthFilterFactory(Module = DirectoryConstants.ModuleAddOn.Id, Feature = DirectoryConstants.ModuleFeatures.DELETE_ID)]
         [Route(Route.Generic.Delete)]
         //[Authorize(AuthenticationSchemes = "Identity.Application", Roles = "Administrator")]
         public async Task<IActionResult> Delete([FromBody] FileModel model)
@@ -194,8 +191,8 @@ namespace VueServer.Modules.Directory.Controllers
         [Authorize(Roles = ROLES_ALL)]
         [DisableRequestSizeLimit]
         [RequestFormLimits(MultipartBodyLengthLimit = 3000000000)]
-        [ModuleAuthFilterFactory(Module = AddOns.Browser.Id, Feature = Features.Browser.UPLOAD_ID)]
-        [Route(Route.Directory.Upload)]
+        [ModuleAuthFilterFactory(Module = DirectoryConstants.ModuleAddOn.Id, Feature = DirectoryConstants.ModuleFeatures.UPLOAD_ID)]
+        [Route(DirectoryConstants.Controller.Upload)]
         public async Task<IActionResult> UploadAsync([FromForm] UploadDirectoryFileRequest model)
         {
             return _codeFactory.GetStatusCode(await _service.Upload(model));

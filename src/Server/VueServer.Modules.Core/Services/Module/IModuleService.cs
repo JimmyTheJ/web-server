@@ -7,6 +7,7 @@ namespace VueServer.Modules.Core.Services.Module
 {
     public interface IModuleService
     {
+        Task<IResult<IEnumerable<string>>> GetEnabledModules();
         Task<IResult<IEnumerable<ModuleAddOn>>> GetActiveModulesForUser();
         Task<IResult<IEnumerable<ModuleAddOn>>> GetAllModules();
         Task<IResult<IDictionary<string, IList<ModuleAddOn>>>> GetActiveModulesForAllUsers();

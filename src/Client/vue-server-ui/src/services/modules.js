@@ -3,6 +3,7 @@
  */
 import axios from '@/axios'
 
+const getEnabledModulesUrl = `api/modules/get-enabled-modules`
 const getAllModulesUrl = `api/modules/get-all-modules`
 const getModulesForUserUrl = `api/modules/get-modules-for-user`
 const getAllModulesForAllUserUrl = `api/modules/get-modules-for-all-users`
@@ -16,6 +17,9 @@ const deleteFeatureFromUserUrl = `api/modules/delete-feature-from-user`
  * Export
  */
 export default {
+  getEnabledModules() {
+    return axios.get(getEnabledModulesUrl)
+  },
   getModulesForUser() {
     return axios.get(getModulesForUserUrl)
   },

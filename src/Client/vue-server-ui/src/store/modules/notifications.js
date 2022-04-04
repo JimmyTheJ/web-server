@@ -42,7 +42,7 @@ const getters = {
 }
 
 const actions = {
-  async clearNotifications({ commit }) {
+  async clearNotificationModule({ commit }) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Clearing notifications')
 
     commit(types.MESSAGE_CLEAR)

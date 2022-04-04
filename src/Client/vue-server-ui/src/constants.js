@@ -89,8 +89,8 @@ export const NotificationTypes = {
 }
 
 export const Modules = {
-  Browser: 'browser',
   Chat: 'chat',
+  Directory: 'directory',
   Library: 'library',
   Notes: 'notes',
   Weight: 'weight',

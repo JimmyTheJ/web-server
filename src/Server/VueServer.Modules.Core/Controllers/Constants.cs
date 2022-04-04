@@ -25,11 +25,6 @@
                 public const string DeleteServerSetting = "settings/delete/{key}";
             }
 
-            public static class Weight
-            {
-                public const string Controller = "/api/weight";
-            }
-
             public static class Note
             {
                 public const string Controller = "/api/note";
@@ -46,65 +41,8 @@
                 public const string DeleteModuleFromUser = "delete-module-from-user";
                 public const string AddFeatureToUser = "add-feature-to-user";
                 public const string DeleteFeatureFromUser = "delete-feature-from-user";
-            }
 
-            public static class Library
-            {
-                public const string Controller = "/api/library";
-                public const string Book = "book";
-                public const string Author = "author";
-                public const string Genre = "genre";
-                public const string Bookcase = "bookcase";
-                public const string Series = "series";
-                public const string Shelf = "shelf";
-            }
-
-            public static class Directory
-            {
-                public const string Controller = "/api/directory";
-                public const string Upload = "upload";
-                public const string LoadDirectory = "folder/{directory}/{*dir}";
-                public const string ServeMedia = "/api/serve-file/{*filename}";
-                public const string DownloadProtectedFile = "download/file/{*filename}";
-                public const string CreateFolder = "create-folder";
-                public const string RenameFile = "rename-file";
-                public const string RenameFolder = "rename-folder";
-                public const string MoveFile = "move-file";
-                public const string MoveFolder = "move-folder";
-                public const string CopyFile = "copy-file";
-                public const string CopyFolder = "copy-folder";
-
-                public static class Admin
-                {
-                    public const string AdminString = "admin/";
-                    public const string GetDirectorySettings = AdminString + "settings/get";
-                    public const string GetGroupDirectories = AdminString + "group/get";
-                    public const string AddGroupDirectory = AdminString + "group/add";
-                    public const string DeleteGroupDirectory = AdminString + "group/delete/{id}";
-                    public const string GetUserDirectories = AdminString + "user/get";
-                    public const string AddUserDirectory = AdminString + "user/add";
-                    public const string DeleteUserDirectory = AdminString + "user/delete/{id}";
-                    public const string CreateDefaultFolder = AdminString + "user/create-default-directory/{id}";
-                }
-            }
-
-            public static class Chat
-            {
-                public const string Controller = "/api/chat";
-                public const string StartConversation = "conversation/start";
-                public const string GetConversation = "conversation/get/{id}";
-                public const string GetNewMessageNotifications = "conversation/notifications/get-all";
-                public const string GetAllConversations = "conversation/get-all";
-                public const string UpdateConversationTitle = "conversation/update-title/{conversationId}";
-                public const string UpdateUserColor = "conversation/update-conversation-color/{conversationId}/{userId}";
-                public const string DeleteConversation = "conversation/delete/{conversationId}";
-                public const string GetMessagesForConversation = "conversation/get/messages/{id}";
-                public const string GetPaginatedMessagesForConversation = "conversation/get/messages/{conversationId}/{msgId}";
-                public const string DeleteMessage = "message/delete/{messageId}";
-                public const string GetMessage = "message/get/{id}";
-                public const string AddMessage = "message/send";
-                public const string ReadMessage = "message/read/{conversationId}/{messageId}";
-                public const string ReadMessageList = "message/read/{conversationId}/list";
+                public const string GetEnabledModules = "get-enabled-modules";
             }
 
             public static class Account

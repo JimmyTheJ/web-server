@@ -83,19 +83,23 @@ export const adminRoutes = [
           hidden: false,
         },
       },
-      {
-        path: 'directory-management',
-        name: 'directory-management',
-        component: DirectoryManagement,
-        meta: {
-          display: 'Directory Management',
-          authLevel: Roles.Level.Admin,
-          hidden: false,
-        },
-      },
     ],
   },
 ]
+
+/**
+ * To be added to adminRoutes.children when the Directory module is available
+ */
+export const adminDirectoryManagementChildRoute = {
+  path: 'directory-management',
+  name: 'directory-management',
+  component: DirectoryManagement,
+  meta: {
+    display: 'Directory Management',
+    authLevel: Roles.Level.Admin,
+    hidden: false,
+  },
+}
 
 export const defaultRoutes = [
   {

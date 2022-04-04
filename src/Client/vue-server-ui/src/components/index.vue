@@ -14,6 +14,8 @@ export default {
     }
   },
   created() {
+    this.$store.dispatch('getEnabledModules')
+
     if (this.$route.fullPath === '/') this.$router.push({ name: 'login' })
   },
 }

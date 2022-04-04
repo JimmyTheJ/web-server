@@ -6,13 +6,11 @@ using VueServer.Modules.Chat.Models;
 using VueServer.Modules.Chat.Models.Request;
 using VueServer.Modules.Chat.Services;
 using VueServer.Modules.Core.Controllers.Filters;
-using AddOns = VueServer.Domain.DomainConstants.Models.ModuleAddOns;
-using Features = VueServer.Domain.DomainConstants.Models.ModuleFeatures;
 using Route = VueServer.Modules.Core.Controllers.Constants.API_ENDPOINTS;
 
 namespace VueServer.Modules.Chat
 {
-    [Route(Route.Chat.Controller)]
+    [Route(ChatConstants.Controller.BasePath)]
     public class ChatController : Controller
     {
         private readonly IChatService _chatService;
@@ -24,32 +22,32 @@ namespace VueServer.Modules.Chat
             _codeFactory = factory ?? throw new ArgumentNullException("Code factory is null");
         }
 
-        [Route(Route.Chat.StartConversation)]
-        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
+        [Route(ChatConstants.Controller.StartConversation)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id)]
         [HttpPost]
         public async Task<IActionResult> StartConversation([FromBody] StartConversationRequest request)
         {
             return _codeFactory.GetStatusCode(await _chatService.StartConversation(request));
         }
 
-        [Route(Route.Chat.GetConversation)]
-        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
+        [Route(ChatConstants.Controller.GetConversation)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id)]
         [HttpGet]
         public async Task<IActionResult> GetConversation(long id)
         {
             return _codeFactory.GetStatusCode(await _chatService.GetConversation(id));
         }
 
-        [Route(Route.Chat.GetNewMessageNotifications)]
-        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
+        [Route(ChatConstants.Controller.GetNewMessageNotifications)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id)]
         [HttpGet]
         public async Task<IActionResult> GetNewMessageNotifications()
         {
             return _codeFactory.GetStatusCode(await _chatService.GetNewMessageNotifications());
         }
 
-        [Route(Route.Chat.GetAllConversations)]
-        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
+        [Route(ChatConstants.Controller.GetAllConversations)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id)]
         [HttpGet]
         public async Task<IActionResult> GetAllConversations()
 
@@ -57,80 +55,80 @@ namespace VueServer.Modules.Chat
             return _codeFactory.GetStatusCode(await _chatService.GetAllConversations());
         }
 
-        [Route(Route.Chat.UpdateConversationTitle)]
-        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
+        [Route(ChatConstants.Controller.UpdateConversationTitle)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id)]
         [HttpPost]
         public async Task<IActionResult> UpdateConversationTitle(long conversationId, [FromBody] UpdateConversationTitleRequest request)
         {
             return _codeFactory.GetStatusCode(await _chatService.UpdateConversationTitle(conversationId, request?.Title));
         }
 
-        [Route(Route.Chat.UpdateUserColor)]
-        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
+        [Route(ChatConstants.Controller.UpdateUserColor)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id)]
         [HttpPost]
         public async Task<IActionResult> UpdateUserColor(long conversationId, string userId, [FromBody] UpdateConversationUserColorRequest request)
         {
             return _codeFactory.GetStatusCode(await _chatService.UpdateUserColor(conversationId, userId, request.ColorId));
         }
 
-        [Route(Route.Chat.DeleteConversation)]
-        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id, Feature = Features.Chat.DELETE_CONVERSATION_ID)]
+        [Route(ChatConstants.Controller.DeleteConversation)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id, Feature = ChatConstants.ModuleFeatures.DELETE_CONVERSATION_ID)]
         [HttpDelete]
         public async Task<IActionResult> DeleteConversation(long conversationId)
         {
             return _codeFactory.GetStatusCode(await _chatService.DeleteConversation(conversationId));
         }
 
-        [Route(Route.Chat.GetMessagesForConversation)]
-        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
+        [Route(ChatConstants.Controller.GetMessagesForConversation)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id)]
         [HttpGet]
         public async Task<IActionResult> GetMessagesForConversation(long id)
         {
             return _codeFactory.GetStatusCode(await _chatService.GetMessagesForConversation(id));
         }
 
-        [Route(Route.Chat.GetPaginatedMessagesForConversation)]
-        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
+        [Route(ChatConstants.Controller.GetPaginatedMessagesForConversation)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id)]
         [HttpGet]
         public async Task<IActionResult> GetPaginatedMessagesForConversation(long conversationId, long msgId)
         {
             return _codeFactory.GetStatusCode(await _chatService.GetMessagesForConversation(conversationId, msgId));
         }
 
-        [Route(Route.Chat.DeleteMessage)]
-        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id, Feature = Features.Chat.DELETE_MESSAGE_ID)]
+        [Route(ChatConstants.Controller.DeleteMessage)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id, Feature = ChatConstants.ModuleFeatures.DELETE_MESSAGE_ID)]
         [HttpDelete]
         public async Task<IActionResult> DeleteMessage(long messageId)
         {
             return _codeFactory.GetStatusCode(await _chatService.DeleteMessage(messageId));
         }
 
-        [Route(Route.Chat.GetMessage)]
-        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
+        [Route(ChatConstants.Controller.GetMessage)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id)]
         [HttpGet]
         public async Task<IActionResult> GetMessage(long id)
         {
             return _codeFactory.GetStatusCode(await _chatService.GetMessage(id));
         }
 
-        [Route(Route.Chat.AddMessage)]
-        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
+        [Route(ChatConstants.Controller.AddMessage)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id)]
         [HttpPost]
         public async Task<IActionResult> AddMessage([FromBody] ChatMessage message)
         {
             return _codeFactory.GetStatusCode(await _chatService.AddMessage(message));
         }
 
-        [Route(Route.Chat.ReadMessage)]
-        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
+        [Route(ChatConstants.Controller.ReadMessage)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id)]
         [HttpPut]
         public async Task<IActionResult> ReadMessage(long conversationId, long messageId)
         {
             return _codeFactory.GetStatusCode(await _chatService.ReadMessage(conversationId, messageId));
         }
 
-        [Route(Route.Chat.ReadMessageList)]
-        [ModuleAuthFilterFactory(Module = AddOns.Chat.Id)]
+        [Route(ChatConstants.Controller.ReadMessageList)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id)]
         [HttpPut]
         public async Task<IActionResult> ReadMessageList(long conversationId, [FromBody] long[] messageIds)
         {

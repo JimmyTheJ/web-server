@@ -37,6 +37,16 @@ namespace VueServer.Modules.Core.Services.Module
             _cache = cache ?? throw new ArgumentNullException("Cache is null");
         }
 
+        public async Task<IResult<IEnumerable<string>>> GetEnabledModules()
+        {
+            if (_cache.TryGetValue(CacheMap.LoadedModules, out IEnumerable<string> modules))
+            {
+                return new Result<IEnumerable<string>>(modules, Domain.Enums.StatusCode.OK);
+            }
+
+            return new Result<IEnumerable<string>>(null, Domain.Enums.StatusCode.NO_CONTENT);
+        }
+
         public async Task<IResult<IEnumerable<ModuleAddOn>>> GetActiveModulesForUser()
         {
             var userModules = await _context.UserHasModule

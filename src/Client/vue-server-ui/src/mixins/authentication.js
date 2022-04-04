@@ -1,11 +1,16 @@
 import store from '@/store/index'
-import { defaultRoutes, adminRoutes, moduleRoutes } from '@/routes'
-import { Roles } from '@/constants'
+import {
+  defaultRoutes,
+  adminRoutes,
+  moduleRoutes,
+  adminDirectoryManagementChildRoute,
+} from '@/routes'
+import { Modules, Roles } from '@/constants'
 import ConMsgs from './console'
 
 import chat from '@/store/modules/chat'
 import library from '@/store/modules/library'
-import fileExplorer from '@/store/modules/file-explorer'
+import directory from '@/store/modules/directory'
 
 export default {
   methods: {
@@ -108,6 +113,17 @@ export default {
 
       // If user if an admin we need to add the admin routes so they can start modifying module / feature permissions and creating accounts
       if (self.$store.state.auth.role === Roles.Name.Admin) {
+        let adminTools = adminRoutes.find(x => x.path === 'admin-tools')
+        // Append the Directory Management sub-route into admin-tools assuming we have the Directory Module loaded
+        if (
+          self.$store.state.auth.enabledModules.indexOf(
+            Modules.Directory.charAt(0).toUpperCase() +
+              Modules.Directory.slice(1)
+          ) > -1
+        ) {
+          adminTools.children.push(adminDirectoryManagementChildRoute)
+        }
+
         adminRoutes.forEach(item => {
           self.$router.addRoute('home', item)
         })
@@ -169,9 +185,9 @@ export default {
 
       activeModules.forEach(module => {
         switch (module.id) {
-          case 'browser':
-            if (!self.$store.hasModule('fileExplorer')) {
-              self.$store.registerModule('fileExplorer', fileExplorer)
+          case 'directory':
+            if (!self.$store.hasModule('directory')) {
+              self.$store.registerModule('directory', directory)
             }
             break
           case 'chat':
@@ -199,24 +215,8 @@ export default {
       )
 
       activeModules.forEach(module => {
-        switch (module.id) {
-          case 'browser':
-            if (self.$store.hasModule('fileExplorer')) {
-              self.$store.unregisterModule('fileExplorer')
-            }
-            break
-          case 'chat':
-            if (self.$store.hasModule('chat')) {
-              self.$store.registerModule('chat')
-            }
-            break
-          case 'library':
-            if (self.$store.hasModule('library')) {
-              self.$store.registerModule('library')
-            }
-            break
-          default:
-            break
+        if (self.$store.hasModule(module.id)) {
+          self.$store.unregisterModule(module.id)
         }
       })
     },

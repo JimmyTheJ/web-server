@@ -235,6 +235,7 @@ namespace VueServer
             serverCache.Update(CacheMap.Users);
             serverCache.Update(CacheMap.UserModuleAddOn);
             serverCache.Update(CacheMap.UserModuleFeature);
+            serverCache.Update(CacheMap.LoadedModules);
         }
 
         private bool ValidModuleAssembly(Assembly assembly)

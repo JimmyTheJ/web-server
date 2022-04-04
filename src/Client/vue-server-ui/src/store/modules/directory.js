@@ -18,7 +18,7 @@ const state = {
 const getters = {}
 
 const actions = {
-  async clearFileExplorer({ commit }) {
+  async clearDirectoryModule({ commit }) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Clearing file-explorer')
 
     commit(types.BROWSER_CLEAR)

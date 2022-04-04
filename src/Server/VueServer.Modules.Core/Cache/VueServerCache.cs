@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using VueServer.Core.Helper;
 using VueServer.Modules.Core.Context;
 
 namespace VueServer.Modules.Core.Cache
@@ -133,6 +134,7 @@ namespace VueServer.Modules.Core.Cache
                 Cache[CacheMap.UserModuleAddOn] = null;
                 Cache[CacheMap.UserModuleFeature] = null;
                 Cache[CacheMap.BlockedIP] = null;
+                Cache[CacheMap.LoadedModules] = null;
             }
 
             Cache.Clear();
@@ -213,6 +215,20 @@ namespace VueServer.Modules.Core.Cache
                 {
                     value = context.UserHasFeature.ToList();
                 }
+                else if (key == CacheMap.LoadedModules)
+                {
+                    var loadedDlls = AppDomain.CurrentDomain.GetAssemblies();
+                    var moduleDlls = loadedDlls.Where(x => ModuleHelper.IsModuleExtensionDll(x)).ToList();
+
+                    var modules = new List<string>();
+
+                    foreach (var dll in moduleDlls)
+                    {
+                        modules.Add(dll.GetName().Name.Substring("VueServer.Modules.".Length));
+                    }
+
+                    value = modules;
+                }
             }
 
             return value;
@@ -225,6 +241,7 @@ namespace VueServer.Modules.Core.Cache
         public const string UserModuleAddOn = "UserModuleAddOn";
         public const string UserModuleFeature = "UserModuleFeature";
         public const string BlockedIP = "BlockedIP";
+        public const string LoadedModules = "LoadedModules";
     }
 
     /// <summary>

@@ -7,12 +7,11 @@ using VueServer.Modules.Core.Controllers.Filters;
 using VueServer.Modules.Weight.Models;
 using VueServer.Modules.Weight.Services;
 using static VueServer.Domain.DomainConstants.Authentication;
-using AddOns = VueServer.Domain.DomainConstants.Models.ModuleAddOns;
 using Route = VueServer.Modules.Core.Controllers.Constants.API_ENDPOINTS;
 
 namespace VueServer.Modules.Weight
 {
-    [Route(Route.Weight.Controller)]
+    [Route(WeightConstants.Controller.BasePath)]
     [Authorize(Roles = ROLES_ALL)]
     public class WeightController : Controller
     {
@@ -29,7 +28,7 @@ namespace VueServer.Modules.Weight
         }
 
         [HttpGet]
-        [ModuleAuthFilterFactory(Module = AddOns.Weight.Id)]
+        [ModuleAuthFilterFactory(Module = WeightConstants.ModuleAddOn.Id)]
         [Route(Route.Generic.List)]
         public async Task<IActionResult> GetWeightHistory()
         {
@@ -37,7 +36,7 @@ namespace VueServer.Modules.Weight
         }
 
         [HttpPost]
-        [ModuleAuthFilterFactory(Module = AddOns.Weight.Id)]
+        [ModuleAuthFilterFactory(Module = WeightConstants.ModuleAddOn.Id)]
         [Route(Route.Generic.Add)]
         public async Task<IActionResult> AddWeight([FromBody] Weights weight)
         {
@@ -45,7 +44,7 @@ namespace VueServer.Modules.Weight
         }
 
         [HttpPost]
-        [ModuleAuthFilterFactory(Module = AddOns.Weight.Id)]
+        [ModuleAuthFilterFactory(Module = WeightConstants.ModuleAddOn.Id)]
         [Route(Route.Generic.Edit)]
         public async Task<IActionResult> EditWeight([FromBody] Weights weight)
         {
@@ -53,7 +52,7 @@ namespace VueServer.Modules.Weight
         }
 
         [HttpDelete]
-        [ModuleAuthFilterFactory(Module = AddOns.Weight.Id)]
+        [ModuleAuthFilterFactory(Module = WeightConstants.ModuleAddOn.Id)]
         [Route(Route.Generic.Delete)]
         public async Task<IActionResult> DeleteWeight(int id)
         {

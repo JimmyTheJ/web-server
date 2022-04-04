@@ -1,6 +1,6 @@
 <template>
   <v-carousel v-model="activeItem">
-    <v-carousel-item v-for="(item, i) in fileExplorer.filteredFiles" :key="i">
+    <v-carousel-item v-for="(item, i) in directory.filteredFiles" :key="i">
       <v-card height="100%" class="text-center">
         <template v-if="getMediaType(item) === mediaTypes.Video">
           <video-player :file="item" :url="buildPath(item)" :dialog="dialog" />
@@ -52,7 +52,7 @@ export default {
   },
   computed: {
     ...mapState({
-      fileExplorer: state => state.fileExplorer,
+      directory: state => state.directory,
     }),
   },
   watch: {
@@ -74,10 +74,7 @@ export default {
       })
 
       if (Number.isInteger(newValue) && newValue >= 0) {
-        this.$store.dispatch(
-          'loadFile',
-          this.fileExplorer.filteredFiles[newValue]
-        )
+        this.$store.dispatch('loadFile', this.directory.filteredFiles[newValue])
         this.$store.dispatch('setActiveFile', { index: newValue, value: true })
       }
       if (Number.isInteger(oldValue) && oldValue >= 0) {
@@ -96,8 +93,8 @@ export default {
       if (typeof file === 'undefined' || file === null || file.isFolder)
         return null
 
-      let subDirStr = getSubdirectoryString(this.fileExplorer.subDirectories)
-      let fullStr = `${this.fileExplorer.directory}/${subDirStr}/${file.title}`
+      let subDirStr = getSubdirectoryString(this.directory.subDirectories)
+      let fullStr = `${this.directory.directory}/${subDirStr}/${file.title}`
 
       //this.$_console_log(`[${FN}] subDir / fullPath: `, subDirStr, fullStr)
 

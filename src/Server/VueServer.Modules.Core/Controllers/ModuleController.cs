@@ -27,6 +27,13 @@ namespace VueServer.Modules.Core.Controllers
         }
 
         [HttpGet]
+        [Route(Route.Module.GetEnabledModules)]
+        public async Task<IActionResult> GetEnabledModules()
+        {
+            return _codeFactory.GetStatusCode(await _service.GetEnabledModules());
+        }
+
+        [HttpGet]
         [Authorize(Roles = ROLES_ALL)]
         [Route(Route.Module.GetModulesForUser)]
         public async Task<IActionResult> GetActiveModules()

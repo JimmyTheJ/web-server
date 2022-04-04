@@ -74,17 +74,17 @@ export default {
   beforeRouteLeave(to, from, next) {
     // When leaving the browser page we should clear out the data stored in the vuex store
     // to create a better experience when /if we come back to the browser screen
-    if (to.name !== 'browser') store.dispatch('clearFileExplorer')
+    if (to.name !== 'browser') store.dispatch('clearDirectoryModule')
 
     next()
   },
   computed: {
     ...mapState({
-      fileExplorer: state => state.fileExplorer,
+      directory: state => state.directory,
     }),
   },
   watch: {
-    'fileExplorer.file': {
+    'directory.file': {
       handler(newValue, oldValue) {
         this.$_console_log(
           `[${FN}] file watcher: old value / new value`,
@@ -102,12 +102,12 @@ export default {
           this.dialogOpen = true
 
           this.$nextTick(() => {
-            let index = this.fileExplorer.filteredFiles.findIndex(
+            let index = this.directory.filteredFiles.findIndex(
               x => x.title === newValue.title
             )
 
             this.$_console_log(
-              `[${FN}] fileExplorer.file watcher: replace old with new`,
+              `[${FN}] directory.file watcher: replace old with new`,
               index
             )
 
@@ -146,7 +146,7 @@ export default {
   },
   methods: {
     updateDialogTitle() {
-      let fileType = getFileType(this.fileExplorer.file)
+      let fileType = getFileType(this.directory.file)
       this.$_console_log(
         `[${FN}] updateDialogTitle: ${fileType} - ${typeof fileType}`
       )
@@ -239,7 +239,7 @@ async function handleRouteChange(to, from, next) {
         })
         await store.dispatch('loadDirectory')
       } else {
-        await store.dispatch('clearFileExplorer')
+        await store.dispatch('clearDirectoryModule')
         await store.dispatch('loadDirectory')
         return false
       }

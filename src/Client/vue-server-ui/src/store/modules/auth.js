@@ -14,6 +14,7 @@ const state = {
 
   accessToken: localStorage.getItem('accessToken') || '',
 
+  enabledModules: JSON.parse(localStorage.getItem('enabledModules')) || [],
   activeModules: JSON.parse(localStorage.getItem('activeModules')) || [],
   userMap: JSON.parse(localStorage.getItem('userMap')) || {},
 }
@@ -23,6 +24,21 @@ const getters = {
 }
 
 const actions = {
+  async getEnabledModules({ commit }) {
+    try {
+      ConMsgs.methods.$_console_log('Getting enabled modules')
+
+      const res = await moduleAPI.getEnabledModules()
+      commit(types.GET_ENABLED_MODULES, res.data)
+      return await Promise.resolve(res.data)
+    } catch (e) {
+      ConMsgs.methods.$_console_group(
+        '[Vuex][Actions] Error from getting enabled modules',
+        e.response
+      )
+      return await Promise.reject(e.response)
+    }
+  },
   async refreshToken({ commit, state }) {
     try {
       ConMsgs.methods.$_console_log('Getting refresh token')
@@ -58,7 +74,8 @@ const actions = {
       return await Promise.reject(e.response)
     }
   },
-  async signout({ commit, dispatch, state }) {
+  async signout({ dispatch, state }) {
+    const modules = state.activeModules.slice(0)
     try {
       // SECTION: Module - Chat
       // Turn off the chat hub if we have the chat module enabled for this user
@@ -73,7 +90,7 @@ const actions = {
         '[Vuex][Actions] Logout success. Clearing state.'
       )
 
-      dispatch('clearCredentials')
+      dispatch('clearCredentials', modules)
       return await Promise.resolve(res)
     } catch (e) {
       ConMsgs.methods.$_console_group(
@@ -81,33 +98,21 @@ const actions = {
         e.response
       )
 
-      dispatch('clearCredentials')
+      dispatch('clearCredentials', modules)
       return await Promise.reject(e.response)
     }
   },
-  async clearCredentials({ commit, dispatch, state }) {
+  async clearCredentials({ commit, dispatch }, context) {
     // Clear all store values from other modules
     ConMsgs.methods.$_console_log(
       '[Vuex][Actions] Calling clearCredentials. Clearing state.'
     )
 
     // SECTION: Module - All
-    state.activeModules.forEach(item => {
-      switch (item.id) {
-        case Modules.Chat:
-          dispatch('clearChat')
-          break
-        case Modules.Library:
-          dispatch('clearLibrary')
-          break
-        case Modules.Browser:
-          dispatch('clearFileExplorer')
-          break
-        default:
-          break
-      }
+    context.forEach(item => {
+      const name = item.id.charAt(0).toUpperCase() + item.id.slice(1)
+      dispatch(`clear${name}Module`)
     })
-
     commit(types.LOGOUT)
 
     return await Promise.resolve(true)
@@ -289,6 +294,21 @@ const mutations = {
   },
   [types.CHANGED_PASSWORD](state) {
     state.user.changePassword = false
+  },
+  [types.GET_ENABLED_MODULES](state, data) {
+    ConMsgs.methods.$_console_log('Mutating get enabled modules')
+
+    localStorage.removeItem('enabledModules')
+    state.enabledModules = []
+
+    // Add modules to list
+    if (typeof data !== 'undefined' && data !== null && data.length > 0) {
+      data.forEach(element => {
+        state.enabledModules.push(element)
+      })
+    }
+
+    localStorage.setItem('enabledModules', JSON.stringify(state.enabledModules))
   },
   [types.GET_MODULES](state, data) {
     ConMsgs.methods.$_console_log('Mutating get modules')

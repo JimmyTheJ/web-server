@@ -16,7 +16,7 @@ const state = {
 const getters = {}
 
 const actions = {
-  async clearLibrary({ commit }) {
+  async clearLibraryModule({ commit }) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Clearing library')
 
     commit(types.LIBRARY_CLEAR)
