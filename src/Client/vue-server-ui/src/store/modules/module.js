@@ -14,12 +14,17 @@ const getters = {
 }
 
 const actions = {
+  clearModuleModule({ commit }) {
+    ConMsgs.methods.$_console_log('[Vuex][Actions] Clearing modules')
+
+    commit(types.MODULE_CLEAR)
+  },
   async getEnabledModules({ commit }) {
     try {
       ConMsgs.methods.$_console_log('Getting enabled modules')
 
       const res = await moduleAPI.getEnabledModules()
-      commit(types.GET_ENABLED_MODULES, res.data)
+      commit(types.MODULE_GET_ENABLED, res.data)
       return await Promise.resolve(res.data)
     } catch (e) {
       ConMsgs.methods.$_console_group(
@@ -35,7 +40,7 @@ const actions = {
       return Dispatcher.request(async () => {
         const res = await moduleAPI.getModulesForUser()
         ConMsgs.methods.$_console_log(res.data)
-        commit(types.GET_MODULES, res.data)
+        commit(types.MODULE_GET_ACTIVE, res.data)
 
         return await Promise.resolve(res)
       })
@@ -50,7 +55,13 @@ const actions = {
 }
 
 const mutations = {
-  [types.GET_ENABLED_MODULES](state, data) {
+  [types.MODULE_CLEAR](state) {
+    ConMsgs.methods.$_console_log('Mutating clear modules')
+
+    localStorage.removeItem('activeModules')
+    state.activeModules = []
+  },
+  [types.MODULE_GET_ENABLED](state, data) {
     ConMsgs.methods.$_console_log('Mutating get enabled modules')
 
     localStorage.removeItem('enabledModules')
@@ -65,8 +76,8 @@ const mutations = {
 
     localStorage.setItem('enabledModules', JSON.stringify(state.enabledModules))
   },
-  [types.GET_MODULES](state, data) {
-    ConMsgs.methods.$_console_log('Mutating get modules')
+  [types.MODULE_GET_ACTIVE](state, data) {
+    ConMsgs.methods.$_console_log('Mutating get active modules')
 
     // Clean up
     localStorage.removeItem('activeModules')

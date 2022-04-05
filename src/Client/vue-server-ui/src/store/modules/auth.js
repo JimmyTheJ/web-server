@@ -1,6 +1,5 @@
 import * as types from '../mutation_types'
 import authAPI from '@/services/auth'
-import moduleAPI from '@/services/modules'
 import ConMsgs from '@/mixins/console'
 import Dispatcher from '@/services/ws-dispatcher'
 import ChatHub from '@/plugins/chat-hub'
@@ -12,8 +11,6 @@ const state = {
   user: JSON.parse(localStorage.getItem('user')) || {},
   role: localStorage.getItem('userRole') || '',
   accessToken: localStorage.getItem('accessToken') || '',
-
-  userMap: JSON.parse(localStorage.getItem('userMap')) || {},
 }
 
 const getters = {}
@@ -54,12 +51,14 @@ const actions = {
       return await Promise.reject(e.response)
     }
   },
-  async signout({ dispatch, state }) {
-    const modules = state.activeModules.slice(0)
+  async signout({ dispatch, state, rootState }) {
     try {
       // SECTION: Module - Chat
       // Turn off the chat hub if we have the chat module enabled for this user
-      if (state.activeModules.findIndex(x => x.id === Modules.Chat) > -1) {
+      if (
+        rootState.module.activeModules.findIndex(x => x.id === Modules.Chat) >
+        -1
+      ) {
         ChatHub.stop()
       }
 
@@ -70,7 +69,7 @@ const actions = {
         '[Vuex][Actions] Logout success. Clearing state.'
       )
 
-      dispatch('clearCredentials', modules)
+      dispatch('clearCredentials', Modules)
       return await Promise.resolve(res)
     } catch (e) {
       ConMsgs.methods.$_console_group(
@@ -78,7 +77,7 @@ const actions = {
         e.response
       )
 
-      dispatch('clearCredentials', modules)
+      dispatch('clearCredentials', Modules)
       return await Promise.reject(e.response)
     }
   },
@@ -89,9 +88,9 @@ const actions = {
     )
 
     // SECTION: Module - All
-    context.forEach(item => {
-      const name = item.id.charAt(0).toUpperCase() + item.id.slice(1)
-      dispatch(`clear${name}Module`)
+    Object.keys(context).forEach(item => {
+      const name = item.charAt(0).toUpperCase() + item.slice(1)
+      dispatch(`clear${name}Module`, null, { root: true })
     })
     commit(types.LOGOUT)
 
@@ -182,29 +181,6 @@ const actions = {
       return await Promise.reject(e.response)
     }
   },
-  async getAllOtherUsers({ commit }) {
-    ConMsgs.methods.$_console_log('[Vuex][Actions] Get all other users')
-    try {
-      return Dispatcher.request(async () => {
-        let res = await authAPI.getAllOtherUsers()
-        ConMsgs.methods.$_console_log('Got all other user data:', res.data)
-        commit(types.USER_GET_OTHERS, res.data)
-
-        return res.data
-      })
-    } catch (e) {
-      ConMsgs.methods.$_console_group(
-        '[Vuex][Actions] Error from get all other users',
-        e.response
-      )
-      return await Promise.reject(e.response)
-    }
-  },
-  async getAllOtherUser({ commit }) {},
-  async addUserToMap({ commit }, context) {
-    ConMsgs.methods.$_console_log('[Vuex][Actions] Add user to map: ', context)
-    commit(types.USER_ADD_TO_MAP, context)
-  },
 }
 
 const mutations = {
@@ -239,15 +215,12 @@ const mutations = {
     state.role = ''
     state.accessToken = ''
     state.isAuthorize = false
-    state.userMap = {}
     delete state.admin
 
     localStorage.removeItem('user')
     localStorage.removeItem('userRole')
     localStorage.removeItem('accessToken')
     localStorage.removeItem('isAuthorize')
-
-    localStorage.removeItem('userMap')
   },
   [types.ROLES_GET](state, data) {
     if (typeof state.admin === 'undefined') state.admin = {}
@@ -271,28 +244,6 @@ const mutations = {
 
     localStorage.removeItem('user')
     localStorage.setItem('user', JSON.stringify(state.user))
-  },
-  [types.USER_GET_OTHERS](state, data) {
-    ConMsgs.methods.$_console_log('Mutating get all other users')
-
-    state.userMap = data
-    localStorage.setItem('userMap', JSON.stringify(data))
-  },
-  [types.USER_ADD_TO_MAP](state, data) {
-    ConMsgs.methods.$_console_log('Mutating adding user to user map')
-
-    if (
-      typeof state.userMap === 'undefined' ||
-      state.userMap === null ||
-      state.userMap.length === 0
-    ) {
-      return
-    }
-
-    state.userMap[data.username.toLowerCase()] = {
-      displayName: data.username,
-      avatar: null,
-    }
   },
 }
 

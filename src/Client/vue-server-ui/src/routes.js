@@ -127,7 +127,7 @@ export const moduleRoutes = [
   },
   {
     path: 'browser',
-    name: 'browser',
+    name: 'directory',
     component: Browser,
     meta: {
       display: 'Browser',
@@ -137,11 +137,11 @@ export const moduleRoutes = [
   },
   {
     path: 'browser/:folder*',
-    name: 'browser-folder',
+    name: 'directory-folder',
     component: Browser,
     meta: {
       display: 'Browser',
-      relative: 'browser',
+      relative: 'directory',
       authLevel: Roles.Level.General,
       hidden: true,
     },

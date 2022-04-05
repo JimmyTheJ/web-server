@@ -16,15 +16,25 @@ export const CHANGED_PASSWORD = 'CHANGED_PASSWORD'
 export const JWT_TOKEN_CREATE = 'JWT_TOKEN_CREATE'
 export const JWT_TOKEN_DESTROY = 'JWT_TOKEN_DESTROY'
 
-export const GET_ENABLED_MODULES = 'GET_ENABLED_MODULES'
-export const GET_MODULES = 'GET_MODULES'
+export const ROLES_GET = 'ROLES_GET'
 
+/*
+ * Module
+ */
+
+export const MODULE_CLEAR = 'MODULE_CLEAR'
+export const MODULE_GET_ENABLED = 'MODULE_GET_ENABLED'
+export const MODULE_GET_ACTIVE = 'MODULE_GET_ACTIVE'
+
+/*
+ * User
+ */
+
+export const USER_CLEAR = 'USER_CLEAR'
 export const USER_UPDATE_AVATAR = 'USER_UPDATE_AVATAR'
 export const USER_UPDATE_DISPLAY_NAME = 'USER_UPDATE_DISPLAY_NAME'
 export const USER_GET_OTHERS = 'USER_GET_OTHERS'
 export const USER_ADD_TO_MAP = 'USER_ADD_TO_MAP'
-
-export const ROLES_GET = 'ROLES_GET'
 
 /*
  * Library

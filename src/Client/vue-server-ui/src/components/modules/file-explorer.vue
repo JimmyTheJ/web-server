@@ -418,7 +418,7 @@ export default {
         )
 
         this.$router.push({
-          name: 'browser-folder',
+          name: 'directory-folder',
           params: { folder: newValue },
         })
       }
@@ -498,7 +498,7 @@ export default {
           if (typeof defaultFolder !== 'undefined') {
             this.selectedDirectory = defaultFolder.name
             this.$router.push({
-              name: 'browser-folder',
+              name: 'directory-folder',
               params: { folder: this.selectedDirectory },
             })
           }
@@ -525,7 +525,7 @@ export default {
         }
 
         this.$store.dispatch('loadFile', null)
-        this.$router.push({ name: 'browser-folder', params: { folder: path } })
+        this.$router.push({ name: 'directory-folder', params: { folder: path } })
       } else {
         if (this.features.viewing) {
           this.$_console_log(
@@ -779,7 +779,7 @@ export default {
         path = this.$route.params.folder.substring(0, lastIndex)
       }
 
-      this.$router.push({ name: 'browser-folder', params: { folder: path } })
+      this.$router.push({ name: 'directory-folder', params: { folder: path } })
     },
 
     getDownloadPath(item) {

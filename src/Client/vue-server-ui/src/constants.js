@@ -89,9 +89,12 @@ export const NotificationTypes = {
 }
 
 export const Modules = {
-  Chat: 'chat',
-  Directory: 'directory',
-  Library: 'library',
-  Notes: 'notes',
-  Weight: 'weight',
+  Chat: 'chat', // Server
+  Directory: 'directory', // Server
+  General: 'general',
+  Library: 'library', // Server
+  Module: 'module',
+  Notes: 'notes', // Server
+  User: 'user',
+  Weight: 'weight', // Server
 }

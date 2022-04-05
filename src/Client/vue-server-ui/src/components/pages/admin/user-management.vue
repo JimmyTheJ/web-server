@@ -67,8 +67,8 @@ export default {
       this.$store.dispatch('getRoles')
 
     if (
-      typeof this.$store.state.auth.userMap === 'undefined' ||
-      Object.keys(this.$store.state.auth.userMap).length === 0
+      typeof this.$store.state.user.userMap === 'undefined' ||
+      Object.keys(this.$store.state.user.userMap).length === 0
     )
       this.$store.dispatch('getAllOtherUsers')
   },

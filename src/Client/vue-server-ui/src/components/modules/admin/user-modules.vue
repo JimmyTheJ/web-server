@@ -95,12 +95,12 @@ export default {
         const list = []
 
         if (
-          typeof state.auth.userMap === 'undefined' ||
-          state.auth.userMap === null
+          typeof state.user.userMap === 'undefined' ||
+          state.user.userMap === null
         )
           return list
 
-        for (const [key, value] of Object.entries(state.auth.userMap)) {
+        for (const [key, value] of Object.entries(state.user.userMap)) {
           const obj = Object.assign({}, value)
           obj.id = key
           list.push(obj)

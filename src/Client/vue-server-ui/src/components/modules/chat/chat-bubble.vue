@@ -101,7 +101,7 @@ export default {
   computed: {
     ...mapState({
       user: state => state.auth.user,
-      userMap: state => state.auth.userMap,
+      userMap: state => state.user.userMap,
       activeModules: state => state.module.activeModules,
       currentTime: state => state.general.currentTime,
     }),
