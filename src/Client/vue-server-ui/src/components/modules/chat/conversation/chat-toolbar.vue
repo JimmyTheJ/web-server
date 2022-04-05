@@ -142,7 +142,7 @@ export default {
   computed: {
     ...mapState({
       user: state => state.auth.user,
-      activeModules: state => state.auth.activeModules,
+      activeModules: state => state.module.activeModules,
     }),
     isConversationDeletable() {
       const chatModule = this.activeModules.find(x => x.id === 'chat')

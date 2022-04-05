@@ -100,7 +100,7 @@ export default {
     },
     $_auth_addRoutes() {
       let self = this
-      let activeModules = self.$store.state.auth.activeModules
+      let activeModules = self.$store.state.module.activeModules
 
       ConMsgs.methods.$_console_log(
         '[Authentication] addRoutes: Active modules: ',
@@ -116,7 +116,7 @@ export default {
         let adminTools = adminRoutes.find(x => x.path === 'admin-tools')
         // Append the Directory Management sub-route into admin-tools assuming we have the Directory Module loaded
         if (
-          self.$store.state.auth.enabledModules.indexOf(
+          self.$store.state.module.enabledModules.indexOf(
             Modules.Directory.charAt(0).toUpperCase() +
               Modules.Directory.slice(1)
           ) > -1
@@ -176,7 +176,7 @@ export default {
     },
     $_auth_addModules() {
       let self = this
-      let activeModules = self.$store.state.auth.activeModules
+      let activeModules = self.$store.state.module.activeModules
 
       ConMsgs.methods.$_console_log(
         '[Authentication] addModules: Active modules: ',
@@ -207,7 +207,7 @@ export default {
     },
     $_auth_removeModules() {
       let self = this
-      let activeModules = self.$store.state.auth.activeModules
+      let activeModules = self.$store.state.module.activeModules
 
       ConMsgs.methods.$_console_log(
         '[Authentication] addModules: Active modules: ',

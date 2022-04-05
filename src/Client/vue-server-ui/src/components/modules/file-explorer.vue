@@ -309,7 +309,7 @@ export default {
       subDirectories: state => state.directory.subDirectories,
       loadingContents: state => state.directory.loadingContents,
       copied: state => state.directory.copied,
-      activeModules: state => state.auth.activeModules,
+      activeModules: state => state.module.activeModules,
     }),
     updatedContents() {
       if (this.contents.length === 0) {

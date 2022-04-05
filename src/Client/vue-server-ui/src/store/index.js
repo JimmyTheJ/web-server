@@ -11,6 +11,7 @@ import * as getters from './getters'
  */
 import auth from './modules/auth'
 import general from './modules/general'
+import module from './modules/module.js'
 import notifications from './modules/notifications'
 
 // import chat from './modules/chat'
@@ -24,6 +25,7 @@ export default new Vuex.Store({
   modules: {
     auth,
     general,
+    module,
     notifications,
   },
   strict: process.env.NODE_ENV !== 'production',

@@ -102,7 +102,7 @@ export default {
     ...mapState({
       user: state => state.auth.user,
       userMap: state => state.auth.userMap,
-      activeModules: state => state.auth.activeModules,
+      activeModules: state => state.module.activeModules,
       currentTime: state => state.general.currentTime,
     }),
     isMessageDeletable() {

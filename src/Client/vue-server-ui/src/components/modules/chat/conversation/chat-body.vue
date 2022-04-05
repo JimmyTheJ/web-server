@@ -98,7 +98,7 @@ export default {
   },
   computed: {
     ...mapState({
-      modules: state => state.auth.activeModules,
+      modules: state => state.module.activeModules,
       user: state => state.auth.user,
     }),
   },

@@ -11,34 +11,14 @@ const state = {
   isAuthorize: Boolean(localStorage.getItem('isAuthorize')) || false,
   user: JSON.parse(localStorage.getItem('user')) || {},
   role: localStorage.getItem('userRole') || '',
-
   accessToken: localStorage.getItem('accessToken') || '',
 
-  enabledModules: JSON.parse(localStorage.getItem('enabledModules')) || [],
-  activeModules: JSON.parse(localStorage.getItem('activeModules')) || [],
   userMap: JSON.parse(localStorage.getItem('userMap')) || {},
 }
 
-const getters = {
-  getActiveModules: state => state.activeModules,
-}
+const getters = {}
 
 const actions = {
-  async getEnabledModules({ commit }) {
-    try {
-      ConMsgs.methods.$_console_log('Getting enabled modules')
-
-      const res = await moduleAPI.getEnabledModules()
-      commit(types.GET_ENABLED_MODULES, res.data)
-      return await Promise.resolve(res.data)
-    } catch (e) {
-      ConMsgs.methods.$_console_group(
-        '[Vuex][Actions] Error from getting enabled modules',
-        e.response
-      )
-      return await Promise.reject(e.response)
-    }
-  },
   async refreshToken({ commit, state }) {
     try {
       ConMsgs.methods.$_console_log('Getting refresh token')
@@ -162,24 +142,6 @@ const actions = {
       return await Promise.reject(e.response)
     }
   },
-  async getModules({ commit }) {
-    ConMsgs.methods.$_console_log('[Vuex][Actions] Get Modules')
-    try {
-      return Dispatcher.request(async () => {
-        const res = await moduleAPI.getModulesForUser()
-        ConMsgs.methods.$_console_log(res.data)
-        commit(types.GET_MODULES, res.data)
-
-        return await Promise.resolve(res)
-      })
-    } catch (e) {
-      ConMsgs.methods.$_console_group(
-        '[Vuex][Actions] Error from get modules',
-        e.response
-      )
-      return await Promise.reject(e.response)
-    }
-  },
   async updateAvatarImage({ commit }, context) {
     ConMsgs.methods.$_console_log(
       '[Vuex][Actions] Update Avatar Image: ',
@@ -277,7 +239,6 @@ const mutations = {
     state.role = ''
     state.accessToken = ''
     state.isAuthorize = false
-    state.activeModules = []
     state.userMap = {}
     delete state.admin
 
@@ -285,7 +246,7 @@ const mutations = {
     localStorage.removeItem('userRole')
     localStorage.removeItem('accessToken')
     localStorage.removeItem('isAuthorize')
-    localStorage.removeItem('activeModules')
+
     localStorage.removeItem('userMap')
   },
   [types.ROLES_GET](state, data) {
@@ -294,37 +255,6 @@ const mutations = {
   },
   [types.CHANGED_PASSWORD](state) {
     state.user.changePassword = false
-  },
-  [types.GET_ENABLED_MODULES](state, data) {
-    ConMsgs.methods.$_console_log('Mutating get enabled modules')
-
-    localStorage.removeItem('enabledModules')
-    state.enabledModules = []
-
-    // Add modules to list
-    if (typeof data !== 'undefined' && data !== null && data.length > 0) {
-      data.forEach(element => {
-        state.enabledModules.push(element)
-      })
-    }
-
-    localStorage.setItem('enabledModules', JSON.stringify(state.enabledModules))
-  },
-  [types.GET_MODULES](state, data) {
-    ConMsgs.methods.$_console_log('Mutating get modules')
-
-    // Clean up
-    localStorage.removeItem('activeModules')
-    state.activeModules = []
-
-    // Add modules to list
-    if (typeof data !== 'undefined' && data !== null && data.length > 0) {
-      data.forEach(element => {
-        state.activeModules.push(element)
-      })
-    }
-
-    localStorage.setItem('activeModules', JSON.stringify(state.activeModules))
   },
   [types.USER_UPDATE_AVATAR](state, data) {
     ConMsgs.methods.$_console_log('Mutating update user avatar')

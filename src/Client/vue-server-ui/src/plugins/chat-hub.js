@@ -118,7 +118,7 @@ export default new ChatHub()
 //     let startedPromise = null
 //     function start() {
 //       let isAuthorize = store.state.auth.isAuthorize
-//       let modules = store.state.auth.activeModules
+//       let modules = store.state.module.activeModules
 //       // Only try to connect if we are authorized and have the chat module is our list of features
 //       if (isAuthorize && modules.findIndex(x => x.id === Modules.Chat) > -1) {
 //         startedPromise = connection.start().catch(err => {
