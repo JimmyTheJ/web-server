@@ -1,13 +1,14 @@
 # Dotnet 5 / Vue webserver
 
-A custom dotnet 5 webserver used to host files for download/viewing and uploading files to host machine.
+A custom modular dotnet 5 webserver
 
 Additional modules include:
 
-1. Chat system
-2. Notes
-3. Weight tracker
-4. Library cataloguing system
+1. Chat system - SignalR live chat system
+2. Fileserver - Browse, Download, upload, view functionality
+3. Notes
+4. Weight tracker
+5. Library - Book cataloguing system
 
 **To activate a module for a user: log in to an adminstrator account and go to the admin-tools page.**
 **From here you can enable modules and additional features of those modules.**
@@ -52,9 +53,9 @@ Additional modules include:
 
 	- If running in dev mode and your plan is to use database migrations run the following commands in `./src/Server/VueServer` folder. These migrations will be places in the `./Migrations` folder from this relative path.
 	
-		1. dotnet ef migrations add InitialCreate --context [Insert Context Type here. See below]
+		1. `dotnet ef migrations add InitialCreate --context [Insert Context Type here. See below]`
 		
-		2. dotnet ef database update --context [Insert Context Type here. See below]
+		2. `dotnet ef database update --context [Insert Context Type here. See below]`
 	
 	- If running in production and you just want to setup the database once:
 	
