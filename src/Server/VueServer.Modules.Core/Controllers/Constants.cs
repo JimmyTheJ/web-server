@@ -57,7 +57,6 @@
                 public const string UserChangePassword = "user/change-password";
                 public const string GetUserProfile = "user/profile/get/{id}";
                 public const string GetAllUsers = "user/get-all";
-                public const string GetAllOtherUsers = "user/get-all-others";
                 public const string FuzzyUserSearch = "user/get-users-fuzzy";
                 public const string UpdateAvatar = "user/update-avatar";
                 public const string UpdateDisplayName = "user/update-display-name";

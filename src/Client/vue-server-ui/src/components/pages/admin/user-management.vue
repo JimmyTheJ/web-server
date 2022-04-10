@@ -42,6 +42,7 @@ export default {
   mixins: [Auth],
   data() {
     return {
+      users: {},
       tab: null,
       tabs: [
         { name: 'User Modules', icon: 'users' },
@@ -65,12 +66,6 @@ export default {
   created() {
     if (typeof this.$store.state.auth.admin === 'undefined')
       this.$store.dispatch('getRoles')
-
-    if (
-      typeof this.$store.state.user.userMap === 'undefined' ||
-      Object.keys(this.$store.state.user.userMap).length === 0
-    )
-      this.$store.dispatch('getAllOtherUsers')
   },
   methods: {},
 }

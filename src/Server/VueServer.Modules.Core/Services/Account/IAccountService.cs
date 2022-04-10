@@ -20,9 +20,8 @@ namespace VueServer.Modules.Core.Services.Account
         Task<IResult<TokenValidation>> ValidateToken(string token, IRequestCookieCollection cookies);
         Task<IResult<string>> RefreshJwtToken(string token, IRequestCookieCollection cookies);
 
-        Task<IResult<IEnumerable<WSUser>>> GetUsers();
+        Task<IResult<IEnumerable<WSUserResponse>>> GetUsers();
         Task<IResult<WSUserProfile>> GetUserProfile(string userId);
-        Task<IResult<IDictionary<string, OtherUsersResponse>>> GetAllOtherUsers();
         Task<IResult<IEnumerable<WSUserResponse>>> FuzzyUserSearch(string query);
 
         Task<IResult<string>> UpdateUserAvatar(IFormFile file);

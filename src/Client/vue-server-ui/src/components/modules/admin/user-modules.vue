@@ -67,7 +67,7 @@ import { mapState } from 'vuex'
 
 import authService from '@/services/auth'
 import moduleService from '@/services/modules'
-import Dispatcher from '@/services/ws-dispatcher'
+import Dispatcher from '@/services/ws-dispatcher'    
 
 export default {
   name: 'user-modules',
@@ -81,6 +81,7 @@ export default {
       usersHaveModuleList: [],
       selectedUserModuleList: [],
       selectedUserFeatureList: [],
+      userList: [],
       filteredList: [],
       search: null,
     }
@@ -88,27 +89,6 @@ export default {
   mounted() {
     this.getData()
     this.filteredList = this.userList
-  },
-  computed: {
-    ...mapState({
-      userList: state => {
-        const list = []
-
-        if (
-          typeof state.user.userMap === 'undefined' ||
-          state.user.userMap === null
-        )
-          return list
-
-        for (const [key, value] of Object.entries(state.user.userMap)) {
-          const obj = Object.assign({}, value)
-          obj.id = key
-          list.push(obj)
-        }
-
-        return list
-      },
-    }),
   },
   watch: {
     selectedUserPosition(newValue) {
@@ -160,6 +140,16 @@ export default {
   },
   methods: {
     getData() {
+      Dispatcher.request(() => {
+        authService.getUsers().then(resp => {
+            this.$_console_log(`${FN} getData: Successfully got user list`)
+            this.userList = resp.data
+        })
+        .catch(() => {
+          this.$_console_log(`${FN} getData: Failed to get user list`)
+        })
+      })
+
       Dispatcher.request(() => {
         moduleService
           .getAllModules()

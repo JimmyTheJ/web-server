@@ -133,9 +133,6 @@ export default {
             this.resetRole()
             this.error = false
             this.success = true
-            this.$store.dispatch('addUserToMap', {
-              username: tempForm.username,
-            })
 
             adminService.createDefaultUserDirectory(tempForm.username)
           })

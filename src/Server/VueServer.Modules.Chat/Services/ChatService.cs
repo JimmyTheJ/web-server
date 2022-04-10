@@ -13,6 +13,7 @@ using VueServer.Modules.Chat.Models;
 using VueServer.Modules.Chat.Models.Request;
 using VueServer.Modules.Chat.Services.Hubs;
 using VueServer.Modules.Core.Cache;
+using VueServer.Modules.Core.Models.Response;
 using VueServer.Modules.Core.Services.User;
 
 namespace VueServer.Modules.Chat.Services
@@ -37,6 +38,39 @@ namespace VueServer.Modules.Chat.Services
         }
 
         #region -> Public Functions
+
+        public async Task<IResult<IEnumerable<WSUserResponse>>> GetActiveConversationUsers()
+        {
+            var conversationUsers = await _context.Conversations.Include(x => x.ConversationUsers)
+                .Where(x => x.ConversationUsers.Any(y => y.ConversationId == x.Id && y.UserId == _user.Id))
+                .SelectMany(x => x.ConversationUsers)
+                .Select(x => x.UserId)
+                .Distinct()
+                .ToListAsync();
+            if (conversationUsers == null)
+            {
+                return new Result<IEnumerable<WSUserResponse>>(Enumerable.Empty<WSUserResponse>(), Domain.Enums.StatusCode.NO_CONTENT);
+            }
+
+            var users = await _context.Users.Where(x => conversationUsers.Contains(x.Id)).Include(x => x.UserProfile).ToListAsync();
+            return new Result<IEnumerable<WSUserResponse>>(users.Select(x => WSUserResponse.ConvertWSUserToResponse(x)), Domain.Enums.StatusCode.OK);
+        }
+
+        public async Task<IResult<IEnumerable<WSUserResponse>>> GetUsersFromConversation(long id)
+        {
+            var conversationUsers = await _context.Conversations.Include(x => x.ConversationUsers)
+                .Where(x => x.Id == id)
+                .SelectMany(x => x.ConversationUsers)
+                .Select(x => x.UserId)
+                .ToListAsync();
+            if (conversationUsers == null)
+            {
+                return new Result<IEnumerable<WSUserResponse>>(Enumerable.Empty<WSUserResponse>(), Domain.Enums.StatusCode.NO_CONTENT);
+            }
+
+            var users = await _context.Users.Where(x => conversationUsers.Contains(x.Id)).Include(x => x.UserProfile).ToListAsync();
+            return new Result<IEnumerable<WSUserResponse>>(users.Select(x => WSUserResponse.ConvertWSUserToResponse(x)), Domain.Enums.StatusCode.OK);
+        }
 
         public async Task<IResult<Conversation>> StartConversation(StartConversationRequest request)
         {

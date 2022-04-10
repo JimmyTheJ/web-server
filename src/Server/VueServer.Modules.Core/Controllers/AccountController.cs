@@ -144,18 +144,6 @@ namespace VueServer.Modules.Core.Controllers
         }
 
         /// <summary>
-        /// Get all user ids
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet]
-        [Authorize(Roles = ROLES_ALL)]
-        [Route(Route.Account.GetAllOtherUsers)]
-        public async Task<IActionResult> GetAllOtherUsers()
-        {
-            return _codeFactory.GetStatusCode(await _service.GetAllOtherUsers());
-        }
-
-        /// <summary>
         /// Fuzzy user search
         /// </summary>
         /// <returns></returns>

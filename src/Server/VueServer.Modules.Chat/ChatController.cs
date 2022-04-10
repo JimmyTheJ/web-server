@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using VueServer.Core.Status;
+using VueServer.Domain;
 using VueServer.Modules.Chat.Models;
 using VueServer.Modules.Chat.Models.Request;
 using VueServer.Modules.Chat.Services;
@@ -10,6 +12,7 @@ using Route = VueServer.Modules.Core.Controllers.Constants.API_ENDPOINTS;
 
 namespace VueServer.Modules.Chat
 {
+    [Authorize(Roles = DomainConstants.Authentication.ROLES_ALL)]
     [Route(ChatConstants.Controller.BasePath)]
     public class ChatController : Controller
     {
@@ -20,6 +23,22 @@ namespace VueServer.Modules.Chat
         {
             _chatService = chatService ?? throw new ArgumentNullException("Chat service is null");
             _codeFactory = factory ?? throw new ArgumentNullException("Code factory is null");
+        }
+
+        [Route(ChatConstants.Controller.GetActiveConversationUsers)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id)]
+        [HttpGet]
+        public async Task<IActionResult> GetAllUsersFromActiveConversations()
+        {
+            return _codeFactory.GetStatusCode(await _chatService.GetActiveConversationUsers());
+        }
+
+        [Route(ChatConstants.Controller.GetUser)]
+        [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id)]
+        [HttpGet]
+        public async Task<IActionResult> GetUser(long id)
+        {
+            return _codeFactory.GetStatusCode(await _chatService.GetUsersFromConversation(id));
         }
 
         [Route(ChatConstants.Controller.StartConversation)]
@@ -50,7 +69,6 @@ namespace VueServer.Modules.Chat
         [ModuleAuthFilterFactory(Module = ChatConstants.ModuleAddOn.Id)]
         [HttpGet]
         public async Task<IActionResult> GetAllConversations()
-
         {
             return _codeFactory.GetStatusCode(await _chatService.GetAllConversations());
         }

@@ -87,6 +87,11 @@ const actions = {
             obj: res.data,
             userId: rootState.auth.user.id,
           })
+
+          // Get the user objects from the new conversation to populate the user map
+          const resUsers = await chatAPI.getActiveUsersFromConversation(res.data.id)
+          commit(types.USER_ADD_USERS_TO_MAP, resUsers.data)
+
           return await Promise.resolve(res)
         } else {
           ConMsgs.methods.$_console_group(

@@ -19,6 +19,9 @@
             internal const string AddMessage = "message/send";
             internal const string ReadMessage = "message/read/{conversationId}/{messageId}";
             internal const string ReadMessageList = "message/read/{conversationId}/list";
+
+            internal const string GetActiveConversationUsers = "user/get-active";
+            internal const string GetUser = "user/get/{id}";
         }
 
         internal static class ModuleAddOn

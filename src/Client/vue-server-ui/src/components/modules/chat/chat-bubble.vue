@@ -29,7 +29,7 @@
                 : null
             "
             :text="userMap[message.userId].displayName.charAt(0)"
-            :color="colorMap[message.userId]"
+            :color="color"
             size="32"
           />
         </div>
@@ -58,7 +58,7 @@
         v-if="isLastReadMessage(message)"
         :avatar="getUserAvatarFromMessage(message)"
         :text="getUserAvatarTextFromMessage(message)"
-        :color="getUserColor(message)"
+        :color="color"
         size="16"
       ></chat-avatar>
     </div>
@@ -271,9 +271,6 @@ export default {
       }
 
       return null
-    },
-    getUserColor() {
-      return this.colorMap[this.friend.userId]
     },
     timeSince(t) {
       if (typeof t !== 'number' || typeof this.message.timestamp !== 'number') {

@@ -13,6 +13,7 @@ using Route = VueServer.Modules.Core.Controllers.Constants.API_ENDPOINTS;
 namespace VueServer.Modules.Library
 {
     [Route(LibraryConstants.Controller.BasePath)]
+    [Authorize(Roles = ROLES_ALL)]
     public class LibraryController : Controller
     {
         private readonly IStatusCodeFactory<IActionResult> _codeFactory;
@@ -30,7 +31,6 @@ namespace VueServer.Modules.Library
         #region -> Book
 
         [HttpGet]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Book + "/" + Route.Generic.List)]
         public async Task<IActionResult> GetBookList()
@@ -39,7 +39,6 @@ namespace VueServer.Modules.Library
         }
 
         [HttpPost]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Book + "/" + Route.Generic.Add)]
         public async Task<IActionResult> AddBook([FromBody] BookAddRequest request)
@@ -48,7 +47,6 @@ namespace VueServer.Modules.Library
         }
 
         [HttpPut]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Book + "/" + Route.Generic.Update)]
         public async Task<IActionResult> UpdateBook([FromBody] BookAddRequest request)
@@ -57,7 +55,6 @@ namespace VueServer.Modules.Library
         }
 
         [HttpDelete]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Book + "/" + Route.Generic.Delete)]
         public async Task<IActionResult> DeleteBook(int id)
@@ -70,7 +67,6 @@ namespace VueServer.Modules.Library
         #region -> Author
 
         [HttpGet]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Author + "/" + Route.Generic.List)]
         public async Task<IActionResult> GetAuthorList()
@@ -79,7 +75,6 @@ namespace VueServer.Modules.Library
         }
 
         [HttpPost]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Author + "/" + Route.Generic.Add)]
         public async Task<IActionResult> AddAuthor([FromBody] Author request)
@@ -88,7 +83,6 @@ namespace VueServer.Modules.Library
         }
 
         [HttpPut]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Author + "/" + Route.Generic.Update)]
         public async Task<IActionResult> UpdateAuthor([FromBody] Author request)
@@ -97,7 +91,6 @@ namespace VueServer.Modules.Library
         }
 
         [HttpDelete]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Author + "/" + Route.Generic.Delete)]
         public async Task<IActionResult> DeleteAuthor(int id)
@@ -110,7 +103,6 @@ namespace VueServer.Modules.Library
         #region -> Bookcase
 
         [HttpGet]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Bookcase + "/" + Route.Generic.List)]
         public async Task<IActionResult> GetBookcaseList()
@@ -119,7 +111,6 @@ namespace VueServer.Modules.Library
         }
 
         [HttpPost]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Bookcase + "/" + Route.Generic.Add)]
         public async Task<IActionResult> AddBookcase([FromBody] Bookcase request)
@@ -128,7 +119,6 @@ namespace VueServer.Modules.Library
         }
 
         [HttpPut]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Bookcase + "/" + Route.Generic.Update)]
         public async Task<IActionResult> UpdateBookcase([FromBody] Bookcase request)
@@ -137,7 +127,6 @@ namespace VueServer.Modules.Library
         }
 
         [HttpDelete]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Bookcase + "/" + Route.Generic.Delete)]
         public async Task<IActionResult> DeleteBookcase(int id)
@@ -150,7 +139,6 @@ namespace VueServer.Modules.Library
         #region -> Genre
 
         [HttpGet]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Genre + "/" + Route.Generic.List)]
         public async Task<IActionResult> GetGenreList()
@@ -163,7 +151,6 @@ namespace VueServer.Modules.Library
         #region -> Series
 
         [HttpGet]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Series + "/" + Route.Generic.List)]
         public async Task<IActionResult> GetSeriesList()
@@ -172,7 +159,6 @@ namespace VueServer.Modules.Library
         }
 
         [HttpPost]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Series + "/" + Route.Generic.Add)]
         public async Task<IActionResult> AddSeries([FromBody] Series request)
@@ -181,7 +167,6 @@ namespace VueServer.Modules.Library
         }
 
         [HttpPut]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Series + "/" + Route.Generic.Update)]
         public async Task<IActionResult> UpdateSeries([FromBody] Series request)
@@ -190,7 +175,6 @@ namespace VueServer.Modules.Library
         }
 
         [HttpDelete]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Series + "/" + Route.Generic.Delete)]
         public async Task<IActionResult> DeleteSeries(int id)
@@ -203,7 +187,6 @@ namespace VueServer.Modules.Library
         #region -> Shelf
 
         [HttpGet]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Shelf + "/" + Route.Generic.List)]
         public async Task<IActionResult> GetShelfList()
@@ -212,7 +195,6 @@ namespace VueServer.Modules.Library
         }
 
         [HttpPost]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Shelf + "/" + Route.Generic.Add)]
         public async Task<IActionResult> AddShelf([FromBody] Shelf request)
@@ -221,7 +203,6 @@ namespace VueServer.Modules.Library
         }
 
         [HttpPut]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Shelf + "/" + Route.Generic.Update)]
         public async Task<IActionResult> UpdateShelf([FromBody] Shelf request)
@@ -230,7 +211,6 @@ namespace VueServer.Modules.Library
         }
 
         [HttpDelete]
-        [Authorize(Roles = ROLES_ALL)]
         [ModuleAuthFilterFactory(Module = LibraryConstants.ModuleAddOn.Id)]
         [Route(LibraryConstants.Controller.Shelf + "/" + Route.Generic.Delete)]
         public async Task<IActionResult> DeleteShelf(int id)

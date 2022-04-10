@@ -6,6 +6,8 @@
 </template>
 
 <script>
+import Auth from '@/mixins/authentication'
+
 export default {
   data() {
     return {
@@ -13,10 +15,19 @@ export default {
       name: process.env.VUE_APP_TITLE,
     }
   },
-  created() {
+  mixins: [Auth],
+  async created() {
     this.$store.dispatch('getEnabledModules')
 
-    if (this.$route.fullPath === '/') this.$router.push({ name: 'login' })
+    let result = await this.$_check_login(false)
+    if (!result) {
+      //if (this.$route.fullPath === '/') this.$router.push({ name: 'login' })
+      this.$router.push({ name: 'login' })
+    }
+    else {
+      
+    }
+    
   },
 }
 </script>

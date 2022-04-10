@@ -16,6 +16,8 @@ import { NotificationActions, NotificationTypes } from '@/constants'
 import ChatHub from '@/plugins/chat-hub'
 import { Modules } from '@/constants'
 
+import Auth from '@/mixins/authentication'
+
 export default {
   data() {
     return {}
@@ -24,11 +26,13 @@ export default {
     'main-menu': Menu,
     'notification-bar': NotificationBar,
   },
+  mixins: [Auth],
   computed: {
     ...mapState({
       modules: state => state.module.activeModules,
       user: state => state.auth.user,
       conversations: state => state.chat.conversations,
+      userMap: state => state.user.userMap,
     }),
   },
   created() {
@@ -40,6 +44,11 @@ export default {
   },
   async mounted() {
     if (this.modules.findIndex(x => x.id === Modules.Chat) > -1) {
+      let userMapKeys = Object.keys(this.userMap)
+      if (userMapKeys.length === 0) {
+        this.$store.dispatch('getUsersMap')
+      }
+
       if (ChatHub.connection == null) {
         ChatHub.setup()
         await ChatHub.start()

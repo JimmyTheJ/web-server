@@ -69,7 +69,7 @@ export default {
   mounted() {
     window.addEventListener('keyup', this.enterKeyListener)
 
-    this.shouldContinueToHome()
+    this.$_auth_checkLogin(false)
   },
   methods: {
     enterKeyListener(e) {
@@ -87,38 +87,6 @@ export default {
           this.error = true
         })
         .then(() => (this.btnClicked = false))
-    },
-    shouldContinueToHome() {
-      if (this.auth.isAuthorize) {
-        Dispatcher.request(() => {
-          service
-            .validateToken(this.auth.accessToken)
-            .then(res => {
-              this.$_console_log('Successfully validated token.', res)
-              switch (res.data) {
-                case TokenValidation.Valid:
-                  this.$router.push({ name: 'home' })
-                  break
-                case TokenValidation.RequiresNewJwt:
-                  this.$store
-                    .dispatch('refreshToken')
-                    .then(() => {
-                      this.$router.push({ name: 'home' })
-                    })
-                    .catch(e => {
-                      // Eat it
-                    })
-                  break
-                case TokenValidation.MissingRefreshToken:
-                case TokenValidation.InvalidRefreshToken:
-                default:
-                  this.$store.dispatch('signout')
-                  break
-              }
-            })
-            .catch(e => {})
-        })
-      }
     },
   },
 }

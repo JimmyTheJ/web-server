@@ -14,7 +14,6 @@ const registerUrl = `api/account/register`
 const userChangePasswordUrl = `api/account/user/change-password`
 const getUserProfileUrl = `api/account/user/profile/get`
 const getUsersUrl = `api/account/user/get-all`
-const getAllOtherUsersUrl = `api/account/user/get-all-others`
 const getUsersFuzzySearchUrl = `api/account/user/get-users-fuzzy`
 const updateAvatarImageUrl = `api/account/user/update-avatar`
 const updateDisplayNameUrl = `api/account/user/update-display-name`
@@ -83,9 +82,6 @@ export default {
   },
   getUserProfile(id) {
     return axios.get(`${getUserProfileUrl}/${id}`)
-  },
-  getAllOtherUsers() {
-    return axios.get(getAllOtherUsersUrl)
   },
   getUsersFuzzy(query) {
     return axios.get(getUsersFuzzySearchUrl, { params: { query: query } })

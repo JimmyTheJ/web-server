@@ -23,5 +23,21 @@ namespace VueServer.Modules.Core.Models.Response
                 Avatar = user.UserProfile?.AvatarPath;
             }
         }
+
+        public static WSUserResponse ConvertWSUserToResponse(WSUser user)
+        {
+            if (user == null)
+            {
+                return null;
+            }
+
+            return new WSUserResponse()
+            {
+                Id = user.Id,
+                DisplayName = user.DisplayName,
+                Avatar = user.UserProfile?.AvatarPath,
+                ChangePassword = false
+            };
+        }
     }
 }

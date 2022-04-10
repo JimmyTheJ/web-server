@@ -14,8 +14,16 @@ const DeleteMessageUrl = `api/chat/message/delete`
 const GetMessageUrl = 'api/chat/message/get'
 const SendMessageUrl = 'api/chat/message/send'
 const ReadMessageUrl = 'api/chat/message/read'
+const GetActiveUsersFromAllConversationsUrl = '/api/chat/user/get-active'
+const GetActiveUsersFromSingleConversation = '/api/chat/user/get'
 
 export default {
+  getActiveUsersFromConversations() {
+    return axios.get(GetActiveUsersFromAllConversationsUrl)
+  },
+  getActiveUsersFromConversation(id) {
+    return axios.get(`${GetActiveUsersFromSingleConversation}/${id}`)
+  },
   startConversation(obj) {
     return axios.post(StartConversationUrl, obj)
   },

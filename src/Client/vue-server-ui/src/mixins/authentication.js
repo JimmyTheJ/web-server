@@ -5,50 +5,109 @@ import {
   moduleRoutes,
   adminDirectoryManagementChildRoute,
 } from '@/routes'
-import { Modules, Roles } from '@/constants'
+import { Modules, Roles, TokenValidation } from '@/constants'
 import ConMsgs from './console'
 
 import chat from '@/store/modules/chat'
 import library from '@/store/modules/library'
 import directory from '@/store/modules/directory'
 
+import Dispatcher from '@/services/ws-dispatcher'
+import authService from '@/services/auth'
+
 export default {
   methods: {
-    $_auth_checkLogin(err) {
+    async $_auth_checkLogin(skipTokenCheck) {
+      let auth = this.$store.state.auth
+
       ConMsgs.methods.$_console_log(
         '[Authentication mixin] $_auth_checkLogin: Called'
       )
 
       if (store.state.auth.isAuthorize) {
-        this.$router.replace(this.$route.query.redirect || '/home')
+        let tokenValid = false
+
+        if (!skipTokenCheck) {
+          await Dispatcher.request( async () => {
+            await authService
+              .validateToken(auth.accessToken)
+              .then(res => {
+                this.$_console_log('Successfully validated token.', res)
+                switch (res.data) {
+                  case TokenValidation.Valid:
+                    tokenValid = true
+                    break
+                  case TokenValidation.RequiresNewJwt:
+                    this.$store
+                      .dispatch('refreshToken')
+                      .then(() => {
+                        tokenValid = true
+                      })
+                      .catch(e => {
+                        // Eat it
+                      })
+                    break
+                  case TokenValidation.MissingRefreshToken:
+                  case TokenValidation.InvalidRefreshToken:
+                  default:
+                    ConMsgs.methods.$_console_log('Token missing or invalid')
+                    break
+                }
+              })
+              .catch(e => {})
+          })
+        }
+        else {
+          tokenValid = true
+        }
+
+        if (tokenValid) {
+          // Get modules for this user
+          await this.$store
+            .dispatch('getModules')
+            .then(() => ConMsgs.methods.$_console_log('Got user modules'))
+            .catch(() => {
+              ConMsgs.methods.$_console_log('Failed to get user modules')
+              return false
+            })
+
+          this.$_auth_addModules()
+          this.$_auth_addRoutes()
+          
+          let activeModules = this.$store.state.module.activeModules
+          if (activeModules.findIndex(x => x.id === Modules.Chat) > -1) {
+            await this.$store.dispatch('getUsersMap')
+            .then(() => { ConMsgs.methods.$_console_log('Succesfully got user map')})
+            .catch(() => { ConMsgs.methods.$_console_log('Failed to get user map')})
+          }
+
+          this.$router.replace(this.$route.query.redirect || '/home')
+          return true
+        }
+        else {
+          return false
+        }
       }
-      return err
+
+      return false
     },
     async $_auth_login(data) {
       ConMsgs.methods.$_console_log(
         '[Authentication mixin] $_auth_login: Called'
       )
-      let error = false
-      await this.$store
-        .dispatch('signin', data)
-        .then(async () => {
-          // Get modules for this user
-          await this.$store
-            .dispatch('getModules')
-            .then(() => ConMsgs.methods.$_console_log('Got user modules'))
-            .catch(() =>
-              ConMsgs.methods.$_console_log('Failed to get user modules')
-            )
 
-          this.$_auth_addModules()
-          this.$_auth_addRoutes()
-          this.$_auth_checkLogin(error)
-        })
-        .catch(ex => {
-          ConMsgs.methods.$_console_log('Error logging in', ex)
-          this.$store.dispatch('clearCredentials', new Array())
-          error = true
-        })
+      try {
+        let resp = await this.$store.dispatch('signin', data)
+        this.$_auth_checkLogin(true)
+
+        return Promise.resolve(resp)
+      }
+      catch (e) {
+        ConMsgs.methods.$_console_log('Error logging in', ex)
+        this.$store.dispatch('clearCredentials', new Array())
+
+        return Promise.reject(false)
+      }
     },
     async $_auth_register(data) {
       ConMsgs.methods.$_console_log(
@@ -58,10 +117,6 @@ export default {
       await this.$store
         .dispatch('register', data)
         .then(resp => {
-          // Uncomment to auto login after registering (Make it a setting ?)
-          //this.$_auth_login(data)
-          //    .then(resp2 => ConMsgs.methods.$_console_log("success in login"))
-          //    .catch(() => ConMsgs.methods.$_console_log("error in login"));
           return Promise.resolve(resp)
         })
         .catch(() => {
@@ -74,12 +129,14 @@ export default {
         '[Authentication mixin] $_auth_logout: Called'
       )
 
-      this.$_auth_removeModules()
       await this.$store
         .dispatch('signout')
-        .then(() => {})
+        .then(() => ConMsgs.methods.$_console_log('logout success'))
         .catch(() => ConMsgs.methods.$_console_log('logout fail'))
-        .then(() => this.$router.push({ name: 'index' }))
+        .then(() => {          
+          this.$_auth_removeModules()
+          this.$router.push({ name: 'index' })
+        })
     },
     $_auth_convertRole(r) {
       ConMsgs.methods.$_console_log(

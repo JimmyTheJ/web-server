@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using VueServer.Domain.Interface;
 using VueServer.Modules.Chat.Models;
 using VueServer.Modules.Chat.Models.Request;
+using VueServer.Modules.Core.Models.Response;
 
 namespace VueServer.Modules.Chat.Services
 {
@@ -23,5 +24,8 @@ namespace VueServer.Modules.Chat.Services
         Task<IResult<ChatMessage>> AddMessage(ChatMessage message);
         Task<IResult<ReadReceipt>> ReadMessage(long conversationId, long messageId);
         Task<IResult<IEnumerable<ReadReceipt>>> ReadMessageList(long conversationId, long[] messageIds);
+
+        Task<IResult<IEnumerable<WSUserResponse>>> GetActiveConversationUsers();
+        Task<IResult<IEnumerable<WSUserResponse>>> GetUsersFromConversation(long id);
     }
 }

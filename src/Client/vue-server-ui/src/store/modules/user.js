@@ -1,5 +1,6 @@
 import * as types from '../mutation_types'
 import authAPI from '@/services/auth'
+import chatAPI from '@/services/chat'
 import ConMsgs from '@/mixins/console'
 import Dispatcher from '@/services/ws-dispatcher'
 
@@ -15,28 +16,27 @@ const actions = {
 
     commit(types.USER_CLEAR)
   },
-  async getAllOtherUsers({ commit }) {
-    ConMsgs.methods.$_console_log('[Vuex][Actions] Get all other users')
+  async getUsersMap({ commit }, context) {
+    ConMsgs.methods.$_console_log('[Vuex][Actions] Get users and add to map: ')
+
     try {
       return Dispatcher.request(async () => {
-        let res = await authAPI.getAllOtherUsers()
-        ConMsgs.methods.$_console_log('Got all other user data:', res.data)
-        commit(types.USER_GET_OTHERS, res.data)
+        const res = await chatAPI.getActiveUsersFromConversations()
+        commit(types.USER_ADD_USERS_TO_MAP, res.data)
 
-        return res.data
+        return await Promise.resolve(res.data)
       })
     } catch (e) {
       ConMsgs.methods.$_console_group(
-        '[Vuex][Actions] Error from get all other users',
+        '[Vuex][Actions] Error from getting user list and adding to map',
         e.response
       )
       return await Promise.reject(e.response)
     }
   },
-  async getAllOtherUser({ commit }) {},
   async addUserToMap({ commit }, context) {
     ConMsgs.methods.$_console_log('[Vuex][Actions] Add user to map: ', context)
-    commit(types.USER_ADD_TO_MAP, context)
+    commit(types.USER_ADD_USER_TO_MAP, context)
   },
 }
 
@@ -45,28 +45,26 @@ const mutations = {
     ConMsgs.methods.$_console_log('Mutating clear user')
 
     localStorage.removeItem('userMap')
-    state.userMap = []
+    Object.keys(state.userMap).forEach(key => {
+      delete state.userMap[key]
+    })
   },
-  [types.USER_GET_OTHERS](state, data) {
-    ConMsgs.methods.$_console_log('Mutating get all other users')
-
-    state.userMap = data
-    localStorage.setItem('userMap', JSON.stringify(data))
-  },
-  [types.USER_ADD_TO_MAP](state, data) {
+  [types.USER_ADD_USERS_TO_MAP](state, data) {
     ConMsgs.methods.$_console_log('Mutating adding user to user map')
 
-    if (
-      typeof state.userMap === 'undefined' ||
-      state.userMap === null ||
-      state.userMap.length === 0
-    ) {
-      return
-    }
+    data.forEach(value => {
+      state.userMap[value.id.toLowerCase()] = {
+        displayName: value.displayName,
+        avatar: value.avatar,
+      }
+    })
+  },
+  [types.USER_ADD_USER_TO_MAP](state, data) {
+    ConMsgs.methods.$_console_log('Mutating adding user to user map')
 
-    state.userMap[data.username.toLowerCase()] = {
-      displayName: data.username,
-      avatar: null,
+    state.userMap[data.id.toLowerCase()] = {
+      displayName: data.displayName,
+      avatar: data.avatar,
     }
   },
 }

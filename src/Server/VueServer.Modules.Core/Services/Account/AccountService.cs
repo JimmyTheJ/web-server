@@ -429,11 +429,11 @@ namespace VueServer.Modules.Core.Services.Account
             return new Result<string>(newJwtToken, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<WSUser>>> GetUsers()
+        public async Task<IResult<IEnumerable<WSUserResponse>>> GetUsers()
         {
-            var users = await _context.Users.ToListAsync();
+            var users = await _context.Users.Include(x => x.UserProfile).ToListAsync();
 
-            return new Result<IEnumerable<WSUser>>(users, Domain.Enums.StatusCode.OK);
+            return new Result<IEnumerable<WSUserResponse>>(users.Select(x => WSUserResponse.ConvertWSUserToResponse(x)), Domain.Enums.StatusCode.OK);
         }
 
         public async Task<IResult<WSUserProfile>> GetUserProfile(string userId)
@@ -445,19 +445,6 @@ namespace VueServer.Modules.Core.Services.Account
             }
 
             return new Result<WSUserProfile>(userProfile, Domain.Enums.StatusCode.OK);
-        }
-
-        public async Task<IResult<IDictionary<string, OtherUsersResponse>>> GetAllOtherUsers()
-        {
-            var users = await _context.Users.Include(x => x.UserProfile).Where(x => x.Id != _user.Id).ToListAsync();
-
-            var dic = new Dictionary<string, OtherUsersResponse>();
-            foreach (var usr in users)
-            {
-                dic[usr.Id] = new OtherUsersResponse() { DisplayName = usr.DisplayName, Avatar = usr.UserProfile?.AvatarPath };
-            }
-
-            return new Result<IDictionary<string, OtherUsersResponse>>(dic, Domain.Enums.StatusCode.OK);
         }
 
         public async Task<IResult<IEnumerable<WSUserResponse>>> FuzzyUserSearch(string query)
