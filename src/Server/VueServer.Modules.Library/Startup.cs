@@ -42,10 +42,7 @@ namespace VueServer.Modules.Library
 
         public void Create(IApplicationBuilder app)
         {
-            //app.UseEndpoints(endpoints =>
-            //{
-            //    endpoints.MapControllers();
-            //});
+
         }
     }
 }

@@ -19,7 +19,7 @@ export default {
   async created() {
     this.$store.dispatch('getEnabledModules')
 
-    let result = await this.$_check_login(false)
+    let result = await this.$_auth_checkLogin(false)
     if (!result) {
       //if (this.$route.fullPath === '/') this.$router.push({ name: 'login' })
       this.$router.push({ name: 'login' })

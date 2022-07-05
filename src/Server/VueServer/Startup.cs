@@ -101,22 +101,13 @@ namespace VueServer
 
             services.AddCustomCompression();
 
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (var assembly in assemblies.OrderByDescending(x => x.FullName))
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies().OrderByDescending(x => x.FullName);
+            foreach (var assembly in assemblies)
             {
-                if (!ValidModuleAssembly(assembly))
+                var (classObj, method) = GetCustomModuleMethod(assembly, "Startup", "Load");
+                if (classObj != null && method != null)
                 {
-                    continue;
-                }
-
-                var startupClass = assembly.GetTypes().Where(x => x.IsClass && x.Name == "Startup").FirstOrDefault();
-                if (startupClass != null)
-                {
-                    ConstructorInfo ctor = startupClass.GetConstructor(Type.EmptyTypes);
-                    object startupClassObject = ctor.Invoke(new object[] { });
-
-                    MethodInfo method = startupClass.GetMethod("Load");
-                    object result = method.Invoke(startupClassObject, new object[] { services, Configuration, Environment });
+                    object result = method.Invoke(classObj, new object[] { services, Configuration, Environment });
                 }
             }
         }
@@ -198,35 +189,57 @@ namespace VueServer
 
             app.UseRouting();
             app.UseAuthorization();
+
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies().OrderByDescending(x => x.FullName);
+            foreach (var assembly in assemblies)
+            {
+                var (classObj, method) = GetCustomModuleMethod(assembly, "Startup", "Create");
+                if (classObj != null && method != null)
+                {
+                    object result = method.Invoke(classObj, new object[] { app });
+                }
+            }
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapFallbackToController("Index", "Home");
                 endpoints.MapHealthChecks("/healthcheck");
                 endpoints.MapControllers();
+
+                foreach (var assembly in assemblies)
+                {
+                    var (classObj, method) = GetCustomModuleMethod(assembly, "Startup", "SetCustomEndpoints");
+                    if (classObj != null && method != null)
+                    {
+                        object result = method.Invoke(classObj, new object[] { endpoints });
+                    }
+                }
             });
-
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (var assembly in assemblies.OrderByDescending(x => x.FullName))
-            {
-                if (!ValidModuleAssembly(assembly))
-                {
-                    continue;
-                }
-
-                var startupClass = assembly.GetTypes().Where(x => x.IsClass && x.Name == "Startup").FirstOrDefault();
-                if (startupClass != null)
-                {
-                    ConstructorInfo ctor = startupClass.GetConstructor(Type.EmptyTypes);
-                    object startupClassObject = ctor.Invoke(new object[] { });
-
-                    MethodInfo method = startupClass.GetMethod("Create");
-                    object result = method.Invoke(startupClassObject, new object[] { app });
-                }
-            }
 
             BuildCache(serverCache);
 
             logger.LogInformation("Startup complete");
+        }
+
+        private (object, MethodInfo) GetCustomModuleMethod(Assembly assembly, string className, string methodName)
+        {
+            if (ModuleHelper.IsModuleExtensionDll(assembly))
+            {
+                var startupClass = assembly.GetTypes().Where(x => x.IsClass && x.Name == className).FirstOrDefault();
+                if (startupClass != null)
+                {
+                    ConstructorInfo ctor = startupClass.GetConstructor(Type.EmptyTypes);
+                    if (ctor != null)
+                    {
+                        object startupClassObject = ctor.Invoke(new object[] { });
+                        MethodInfo method = startupClass.GetMethod(methodName);
+
+                        return (startupClassObject, method);
+                    }
+                }
+            }
+
+            return (null, null);
         }
 
         private void BuildCache(IVueServerCache serverCache)
@@ -236,22 +249,6 @@ namespace VueServer
             serverCache.Update(CacheMap.UserModuleAddOn);
             serverCache.Update(CacheMap.UserModuleFeature);
             serverCache.Update(CacheMap.LoadedModules);
-        }
-
-        private bool ValidModuleAssembly(Assembly assembly)
-        {
-            var name = assembly.GetName().Name;
-            if (!name.StartsWith("VueServer.Modules"))
-            {
-                return false;
-            }
-
-            if (name == "VueServer.Modules.Core")
-            {
-                return false;
-            }
-
-            return true;
         }
     }
 }

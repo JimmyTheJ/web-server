@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,10 +57,12 @@ namespace VueServer.Modules.Chat
 
         public void Create(IApplicationBuilder app)
         {
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapHub<ChatHub>("/chat-hub");
-            });
+
+        }
+
+        public void SetCustomEndpoints(IEndpointRouteBuilder endpoint)
+        {
+            endpoint.MapHub<ChatHub>("/chat-hub");
         }
     }
 }
