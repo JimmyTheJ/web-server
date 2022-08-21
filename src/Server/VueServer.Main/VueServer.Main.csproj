@@ -3,6 +3,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>VueServer</RootNamespace>
     <StartupObject>VueServer.Program</StartupObject>
+    <AssemblyName>VueServer</AssemblyName>
   </PropertyGroup>
   
   <ItemGroup>

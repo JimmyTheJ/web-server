@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\VueServer.Core.csproj" />
+    <ProjectReference Include="..\VueServer.Core\VueServer.Core.csproj" />
   </ItemGroup>
 
 </Project>
