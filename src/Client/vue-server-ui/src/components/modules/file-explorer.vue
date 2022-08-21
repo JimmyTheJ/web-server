@@ -290,9 +290,10 @@ export default {
     },
   },
   created() {
-    this.setActiveFeatures()
+    
   },
   async mounted() {
+    this.setActiveFeatures()
     if (
       !Array.isArray(this.folders) ||
       (Array.isArray(this.folders) && this.folders.length === 0)

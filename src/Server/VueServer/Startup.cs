@@ -104,7 +104,7 @@ namespace VueServer
             var assemblies = AppDomain.CurrentDomain.GetAssemblies().OrderByDescending(x => x.FullName);
             foreach (var assembly in assemblies)
             {
-                var (classObj, method) = GetCustomModuleMethod(assembly, "Startup", "Load");
+                var (classObj, method) = GetCustomModuleMethod(assembly, Type.EmptyTypes, "Startup", "Load");
                 if (classObj != null && method != null)
                 {
                     object result = method.Invoke(classObj, new object[] { services, Configuration, Environment });
@@ -193,7 +193,7 @@ namespace VueServer
             var assemblies = AppDomain.CurrentDomain.GetAssemblies().OrderByDescending(x => x.FullName);
             foreach (var assembly in assemblies)
             {
-                var (classObj, method) = GetCustomModuleMethod(assembly, "Startup", "Create");
+                var (classObj, method) = GetCustomModuleMethod(assembly, Type.EmptyTypes, "Startup", "Create");
                 if (classObj != null && method != null)
                 {
                     object result = method.Invoke(classObj, new object[] { app });
@@ -208,7 +208,7 @@ namespace VueServer
 
                 foreach (var assembly in assemblies)
                 {
-                    var (classObj, method) = GetCustomModuleMethod(assembly, "Startup", "SetCustomEndpoints");
+                    var (classObj, method) = GetCustomModuleMethod(assembly, Type.EmptyTypes, "Startup", "SetCustomEndpoints");
                     if (classObj != null && method != null)
                     {
                         object result = method.Invoke(classObj, new object[] { endpoints });
@@ -221,14 +221,14 @@ namespace VueServer
             logger.LogInformation("Startup complete");
         }
 
-        private (object, MethodInfo) GetCustomModuleMethod(Assembly assembly, string className, string methodName)
+        private (object, MethodInfo) GetCustomModuleMethod(Assembly assembly, Type[] ctorTypes, string className, string methodName)
         {
             if (ModuleHelper.IsModuleExtensionDll(assembly))
             {
                 var startupClass = assembly.GetTypes().Where(x => x.IsClass && x.Name == className).FirstOrDefault();
                 if (startupClass != null)
                 {
-                    ConstructorInfo ctor = startupClass.GetConstructor(Type.EmptyTypes);
+                    ConstructorInfo ctor = startupClass.GetConstructor(ctorTypes);
                     if (ctor != null)
                     {
                         object startupClassObject = ctor.Invoke(new object[] { });
