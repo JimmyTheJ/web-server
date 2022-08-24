@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.Configuration;
@@ -77,7 +78,20 @@ namespace VueServer
 
             services.AddHealthChecks();
             services.AddRouting();
-            services.AddControllers();
+
+            // May not be necessary, but this should include any missing module dlls and scan them for controllers
+            services.AddControllers().ConfigureApplicationPartManager(cfg =>
+            {
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                foreach (var assembly in assemblies)
+                {
+                    var part = new AssemblyPart(assembly);
+                    if (ModuleHelper.IsModuleExtensionDll(assembly) && !cfg.ApplicationParts.Any(x => x.Name == part.Name))
+                    {
+                        cfg.ApplicationParts.Add(part);
+                    }
+                }
+            });
 
             if (Environment.IsDevelopment())
             {
