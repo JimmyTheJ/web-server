@@ -6,6 +6,8 @@
 </template>
 
 <script>
+const FN = 'index'
+
 import Auth from '@/mixins/authentication'
 
 export default {
@@ -17,17 +19,8 @@ export default {
   },
   mixins: [Auth],
   async created() {
-    this.$store.dispatch('getEnabledModules')
-
-    let result = await this.$_auth_checkLogin(false)
-    if (!result) {
-      //if (this.$route.fullPath === '/') this.$router.push({ name: 'login' })
-      this.$router.push({ name: 'login' })
-    }
-    else {
-      
-    }
-    
+    await this.$store.dispatch('getEnabledModules')
+    this.$router.push({ name: 'login' })
   },
 }
 </script>

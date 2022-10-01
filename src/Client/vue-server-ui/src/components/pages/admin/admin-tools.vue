@@ -93,7 +93,7 @@ export default {
     })
   },
   mounted() {
-    this.$_console_log('Routes: ', this.routes)
+    this.$_console_log(`[${FN}] Routes: `, this.routes)
     if (typeof this.$store.state.auth.admin === 'undefined')
       this.$store.dispatch('getRoles')
   },

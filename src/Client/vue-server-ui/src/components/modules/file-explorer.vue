@@ -28,10 +28,7 @@
             "
           >
             <v-flex xs12>
-              <v-text-field
-                v-model="fileActionFieldValue"
-                :label="fileActionFieldLabel"
-              ></v-text-field>
+              <v-text-field v-model="fileActionFieldValue" :label="fileActionFieldLabel"></v-text-field>
             </v-flex>
             <v-flex xs12 class="text-center mt-3">
               <v-btn color="secondary" @click="fileModificationAction()">
@@ -61,22 +58,14 @@
 
     <file-upload v-if="features.upload === true"></file-upload>
 
-    <v-menu
-      v-model="showMenu"
-      :position-x="contextMenuX"
-      :position-y="contextMenuY"
-      offset-y
-      absolute
-    >
+    <v-menu v-model="showMenu" :position-x="contextMenuX" :position-y="contextMenuY" offset-y absolute>
       <v-list>
         <template v-for="(contextMenuItem, i) in contextMenuMap">
           <v-list-item
             :key="i"
             :disabled="!contextMenuItem.disabled(selectedMenuItem)"
             :class="{
-              'clickable-context-menu-item': contextMenuItem.disabled(
-                selectedMenuItem
-              ),
+              'clickable-context-menu-item': contextMenuItem.disabled(selectedMenuItem),
             }"
           >
             <v-list-item-title>
@@ -107,9 +96,7 @@
         <v-container>
           <v-layout row wrap>
             <v-flex xs1>
-              <v-btn v-if="canGoBack" icon @click="goBack"
-                ><fa-icon icon="arrow-left" ma-2 pa-2></fa-icon
-              ></v-btn>
+              <v-btn v-if="canGoBack" icon @click="goBack"><fa-icon icon="arrow-left" ma-2 pa-2></fa-icon></v-btn>
             </v-flex>
             <v-flex xs11>
               {{ fullPath }}
@@ -129,9 +116,7 @@
           @contextmenu.prevent="openContextMenu"
         >
           <v-list-item-action>
-            <a v-if="item.title !== null" :href="getDownloadPath(item)" download
-              ><fa-icon icon="download"
-            /></a>
+            <a v-if="item.title !== null" :href="getDownloadPath(item)" download><fa-icon icon="download"/></a>
           </v-list-item-action>
           <v-list-item-avatar
             v-if="item.title !== null"
@@ -182,7 +167,7 @@ import GenericDialog from './generic-dialog.vue'
 import Auth from '../../mixins/authentication'
 
 import { getSubdirectoryString } from '../../helpers/browser'
-import { DirectoryAccessFlags } from '@/constants.js'
+import { Modules, Features, DirectoryAccessFlags } from '@/constants.js'
 import { faTemperatureLow } from '@fortawesome/free-solid-svg-icons'
 
 let path = process.env.VUE_APP_API_URL
@@ -289,15 +274,10 @@ export default {
       required: true,
     },
   },
-  created() {
-    
-  },
+  created() {},
   async mounted() {
     this.setActiveFeatures()
-    if (
-      !Array.isArray(this.folders) ||
-      (Array.isArray(this.folders) && this.folders.length === 0)
-    )
+    if (!Array.isArray(this.folders) || (Array.isArray(this.folders) && this.folders.length === 0))
       await this.$store.dispatch('getFolders')
 
     this.getDirectoryFromRoute()
@@ -329,14 +309,9 @@ export default {
     },
     fullPath() {
       if (typeof this.directory !== 'undefined' && this.directory !== null) {
-        if (
-          Array.isArray(this.subDirectories) &&
-          this.subDirectories.length > 0
-        ) {
+        if (Array.isArray(this.subDirectories) && this.subDirectories.length > 0) {
           // TODO: Fix to build the list of subdirs
-          return `${this.directory}/${getSubdirectoryString(
-            this.subDirectories
-          )}`
+          return `${this.directory}/${getSubdirectoryString(this.subDirectories)}`
         } else {
           return this.directory
         }
@@ -413,10 +388,7 @@ export default {
     // Local prop
     selectedDirectory: function(newValue) {
       if (!this.changing) {
-        this.$_console_log(
-          '[FileExplorer] Watcher - Selected directory: ',
-          newValue
-        )
+        this.$_console_log('[FileExplorer] Watcher - Selected directory: ', newValue)
 
         this.$router.push({
           name: 'directory-folder',
@@ -436,46 +408,18 @@ export default {
   },
   methods: {
     setActiveFeatures() {
-      const browserObj = this.activeModules.find(x => x.id === 'browser')
-      if (
-        typeof browserObj === 'undefined' ||
-        !Array.isArray(browserObj.userModuleFeatures)
-      )
-        return
+      const browserObj = this.activeModules.find(x => x.id === Modules.Directory)
+      if (typeof browserObj === 'undefined' || !Array.isArray(browserObj.userModuleFeatures)) return
 
-      if (
-        browserObj.userModuleFeatures.some(
-          x => x.moduleFeatureId === 'browser-upload'
-        )
-      )
+      if (browserObj.userModuleFeatures.some(x => x.moduleFeatureId === Features.Directory.Upload))
         this.features.upload = true
-
-      if (
-        browserObj.userModuleFeatures.some(
-          x => x.moduleFeatureId === 'browser-delete'
-        )
-      )
+      if (browserObj.userModuleFeatures.some(x => x.moduleFeatureId === Features.Directory.Delete))
         this.features.delete = true
-
-      if (
-        browserObj.userModuleFeatures.some(
-          x => x.moduleFeatureId === 'browser-viewer'
-        )
-      )
+      if (browserObj.userModuleFeatures.some(x => x.moduleFeatureId === Features.Directory.Viewer))
         this.features.viewing = true
-
-      if (
-        browserObj.userModuleFeatures.some(
-          x => x.moduleFeatureId === 'browser-create'
-        )
-      )
+      if (browserObj.userModuleFeatures.some(x => x.moduleFeatureId === Features.Directory.Create))
         this.features.create = true
-
-      if (
-        browserObj.userModuleFeatures.some(
-          x => x.moduleFeatureId === 'browser-move'
-        )
-      )
+      if (browserObj.userModuleFeatures.some(x => x.moduleFeatureId === Features.Directory.Move))
         this.features.move = true
     },
     getDirectoryFromRoute() {
@@ -488,10 +432,7 @@ export default {
             this.$route.params.folder
           )
           if (this.$route.params.folder.includes('/'))
-            this.selectedDirectory = this.$route.params.folder.substring(
-              0,
-              this.$route.params.folder.indexOf('/')
-            )
+            this.selectedDirectory = this.$route.params.folder.substring(0, this.$route.params.folder.indexOf('/'))
           else this.selectedDirectory = this.$route.params.folder
         } else {
           // Load default folder
@@ -529,11 +470,7 @@ export default {
         this.$router.push({ name: 'directory-folder', params: { folder: path } })
       } else {
         if (this.features.viewing) {
-          this.$_console_log(
-            `[${FN}] Open Item: item, dl path`,
-            item,
-            this.getFilePath(item)
-          )
+          this.$_console_log(`[${FN}] Open Item: item, dl path`, item, this.getFilePath(item))
           setTimeout(() => {
             this.$store.dispatch('loadFile', item)
           }, 125)
@@ -541,9 +478,7 @@ export default {
       }
     },
     openContextMenu(e) {
-      this.$_console_log(
-        '[file-explorer] openContextMenu: Opening Rename Menu by right clicking!'
-      )
+      this.$_console_log('[file-explorer] openContextMenu: Opening Rename Menu by right clicking!')
 
       // TODO
       this.showMenu = true
@@ -593,10 +528,7 @@ export default {
     preloadItemName() {
       this.$nextTick(() => {
         this.$_console_log(this.fileActionIndex)
-        if (this.fileActionIndex > -1)
-          this.fileActionFieldValue = this.updatedContents[
-            this.fileActionIndex
-          ].title
+        if (this.fileActionIndex > -1) this.fileActionFieldValue = this.updatedContents[this.fileActionIndex].title
       })
     },
 
@@ -608,9 +540,7 @@ export default {
 
       switch (this.fileActionActive) {
         case this.operationType.move:
-          this.$_console_log(
-            `fileMoficiationAction: Move operation doesn't exist yet`
-          )
+          this.$_console_log(`fileMoficiationAction: Move operation doesn't exist yet`)
           break
         case this.operationType.rename:
           this.renameFile()
@@ -619,9 +549,7 @@ export default {
           this.deleteFile()
           break
         case this.operationType.properties:
-          this.$_console_log(
-            `fileMoficiationAction: Properties operation doesn't exist yet`
-          )
+          this.$_console_log(`fileMoficiationAction: Properties operation doesn't exist yet`)
           break
         case this.operationType.createFolder:
           this.createFolder()
@@ -771,9 +699,7 @@ export default {
       } else {
         let lastIndex = this.$route.params.folder.lastIndexOf('/')
         if (lastIndex === -1) {
-          this.$_console_log(
-            "[file-explorer] goBack: Params.folder has no / in it. Can't go back from base path"
-          )
+          this.$_console_log("[file-explorer] goBack: Params.folder has no / in it. Can't go back from base path")
           return
         }
 
@@ -788,9 +714,7 @@ export default {
         return
       }
 
-      return `${path}/api/directory/download/file/${encodeURI(
-        this.fullPath
-      )}/${encodeURIComponent(item.title)}?token=${
+      return `${path}/api/directory/download/file/${encodeURI(this.fullPath)}/${encodeURIComponent(item.title)}?token=${
         this.$store.state.auth.accessToken
       }`
     },
@@ -827,20 +751,14 @@ export default {
     },
 
     createFolder() {
-      if (
-        this.updatedContents.findIndex(x => x.title === this.newFolderName) > -1
-      ) {
+      if (this.updatedContents.findIndex(x => x.title === this.newFolderName) > -1) {
         this.$_console_log(`Can't create a folder that already exists`)
         this.createFolderError = 'Folder already exists'
         return
       }
 
       service
-        .createFolder(
-          this.fileActionFieldValue,
-          this.directory,
-          getSubdirectoryString(this.subDirectories)
-        )
+        .createFolder(this.fileActionFieldValue, this.directory, getSubdirectoryString(this.subDirectories))
         .then(resp => {
           this.$store.dispatch('addFile', resp.data)
           this.fileActionDialog = false
@@ -859,11 +777,7 @@ export default {
       this.$_console_log(`Delete: ${file.title}`)
 
       await service
-        .deleteFile(
-          file.title,
-          this.directory,
-          getSubdirectoryString(this.subDirectories)
-        )
+        .deleteFile(file.title, this.directory, getSubdirectoryString(this.subDirectories))
         .then(resp => {
           this.$_console_log('Successfully deleted the file')
           this.$store.dispatch('deleteFile', file.title)

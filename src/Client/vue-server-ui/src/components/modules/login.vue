@@ -4,13 +4,7 @@
       >Username or password incorrect</v-alert
     >
     <v-form ref="form" v-model="valid" lazy-validation>
-      <v-text-field
-        v-model="form.username"
-        :rules="rules.username"
-        :label="`Username`"
-        name="Username"
-        required
-      />
+      <v-text-field v-model="form.username" :rules="rules.username" :label="`Username`" name="Username" required />
       <v-text-field
         :append-icon="passwordOn ? 'visibility' : 'visibility_off'"
         @click:append="passwordOn = !passwordOn"
@@ -23,9 +17,7 @@
       />
       <!--<v-checkbox v-model="form.checked" v-bind:label="`Keep me signed in`"></v-checkbox>-->
 
-      <v-btn :disabled="!valid || btnClicked" @click.prevent="login()"
-        >Login</v-btn
-      >
+      <v-btn :disabled="!valid || btnClicked" @click.prevent="login()">Login</v-btn>
     </v-form>
   </v-container>
 </template>
@@ -66,10 +58,11 @@ export default {
   beforeDestroy() {
     window.removeEventListener('keyup', this.enterKeyListener)
   },
-  mounted() {
+  async mounted() {
     window.addEventListener('keyup', this.enterKeyListener)
 
-    this.$_auth_checkLogin(false)
+    let result = await this.$_auth_checkLogin()
+    if (result) this.redirectToHome()
   },
   methods: {
     enterKeyListener(e) {
@@ -82,11 +75,15 @@ export default {
       await this.$_auth_login(this.form)
         .then(() => {
           this.error = false
+          this.redirectToHome()
         })
         .catch(() => {
           this.error = true
         })
         .then(() => (this.btnClicked = false))
+    },
+    redirectToHome() {
+      this.$router.replace(this.$route.query.redirect || '/home')
     },
   },
 }

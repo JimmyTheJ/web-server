@@ -1,10 +1,5 @@
 import store from '@/store/index'
-import {
-  defaultRoutes,
-  adminRoutes,
-  moduleRoutes,
-  adminDirectoryManagementChildRoute,
-} from '@/routes'
+import { defaultRoutes, adminRoutes, moduleRoutes, adminDirectoryManagementChildRoute } from '@/routes'
 import { Modules, Roles, TokenValidation } from '@/constants'
 import ConMsgs from './console'
 
@@ -17,92 +12,62 @@ import authService from '@/services/auth'
 
 export default {
   methods: {
-    async $_auth_checkLogin(skipTokenCheck) {
+    async $_auth_checkLogin() {
       let auth = this.$store.state.auth
 
-      ConMsgs.methods.$_console_log(
-        '[Authentication mixin] $_auth_checkLogin: Called'
-      )
+      ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_checkLogin: Called')
 
       if (store.state.auth.isAuthorize) {
         let tokenValid = false
-
-        if (!skipTokenCheck) {
-          await Dispatcher.request( async () => {
-            await authService
-              .validateToken(auth.accessToken)
-              .then(res => {
-                this.$_console_log('Successfully validated token.', res)
-                switch (res.data) {
-                  case TokenValidation.Valid:
-                    tokenValid = true
-                    break
-                  case TokenValidation.RequiresNewJwt:
-                    this.$store
-                      .dispatch('refreshToken')
-                      .then(() => {
-                        tokenValid = true
-                      })
-                      .catch(e => {
-                        // Eat it
-                      })
-                    break
-                  case TokenValidation.MissingRefreshToken:
-                  case TokenValidation.InvalidRefreshToken:
-                  default:
-                    ConMsgs.methods.$_console_log('Token missing or invalid')
-                    break
-                }
-              })
-              .catch(e => {})
+        try {
+          await Dispatcher.request(async () => {
+            await authService.validateToken(auth.accessToken).then(res => {
+              this.$_console_log('Successfully validated token.', res)
+              switch (res.data) {
+                case TokenValidation.Valid:
+                  tokenValid = true
+                  break
+                case TokenValidation.RequiresNewJwt:
+                  this.$store
+                    .dispatch('refreshToken')
+                    .then(() => {
+                      tokenValid = true
+                    })
+                    .catch(e => {
+                      // Eat it
+                    })
+                  break
+                case TokenValidation.MissingRefreshToken:
+                case TokenValidation.InvalidRefreshToken:
+                default:
+                  ConMsgs.methods.$_console_log('Token missing or invalid')
+                  break
+              }
+            })
           })
-        }
-        else {
-          tokenValid = true
+        } catch (err) {
+          ConMsgs.methods.$_console_log('Error calling auth service validateToken', err)
         }
 
         if (tokenValid) {
-          // Get modules for this user
-          await this.$store
-            .dispatch('getModules')
-            .then(() => ConMsgs.methods.$_console_log('Got user modules'))
-            .catch(() => {
-              ConMsgs.methods.$_console_log('Failed to get user modules')
-              return false
-            })
-
-          this.$_auth_addModules()
-          this.$_auth_addRoutes()
-          
-          let activeModules = this.$store.state.module.activeModules
-          if (activeModules.findIndex(x => x.id === Modules.Chat) > -1) {
-            await this.$store.dispatch('getUsersMap')
-            .then(() => { ConMsgs.methods.$_console_log('Succesfully got user map')})
-            .catch(() => { ConMsgs.methods.$_console_log('Failed to get user map')})
-          }
-
-          this.$router.replace(this.$route.query.redirect || '/home')
+          this.$_auth_setupUser()
           return true
-        }
-        else {
-          return false
+        } else {
+          this.$store.dispatch('clearCredentials', new Array())
         }
       }
 
       return false
     },
     async $_auth_login(data) {
-      ConMsgs.methods.$_console_log(
-        '[Authentication mixin] $_auth_login: Called'
-      )
+      ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_login: Called')
 
       try {
         let resp = await this.$store.dispatch('signin', data)
-        this.$_auth_checkLogin(true)
+        await this.$_auth_setupUser()
 
         return Promise.resolve(resp)
-      }
-      catch (e) {
+      } catch (e) {
         ConMsgs.methods.$_console_log('Error logging in', ex)
         this.$store.dispatch('clearCredentials', new Array())
 
@@ -110,10 +75,7 @@ export default {
       }
     },
     async $_auth_register(data) {
-      ConMsgs.methods.$_console_log(
-        '[Authentication mixin] $_auth_register: Called',
-        data
-      )
+      ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_register: Called', data)
       await this.$store
         .dispatch('register', data)
         .then(resp => {
@@ -125,23 +87,45 @@ export default {
         })
     },
     async $_auth_logout() {
-      ConMsgs.methods.$_console_log(
-        '[Authentication mixin] $_auth_logout: Called'
-      )
+      ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_logout: Called')
 
       await this.$store
         .dispatch('signout')
         .then(() => ConMsgs.methods.$_console_log('logout success'))
         .catch(() => ConMsgs.methods.$_console_log('logout fail'))
-        .then(() => {          
+        .then(() => {
           this.$_auth_removeModules()
           this.$router.push({ name: 'index' })
         })
     },
+    async $_auth_setupUser() {
+      // Get modules for this user
+      await this.$store
+        .dispatch('getModules')
+        .then(() => ConMsgs.methods.$_console_log('Got user modules'))
+        .catch(() => {
+          ConMsgs.methods.$_console_log('Failed to get user modules')
+          return false
+        })
+
+      this.$_auth_addModules()
+      this.$_auth_addRoutes()
+
+      let activeModules = this.$store.state.module.activeModules
+      // Move into some initialization
+      if (activeModules.findIndex(x => x.id === Modules.Chat) > -1) {
+        await this.$store
+          .dispatch('getUsersMap')
+          .then(() => {
+            ConMsgs.methods.$_console_log('Succesfully got user map')
+          })
+          .catch(() => {
+            ConMsgs.methods.$_console_log('Failed to get user map')
+          })
+      }
+    },
     $_auth_convertRole(r) {
-      ConMsgs.methods.$_console_log(
-        '[Authentication mixin] $_auth_convertRole: Called'
-      )
+      ConMsgs.methods.$_console_log('[Authentication mixin] $_auth_convertRole: Called')
 
       let role = Roles.Level.Default
 
@@ -159,14 +143,8 @@ export default {
       let self = this
       let activeModules = self.$store.state.module.activeModules
 
-      ConMsgs.methods.$_console_log(
-        '[Authentication] addRoutes: Active modules: ',
-        activeModules
-      )
-      ConMsgs.methods.$_console_log(
-        '[Authentication] addRoutes: Old list of routes: ',
-        self.$router.getRoutes()
-      )
+      ConMsgs.methods.$_console_log('[Authentication] addRoutes: Active modules: ', activeModules)
+      ConMsgs.methods.$_console_log('[Authentication] addRoutes: Old list of routes: ', self.$router.getRoutes())
 
       // If user if an admin we need to add the admin routes so they can start modifying module / feature permissions and creating accounts
       if (self.$store.state.auth.role === Roles.Name.Admin) {
@@ -174,8 +152,7 @@ export default {
         // Append the Directory Management sub-route into admin-tools assuming we have the Directory Module loaded
         if (
           self.$store.state.module.enabledModules.indexOf(
-            Modules.Directory.charAt(0).toUpperCase() +
-              Modules.Directory.slice(1)
+            Modules.Directory.charAt(0).toUpperCase() + Modules.Directory.slice(1)
           ) > -1
         ) {
           adminTools.children.push(adminDirectoryManagementChildRoute)
@@ -196,49 +173,33 @@ export default {
       // Go through the API returned modules this user has active and add their respective routes
       activeModules.forEach(module => {
         let foundItemByName = moduleRoutes.find(x => x.name === module.id)
-        ConMsgs.methods.$_console_log(
-          '[Authentication] addRoutes: Found Item by name: ',
-          foundItemByName
-        )
+        ConMsgs.methods.$_console_log('[Authentication] addRoutes: Found Item by name: ', foundItemByName)
 
-        let foundItemByMeta = moduleRoutes.find(
-          x => x.meta.relative === module.id
-        )
-        ConMsgs.methods.$_console_log(
-          '[Authentication] addRoutes: Found Item by meta.relative: ',
-          foundItemByMeta
-        )
+        let foundItemByMeta = moduleRoutes.find(x => x.meta.relative === module.id)
+        ConMsgs.methods.$_console_log('[Authentication] addRoutes: Found Item by meta.relative: ', foundItemByMeta)
 
         if (
           foundItemByName !== undefined &&
-          self.$router.getRoutes().find(x => x.name === foundItemByName) ===
-            undefined
+          self.$router.getRoutes().find(x => x.name === foundItemByName) === undefined
         ) {
           self.$router.addRoute('home', foundItemByName)
         }
 
         if (
           foundItemByMeta !== undefined &&
-          self.$router.getRoutes().find(x => x.name === foundItemByMeta) ===
-            undefined
+          self.$router.getRoutes().find(x => x.name === foundItemByMeta) === undefined
         ) {
           self.$router.addRoute('home', foundItemByMeta)
         }
       })
 
-      ConMsgs.methods.$_console_log(
-        '[Authentication] addRoutes: New list of routes: ',
-        self.$router.getRoutes()
-      )
+      ConMsgs.methods.$_console_log('[Authentication] addRoutes: New list of routes: ', self.$router.getRoutes())
     },
     $_auth_addModules() {
       let self = this
       let activeModules = self.$store.state.module.activeModules
 
-      ConMsgs.methods.$_console_log(
-        '[Authentication] addModules: Active modules: ',
-        activeModules
-      )
+      ConMsgs.methods.$_console_log('[Authentication] addModules: Active modules: ', activeModules)
 
       activeModules.forEach(module => {
         switch (module.id) {
@@ -266,10 +227,7 @@ export default {
       let self = this
       let activeModules = self.$store.state.module.activeModules
 
-      ConMsgs.methods.$_console_log(
-        '[Authentication] addModules: Active modules: ',
-        activeModules
-      )
+      ConMsgs.methods.$_console_log('[Authentication] addModules: Active modules: ', activeModules)
 
       activeModules.forEach(module => {
         if (self.$store.hasModule(module.id)) {

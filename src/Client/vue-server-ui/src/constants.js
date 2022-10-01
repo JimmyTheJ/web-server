@@ -98,3 +98,17 @@ export const Modules = {
   User: 'user',
   Weight: 'weight', // Server
 }
+
+export const Features = {
+  Chat: {
+    DeleteMessage: 'chat-delete-message',
+    DeleteConversation: 'chat-delete-conversation',
+  },
+  Directory: {
+    Create: 'directory-create',
+    Delete: 'directory-delete',
+    Move: 'directory-move',
+    Upload: 'directory-upload',
+    Viewer: 'directory-viewer',
+  },
+}
