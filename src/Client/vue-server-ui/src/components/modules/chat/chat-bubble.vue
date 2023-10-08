@@ -18,30 +18,17 @@
           </v-list>
         </v-menu>
 
-        <div
-          v-if="isGroup && user.id !== message.userId"
-          style="align-self: end;"
-        >
+        <!-- <div v-if="isGroup && user.id !== message.userId" style="align-self: end;">
           <chat-avatar
-            :avatar="
-              typeof userMap[message.userId].avatar !== 'undefined'
-                ? userMap[message.userId].avatar
-                : null
-            "
+            :avatar="typeof userMap[message.userId].avatar !== 'undefined' ? userMap[message.userId].avatar : null"
             :text="userMap[message.userId].displayName.charAt(0)"
             :color="color"
             size="32"
           />
-        </div>
+        </div> -->
 
-        <div
-          :class="['bubble-body-container', color, 'pa-2', 'order-1']"
-          @click="readMessage()"
-        >
-          <div
-            class="text-header-1 font-weight-bold"
-            v-if="isGroup && user.id !== message.userId"
-          >
+        <div :class="['bubble-body-container', color, 'pa-2', 'order-1']" @click="readMessage()">
+          <div class="text-header-1 font-weight-bold" v-if="isGroup && user.id !== message.userId">
             {{ userMap[message.userId].displayName }}
           </div>
           <template v-for="(line, i) in textLines">
@@ -109,9 +96,7 @@ export default {
       if (this.owner === true) {
         const chatModule = this.activeModules.find(x => x.id === 'chat')
         if (typeof chatModule !== 'undefined') {
-          const feature = chatModule.userModuleFeatures.find(
-            x => x.moduleFeatureId === 'chat-delete-message'
-          )
+          const feature = chatModule.userModuleFeatures.find(x => x.moduleFeatureId === 'chat-delete-message')
           if (typeof feature !== 'undefined') {
             return true
           }
@@ -178,11 +163,7 @@ export default {
     setLines() {
       let line = ''
       for (let i = 0; i < this.message.text.length; i++) {
-        if (
-          this.message.text[i] === '\r' &&
-          i + 1 < this.message.text.length &&
-          this.message.text[i + 1] === '\n'
-        ) {
+        if (this.message.text[i] === '\r' && i + 1 < this.message.text.length && this.message.text[i + 1] === '\n') {
           if (line === '') this.textLines.push(' ')
           else this.textLines.push(line)
           line = ''
@@ -209,17 +190,12 @@ export default {
         // No array or array length is 0
         if (
           !Array.isArray(this.message.readReceipts) ||
-          (Array.isArray(this.message.readReceipts) &&
-            this.message.readReceipts.length === 0)
+          (Array.isArray(this.message.readReceipts) && this.message.readReceipts.length === 0)
         ) {
           return true
         }
         // No read receipts from self
-        else if (
-          typeof this.message.readReceipts.find(
-            x => x.userId === this.user.id
-          ) === 'undefined'
-        ) {
+        else if (typeof this.message.readReceipts.find(x => x.userId === this.user.id) === 'undefined') {
           return true
         }
       }
@@ -238,10 +214,7 @@ export default {
       })
     },
     isLastReadMessage() {
-      if (
-        this.othersLastReadMessage > -1 &&
-        message.id === this.conversation.messages[this.othersLastReadMessage].id
-      )
+      if (this.othersLastReadMessage > -1 && message.id === this.conversation.messages[this.othersLastReadMessage].id)
         return true
 
       return false
