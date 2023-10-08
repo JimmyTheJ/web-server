@@ -29,7 +29,7 @@ namespace VueServer.Modules.Core.Services.Note
             _wsContext = wsContext ?? throw new ArgumentNullException("Webserver context is null");
         }
 
-        public async Task<IResult<List<Notes>>> GetAll()
+        public async Task<IServerResult<List<Notes>>> GetAll()
         {
             var notes = await _wsContext.Notes.ToListAsync();
             if (notes == null || notes.Count == 0)
@@ -41,7 +41,7 @@ namespace VueServer.Modules.Core.Services.Note
             return new Result<List<Notes>>(notes, Domain.Enums.StatusCode.OK); ;
         }
 
-        public async Task<IResult<List<Notes>>> Get()
+        public async Task<IServerResult<List<Notes>>> Get()
         {
             var notes = await _wsContext.Notes.Where(a => a.UserId == _user.Id).ToListAsync();
             if (notes == null || notes.Count == 0)
@@ -53,7 +53,7 @@ namespace VueServer.Modules.Core.Services.Note
             return new Result<List<Notes>>(notes, Domain.Enums.StatusCode.OK); ;
         }
 
-        public async Task<IResult<Notes>> Create(Notes note)
+        public async Task<IServerResult<Notes>> Create(Notes note)
         {
             if (note == null)
             {
@@ -80,7 +80,7 @@ namespace VueServer.Modules.Core.Services.Note
             return new Result<Notes>(note, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<Notes>> Update(Notes note)
+        public async Task<IServerResult<Notes>> Update(Notes note)
         {
             if (note == null)
             {
@@ -114,12 +114,12 @@ namespace VueServer.Modules.Core.Services.Note
             return new Result<Notes>(updated, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult> Delete(int id)
+        public async Task<IServerResult> Delete(int id)
         {
             var note = await _wsContext.Notes.Where(a => a.Id == id).FirstOrDefaultAsync();
             if (note == null)
             {
-                return new Result<IResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
+                return new Result<IServerResult>(null, Domain.Enums.StatusCode.BAD_REQUEST);
             }
 
             try
@@ -132,7 +132,7 @@ namespace VueServer.Modules.Core.Services.Note
                 _logger.LogError($"[{this.GetType().Name}] {nameof(Delete)}: Error deleting note");
             }
 
-            return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
+            return new Result<IServerResult>(null, Domain.Enums.StatusCode.OK);
         }
     }
 }

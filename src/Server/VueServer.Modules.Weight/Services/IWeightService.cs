@@ -7,12 +7,12 @@ namespace VueServer.Modules.Weight.Services
 {
     public interface IWeightService
     {
-        Task<IResult<IEnumerable<Weights>>> GetWeightList();
+        Task<IServerResult<IEnumerable<Weights>>> GetWeightList();
 
-        Task<IResult<Weights>> AddWeight(Weights weight);
+        Task<IServerResult<Weights>> AddWeight(Weights weight);
 
-        Task<IResult<Weights>> EditWeight(Weights weight);
+        Task<IServerResult<Weights>> EditWeight(Weights weight);
 
-        Task<IResult<bool>> DeleteWeight(int id);
+        Task<IServerResult<bool>> DeleteWeight(int id);
     }
 }

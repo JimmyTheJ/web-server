@@ -37,25 +37,25 @@ namespace VueServer.Modules.Directory.Services
             _logger = logger?.CreateLogger<DirectoryAdminService>() ?? throw new ArgumentNullException("Logger factory is null");
         }
 
-        public async Task<IResult<IEnumerable<ServerSettings>>> GetDirectorySettings()
+        public async Task<IServerResult<IEnumerable<ServerSettings>>> GetDirectorySettings()
         {
             var directorySettings = await _context.ServerSettings.Where(x => x.Key.StartsWith(DomainConstants.ServerSettings.BaseKeys.Directory)).ToListAsync();
             return new Result<IEnumerable<ServerSettings>>(directorySettings, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<ServerGroupDirectory>>> GetGroupDirectories()
+        public async Task<IServerResult<IEnumerable<ServerGroupDirectory>>> GetGroupDirectories()
         {
             var directories = await _context.ServerGroupDirectory.ToListAsync();
             return new Result<IEnumerable<ServerGroupDirectory>>(directories, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<ServerUserDirectory>>> GetUserDirectories()
+        public async Task<IServerResult<IEnumerable<ServerUserDirectory>>> GetUserDirectories()
         {
             var directories = await _context.ServerUserDirectory.ToListAsync();
             return new Result<IEnumerable<ServerUserDirectory>>(directories, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<int>> AddGroupDirectory(ServerGroupDirectory dir)
+        public async Task<IServerResult<int>> AddGroupDirectory(ServerGroupDirectory dir)
         {
             if (dir == null || dir.Id != 0)
             {
@@ -76,7 +76,7 @@ namespace VueServer.Modules.Directory.Services
             }
         }
 
-        public async Task<IResult<long>> AddUserDirectory(ServerUserDirectory dir)
+        public async Task<IServerResult<long>> AddUserDirectory(ServerUserDirectory dir)
         {
             if (dir == null || dir.Id != 0)
             {
@@ -97,7 +97,7 @@ namespace VueServer.Modules.Directory.Services
             }
         }
 
-        public async Task<IResult<bool>> DeleteGroupDirectory(int id)
+        public async Task<IServerResult<bool>> DeleteGroupDirectory(int id)
         {
             if (id < 1)
             {
@@ -125,7 +125,7 @@ namespace VueServer.Modules.Directory.Services
             }
         }
 
-        public async Task<IResult<bool>> DeleteUserDirectory(long id)
+        public async Task<IServerResult<bool>> DeleteUserDirectory(long id)
         {
             if (id < 1)
             {
@@ -153,7 +153,7 @@ namespace VueServer.Modules.Directory.Services
             }
         }
 
-        public async Task<IResult<bool>> CreateDefaultFolder(string username)
+        public async Task<IServerResult<bool>> CreateDefaultFolder(string username)
         {
             var user = await _user.GetUserByIdAsync(username);
             if (user == null)

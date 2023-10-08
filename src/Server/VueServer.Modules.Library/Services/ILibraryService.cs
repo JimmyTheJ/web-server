@@ -10,52 +10,52 @@ namespace VueServer.Modules.Library.Services
     {
         #region -> Book
 
-        Task<IResult<IList<Book>>> GetAllBooks();
-        Task<IResult<Book>> GetBook(int id);
-        Task<IResult<Book>> CreateBook(BookAddRequest request);
-        Task<IResult<Book>> UpdateBook(BookAddRequest request);
-        Task<IResult<int>> DeleteBook(int id);
+        Task<IServerResult<IList<Book>>> GetAllBooks();
+        Task<IServerResult<Book>> GetBook(int id);
+        Task<IServerResult<Book>> CreateBook(BookAddRequest request);
+        Task<IServerResult<Book>> UpdateBook(BookAddRequest request);
+        Task<IServerResult<int>> DeleteBook(int id);
 
         #endregion
 
         #region -> Author
 
-        Task<IResult<IList<Author>>> GetAllAuthors();
-        Task<IResult<Author>> CreateAuthor(Author request);
-        Task<IResult<Author>> UpdateAuthor(Author request);
-        Task<IResult<int>> DeleteAuthor(int id);
+        Task<IServerResult<IList<Author>>> GetAllAuthors();
+        Task<IServerResult<Author>> CreateAuthor(Author request);
+        Task<IServerResult<Author>> UpdateAuthor(Author request);
+        Task<IServerResult<int>> DeleteAuthor(int id);
 
         #endregion
 
         #region -> Bookcase
 
-        Task<IResult<IList<Bookcase>>> GetAllBookcases();
-        Task<IResult<Bookcase>> CreateBookcase(Bookcase request);
-        Task<IResult<Bookcase>> UpdateBookcase(Bookcase request);
-        Task<IResult<int>> DeleteBookcase(int id);
+        Task<IServerResult<IList<Bookcase>>> GetAllBookcases();
+        Task<IServerResult<Bookcase>> CreateBookcase(Bookcase request);
+        Task<IServerResult<Bookcase>> UpdateBookcase(Bookcase request);
+        Task<IServerResult<int>> DeleteBookcase(int id);
         #endregion
 
         #region -> Genre
 
-        Task<IResult<IList<Genre>>> GetAllGenres();
+        Task<IServerResult<IList<Genre>>> GetAllGenres();
 
         #endregion
 
         #region -> Series
 
-        Task<IResult<IList<Series>>> GetAllSeries();
-        Task<IResult<Series>> CreateSeries(Series request);
-        Task<IResult<Series>> UpdateSeries(Series request);
-        Task<IResult<int>> DeleteSeries(int id);
+        Task<IServerResult<IList<Series>>> GetAllSeries();
+        Task<IServerResult<Series>> CreateSeries(Series request);
+        Task<IServerResult<Series>> UpdateSeries(Series request);
+        Task<IServerResult<int>> DeleteSeries(int id);
 
         #endregion
 
         #region -> Shelf
 
-        Task<IResult<IList<Shelf>>> GetAllShelves();
-        Task<IResult<Shelf>> CreateShelf(Shelf request);
-        Task<IResult<Shelf>> UpdateShelf(Shelf request);
-        Task<IResult<int>> DeleteShelf(int id);
+        Task<IServerResult<IList<Shelf>>> GetAllShelves();
+        Task<IServerResult<Shelf>> CreateShelf(Shelf request);
+        Task<IServerResult<Shelf>> UpdateShelf(Shelf request);
+        Task<IServerResult<int>> DeleteShelf(int id);
 
         #endregion
     }

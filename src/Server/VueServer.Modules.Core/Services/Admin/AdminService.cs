@@ -31,7 +31,7 @@ namespace VueServer.Modules.Core.Services.Admin
             _logger = logger?.CreateLogger<AdminService>() ?? throw new ArgumentNullException("Logger factory is null");
         }
 
-        public async Task<IResult<bool>> SetServerSetting(ServerSettings setting)
+        public async Task<IServerResult<bool>> SetServerSetting(ServerSettings setting)
         {
             if (setting == null || string.IsNullOrWhiteSpace(setting.Key))
             {
@@ -79,7 +79,7 @@ namespace VueServer.Modules.Core.Services.Admin
             }
         }
 
-        public async Task<IResult<bool>> DeleteServerSetting(string key)
+        public async Task<IServerResult<bool>> DeleteServerSetting(string key)
         {
             var setting = _context.ServerSettings.Where(x => x.Key == key).FirstOrDefault();
             if (setting == null)

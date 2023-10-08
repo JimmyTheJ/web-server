@@ -37,7 +37,7 @@ namespace VueServer.Modules.Library.Services
 
         #region -> Book
 
-        public async Task<IResult<IList<Book>>> GetAllBooks()
+        public async Task<IServerResult<IList<Book>>> GetAllBooks()
         {
             var books = await _context.Books
                 .Include(x => x.Bookcase)
@@ -52,12 +52,12 @@ namespace VueServer.Modules.Library.Services
             return new Result<IList<Book>>(books, OK);
         }
 
-        public async Task<IResult<Book>> GetBook(int id)
+        public async Task<IServerResult<Book>> GetBook(int id)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<IResult<Book>> CreateBook(BookAddRequest request)
+        public async Task<IServerResult<Book>> CreateBook(BookAddRequest request)
         {
             // Null request or null book request bad request
             if (request == null)
@@ -113,7 +113,7 @@ namespace VueServer.Modules.Library.Services
             return new Result<Book>(newBook, OK);
         }
 
-        public async Task<IResult<Book>> UpdateBook(BookAddRequest request)
+        public async Task<IServerResult<Book>> UpdateBook(BookAddRequest request)
         {
             // Null request or null book request bad request
             if (request == null)
@@ -188,7 +188,7 @@ namespace VueServer.Modules.Library.Services
             return new Result<Book>(oldBook, OK);
         }
 
-        public async Task<IResult<int>> DeleteBook(int id)
+        public async Task<IServerResult<int>> DeleteBook(int id)
         {
             var book = await _context.Books.Include(x => x.BookAuthors).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (book == null)
@@ -224,14 +224,14 @@ namespace VueServer.Modules.Library.Services
 
         #region -> Author
 
-        public async Task<IResult<IList<Author>>> GetAllAuthors()
+        public async Task<IServerResult<IList<Author>>> GetAllAuthors()
         {
             var authors = await _context.Authors.ToListAsync();
 
             return new Result<IList<Author>>(authors, OK);
         }
 
-        public async Task<IResult<Author>> CreateAuthor(Author request)
+        public async Task<IServerResult<Author>> CreateAuthor(Author request)
         {
             if (request == null)
             {
@@ -259,7 +259,7 @@ namespace VueServer.Modules.Library.Services
             return new Result<Author>(request, OK);
         }
 
-        public async Task<IResult<Author>> UpdateAuthor(Author request)
+        public async Task<IServerResult<Author>> UpdateAuthor(Author request)
         {
             if (request == null)
             {
@@ -296,7 +296,7 @@ namespace VueServer.Modules.Library.Services
             return new Result<Author>(oldAuthor, OK);
         }
 
-        public async Task<IResult<int>> DeleteAuthor(int id)
+        public async Task<IServerResult<int>> DeleteAuthor(int id)
         {
             var author = await _context.Authors.Include(x => x.BookAuthors).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (author == null)
@@ -332,14 +332,14 @@ namespace VueServer.Modules.Library.Services
 
         #region -> Bookcase
 
-        public async Task<IResult<IList<Bookcase>>> GetAllBookcases()
+        public async Task<IServerResult<IList<Bookcase>>> GetAllBookcases()
         {
             var bookshelves = await _context.Bookcases.ToListAsync();
 
             return new Result<IList<Bookcase>>(bookshelves, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<Bookcase>> CreateBookcase(Bookcase request)
+        public async Task<IServerResult<Bookcase>> CreateBookcase(Bookcase request)
         {
             if (request == null)
             {
@@ -367,7 +367,7 @@ namespace VueServer.Modules.Library.Services
             return new Result<Bookcase>(request, OK);
         }
 
-        public async Task<IResult<Bookcase>> UpdateBookcase(Bookcase request)
+        public async Task<IServerResult<Bookcase>> UpdateBookcase(Bookcase request)
         {
             if (request == null)
             {
@@ -402,7 +402,7 @@ namespace VueServer.Modules.Library.Services
             return new Result<Bookcase>(oldBookcase, OK);
         }
 
-        public async Task<IResult<int>> DeleteBookcase(int id)
+        public async Task<IServerResult<int>> DeleteBookcase(int id)
         {
             var bookcase = await _context.Bookcases.Include(x => x.Books).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (bookcase == null)
@@ -438,7 +438,7 @@ namespace VueServer.Modules.Library.Services
 
         #region -> Genre
 
-        public async Task<IResult<IList<Genre>>> GetAllGenres()
+        public async Task<IServerResult<IList<Genre>>> GetAllGenres()
         {
             var genres = await _context.Genres.ToListAsync();
 
@@ -449,14 +449,14 @@ namespace VueServer.Modules.Library.Services
 
         #region -> Series
 
-        public async Task<IResult<IList<Series>>> GetAllSeries()
+        public async Task<IServerResult<IList<Series>>> GetAllSeries()
         {
             var series = await _context.Series.ToListAsync();
 
             return new Result<IList<Series>>(series, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<Series>> CreateSeries(Series request)
+        public async Task<IServerResult<Series>> CreateSeries(Series request)
         {
             if (request == null)
             {
@@ -484,7 +484,7 @@ namespace VueServer.Modules.Library.Services
             return new Result<Series>(request, OK);
         }
 
-        public async Task<IResult<Series>> UpdateSeries(Series request)
+        public async Task<IServerResult<Series>> UpdateSeries(Series request)
         {
             if (request == null)
             {
@@ -521,7 +521,7 @@ namespace VueServer.Modules.Library.Services
             return new Result<Series>(oldSeries, OK);
         }
 
-        public async Task<IResult<int>> DeleteSeries(int id)
+        public async Task<IServerResult<int>> DeleteSeries(int id)
         {
             var series = await _context.Series.Include(x => x.Books).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (series == null)
@@ -557,14 +557,14 @@ namespace VueServer.Modules.Library.Services
 
         #region -> Shelf
 
-        public async Task<IResult<IList<Shelf>>> GetAllShelves()
+        public async Task<IServerResult<IList<Shelf>>> GetAllShelves()
         {
             var shelves = await _context.Shelves.ToListAsync();
 
             return new Result<IList<Shelf>>(shelves, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<Shelf>> CreateShelf(Shelf request)
+        public async Task<IServerResult<Shelf>> CreateShelf(Shelf request)
         {
             if (request == null)
             {
@@ -592,7 +592,7 @@ namespace VueServer.Modules.Library.Services
             return new Result<Shelf>(request, OK);
         }
 
-        public async Task<IResult<Shelf>> UpdateShelf(Shelf request)
+        public async Task<IServerResult<Shelf>> UpdateShelf(Shelf request)
         {
             if (request == null)
             {
@@ -628,7 +628,7 @@ namespace VueServer.Modules.Library.Services
             return new Result<Shelf>(oldShelf, OK);
         }
 
-        public async Task<IResult<int>> DeleteShelf(int id)
+        public async Task<IServerResult<int>> DeleteShelf(int id)
         {
             var shelf = await _context.Shelves.Include(x => x.Books).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (shelf == null)

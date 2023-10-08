@@ -5,13 +5,13 @@ using VueServer.Domain.Interface;
 
 namespace VueServer.Core.Objects
 {
-    public class Result<T> : IResult<T>, IResult
+    public class Result<T> : IServerResult<T>, IServerResult
     {
         public T Obj { get; set; }
 
         public StatusCode Code { get; set; }
 
-        Object IResult.Obj
+        Object IServerResult.Obj
         {
             get
             {

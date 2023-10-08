@@ -2,7 +2,7 @@ using VueServer.Domain.Enums;
 
 namespace VueServer.Domain.Interface
 {
-    public interface IResult<T> : IResult
+    public interface IServerResult<T> : IServerResult
     {
         new T Obj { get; set; }
 

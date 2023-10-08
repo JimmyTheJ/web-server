@@ -39,7 +39,7 @@ namespace VueServer.Modules.Chat.Services
 
         #region -> Public Functions
 
-        public async Task<IResult<IEnumerable<WSUserResponse>>> GetActiveConversationUsers()
+        public async Task<IServerResult<IEnumerable<WSUserResponse>>> GetActiveConversationUsers()
         {
             var conversationUsers = await _context.Conversations.Include(x => x.ConversationUsers)
                 .Where(x => x.ConversationUsers.Any(y => y.ConversationId == x.Id && y.UserId == _user.Id))
@@ -56,7 +56,7 @@ namespace VueServer.Modules.Chat.Services
             return new Result<IEnumerable<WSUserResponse>>(users.Select(x => WSUserResponse.ConvertWSUserToResponse(x)), Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<WSUserResponse>>> GetUsersFromConversation(long id)
+        public async Task<IServerResult<IEnumerable<WSUserResponse>>> GetUsersFromConversation(long id)
         {
             var conversationUsers = await _context.Conversations.Include(x => x.ConversationUsers)
                 .Where(x => x.Id == id)
@@ -72,7 +72,7 @@ namespace VueServer.Modules.Chat.Services
             return new Result<IEnumerable<WSUserResponse>>(users.Select(x => WSUserResponse.ConvertWSUserToResponse(x)), Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<Conversation>> StartConversation(StartConversationRequest request)
+        public async Task<IServerResult<Conversation>> StartConversation(StartConversationRequest request)
         {
             if (request == null || request.Users == null || request.Users.Count() == 0)
             {
@@ -172,7 +172,7 @@ namespace VueServer.Modules.Chat.Services
             return new Result<Conversation>(conversation, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<Conversation>> GetConversation(long id)
+        public async Task<IServerResult<Conversation>> GetConversation(long id)
         {
             var conversation = await _context.Conversations
                 .Include(x => x.Messages)
@@ -198,7 +198,7 @@ namespace VueServer.Modules.Chat.Services
             return new Result<Conversation>(conversation, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<Conversation>>> GetNewMessageNotifications()
+        public async Task<IServerResult<IEnumerable<Conversation>>> GetNewMessageNotifications()
         {
             var conversationList = await GetAllConversationAsync(_user.Id, GetMessageType.New);
             if (conversationList == null)
@@ -209,7 +209,7 @@ namespace VueServer.Modules.Chat.Services
             return new Result<IEnumerable<Conversation>>(conversationList, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<Conversation>>> GetAllConversations()
+        public async Task<IServerResult<IEnumerable<Conversation>>> GetAllConversations()
         {
             return await GetAllConversationsForUser(_user.Id);
         }
@@ -219,7 +219,7 @@ namespace VueServer.Modules.Chat.Services
         /// </summary>
         /// <param name="userName"></param>
         /// <returns></returns>
-        public async Task<IResult<IEnumerable<Conversation>>> GetAllConversationsForUser(string userName)
+        public async Task<IServerResult<IEnumerable<Conversation>>> GetAllConversationsForUser(string userName)
         {
             var conversationList = await GetAllConversationAsync(userName);
             if (conversationList != null)
@@ -239,7 +239,7 @@ namespace VueServer.Modules.Chat.Services
             return new Result<IEnumerable<Conversation>>(conversationList, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> UpdateConversationTitle(long conversationId, string title)
+        public async Task<IServerResult<bool>> UpdateConversationTitle(long conversationId, string title)
         {
             var conversation = (await GetConversation(conversationId))?.Obj;
             if (conversation == null)
@@ -277,7 +277,7 @@ namespace VueServer.Modules.Chat.Services
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<string>> UpdateUserColor(long conversationId, string userId, int colorId)
+        public async Task<IServerResult<string>> UpdateUserColor(long conversationId, string userId, int colorId)
         {
             var conversationHasUsers = await _context.ConversationHasUser.Where(x => x.ConversationId == conversationId).ToListAsync();
             if (conversationHasUsers == null)
@@ -314,7 +314,7 @@ namespace VueServer.Modules.Chat.Services
             return new Result<string>(user.Color, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> DeleteConversation(long conversationId)
+        public async Task<IServerResult<bool>> DeleteConversation(long conversationId)
         {
             var conversation = (await GetConversation(conversationId))?.Obj;
             if (conversation == null)
@@ -347,12 +347,12 @@ namespace VueServer.Modules.Chat.Services
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(long conversationId)
+        public async Task<IServerResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(long conversationId)
         {
             return await GetMessagesForConversation(conversationId, -1);
         }
 
-        public async Task<IResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(long conversationId, long msgId)
+        public async Task<IServerResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(long conversationId, long msgId)
         {
             var conversation = await _context.Conversations.Include(x => x.ConversationUsers).Where(x => x.Id == conversationId).SingleOrDefaultAsync();
             if (conversation == null)
@@ -392,7 +392,7 @@ namespace VueServer.Modules.Chat.Services
             return new Result<IEnumerable<ChatMessage>>(conversation.Messages, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> DeleteMessage(long messageId)
+        public async Task<IServerResult<bool>> DeleteMessage(long messageId)
         {
             var user = await _user.GetUserByIdAsync(_user.Id);
             if (user == null)
@@ -441,7 +441,7 @@ namespace VueServer.Modules.Chat.Services
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<ChatMessage>> GetMessage(long id)
+        public async Task<IServerResult<ChatMessage>> GetMessage(long id)
         {
             var message = await _context.Messages.Where(x => x.Id == id).SingleOrDefaultAsync();
             if (message == null)
@@ -460,7 +460,7 @@ namespace VueServer.Modules.Chat.Services
             return new Result<ChatMessage>(message, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<ChatMessage>> AddMessage(ChatMessage message)
+        public async Task<IServerResult<ChatMessage>> AddMessage(ChatMessage message)
         {
             if (message == null || string.IsNullOrWhiteSpace(message.Text))
             {
@@ -499,7 +499,7 @@ namespace VueServer.Modules.Chat.Services
             return new Result<ChatMessage>(newMessage, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<ReadReceipt>> ReadMessage(long conversationId, long messageId)
+        public async Task<IServerResult<ReadReceipt>> ReadMessage(long conversationId, long messageId)
         {
             ReadReceipt receipt = null;
 
@@ -537,7 +537,7 @@ namespace VueServer.Modules.Chat.Services
             return new Result<ReadReceipt>(receipt, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<ReadReceipt>>> ReadMessageList(long conversationId, long[] messageIds)
+        public async Task<IServerResult<IEnumerable<ReadReceipt>>> ReadMessageList(long conversationId, long[] messageIds)
         {
             var receipts = new List<ReadReceipt>();
 

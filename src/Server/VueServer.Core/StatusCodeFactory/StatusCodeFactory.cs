@@ -46,7 +46,7 @@ namespace VueServer.Core.Status
             }
         }
 
-        public IActionResult GetStatusCode(IResult result)
+        public IActionResult GetStatusCode(IServerResult result)
         {
             return GetStatusCode(result.Code, result.Obj);
         }

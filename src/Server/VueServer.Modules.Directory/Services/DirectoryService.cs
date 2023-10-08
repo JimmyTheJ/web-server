@@ -48,13 +48,13 @@ namespace VueServer.Modules.Directory.Services
 
         # region -> Public Functions
 
-        public async Task<IResult<IEnumerable<ServerDirectory>>> GetDirectories()
+        public async Task<IServerResult<IEnumerable<ServerDirectory>>> GetDirectories()
         {
             var dirs = await GetSingleDirectoryList(_user.Id, true);
             return new Result<IEnumerable<ServerDirectory>>(dirs, StatusCode.OK);
         }
 
-        public async Task<IResult<Tuple<string, string, string>>> Download(string filename, string user, bool media = false)
+        public async Task<IServerResult<Tuple<string, string, string>>> Download(string filename, string user, bool media = false)
         {
             if (string.IsNullOrWhiteSpace(filename))
             {
@@ -197,7 +197,7 @@ namespace VueServer.Modules.Directory.Services
             //    return new Result<Tuple<string, string, string>>(new Tuple<string, string, string>(mediaFilename.Item1, mediaFilename.Item2, cleanFilename), StatusCode.OK);
         }
 
-        public async Task<IResult<IOrderedEnumerable<WebServerFile>>> Load(string directory, string subDir)
+        public async Task<IServerResult<IOrderedEnumerable<WebServerFile>>> Load(string directory, string subDir)
         {
             if (string.IsNullOrWhiteSpace(directory))
             {
@@ -286,7 +286,7 @@ namespace VueServer.Modules.Directory.Services
             return new Result<IOrderedEnumerable<WebServerFile>>(fileList.OrderByDescending(x => x.IsFolder).ThenBy(x => x.Title), StatusCode.OK);
         }
 
-        public async Task<IResult<WebServerFile>> CreateFolder(string directory, string subDir, string newFolder)
+        public async Task<IServerResult<WebServerFile>> CreateFolder(string directory, string subDir, string newFolder)
         {
             if (directory == null)
             {
@@ -344,7 +344,7 @@ namespace VueServer.Modules.Directory.Services
             return new Result<WebServerFile>(new WebServerFile(info), StatusCode.OK);
         }
 
-        public async Task<IResult<WebServerFile>> RenameFile(MoveFileRequest model)
+        public async Task<IServerResult<WebServerFile>> RenameFile(MoveFileRequest model)
         {
             var dirList = await GetSingleDirectoryList(_user.Id);
             var dir = dirList.Where(x => x.Name == model.Directory).FirstOrDefault();
@@ -428,7 +428,7 @@ namespace VueServer.Modules.Directory.Services
             return new Result<WebServerFile>(new WebServerFile(fileInfo), StatusCode.OK);
         }
 
-        public async Task<IResult<WebServerFile>> RenameFolder(MoveFileRequest model)
+        public async Task<IServerResult<WebServerFile>> RenameFolder(MoveFileRequest model)
         {
             var dirList = await GetSingleDirectoryList(_user.Id);
             var dir = dirList.Where(x => x.Name == model.Directory).FirstOrDefault();
@@ -512,7 +512,7 @@ namespace VueServer.Modules.Directory.Services
             return new Result<WebServerFile>(new WebServerFile(newDirectoryInfo), StatusCode.OK);
         }
 
-        public async Task<IResult<WebServerFile>> Upload(UploadDirectoryFileRequest model)
+        public async Task<IServerResult<WebServerFile>> Upload(UploadDirectoryFileRequest model)
         {
             if (model == null || model.File == null)
             {
@@ -595,7 +595,7 @@ namespace VueServer.Modules.Directory.Services
             }
         }
 
-        public async Task<IResult<WebServerFile>> CopyFile(FileModel source, FileModel destination)
+        public async Task<IServerResult<WebServerFile>> CopyFile(FileModel source, FileModel destination)
         {
             var result = await CopyOrMoveValidation(source, destination, true, DirectoryAccessFlags.MoveFile, FileString);
             if (result.Code != StatusCode.OK)
@@ -646,7 +646,7 @@ namespace VueServer.Modules.Directory.Services
             return new Result<WebServerFile>(new WebServerFile(newFileInfo), StatusCode.OK);
         }
 
-        public async Task<IResult<WebServerFile>> CopyFolder(FileModel source, FileModel destination)
+        public async Task<IServerResult<WebServerFile>> CopyFolder(FileModel source, FileModel destination)
         {
             var result = await CopyOrMoveValidation(source, destination, true, DirectoryAccessFlags.MoveFolder, FolderString);
             if (result.Code != StatusCode.OK)
@@ -699,7 +699,7 @@ namespace VueServer.Modules.Directory.Services
             return new Result<WebServerFile>(new WebServerFile(newDirectoryInfo), StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> MoveFile(FileModel source, FileModel destination)
+        public async Task<IServerResult<bool>> MoveFile(FileModel source, FileModel destination)
         {
             var result = await CopyOrMoveValidation(source, destination, false, DirectoryAccessFlags.MoveFile, FileString);
             if (result.Code != StatusCode.OK)
@@ -740,7 +740,7 @@ namespace VueServer.Modules.Directory.Services
             return new Result<bool>(true);
         }
 
-        public async Task<IResult<bool>> MoveFolder(FileModel source, FileModel destination)
+        public async Task<IServerResult<bool>> MoveFolder(FileModel source, FileModel destination)
         {
             var result = await CopyOrMoveValidation(source, destination, false, DirectoryAccessFlags.MoveFolder, FolderString);
             if (result.Code != StatusCode.OK)
@@ -773,7 +773,7 @@ namespace VueServer.Modules.Directory.Services
             return new Result<bool>(true);
         }
 
-        public async Task<IResult<bool>> Delete(FileModel model)
+        public async Task<IServerResult<bool>> Delete(FileModel model)
         {
             if (string.IsNullOrWhiteSpace(model.Name))
             {

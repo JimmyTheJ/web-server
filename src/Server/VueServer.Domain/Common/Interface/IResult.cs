@@ -3,7 +3,7 @@ using VueServer.Domain.Enums;
 
 namespace VueServer.Domain.Interface
 {
-    public interface IResult
+    public interface IServerResult
     {
         Object Obj { get; set; }
 

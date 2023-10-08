@@ -7,18 +7,18 @@ namespace VueServer.Modules.Core.Services.Module
 {
     public interface IModuleService
     {
-        Task<IResult<IEnumerable<string>>> GetEnabledModules();
-        Task<IResult<IEnumerable<ModuleAddOn>>> GetActiveModulesForUser();
-        Task<IResult<IEnumerable<ModuleAddOn>>> GetAllModules();
-        Task<IResult<IDictionary<string, IList<ModuleAddOn>>>> GetActiveModulesForAllUsers();
-        Task<IResult<IEnumerable<UserHasModuleAddOn>>> GetModulesAndFeaturesForOtherUser(string user);
-        Task<IResult<bool>> AddModuleToUser(UserHasModuleAddOn userModule);
-        Task<IResult<bool>> DeleteModuleFromUser(UserHasModuleAddOn userModule);
+        Task<IServerResult<IEnumerable<string>>> GetEnabledModules();
+        Task<IServerResult<IEnumerable<ModuleAddOn>>> GetActiveModulesForUser();
+        Task<IServerResult<IEnumerable<ModuleAddOn>>> GetAllModules();
+        Task<IServerResult<IDictionary<string, IList<ModuleAddOn>>>> GetActiveModulesForAllUsers();
+        Task<IServerResult<IEnumerable<UserHasModuleAddOn>>> GetModulesAndFeaturesForOtherUser(string user);
+        Task<IServerResult<bool>> AddModuleToUser(UserHasModuleAddOn userModule);
+        Task<IServerResult<bool>> DeleteModuleFromUser(UserHasModuleAddOn userModule);
 
-        Task<IResult<bool>> AddFeatureToUser(UserHasModuleFeature userFeature);
-        Task<IResult<bool>> DeleteFeatureFromUser(UserHasModuleFeature userFeature);
-        Task<IResult<bool>> DoesUserHaveModule(string user, string module);
-        Task<IResult<bool>> DoesUserHaveFeature(string user, string feature);
+        Task<IServerResult<bool>> AddFeatureToUser(UserHasModuleFeature userFeature);
+        Task<IServerResult<bool>> DeleteFeatureFromUser(UserHasModuleFeature userFeature);
+        Task<IServerResult<bool>> DoesUserHaveModule(string user, string module);
+        Task<IServerResult<bool>> DoesUserHaveFeature(string user, string feature);
 
     }
 }

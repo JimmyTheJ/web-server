@@ -83,7 +83,7 @@ namespace VueServer.Modules.Core.Services.Account
 
         #region -> Public Functions 
 
-        public async Task<IResult<string>> Register(RegisterRequest model)
+        public async Task<IServerResult<string>> Register(RegisterRequest model)
         {
             // Create a new identity user to pass to the registration method
             var newUser = new WSUser
@@ -129,7 +129,7 @@ namespace VueServer.Modules.Core.Services.Account
             return new Result<string>(newUser.Id, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> ChangePassword(ChangePasswordRequest model, bool isAdmin)
+        public async Task<IServerResult<bool>> ChangePassword(ChangePasswordRequest model, bool isAdmin)
         {
             if (!isAdmin)
             {
@@ -141,7 +141,7 @@ namespace VueServer.Modules.Core.Services.Account
             }
         }
 
-        public async Task<IResult<LoginResponse>> Login(HttpContext context, LoginRequest model)
+        public async Task<IServerResult<LoginResponse>> Login(HttpContext context, LoginRequest model)
         {
             // Cached security check for password sniffing bots
             if (_serverCache.GetSubDictionaryValue(CacheMap.BlockedIP, _user.IP, out bool isBlocked) && isBlocked)
@@ -290,26 +290,26 @@ namespace VueServer.Modules.Core.Services.Account
             return new Result<LoginResponse>(resp, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult> Logout(HttpContext context, string username)
+        public async Task<IServerResult> Logout(HttpContext context, string username)
         {
             await Signout(context, username);
 
-            return new Result<IResult>(null, Domain.Enums.StatusCode.OK);
+            return new Result<IServerResult>(null, Domain.Enums.StatusCode.OK);
         }
 
-        public IResult<string> GetCsrfToken(HttpContext context)
+        public IServerResult<string> GetCsrfToken(HttpContext context)
         {
             return new Result<string>(GenerateCsrfToken(context), Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<WSGuestLogin>>> GetGuestLogins()
+        public async Task<IServerResult<IEnumerable<WSGuestLogin>>> GetGuestLogins()
         {
             var guestLogins = await _context.GuestLogin.ToListAsync();
 
             return new Result<IEnumerable<WSGuestLogin>>(guestLogins, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> UnblockGuestIP(string ip)
+        public async Task<IServerResult<bool>> UnblockGuestIP(string ip)
         {
             if (string.IsNullOrWhiteSpace(ip))
             {
@@ -339,7 +339,7 @@ namespace VueServer.Modules.Core.Services.Account
             }
         }
 
-        public async Task<IResult<TokenValidation>> ValidateToken(string token, IRequestCookieCollection cookies)
+        public async Task<IServerResult<TokenValidation>> ValidateToken(string token, IRequestCookieCollection cookies)
         {
             var isJwtValid = ValidateTokenAndGetName(token);
             if (isJwtValid.Obj == null)
@@ -372,7 +372,7 @@ namespace VueServer.Modules.Core.Services.Account
             }
         }
 
-        public IResult<string> ValidateTokenAndGetName(string token)
+        public IServerResult<string> ValidateTokenAndGetName(string token)
         {
             var tokenValidationParameters = new TokenValidationParameters
             {
@@ -399,7 +399,7 @@ namespace VueServer.Modules.Core.Services.Account
             }
         }
 
-        public async Task<IResult<string>> RefreshJwtToken(string token, IRequestCookieCollection cookies)
+        public async Task<IServerResult<string>> RefreshJwtToken(string token, IRequestCookieCollection cookies)
         {
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -429,14 +429,14 @@ namespace VueServer.Modules.Core.Services.Account
             return new Result<string>(newJwtToken, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<WSUserResponse>>> GetUsers()
+        public async Task<IServerResult<IEnumerable<WSUserResponse>>> GetUsers()
         {
             var users = await _context.Users.Include(x => x.UserProfile).ToListAsync();
 
             return new Result<IEnumerable<WSUserResponse>>(users.Select(x => WSUserResponse.ConvertWSUserToResponse(x)), Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<WSUserProfile>> GetUserProfile(string userId)
+        public async Task<IServerResult<WSUserProfile>> GetUserProfile(string userId)
         {
             var userProfile = await _context.UserProfile.Where(x => x.UserId == userId).FirstOrDefaultAsync();
             if (userProfile == null)
@@ -447,7 +447,7 @@ namespace VueServer.Modules.Core.Services.Account
             return new Result<WSUserProfile>(userProfile, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<WSUserResponse>>> FuzzyUserSearch(string query)
+        public async Task<IServerResult<IEnumerable<WSUserResponse>>> FuzzyUserSearch(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
             {
@@ -463,7 +463,7 @@ namespace VueServer.Modules.Core.Services.Account
         }
 
 
-        public async Task<IResult<string>> UpdateUserAvatar(IFormFile file)
+        public async Task<IServerResult<string>> UpdateUserAvatar(IFormFile file)
         {
             if (file == null)
             {
@@ -537,7 +537,7 @@ namespace VueServer.Modules.Core.Services.Account
             return new Result<string>(filename, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> UpdateDisplayName(string name)
+        public async Task<IServerResult<bool>> UpdateDisplayName(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -567,7 +567,7 @@ namespace VueServer.Modules.Core.Services.Account
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<WSRole>>> GetRoles()
+        public async Task<IServerResult<IEnumerable<WSRole>>> GetRoles()
         {
             var roles = await _context.Roles.ToListAsync();
             return new Result<IEnumerable<WSRole>>(roles, Domain.Enums.StatusCode.OK);
@@ -583,7 +583,7 @@ namespace VueServer.Modules.Core.Services.Account
             return user.PasswordExpired && !user.Active && (string.IsNullOrWhiteSpace(pw) || pw == DomainConstants.Authentication.DEFAULT_PASSWORD);
         }
 
-        private async Task<IResult<bool>> ChangeUserPassword(ChangePasswordRequest model)
+        private async Task<IServerResult<bool>> ChangeUserPassword(ChangePasswordRequest model)
         {
             var user = await _userManager.FindByIdAsync(_user.Id);
             var roles = await _userManager.GetRolesAsync(user);
@@ -631,7 +631,7 @@ namespace VueServer.Modules.Core.Services.Account
             }
         }
 
-        private async Task<IResult<bool>> ChangeAdminPassword(ChangePasswordRequest model)
+        private async Task<IServerResult<bool>> ChangeAdminPassword(ChangePasswordRequest model)
         {
             var user = await _userManager.FindByIdAsync(_user.Id);
             var roles = await _userManager.GetRolesAsync(user);

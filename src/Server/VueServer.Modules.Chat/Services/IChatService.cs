@@ -9,23 +9,23 @@ namespace VueServer.Modules.Chat.Services
 {
     public interface IChatService
     {
-        Task<IResult<Conversation>> StartConversation(StartConversationRequest request);
-        Task<IResult<Conversation>> GetConversation(long id);
-        Task<IResult<IEnumerable<Conversation>>> GetNewMessageNotifications();
-        Task<IResult<IEnumerable<Conversation>>> GetAllConversations();
-        Task<IResult<IEnumerable<Conversation>>> GetAllConversationsForUser(string userName);
-        Task<IResult<bool>> UpdateConversationTitle(long conversationId, string title);
-        Task<IResult<string>> UpdateUserColor(long conversationId, string userId, int colorId);
-        Task<IResult<bool>> DeleteConversation(long conversationId);
-        Task<IResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(long conversationId);
-        Task<IResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(long conversationId, long msgId);
-        Task<IResult<bool>> DeleteMessage(long messageId);
-        Task<IResult<ChatMessage>> GetMessage(long id);
-        Task<IResult<ChatMessage>> AddMessage(ChatMessage message);
-        Task<IResult<ReadReceipt>> ReadMessage(long conversationId, long messageId);
-        Task<IResult<IEnumerable<ReadReceipt>>> ReadMessageList(long conversationId, long[] messageIds);
+        Task<IServerResult<Conversation>> StartConversation(StartConversationRequest request);
+        Task<IServerResult<Conversation>> GetConversation(long id);
+        Task<IServerResult<IEnumerable<Conversation>>> GetNewMessageNotifications();
+        Task<IServerResult<IEnumerable<Conversation>>> GetAllConversations();
+        Task<IServerResult<IEnumerable<Conversation>>> GetAllConversationsForUser(string userName);
+        Task<IServerResult<bool>> UpdateConversationTitle(long conversationId, string title);
+        Task<IServerResult<string>> UpdateUserColor(long conversationId, string userId, int colorId);
+        Task<IServerResult<bool>> DeleteConversation(long conversationId);
+        Task<IServerResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(long conversationId);
+        Task<IServerResult<IEnumerable<ChatMessage>>> GetMessagesForConversation(long conversationId, long msgId);
+        Task<IServerResult<bool>> DeleteMessage(long messageId);
+        Task<IServerResult<ChatMessage>> GetMessage(long id);
+        Task<IServerResult<ChatMessage>> AddMessage(ChatMessage message);
+        Task<IServerResult<ReadReceipt>> ReadMessage(long conversationId, long messageId);
+        Task<IServerResult<IEnumerable<ReadReceipt>>> ReadMessageList(long conversationId, long[] messageIds);
 
-        Task<IResult<IEnumerable<WSUserResponse>>> GetActiveConversationUsers();
-        Task<IResult<IEnumerable<WSUserResponse>>> GetUsersFromConversation(long id);
+        Task<IServerResult<IEnumerable<WSUserResponse>>> GetActiveConversationUsers();
+        Task<IServerResult<IEnumerable<WSUserResponse>>> GetUsersFromConversation(long id);
     }
 }

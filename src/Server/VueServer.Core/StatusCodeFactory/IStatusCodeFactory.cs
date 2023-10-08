@@ -8,6 +8,6 @@ namespace VueServer.Core.Status
 
         T GetStatusCode(StatusCode code, object obj = null);
 
-        T GetStatusCode(IResult result);
+        T GetStatusCode(IServerResult result);
     }
 }

@@ -34,7 +34,7 @@ namespace VueServer.Modules.Weight.Services
 
         #region -> Public Functions
 
-        public async Task<IResult<IEnumerable<Weights>>> GetWeightList()
+        public async Task<IServerResult<IEnumerable<Weights>>> GetWeightList()
         {
             IEnumerable<Weights> weights;
             try
@@ -50,7 +50,7 @@ namespace VueServer.Modules.Weight.Services
             return new Result<IEnumerable<Weights>>(weights, StatusCode.OK);
         }
 
-        public async Task<IResult<Weights>> AddWeight(Weights weight)
+        public async Task<IServerResult<Weights>> AddWeight(Weights weight)
         {
             if (weight == null)
             {
@@ -75,7 +75,7 @@ namespace VueServer.Modules.Weight.Services
             return new Result<Weights>(weight, StatusCode.OK);
         }
 
-        public async Task<IResult<Weights>> EditWeight(Weights weight)
+        public async Task<IServerResult<Weights>> EditWeight(Weights weight)
         {
             if (weight == null)
             {
@@ -109,7 +109,7 @@ namespace VueServer.Modules.Weight.Services
         }
 
 
-        public async Task<IResult<bool>> DeleteWeight(int id)
+        public async Task<IServerResult<bool>> DeleteWeight(int id)
         {
             if (id <= 0)
             {

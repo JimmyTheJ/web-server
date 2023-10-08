@@ -8,13 +8,13 @@ namespace VueServer.Modules.Directory.Services
 {
     public interface IDirectoryAdminService
     {
-        Task<IResult<IEnumerable<ServerSettings>>> GetDirectorySettings();
-        Task<IResult<IEnumerable<ServerGroupDirectory>>> GetGroupDirectories();
-        Task<IResult<IEnumerable<ServerUserDirectory>>> GetUserDirectories();
-        Task<IResult<int>> AddGroupDirectory(ServerGroupDirectory dir);
-        Task<IResult<long>> AddUserDirectory(ServerUserDirectory dir);
-        Task<IResult<bool>> DeleteGroupDirectory(int id);
-        Task<IResult<bool>> DeleteUserDirectory(long id);
-        Task<IResult<bool>> CreateDefaultFolder(string username);
+        Task<IServerResult<IEnumerable<ServerSettings>>> GetDirectorySettings();
+        Task<IServerResult<IEnumerable<ServerGroupDirectory>>> GetGroupDirectories();
+        Task<IServerResult<IEnumerable<ServerUserDirectory>>> GetUserDirectories();
+        Task<IServerResult<int>> AddGroupDirectory(ServerGroupDirectory dir);
+        Task<IServerResult<long>> AddUserDirectory(ServerUserDirectory dir);
+        Task<IServerResult<bool>> DeleteGroupDirectory(int id);
+        Task<IServerResult<bool>> DeleteUserDirectory(long id);
+        Task<IServerResult<bool>> CreateDefaultFolder(string username);
     }
 }

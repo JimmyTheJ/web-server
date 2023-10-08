@@ -10,26 +10,26 @@ namespace VueServer.Modules.Core.Services.Account
 {
     public interface IAccountService
     {
-        Task<IResult<string>> Register(RegisterRequest model);
-        Task<IResult<bool>> ChangePassword(ChangePasswordRequest model, bool isAdmin);
-        Task<IResult<LoginResponse>> Login(HttpContext context, LoginRequest model);
-        Task<IResult> Logout(HttpContext context, string username);
+        Task<IServerResult<string>> Register(RegisterRequest model);
+        Task<IServerResult<bool>> ChangePassword(ChangePasswordRequest model, bool isAdmin);
+        Task<IServerResult<LoginResponse>> Login(HttpContext context, LoginRequest model);
+        Task<IServerResult> Logout(HttpContext context, string username);
 
-        IResult<string> GetCsrfToken(HttpContext context);
-        IResult<string> ValidateTokenAndGetName(string token);
-        Task<IResult<TokenValidation>> ValidateToken(string token, IRequestCookieCollection cookies);
-        Task<IResult<string>> RefreshJwtToken(string token, IRequestCookieCollection cookies);
+        IServerResult<string> GetCsrfToken(HttpContext context);
+        IServerResult<string> ValidateTokenAndGetName(string token);
+        Task<IServerResult<TokenValidation>> ValidateToken(string token, IRequestCookieCollection cookies);
+        Task<IServerResult<string>> RefreshJwtToken(string token, IRequestCookieCollection cookies);
 
-        Task<IResult<IEnumerable<WSUserResponse>>> GetUsers();
-        Task<IResult<WSUserProfile>> GetUserProfile(string userId);
-        Task<IResult<IEnumerable<WSUserResponse>>> FuzzyUserSearch(string query);
+        Task<IServerResult<IEnumerable<WSUserResponse>>> GetUsers();
+        Task<IServerResult<WSUserProfile>> GetUserProfile(string userId);
+        Task<IServerResult<IEnumerable<WSUserResponse>>> FuzzyUserSearch(string query);
 
-        Task<IResult<string>> UpdateUserAvatar(IFormFile file);
-        Task<IResult<bool>> UpdateDisplayName(string name);
+        Task<IServerResult<string>> UpdateUserAvatar(IFormFile file);
+        Task<IServerResult<bool>> UpdateDisplayName(string name);
 
-        Task<IResult<IEnumerable<WSGuestLogin>>> GetGuestLogins();
-        Task<IResult<bool>> UnblockGuestIP(string ip);
+        Task<IServerResult<IEnumerable<WSGuestLogin>>> GetGuestLogins();
+        Task<IServerResult<bool>> UnblockGuestIP(string ip);
 
-        Task<IResult<IEnumerable<WSRole>>> GetRoles();
+        Task<IServerResult<IEnumerable<WSRole>>> GetRoles();
     }
 }

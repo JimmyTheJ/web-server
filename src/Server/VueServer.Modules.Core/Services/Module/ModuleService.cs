@@ -37,7 +37,7 @@ namespace VueServer.Modules.Core.Services.Module
             _cache = cache ?? throw new ArgumentNullException("Cache is null");
         }
 
-        public async Task<IResult<IEnumerable<string>>> GetEnabledModules()
+        public async Task<IServerResult<IEnumerable<string>>> GetEnabledModules()
         {
             if (_cache.TryGetValue(CacheMap.LoadedModules, out IEnumerable<string> modules))
             {
@@ -47,7 +47,7 @@ namespace VueServer.Modules.Core.Services.Module
             return new Result<IEnumerable<string>>(null, Domain.Enums.StatusCode.NO_CONTENT);
         }
 
-        public async Task<IResult<IEnumerable<ModuleAddOn>>> GetActiveModulesForUser()
+        public async Task<IServerResult<IEnumerable<ModuleAddOn>>> GetActiveModulesForUser()
         {
             var userModules = await _context.UserHasModule
                 .Include(x => x.ModuleAddOn)
@@ -66,14 +66,14 @@ namespace VueServer.Modules.Core.Services.Module
             return new Result<IEnumerable<ModuleAddOn>>(userModules, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<ModuleAddOn>>> GetAllModules()
+        public async Task<IServerResult<IEnumerable<ModuleAddOn>>> GetAllModules()
         {
             var userModules = await _context.Modules.Include(x => x.Features).ToListAsync();
 
             return new Result<IEnumerable<ModuleAddOn>>(userModules, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IDictionary<string, IList<ModuleAddOn>>>> GetActiveModulesForAllUsers()
+        public async Task<IServerResult<IDictionary<string, IList<ModuleAddOn>>>> GetActiveModulesForAllUsers()
         {
             var userModules = await _context.UserHasModule
                 .Include(x => x.ModuleAddOn)
@@ -125,7 +125,7 @@ namespace VueServer.Modules.Core.Services.Module
             return new Result<IDictionary<string, IList<ModuleAddOn>>>(userModuleGroups, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<IEnumerable<UserHasModuleAddOn>>> GetModulesAndFeaturesForOtherUser(string user)
+        public async Task<IServerResult<IEnumerable<UserHasModuleAddOn>>> GetModulesAndFeaturesForOtherUser(string user)
         {
             var userModules = await _context.UserHasModule
                 .Include(x => x.ModuleAddOn)
@@ -152,7 +152,7 @@ namespace VueServer.Modules.Core.Services.Module
             return new Result<IEnumerable<UserHasModuleAddOn>>(userModules, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> AddModuleToUser(UserHasModuleAddOn userModule)
+        public async Task<IServerResult<bool>> AddModuleToUser(UserHasModuleAddOn userModule)
         {
             if (userModule == null)
             {
@@ -190,7 +190,7 @@ namespace VueServer.Modules.Core.Services.Module
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> DeleteModuleFromUser(UserHasModuleAddOn userModule)
+        public async Task<IServerResult<bool>> DeleteModuleFromUser(UserHasModuleAddOn userModule)
         {
             if (userModule == null)
             {
@@ -245,7 +245,7 @@ namespace VueServer.Modules.Core.Services.Module
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> AddFeatureToUser(UserHasModuleFeature userFeature)
+        public async Task<IServerResult<bool>> AddFeatureToUser(UserHasModuleFeature userFeature)
         {
             if (userFeature == null)
             {
@@ -282,7 +282,7 @@ namespace VueServer.Modules.Core.Services.Module
 
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
-        public async Task<IResult<bool>> DeleteFeatureFromUser(UserHasModuleFeature userFeature)
+        public async Task<IServerResult<bool>> DeleteFeatureFromUser(UserHasModuleFeature userFeature)
         {
             if (userFeature == null)
             {
@@ -325,7 +325,7 @@ namespace VueServer.Modules.Core.Services.Module
             return new Result<bool>(true, Domain.Enums.StatusCode.OK);
         }
 
-        public async Task<IResult<bool>> DoesUserHaveModule(string user, string module)
+        public async Task<IServerResult<bool>> DoesUserHaveModule(string user, string module)
         {
             if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(module))
             {
@@ -344,7 +344,7 @@ namespace VueServer.Modules.Core.Services.Module
             }
         }
 
-        public async Task<IResult<bool>> DoesUserHaveFeature(string user, string feature)
+        public async Task<IServerResult<bool>> DoesUserHaveFeature(string user, string feature)
         {
             if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(feature))
             {

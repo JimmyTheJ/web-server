@@ -7,15 +7,15 @@ namespace VueServer.Modules.Core.Services.Note
 {
     public interface INoteService
     {
-        Task<IResult<List<Notes>>> GetAll();
+        Task<IServerResult<List<Notes>>> GetAll();
 
-        Task<IResult<List<Notes>>> Get();
+        Task<IServerResult<List<Notes>>> Get();
 
-        Task<IResult<Notes>> Create(Notes note);
+        Task<IServerResult<Notes>> Create(Notes note);
 
-        Task<IResult<Notes>> Update(Notes note);
+        Task<IServerResult<Notes>> Update(Notes note);
 
-        Task<IResult> Delete(int id);
+        Task<IServerResult> Delete(int id);
 
     }
 }

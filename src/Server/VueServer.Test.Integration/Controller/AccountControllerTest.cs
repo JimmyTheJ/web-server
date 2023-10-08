@@ -27,7 +27,7 @@ namespace VueServer.Test.Integration.Controller
 
         private void SetupMocks()
         {
-            VueServer.CodeFactory.Setup(codeFactory => codeFactory.GetStatusCode(It.IsAny<IResult>())).Returns(new OkResult());
+            VueServer.CodeFactory.Setup(codeFactory => codeFactory.GetStatusCode(It.IsAny<IServerResult>())).Returns(new OkResult());
         }
 
         //[Fact]

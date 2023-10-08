@@ -6,7 +6,7 @@ namespace VueServer.Modules.Core.Services.Admin
 {
     public interface IAdminService
     {
-        Task<IResult<bool>> SetServerSetting(ServerSettings setting);
-        Task<IResult<bool>> DeleteServerSetting(string key);
+        Task<IServerResult<bool>> SetServerSetting(ServerSettings setting);
+        Task<IServerResult<bool>> DeleteServerSetting(string key);
     }
 }
