@@ -1,16 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <AssemblyName>VueServer.Modules.Directory</AssemblyName>
     <RootNamespace>VueServer.Modules.Directory</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <!-- Copy FFMPEG files to output dir -->
-    <Content Include="ffmpeg.exe" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="ffprobe.exe" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Xabe.FFMpeg" Version="5.1.0" />

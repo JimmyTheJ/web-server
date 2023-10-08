@@ -17,7 +17,7 @@
     "core-js": "~3.9.0",
     "html-webpack-plugin": "~4.5.2",
     "material-design-icons-iconfont": "6.1.0",
-    "vue": "~2.6.11",
+    "vue": "~2.7.14",
     "vue-cookie": "~1.1.4",
     "vue-moment-lib": "~1.2.2",
     "vue-router": "~3.5.1",
