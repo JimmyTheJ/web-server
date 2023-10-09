@@ -46,7 +46,7 @@ fi
 
 # Build Back-End
 cd $server
-dotnet publish -c Release -f $framework -r $env
+dotnet publish -c Release -f $framework -r $env --self-contained
 
 # Handle build directory
 if [ -d "$build" ]; then
