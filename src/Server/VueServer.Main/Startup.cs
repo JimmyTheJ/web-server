@@ -108,11 +108,6 @@ namespace VueServer
                 });
             }
 
-            if (Configuration.GetSection("Options").GetValue<bool>("Https"))
-            {
-                services.AddCustomHttpsRedirection(Environment, Configuration);
-            }
-
             services.AddCustomCompression();
 
             var assemblies = AppDomain.CurrentDomain.GetAssemblies().OrderByDescending(x => x.FullName);
@@ -145,20 +140,6 @@ namespace VueServer
             {
                 app.UseExceptionHandler("/Home/Error");
                 //app.UseHsts();
-
-                // Redirect non-www to www
-                var rewriteOptions = new RewriteOptions();
-                rewriteOptions.AddRedirectToWww();
-                app.UseRewriter(rewriteOptions);
-            }
-
-            if (Configuration.GetSection("Options").GetValue<bool>("Https"))
-            {
-                app.UseHttpsRedirection();
-            }
-            else
-            {
-                Console.WriteLine("Https is disabled. Consider enabling it in the configuration file and providing a certificate.");
             }
 
             app.UseAuthentication();

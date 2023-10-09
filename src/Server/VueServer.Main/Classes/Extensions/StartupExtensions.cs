@@ -210,32 +210,6 @@ namespace VueServer.Classes.Extensions
         }
 
         /// <summary>
-        /// HTTPS redirection settings. Seperate redirect ports and status codes based on development/production
-        /// </summary>
-        /// <param name="services"></param>
-        /// <param name="env"></param>
-        public static void AddCustomHttpsRedirection(this IServiceCollection services, IWebHostEnvironment env, IConfiguration config)
-        {
-            var port = config.GetSection("Options").GetValue<int>("Port");
-            if (env.IsDevelopment())
-            {
-                services.AddHttpsRedirection(options =>
-                {
-                    options.HttpsPort = port;
-                    options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
-                });
-            }
-            else
-            {
-                services.AddHttpsRedirection(options =>
-                {
-                    options.HttpsPort = port;
-                    options.RedirectStatusCode = StatusCodes.Status301MovedPermanently;
-                });
-            }
-        }
-
-        /// <summary>
         /// Add GZip compression to non-HTTPS requests
         /// </summary>
         /// <param name="services"></param>
