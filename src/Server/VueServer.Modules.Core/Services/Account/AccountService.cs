@@ -198,12 +198,13 @@ namespace VueServer.Modules.Core.Services.Account
             }
 
             DateTime now = DateTime.UtcNow;
+            var unixTimeSeconds = new DateTimeOffset(now).ToUnixTimeSeconds();
             // Claims to register the JWT
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, GenerateBase64RandomNumber()),
-                new Claim(JwtRegisteredClaimNames.Iat, now.ToUniversalTime().ToString(), ClaimValueTypes.Integer64),
+                new Claim(JwtRegisteredClaimNames.Iat, unixTimeSeconds.ToString(), ClaimValueTypes.Integer64),
                 new Claim(ClaimTypes.Role, roles[0])
             };
             //ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "Token");
@@ -944,13 +945,14 @@ namespace VueServer.Modules.Core.Services.Account
         /// <returns></returns>
         private string GenerateJwtToken(IEnumerable<Claim> claims)
         {
+            var now = DateTime.UtcNow;
             var token = new JwtSecurityToken
             (
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddMinutes(JWT_REFRESH_TIME),
+                notBefore: now,
+                expires: now.AddMinutes(JWT_REFRESH_TIME),
                 signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:SigningKey"])), SecurityAlgorithms.HmacSha256)
             );
             return new JwtSecurityTokenHandler().WriteToken(token);
