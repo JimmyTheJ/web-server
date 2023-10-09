@@ -8,7 +8,7 @@ client="$path/src/Client/vue-server-ui"
 wwwroot="$server/wwwroot"
 dist="$client/dist"
 env="ubuntu.22.04-x64"
-framework="net5.0"
+framework="net7.0"
 serverBuildOutput="$server/bin/Release/$framework/$env/publish/"
 
 # Build Front-End
