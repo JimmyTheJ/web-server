@@ -155,7 +155,13 @@ namespace VueServer.Modules.Directory.Services
 
         public async Task<IServerResult<bool>> CreateDefaultFolder(string username)
         {
-            var user = await _user.GetUserByIdAsync(username);
+            if (username == null)
+            {
+                _logger.LogTrace($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: Username provided was null. Cannot create default folder");
+                return new Result<bool>(false, Domain.Enums.StatusCode.BAD_REQUEST);
+            }
+
+            var user = await _user.GetUserByIdAsync(username.ToLower());
             if (user == null)
             {
                 _logger.LogTrace($"[{this.GetType().Name}] {nameof(CreateDefaultFolder)}: User does not exist in database. Cannot create default folder");

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VueServer.Domain;
+using VueServer.Modules.Core.Extensions;
 using VueServer.Modules.Core.Models.User;
 
 namespace VueServer.Modules.Core.Context
@@ -11,19 +12,7 @@ namespace VueServer.Modules.Core.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            // Setup ClusteredId and Primary key as the Id
-            modelBuilder.Entity<WSUser>().HasKey(x => x.Id).IsClustered(false);
-            modelBuilder.Entity<WSUser>().HasIndex(x => x.ClusterId).IsUnique().IsClustered();
-            modelBuilder.Entity<WSUser>().Property(x => x.ClusterId).ValueGeneratedOnAdd();
-            modelBuilder.Entity<WSRole>().HasKey(x => x.Id).IsClustered(false);
-            modelBuilder.Entity<WSRole>().HasIndex(x => x.ClusterId).IsUnique().IsClustered();
-            modelBuilder.Entity<WSRole>().Property(x => x.ClusterId).ValueGeneratedOnAdd();
-
-            // Setup ClusteredId and Primary key as the IP Address for guest login meta data table
-            modelBuilder.Entity<WSGuestLogin>().HasKey(x => x.IPAddress).IsClustered(false);
-            modelBuilder.Entity<WSGuestLogin>().HasIndex(x => x.ClusterId).IsUnique().IsClustered();
-            modelBuilder.Entity<WSGuestLogin>().Property(x => x.ClusterId).ValueGeneratedOnAdd();
+            modelBuilder.SetupWSContextModelForSqlServer();
         }
 
         public SqlServerWSContext(DbContextOptions<SqlServerWSContext> options) : base(options) { }

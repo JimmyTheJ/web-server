@@ -27,7 +27,7 @@
                 internal const string GetUserDirectories = AdminString + "user/get";
                 internal const string AddUserDirectory = AdminString + "user/add";
                 internal const string DeleteUserDirectory = AdminString + "user/delete/{id}";
-                internal const string CreateDefaultFolder = AdminString + "user/create-default-directory/{id}";
+                internal const string CreateDefaultFolder = AdminString + "user/create-default-directory/{username}";
             }
         }
 

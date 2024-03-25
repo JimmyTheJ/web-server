@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using VueServer.Domain;
 using VueServer.Modules.Core.Context;
+using VueServer.Modules.Core.Extensions;
 
 namespace VueServer.Modules.Library.Context
 {
@@ -17,6 +18,12 @@ namespace VueServer.Modules.Library.Context
         }
 
         public SqliteLibraryContext(DbContextOptions<MySqlLibraryContext> options) : base(options) { }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.SetupWSContextModelForSqliteMySql();
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

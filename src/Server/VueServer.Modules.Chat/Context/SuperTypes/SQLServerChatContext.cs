@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VueServer.Domain;
 using VueServer.Modules.Core.Context;
+using VueServer.Modules.Core.Extensions;
 
 namespace VueServer.Modules.Chat.Context
 {
@@ -9,6 +10,12 @@ namespace VueServer.Modules.Chat.Context
         public SqlServerChatContext() : base() { }
 
         public SqlServerChatContext(DbContextOptions<MySqlChatContext> options) : base(options) { }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.SetupWSContextModelForSqlServer();
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
