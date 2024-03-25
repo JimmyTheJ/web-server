@@ -158,6 +158,11 @@ DocProject/Help/html
 # Click-Once directory
 publish/
 
+# Sqlite Database
+*.db
+*.db-shm
+*.db-wal
+
 # Publish Web Output
 *.[Pp]ublish.xml
 *.azurePubxml

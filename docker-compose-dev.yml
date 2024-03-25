@@ -1,0 +1,42 @@
+#blackfish
+version: '3.8'
+services:
+  nginx:
+    depends_on:
+      - api
+      - client
+    restart: always
+    build:
+      context: ./src/nginx
+      dockerfile: Dockerfile.dev
+    ports:
+      - '3000:80'
+      - '4000:443'
+
+  mariadb:
+    image: mariadb
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: example
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+  client:
+    build:
+      context: ./src/client
+      dockerfile: Dockerfile.dev
+
+  api:
+    depends_on:
+    - mariadb
+    build:
+      context: ./src/server
+      dockerfile: Dockerfile.dev
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://0.0.0.0:5000
+    

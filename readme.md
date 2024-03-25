@@ -77,11 +77,17 @@ Additional modules include:
 	- `2 = MS SQL Server`
 	- `3 = MySQL`
 
-2. Currently FFMpeg is packaged with VueServer.Services project, but not included in the repo. You will need to download this from https://www.ffmpeg.org/download.html and put ffmpeg.exe and ffprobe.exe in the base level of VueServer.Services project folder.
+1. Database connection strings for each are something along the lines of this:
 
-3. System will be created with a default Adminstrator account called `admin`. The password can be found in: `./src/Server/Domain/Common/DomainConstants.cs` under variable `DEFAULT_PASSWORD`
+	- `"WebServerDbConnectionString": "Data Source=database.db"`
+	- `"WebServerDbConnectionString": "Server=YOUR_SERVER; Database=YOUR_DB; Trusted_Connection=true; MultipleActiveResultSets=true"`
+	- `"WebServerDbConnectionString": "Server=127.0.0.1; Database=YOUR_DB; User=root; Password=MyMariaPassword;"`
 
-4. Context Types:
+1. Currently FFMpeg is packaged with VueServer.Services project, but not included in the repo. You will need to download this from https://www.ffmpeg.org/download.html and put ffmpeg.exe and ffprobe.exe in the base level of VueServer.Services project folder.
+
+1. System will be created with a default Adminstrator account called `admin`. The password can be found in: `./src/Server/Domain/Common/DomainConstants.cs` under variable `DEFAULT_PASSWORD`
+
+1. Context Types:
 
 	- `SqliteWSContext`
 	- `SQLServerWSContext`
